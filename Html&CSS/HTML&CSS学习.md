@@ -1,10 +1,4 @@
-> 简称
->
-> URL：统一资源定位符，即 Uniform Resource Locator 的缩写
->
-> Http:超文本传输协议，即 Hypertext Transfer Protocol 的缩写
->
-> DOM：DocumentObject Model
+> 项目实战见：https://github.com/PangPang1999/moshify
 
 # 基础概念
 
