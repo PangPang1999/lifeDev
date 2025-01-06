@@ -2755,7 +2755,7 @@ console.log(another);
 
 ## 内置 `Math` 对象
 
-> JavaScript 提供了一个非常强大的内置对象 —— **`Math`** 对象，专门用于处理各种数学常数和函数。这个对象包含了许多有用的属性和方法，可以帮助你进行数学运算，比如求最大值、最小值、生成随机数等。
+> JavaScript 提供了一个非常强大的内置对象 —— **`Math`** 对象，专门用于处理各种数学常数和函数。这个对象包含了许多有用的属性和方法，可以帮助你进行数学运算，比如求最大值、最小值、生成随机数等。[Google：javascript math](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math)
 
 **`Math` 对象概述**
 
