@@ -2755,11 +2755,11 @@ console.log(another);
 
 ## 内置 `Math` 对象
 
-> JavaScript 提供了一个非常强大的内置对象 —— **`Math`** 对象，专门用于处理各种数学常数和函数。这个对象包含了许多有用的属性和方法，可以帮助你进行数学运算，比如求最大值、最小值、生成随机数等。[Google：javascript math](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math)
+> JavaScript 提供了一个非常强大的内置对象 —— **`Math`** 对象，专门用于处理各种数学常数和函数。这个对象包含了许多有用的属性和方法，可以帮助你进行数学运算，比如求最大值、最小值、生成随机数等。Google：javascript math
 
 **`Math` 对象概述**
 
-`Math` 对象是一个内置的全局对象，不需要使用 `new` 关键字来创建它的实例。它包含了许多静态属性和方法，帮助我们处理数学运算。
+`Math` 对象是一个内置的全局对象，不需要使用 `new` 关键字来创建它的实例。它包含了许多静态属性和方法，帮助我们处理数学运算。常见用法见[链接](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math)
 
 - 常用属性：
 
@@ -2787,57 +2787,24 @@ console.log(another);
 
 **使用 `Math` 对象**
 
-让我们来看一些 `Math` 对象的常用方法，并通过控制台进行演示。
-
-- 示例 1：生成一个随机数
-
-`Math.random()` 方法会返回一个介于 `0`（包括）和 `1`（不包括）之间的随机浮动数。
-
 ```js
-console.log(Math.random());
-```
+let x;
 
-每次调用 `Math.random()`，都会返回一个不同的随机数。
+// 生成0-1的随机数
+// x = Math.random();
 
-- 示例 2：生成介于两个值之间的随机数
+//四舍五入
+// x = Math.round(1.9);
 
-你可以使用 `Math.random()` 生成一个介于两个特定值之间的随机数。例如，生成一个 1 到 100 之间的随机整数：
+// 找出最大数
+x = Math.max(1, 2, 3, 4, 5);
 
-```js
-function getRandomBetween(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+console.log(x);
+
+// 生成指定区间的随机数（链接也有）
+function getRandomArbitrary(min, max) {
+  return Math.random() * (max - min) + min;
 }
-
-console.log(getRandomBetween(1, 100)); // 输出：介于1到100之间的随机整数
-```
-
-- 解释：
-
-  - `Math.random()` 生成一个 0 到 1 之间的随机浮动数。
-  - `Math.floor()` 将浮动数转换为小于等于该数的最大整数。
-
-- 示例 3：找出最大值和最小值
-
-  - `Math.max()`：返回一组数字中的最大值。
-
-  - `Math.min()`：返回一组数字中的最小值。
-
-```js
-console.log(Math.max(10, 20, 30, 5)); // 输出：30
-console.log(Math.min(10, 20, 30, 5)); // 输出：5
-```
-
-你可以传递任意多个参数给 `Math.max()` 和 `Math.min()`，它们会返回其中的最大或最小值。
-
-- 示例 4：计算一个数的平方根和幂
-
-  - `Math.sqrt()`：返回一个数的平方根。
-
-  - `Math.pow()`：返回 `x` 的 `y` 次方。
-
-```js
-console.log(Math.sqrt(16)); // 输出：4
-console.log(Math.pow(2, 3)); // 输出：8
 ```
 
 ## 字符串对象 (`String`)
