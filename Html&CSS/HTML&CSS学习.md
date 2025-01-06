@@ -1,203 +1,55 @@
 > 简称
 >
-> URL：统一资源定位符，即Uniform Resource Locator的缩写
+> URL：统一资源定位符，即 Uniform Resource Locator 的缩写
 >
-> Http:超文本传输协议，即Hypertext Transfer Protocol的缩写
+> Http:超文本传输协议，即 Hypertext Transfer Protocol 的缩写
 >
 > DOM：DocumentObject Model
 
-# 工具
-
-## VS Code
-
-> https://code.visualstudio.com
->
-> 安装插件：
->
-> - Prettier——代码格式工具
-> - LiveServer——启用本地服务器，便于在浏览器上查看代码效果
-> - indent-rainbow——缩进
-> - Material Icon Theme——图标
-> - HTML CSS Support
-> - CSS Peek
-> - Highlight Matching Tag
-> - TODO Highlight
->
-> setting文件代码，含代码颜色、自动格式化，见最后
-
-## 滚动动画aos
-
-> https://michalsnik.github.io/aos/
-
-## **Chrome Dev**
-
-> https://www.google.com/chrome/dev/
->
-> `Option + Command + I`打开开发者工具
-
-## Validator
-
-当页面效果不如预期，准备更改时，可以尝试使用
-
-> HTML Validator
->
-> https://validator.w3.org
->
-> CSS Validator
->
-> https://jigsaw.w3.org/css-validator/
-
-## HTML Entity
-
-> https://www.w3schools.com/charsets/ref_html_entities_4.asp
-
-## 图片视频素材
-
-> https://unsplash.com
-
-## Normalize.css
-
-> https://necolas.github.io/normalize.css/
-
-## 查看浏览器区别
-
-> https://caniuse.com
-
-## CSS创建渐变
-
-> https://cssgradient.io/
-
-## CSS形状
-
-> https://css-tricks.com/the-shapes-of-css/
-
-## 字体下载
-
-> 免费：https://www.fontsquirrel.com
->
-> 练习时使用的OPEN SANS，该网站有Webfont Generator，可以将字体转化woff和woff2
->
-> 免费：谷歌搜索Google Fonts、Adobe Fonts
->
-> 付费：https://www.myfonts.com
-
-## 字体比较
-
-> https://typescale.com
-
-## ICON下载
-
-> https://www.flaticon.com/free-icons/lander
-
-## CSS/SVG SPRITES工具
-
-> http://cssspritestool.com
->
-> 若失效，谷歌搜索css sprites generator
->
-> SVG图片也可以使用该技术：https://svgsprit.es/
-
-## DATA URL工具
-
-> https://www.cssportal.com/image-to-data/
->
-> 若失效，谷歌搜索data url generator
-
-## CSS CLIP工具
-
-> https://www.cssportal.com/css-clip-path-generator/
->
-> https://bennettfeely.com/clippy/
->
-> 若失效，谷歌搜索css clip generator
-
-## CSS滤镜
-
-> https://www.w3schools.com/cssref/css3_pr_filter.php
->
-> 滑到下方Try
-
-## 图片分辨率拆分
-
-> https://www.responsivebreakpoints.com
-
-## SVG素材付费网站
-
-> https://www.svgbackgrounds.com
-
-## 字符图标资源网站
-
-> https://fontawesome.com/
-
-## CSS元素过渡速度调整
-
-> https://cubic-bezier.com/
-
-## CSS常用动画代码
-
-> https://animate.style/
-
-## 浏览器优化
-
-> https://ogp.me/
->
-> 需要加上标题、描述、以及其他meta，参考上面的网站，我们搜索一件事情，会出现很多内容，这些meta优化了我们会看到什么的这个过程
-
-## 构建工具
-
-> 测试项目使用的parcel，确实很方便
->
-> https://parceljs.org/
->
-> 此外流行的还有vite、webpage等
-
-## 部署工具
-
-> 可以将项目部署在在线平台上，无需购买服务器
->
-> https://app.netlify.com/
-
-## 评估网页
-
-> [Article](https://web.dev/articles/vitals)内写了网页三个方面评估的详细标准：*loading*, *interactivity*, and *visual stability*
->
-> - 最大内容绘制 （LCP）：测量加载性能。为了提供良好的用户体验，LCP 应在页面首次开始加载后的 2.5 秒内发生。 
-> - 与下一个绘制的交互 （INP）：测量交互性。为了提供良好的用户体验，页面的 INP 应为 200 毫秒或更短。 
-> - 累积布局偏移 （CLS）：测量视觉稳定性。为了提供良好的用户体验，页面应保持 CLS 为 0.1。或更少。
->
-> Chrome Dev的`Ligthhouse`和`Performance`标签内可以分析网页性能
-
 # 基础概念
 
-## web的工作原理
+## web 的工作原理
 
 > 大致原理介绍
 
-当在浏览器（客户端）中输入url即网址，如http://codewithmosh.com，并按下回车后，客户端向服务器发送**http请求**资源。
+1. 当在浏览器（客户端）中输入 url 即网址，如http://codewithmosh.com，并按下回车后，客户端向服务器发送**http请求**资源。
 
-http请求包含请求方法、目标资源（如`index.html`）、服务器域名（如`codewithmosh.com`）等内容。
+2. http 请求包含请求方法、目标资源（如`index.html`）、服务器域名（如`codewithmosh.com`）等内容。
 
-服务器收到请求后，给予客户端**http响应**。
+3. 服务器收到请求后，给予客户端**http 响应**。
 
-http响应包含协议版本、状态码（如200表示成功）、时间、内容类型（如`text/html`）以及HTML文档等内容。
+4. http 响应包含协议版本、状态码（如 200 表示成功）、时间、内容类型（如`text/html`）以及 HTML 文档等内容。
 
-客户端读取HTML文档并构建DOM(DocumentObject Model)，HTML文档中可能包含其他资源（如图片、字体等）的引用，浏览器会发送独立的HTTP请求以加载这些资源。
+5. 客户端读取 HTML 文档并构建 DOM(DocumentObject Model)，HTML 文档中可能包含其他资源（如图片、字体等）的引用，浏览器会发送独立的 HTTP 请求以加载这些资源。
 
-一旦DOM准备好，浏览器渲染页面并展示。
+6. 一旦 DOM 准备好，浏览器渲染页面并展示。
 
-大体上分为：请求，收到响应、资源加载、构建DOM模型、页面渲染
+7. 大体上分为：请求，收到响应、资源加载、构建 DOM 模型、页面渲染
 
-- URL：统一资源定位符，即Uniform Resource Locator的缩写
-- Resource：互联网资源（如网页、图片、视频文件、字体等）
-- Http:超文本传输协议，即Hypertext Transfer Protocol的缩写，是客户端与服务器之间交流的语言。
-- Https：加密的传输协议，即http+Encryption，保证数据传输安全
-- 请求：客户端向服务器发送的消息，描述所需资源。
-- 响应：服务器返回的消息，包含所需资源及状态信息。
-- DOM：即Document Object Model，一个展示在HTML文档中的元素(Element)的文档(Document)
+   - URL：统一资源定位符，即 Uniform Resource Locator 的缩写
 
-## HTML入门
 
-> 配合VS code，创建HTML，其内创建index.html、images文件夹
+   - Resource：互联网资源（如网页、图片、视频文件、字体等）
+
+
+   - Http:超文本传输协议，即 Hypertext Transfer Protocol 的缩写，是客户端与服务器之间交流的语言。
+
+
+   - Https：加密的传输协议，即 http+Encryption，保证数据传输安全
+
+
+   - 请求：客户端向服务器发送的消息，描述所需资源。
+
+
+   - 响应：服务器返回的消息，包含所需资源及状态信息。
+
+
+   - DOM：即 Document Object Model，一个展示在 HTML 文档中的元素(Element)的文档(Document)
+
+
+## HTML 入门
+
+> 配合 VS code，创建 HTML，其内创建 index.html、images 文件夹
 
 代码：
 
@@ -215,20 +67,20 @@ http响应包含协议版本、状态码（如200表示成功）、时间、内�
 </html>
 ```
 
-- HTML是一种不区分大小写的语言，通常使用小写字母，但是`<!DOCTYPE html>`中的DOCTYPE是例外。此为HTML没有严格的格式，将所有代码放在一行也能正常工作。
+- HTML 是一种不区分大小写的语言，通常使用小写字母，但是`<!DOCTYPE html>`中的 DOCTYPE 是例外。此为 HTML 没有严格的格式，将所有代码放在一行也能正常工作。
 - `<html>` 标签来定义网页的结构，里面可以添加两个主要部分`<head>`、`<body>`
-- `<head>`：用于提供网页信息（例如标题），这里设置了My First Page
+- `<head>`：用于提供网页信息（例如标题），这里设置了 My First Page
 - `<body>`：用于定义网页的主要内容，这里添加了图片`<img>`和段落`<p>`
-- `<img>`：使用 `src` 属性指定图片路径，例如 `images/xx.png`，可选的 `alt` 属性用于提供图片无法加载时的替代文本。这里的images文件夹和index.html在同一层级
+- `<img>`：使用 `src` 属性指定图片路径，例如 `images/xx.png`，可选的 `alt` 属性用于提供图片无法加载时的替代文本。这里的 images 文件夹和 index.html 在同一层级
 - `<p>`：段落标签
 - HTML 标签通常包括 开始标签 和 结束标签，但是也有例外，如`<img>`
 
-- 使用快捷键或者点击，可以启动LiveServer，保存后，浏览器会自动刷新
-- 浏览器中可以看到页面标签为代码中title中内容
+- 使用快捷键或者点击，可以启动 LiveServer，保存后，浏览器会自动刷新
+- 浏览器中可以看到页面标签为代码中 title 中内容
 - 浏览器链接框中的`http://127.0.0.1:5500/index.html`，`127.0.0.1`代表本地计算机，后面的数字是服务器监听的端口号
 - 因为还没有添加 CSS，页面看起来并不美观
 
-## CSS入门
+## CSS 入门
 
 代码：
 
@@ -259,17 +111,17 @@ http响应包含协议版本、状态码（如200表示成功）、时间、内�
 </html>
 ```
 
-- `<style>`：在其内写css代码
+- `<style>`：在其内写 css 代码
 - `img{}`：关联`<img>`，可以设置相关的样式，如宽度、圆角、浮动、边距等
 - `p.username{}`：给带有`username`类名的`<p>`设置格式，如字体粗细、大小、颜色等
 - `<p class="username">@pangpang</p>`：给`<p>`加上类名
-- `.username{}`：若为该情况，则给所有带有`username`类名的HTML标签添加样式
+- `.username{}`：若为该情况，则给所有带有`username`类名的 HTML 标签添加样式
 
-# HTML基础
+# HTML 基础
 
 ## HEAD
 
-对于空白文件，第一个`!`，可以自动补全一个HTML基础模版
+对于空白文件，第一个`!`，可以自动补全一个 HTML 基础模版
 
 ```HTML
 <!DOCTYPE html>
@@ -291,15 +143,15 @@ http响应包含协议版本、状态码（如200表示成功）、时间、内�
 
 接下来是一个用于配置视口的 meta 元素。视口是网页的可见区域。在桌面设备上，我们可以通过调整浏览器大小来改变视口的尺寸，而在移动设备或平板电脑上，视口通常较小，通过这个 meta 元素，我们可以定义视口的初始宽度和缩放比例。这是为了确保网页在所有设备（手机、平板电脑和台式机）上的显示效果良好。
 
-除了这两个基本的 meta 元素，还有很多的 meta 元素可以使用，如description
+除了这两个基本的 meta 元素，还有很多的 meta 元素可以使用，如 description
 
 ## TEXT
 
-> 通过用p和h展示文字和层级
+> 通过用 p 和 h 展示文字和层级
 
 代码
 
-```html 
+```html
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -330,16 +182,16 @@ http响应包含协议版本、状态码（如200表示成功）、时间、内�
 </html>
 ```
 
-- `<p>`段落中可以加入其他标签，并配合style设置字体样式
-- `<em>`：默认斜体，配合style设置字体样式
-- `<i>`：即italic，斜体但是不建议使用，样式需要在css中调整
-- `<strong>`：默认加粗，配合style设置字体样式，
-- `<b>`：即bold，粗体但是不建议使用，样式需要在css中调整
-- `<h1>`：h1-6表层级，不能当字体使用，一个页面最多存在一个h1
+- `<p>`段落中可以加入其他标签，并配合 style 设置字体样式
+- `<em>`：默认斜体，配合 style 设置字体样式
+- `<i>`：即 italic，斜体但是不建议使用，样式需要在 css 中调整
+- `<strong>`：默认加粗，配合 style 设置字体样式，
+- `<b>`：即 bold，粗体但是不建议使用，样式需要在 css 中调整
+- `<h1>`：h1-6 表层级，不能当字体使用，一个页面最多存在一个 h1
 
-## HTML字符实体
+## HTML 字符实体
 
-部分特殊的文本或者需求，需要借助HTML字符实体才能正常输出
+部分特殊的文本或者需求，需要借助 HTML 字符实体才能正常输出
 
 若想要输出
 
@@ -356,10 +208,10 @@ How’s everything going with you <today>
 当输出段落时想要一个短语不会因为换行而分开，需要使用`&nbsp;`
 
 ```html
-  <p>
-    In China, programmers who can communicate fluently in spoken English have
-    a&nbsp;significant&nbsp;advantage.
-  </p>
+<p>
+  In China, programmers who can communicate fluently in spoken English have
+  a&nbsp;significant&nbsp;advantage.
+</p>
 ```
 
 ## 超链接
@@ -395,7 +247,7 @@ How’s everything going with you <today>
 </html>
 ```
 
-- `<a>`：a为anchor的简称
+- `<a>`：a 为 anchor 的简称
 - 引用本地文件：
   - `/images/xx.png`代表根目录开始引用
   - `/images/xx.png/`代表从同级目录开始引用
@@ -403,7 +255,7 @@ How’s everything going with you <today>
 - 资源查看下载：可以引用资源地址，点击链接后单独打开页签查看，加上`download`之后，点击链接效果为下载资源，`download="xx.png "`可以设置文件名
 - 网页：网址需要加上`https:/`，设置`target="_blank"`可以实现跳转时打开新页签
 - 邮箱：使用`mailto`可以实现跳转到邮件发送
-- 页面位置：使用超链接可以跳转到页面指定位置，如配合id使用
+- 页面位置：使用超链接可以跳转到页面指定位置，如配合 id 使用
 
 ## 图片入门
 
@@ -464,7 +316,7 @@ How’s everything going with you <today>
 ```
 
 - `<video>`：引用资源方式一致
-- `controls`控制面板属性，只要加了这个属性，就会显示控制面板，无论其设为true或false，移除控制面板的方式是将这个属性移除
+- `controls`控制面板属性，只要加了这个属性，就会显示控制面板，无论其设为 true 或 false，移除控制面板的方式是将这个属性移除
 - `autoplay`：设置视频自动播放
 - `loop`：设置视频循环播放
 - `<audio>`：上述属性对音频也适用
@@ -536,7 +388,7 @@ How’s everything going with you <today>
 
 - **`<ol>`**：配合`<li>`组成**有序列表**，列表项默认使用数字排序。可以嵌套其他列表。
 
-- **`list-style-type`**：CSS 属性，适用于 `<ul>` 和 `<ol>`，用于修改列表符号样式（如方块square、圆点、数字、罗马数字等）。
+- **`list-style-type`**：CSS 属性，适用于 `<ul>` 和 `<ol>`，用于修改列表符号样式（如方块 square、圆点、数字、罗马数字等）。
 
 - **`<dl>`**：配合`<dt>`和`<dd>`组成**描述列表**。用于表示术语、名称与描述的对应关系。
 
@@ -708,7 +560,7 @@ How’s everything going with you <today>
 </html>
 ```
 
--  **`<article>`**：用于表示独立的、自包含的内容单元，例如：博客文章、用户评论、产品卡片
+- **`<article>`**：用于表示独立的、自包含的内容单元，例如：博客文章、用户评论、产品卡片
 
 - **`<figure>` 和 `<figcaption>`**
 
@@ -778,7 +630,7 @@ How’s everything going with you <today>
 - `<aside>`：用于显示与主要内容无直接关联的附属内容，如广告、推荐阅读或链接列表。
 - `<footer>`：通常表示网页或某个部分的页脚内容，常包含版权声明、次级导航、社交媒体链接等。
 
-# CSS基础
+# CSS 基础
 
 ## 提供 CSS 样式
 
@@ -817,6 +669,7 @@ p{
 ```
 
 - **嵌入式样式表**：将 CSS 样式直接写在 HTML 文件中的 `<style>` 标签内。
+
   - **不具备可扩展性**：多页面共享样式时，需要手动复制样式。
   - **违反关注点分离原则**：HTML（结构）和 CSS（样式）混在一起。
 
@@ -827,6 +680,7 @@ p{
   - 更符合关注点分离原则。
 
 - **行内样式**：将样式直接写在 HTML 元素的 `style` 属性中。
+
   - 样式与内容混在一起，不易维护。
   - 不建议使用，除非是临时快速测试。
 
@@ -865,7 +719,7 @@ p{
 
 - `normalize.css` 将 HTML 元素的默认行高设置为 `1.15`，以统一各浏览器的显示，并将 `body` 元素的默认外边距设置为 `0`，消除不必要的空白。
 
-- 引入 `normalize.css` 后可能会导致页面一些默认样式（如 `body` 的间距）消失。可以通过自定义样式恢复或调整。比如在style.css中加入如下代码恢复边距。
+- 引入 `normalize.css` 后可能会导致页面一些默认样式（如 `body` 的间距）消失。可以通过自定义样式恢复或调整。比如在 style.css 中加入如下代码恢复边距。
 
   ```
   body {
@@ -873,17 +727,17 @@ p{
   }
   ```
 
-- 注意：由于代码执行顺序是由上往下，需要先引入normalize.css，再引入自定义css对其进行覆盖
+- 注意：由于代码执行顺序是由上往下，需要先引入 normalize.css，再引入自定义 css 对其进行覆盖
 
 ## 基本选择器
 
 > CSS 提供多种方法来选择元素进行样式设置，包括按类型（type）、ID、类（class）和属性（atrributes）进行选择。
 
 - 类型选择器：如`img{}`、`body{}`
-- ID选择器：如`#products{}`，配合在标签上加上`id="products"`使用，id是唯一的
+- ID 选择器：如`#products{}`，配合在标签上加上`id="products"`使用，id 是唯一的
 
-- 类选择器：如`.product{}`，配合在标签上加上`class="product"`使用，class非唯一
-- 属性选择器（不常见）：如`a[target="_blank"]{}`择所有具有 `target="_blank"` 的 a 标签；如`a[href="baidu"]{}`择所有具有`href="baidu"`的 a 标签。此外`=`能设置规则能进行筛选。如`^="http"`表示以http开头，`$="com"`表示以com结尾，`*="baidu"`表示包含baidu，此外还可以同时筛选多个条件，如`a[href^="http"][href*="baidu"][target="_blank"] {}`
+- 类选择器：如`.product{}`，配合在标签上加上`class="product"`使用，class 非唯一
+- 属性选择器（不常见）：如`a[target="_blank"]{}`择所有具有 `target="_blank"` 的 a 标签；如`a[href="baidu"]{}`择所有具有`href="baidu"`的 a 标签。此外`=`能设置规则能进行筛选。如`^="http"`表示以 http 开头，`$="com"`表示以 com 结尾，`*="baidu"`表示包含 baidu，此外还可以同时筛选多个条件，如`a[href^="http"][href*="baidu"][target="_blank"] {}`
 - 包含关系：如设置`article .blueOne`可以选
 
 ## 关系选择器
@@ -893,7 +747,7 @@ p{
 代码
 
 ```css
-#products > p{
+#products > p {
   color: orange;
 }
 
@@ -927,7 +781,7 @@ section #second {
 </html>
 ```
 
-- `#products + p`：id+元素标签（class效果基本相同）
+- `#products + p`：id+元素标签（class 效果基本相同）
 
   - 空格：后代选择器，选择所有层级的后代元素。
   - `>`：子选择器，仅选择直接子元素。
@@ -936,7 +790,7 @@ section #second {
 
   - `~`：通用兄弟选择器，选择所有兄弟元素（同级，在后面）。
 
-- `section #first`：元素标签+id，筛选该元素标签下对应id的元素修改样式（class效果基本相同）f
+- `section #first`：元素标签+id，筛选该元素标签下对应 id 的元素修改样式（class 效果基本相同）f
 
 ## 伪类选择器
 
@@ -949,12 +803,12 @@ section #second {
   :first-child {
     font-weight: bold;
   }
-  
+
   /* 仅匹配 <article> 元素中的第一个子元素 */
   article :first-child {
     font-weight: bold;
   }
-  
+
   /* 仅匹配 <article> 中的第一个 <p> 元素 */
   article p:first-child {
     color: red;
@@ -988,6 +842,7 @@ section #second {
 - **`::first-line`**：选择并设置块级元素的第一行文本样式。如对段落的第一行文字设置斜体或调整行高。
 
 - **`::selection`**：设置用户选中部分文本的样式。如更改选中文本的背景颜色或文字颜色。如`::selection{color: pink;}`
+
   - 注意：仅支持部分样式属性，如 `color`、`background` 和 `text-shadow`。
   - **`::before`**：在元素内容前插入内容。如在标题或段落前添加图标、装饰性内容或提示文字。如`p::before{content: "...";}`，还可以加上`display: block;`令其单独占一行
 
@@ -1024,7 +879,7 @@ h1 {
   color: green;
 }
 #product {
-  color:darkblue;
+  color: darkblue;
 }
 
 /* .highlight {
@@ -1036,10 +891,10 @@ h1 {
 }
 ```
 
-- VS code可以查看优先级，如`#product` 的优先级是 `1, 0, 0`，`.highlight` 的优先级是 `0, 1, 0`。
+- VS code 可以查看优先级，如`#product` 的优先级是 `1, 0, 0`，`.highlight` 的优先级是 `0, 1, 0`。
 - 当两个规则的优先级相同时，后定义的规则生效
 - `!important`：可以提升优先级，但是不推荐使用
-- 使用更具体的选择器，如ID 和类选择器的组合权重为`1, 1, 0`能提升优先级
+- 使用更具体的选择器，如 ID 和类选择器的组合权重为`1, 1, 0`能提升优先级
 
 ## 继承
 
@@ -1133,7 +988,7 @@ strong {
 代码
 
 ```css
-.box{
+.box {
   width: 600px;
   height: 300px;
   /* background:linear-gradient(yellow, dodgerblue);
@@ -1146,13 +1001,18 @@ strong {
   background: radial-gradient(white, yellow);
   background: radial-gradient(circle,white, yellow);
   background: radial-gradient(circle at top left,white, yellow); */
-  background: rgb(244,96,108);
-  background: linear-gradient(90deg, rgba(244,96,108,1) 10%, rgba(190,231,233,1) 90%);
+  background: rgb(244, 96, 108);
+  background: linear-gradient(
+    90deg,
+    rgba(244, 96, 108, 1) 10%,
+    rgba(190, 231, 233, 1) 90%
+  );
 }
 ```
 
 - 基本概念：**渐变是一种图像**，不能使用 `background-color` 属性设置，而需要使用**`background-image`** 属性或者 **`background`** 属性（可同时设置颜色和图像）
 - **线性渐变**：使用 `linear-gradient()` 函数。格式为`linear-gradient(方向, 颜色1, 颜色2, ...)`。
+
   - **简单渐变**：`linear-gradient(dodgerblue, yellow)`。
   - **调整方向**：如`to right`是从左到右`to bottom right`是从左上到右下，还自定义角度，单位为度（°）如`45deg`。
   - **设置颜色位置**：可以指定颜色的开始位置如`linear-gradient(dodgerblue 30%, yellow 70%)`。
@@ -1171,19 +1031,18 @@ strong {
 代码：
 
 ```css
-.box{
+.box {
   width: 300px;
   height: 300px;
   background: gold;
   /* border:10px solid dodgerblue; */
   /* border:10px dotted dodgerblue; */
-  border:10px dashed dodgerblue;
+  border: 10px dashed dodgerblue;
   /* border-top: 20px solid dodgerblue; */
   border-width: 10px 20px 30px 40px;
   /* border-width: 10px 20px 30px; */
   /* border-width: 10px 20px; */
   border-radius: 100%;
-
 }
 ```
 
@@ -1204,7 +1063,7 @@ strong {
   - 两个值：分别代表 `上下`、`左右`。
   - 一个值：所有方向使用相同宽度。
 - 通过 `border-radius` 属性，可以使边框的角变圆，单位可以是像素（`px`）或百分比（`%`），当值为 `100%` 且元素是正方形时，边框会变成 **圆形**。
-- 通过边框和 `border-radius`，可以生成各种形状，可以使用 CSS Shapes Generator在线工具https://css-tricks.com/the-shapes-of-css/ 探索更多形状
+- 通过边框和 `border-radius`，可以生成各种形状，可以使用 CSS Shapes Generator 在线工具https://css-tricks.com/the-shapes-of-css/ 探索更多形状
 
 ## 阴影
 
@@ -1213,18 +1072,17 @@ strong {
 代码：
 
 ```css
-.box{
+.box {
   width: 300px;
   height: 300px;
-  background-color:dodgerblue;
+  background-color: dodgerblue;
   box-shadow: 0 0 30px gray;
   /* box-shadow: 10px 10px 10px 10px rgba(0,0,0,0.5); */
-
 }
 
-h1{
+h1 {
   color: white;
-  text-shadow: 3px 5px 5px rgba(0,0,0,0.5);
+  text-shadow: 3px 5px 5px rgba(0, 0, 0, 0.5);
 }
 ```
 
@@ -1351,7 +1209,9 @@ h1{
 ```
 
 ```css
-* ,*::before,*::after{
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -1359,12 +1219,12 @@ body {
   margin: 10px;
 }
 
-.box{
+.box {
   height: 100px;
   width: 100px;
   background-color: #ffd700;
   padding: 20px 20px;
-  border:5px solid dodgerblue;
+  border: 5px solid dodgerblue;
   /* box-sizing: content-box; */
   display: inline-block;
 }
@@ -1381,6 +1241,7 @@ body {
     - 推荐通过通用选择器（`*`）将 `box-sizing: border-box;` 应用于所有元素。
     - 注意：需要扩展选择器以覆盖伪元素（如 `::before` 和 `::after`）。
 - 块/内联元素与尺寸：
+
   - 块级元素的默认行为：
     - 占据一整行，
     - 可以设置 `width` 和 `height` 属性。
@@ -1434,10 +1295,10 @@ body {
 ```
 
 ```css
-.box{
+.box {
   height: 150px;
   width: 150px;
-  border:1px solid dodgerblue;
+  border: 1px solid dodgerblue;
   overflow: scroll;
 }
 ```
@@ -1455,20 +1316,21 @@ body {
     - 超出的内容会被裁剪并隐藏。
 
     - **适用场景**：在需要保持布局整洁、限制溢出内容的情况下。
+
   - **滚动条：`overflow: scroll`**
-    - 水平和垂直滚动条都会出现，即使没有溢出内容。mac上和auto效果相同
+
+    - 水平和垂直滚动条都会出现，即使没有溢出内容。mac 上和 auto 效果相同
     - **适用场景**：强制显示滚动条以供用户操作。
 
   - **动态滚动：`overflow: auto`**
     - 只有在内容溢出时才会显示滚动条。
     - **适用场景**：提供更好的用户体验，仅在需要时显示滚动条。
 
-
 - 控制方向：`overflow` 属性是 `overflow-x`（水平）和 `overflow-y`（垂直）的简写。可以使用这两个属性分别控制溢出的方向。
 
   ```css
   overflow-x: hidden; /* 隐藏水平溢出 */
-  overflow-y: auto;   /* 仅在需要时显示垂直滚动条 */
+  overflow-y: auto; /* 仅在需要时显示垂直滚动条 */
   ```
 
 ## 测量单位
@@ -1511,12 +1373,13 @@ body {
 - **百分比（%）**：
   - **描述**：相对于父元素的尺寸。
   - **应用场景**：适用于布局中元素占比的设计。
-  - 注意：默认情况下。body宽度占比100%，高度占比0%，按需提供。
+  - 注意：默认情况下。body 宽度占比 100%，高度占比 0%，按需提供。
 - **视口单位（vw 和 vh）**：
   - **vw**：视口宽度的百分比，`1vw = 1% 视口宽度`。
   - **vh**：视口高度的百分比，`1vh = 1% 视口高度`。
   - **应用场景**：适合全屏背景、模态框等需占据屏幕一定比例的场景。
 - **字体相关单位（em 和 rem）**：
+
   - **em**：基于当前元素的字体大小计算。
     - 若当前元素字体大小为 16px，则 `1em = 16px`。
   - **rem**：基于根元素（HTML）的字体大小计算。
@@ -1531,7 +1394,7 @@ body {
 >
 > **1. 静态定位（Static Positioning）**：所有元素默认的定位方式是 `static`。
 >
-> **2. 相对定位（Relative Positioning）**：元素的位置基于其 **正常位置** 调整，其他元素不受影响**，它们仍然保留在原始位置。
+> **2. 相对定位（Relative Positioning）**：元素的位置基于其 **正常位置** 调整，其他元素不受影响\*\*，它们仍然保留在原始位置。
 >
 > **3. 绝对定位（Absolute Positioning）**：元素 **相对于最近的已定位祖先元素** 定位，如果没有找到已定位的祖先元素，则相对于 `body`（即整个页面）定位。
 >
@@ -1568,19 +1431,19 @@ body {
   margin: 10px;
 }
 
-.boxes{
+.boxes {
   border: 3px solid lightgray;
 }
 
-.box{
+.box {
   width: 10rem;
   height: 10rem;
   position: relative;
 }
-.box-one{
+.box-one {
   background-color: gold;
 }
-.box-two{
+.box-two {
   background-color: tomato;
   position: absolute;
   top: 0;
@@ -1589,12 +1452,13 @@ body {
   width: auto;
   z-index: 1;
 }
-.box-three{
+.box-three {
   background-color: dodgerblue;
 }
 ```
 
-- `position`：默认属性为static，即静态定位
+- `position`：默认属性为 static，即静态定位
+
   - `position: relative;`：
     - 设置为`relative`后，元素的位置基于其 **正常位置** 调整。
     - 使用 `top`、`right`、`bottom` 和 `left` 属性移动元素。
@@ -1676,14 +1540,13 @@ body {
   /* overflow: hidden; */
 }
 
-
-.clearfix::after{
+.clearfix::after {
   content: "";
   display: block;
   clear: both;
 }
 
-.clear{
+.clear {
   clear: left;
 }
 ```
@@ -1726,7 +1589,7 @@ body {
 
 ## 弹性盒布局
 
-> **FlexBox**（弹性盒布局）是一种用于 **一维布局**（行或列）的强大工具。它比传统的浮动布局简单且功能更强大，非常适合构建导航栏、按钮组或卡片排列等。使用它，便不再需要去使用浮动float，不再需要去清除浮动，不再需要去解决父元素塌陷。
+> **FlexBox**（弹性盒布局）是一种用于 **一维布局**（行或列）的强大工具。它比传统的浮动布局简单且功能更强大，非常适合构建导航栏、按钮组或卡片排列等。使用它，便不再需要去使用浮动 float，不再需要去清除浮动，不再需要去解决父元素塌陷。
 >
 > 核心概念
 >
@@ -1762,30 +1625,29 @@ body {
 ```
 
 ```css
-.container{
+.container {
   height: 90vh;
-  border:3px solid lightgrey;
+  border: 3px solid lightgrey;
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
   /* flex-wrap: wrap;
   align-content:center; */
-
 }
 
-.box{
+.box {
   /* flex-basis: 10rem;
   flex-grow: 1;
   flex-shrink: 1; */
   flex: 1 1 10rem;
   width: 5rem;
-  height:5rem;
-  background:dodgerblue;
+  height: 5rem;
+  background: dodgerblue;
   margin: 1rem;
 }
 
-.box-one{
+.box-one {
   flex-shrink: 0;
   align-self: start;
 }
@@ -1889,7 +1751,7 @@ body {
   /* grid-template: repeat(3, 100px) /100px 30% 70%; */
   /* grid-template: repeat(3, 100px) /100px 30fr 70fr; */
   grid-template: 100px auto 100px /30% 70%;
-  grid-template-areas: 
+  grid-template-areas:
     "header  header"
     "sidebar main"
     "footer  footer";
@@ -1993,7 +1855,7 @@ body {
 ```
 
 ```css
-.first{
+.first {
   /* display: none; */
   visibility: hidden;
 }
@@ -2025,7 +1887,7 @@ body {
 
 ## 媒体查询
 
-> 媒体查询（Media Queries）允许我们根据设备的特性（如屏幕大小、方向等）为不同设备提供不同的样式，从而构建 **响应式网站**。响应式网站能根据设备屏幕大小调整布局，适配手机、平板和桌面设备。一行的文字量一般最佳为50-60字符，即20字左右
+> 媒体查询（Media Queries）允许我们根据设备的特性（如屏幕大小、方向等）为不同设备提供不同的样式，从而构建 **响应式网站**。响应式网站能根据设备屏幕大小调整布局，适配手机、平板和桌面设备。一行的文字量一般最佳为 50-60 字符，即 20 字左右
 
 代码
 
@@ -2138,10 +2000,9 @@ body {
     }
     ```
 
-
 ## 练习
 
-**布局1**
+**布局 1**
 
 ```html
 <!DOCTYPE html>
@@ -2180,7 +2041,7 @@ body {
   color: white;
 }
 
-ul{
+ul {
   display: flex;
   padding: 0px;
   margin: 0px;
@@ -2191,7 +2052,7 @@ ul{
   align-items: center;
 }
 
-li{
+li {
   margin: 20px;
 }
 
@@ -2204,7 +2065,7 @@ li{
 }
 ```
 
-**布局2**
+**布局 2**
 
 ```HTML
 <!DOCTYPE html>
@@ -2348,6 +2209,7 @@ body {
 - `font-family` 设置字体：如`font-family: Arial, Helvetica, sans-serif;`
   - 字体堆栈：`Arial, Helvetica, sans-serif` 是一个字体堆栈，浏览器会依次检查字体是否可用，通常将一个通用字体（如 `sans-serif`）作为最后的备选
 - `font-weight`字体粗细：数值范围：`100` (极细) 到 `900` (极粗)。
+
   - 关键字：`normal`, `bold`, `bolder`, `lighter`。
 
 - `font-style`字体样式：用于设置字体的样式，如斜体。
@@ -2357,8 +2219,8 @@ body {
   - 相对值：如 `1em`，`1rem`。
 - 字体颜色 (`color`)：
   - 可以使用名称、十六进制、RGB 或 HSL 值。
-  - 十六进制（6位数字）时，若前3位和后3位完全相同，可只写前三位
-  - 正文和标题颜色最好区分开，正文不应设置纯黑，建议333
+  - 十六进制（6 位数字）时，若前 3 位和后 3 位完全相同，可只写前三位
+  - 正文和标题颜色最好区分开，正文不应设置纯黑，建议 333
 - 字体继承与优化：
   - 继承：
     - 字体相关属性（如 `font-family`, `font-size`）可以被子元素继承。
@@ -2400,31 +2262,31 @@ body {
 
 ```css
 @font-face {
-  font-family: 'opensans';
-  src: url('/fonts/open-sans/opensans-bold-webfont.woff2') format('woff2'),
-       url('/fonts/open-sans/opensans-bold-webfont.woff') format('woff');
+  font-family: "opensans";
+  src: url("/fonts/open-sans/opensans-bold-webfont.woff2") format("woff2"), url("/fonts/open-sans/opensans-bold-webfont.woff")
+      format("woff");
   font-weight: bold;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'opensans';
-  src: url('/fonts/open-sans/opensans-regular-webfont.woff2') format('woff2'),
-       url('/fonts/open-sans/opensans-regular-webfont.woff') format('woff');
+  font-family: "opensans";
+  src: url("/fonts/open-sans/opensans-regular-webfont.woff2") format("woff2"), url("/fonts/open-sans/opensans-regular-webfont.woff")
+      format("woff");
   font-weight: normal;
   font-style: normal;
 }
 
 body {
   margin: 10px;
-  font-family: 'opensans', Arial, Helvetica, sans-serif;
+  font-family: "opensans", Arial, Helvetica, sans-serif;
 }
 
 h1 {
-  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-family: Georgia, "Times New Roman", Times, serif;
 }
 
-p{
+p {
   /* font-weight: bold; */
   font-weight: normal;
   font-style: italic;
@@ -2435,82 +2297,80 @@ p{
 
 - 获取字体：字体网址下载如：https://www.fontsquirrel.com
 
-- 字体格式：ttf可转woff、woff2
+- 字体格式：ttf 可转 woff、woff2
 
   - Web：WOFF、WOFF2.0，其体量小
   - 其他：TTF、OTF、EOT、
 
 - 字体文件夹：一般为字体专门建一个目录，并为每一种字体单独建一个目录
 
-- 注册字体：若使用Webfont Generator，会自动生成存在对应代码的css文件，如
+- 注册字体：若使用 Webfont Generator，会自动生成存在对应代码的 css 文件，如
 
   ```css
   @font-face {
-    font-family: 'opensans';
-    src: url('/fonts/open-sans/opensans-bold-webfont.woff2') format('woff2'),
-         url('/fonts/open-sans/opensans-bold-webfont.woff') format('woff');
+    font-family: "opensans";
+    src: url("/fonts/open-sans/opensans-bold-webfont.woff2") format("woff2"), url("/fonts/open-sans/opensans-bold-webfont.woff")
+        format("woff");
     font-weight: bold;
     font-style: normal;
   }
-  
+
   @font-face {
-    font-family: 'opensans';
-    src: url('/fonts/open-sans/opensans-regular-webfont.woff2') format('woff2'),
-         url('/fonts/open-sans/opensans-regular-webfont.woff') format('woff');
+    font-family: "opensans";
+    src: url("/fonts/open-sans/opensans-regular-webfont.woff2") format("woff2"),
+      url("/fonts/open-sans/opensans-regular-webfont.woff") format("woff");
     font-weight: normal;
     font-style: normal;
   }
   ```
 
-  - 这里format指匹配，若匹配woff则下载第一个url，若不匹配woff2匹配woff则下载第二个url
-  - `font-weight`以及`font-style`默认都是normal，需要自己调整，比如将粗体对应字体设置为`bold`
+  - 这里 format 指匹配，若匹配 woff 则下载第一个 url，若不匹配 woff2 匹配 woff 则下载第二个 url
+  - `font-weight`以及`font-style`默认都是 normal，需要自己调整，比如将粗体对应字体设置为`bold`
 
 - 使用自定义字体：在需要使用字体的元素上设置 `font-family`
 
 ## 无样式字体闪烁
 
-> 无样式字体闪烁，这Flash Of Unstyled Text，浏览器下载自定义字体时，会临时显示回退字体（fallback font）。加载完成后，字体发生变化。可能导致布局变化，用户体验较差。不同字体的字符宽度和高度可能不同。从回退字体切换到自定义字体时，可能导致页面元素位置变化，打断用户的阅读体验。
+> 无样式字体闪烁，这 Flash Of Unstyled Text，浏览器下载自定义字体时，会临时显示回退字体（fallback font）。加载完成后，字体发生变化。可能导致布局变化，用户体验较差。不同字体的字符宽度和高度可能不同。从回退字体切换到自定义字体时，可能导致页面元素位置变化，打断用户的阅读体验。
 >
 > 若设置不可见字体闪烁，一些浏览器在字体下载期间会隐藏文本，直到自定义字体加载完成，如果字体因网络问题未加载，文本可能始终不可见。
 >
-> 
+> 补充：无样式内容闪烁，即 Flash of Unstyled Content，FOUC
 >
-> 补充：无样式内容闪烁，即Flash of Unstyled Content，FOUC
->
-> 是指**在网页加载过程中，用户可能会短暂地看到未应用样式的原始HTML 内容，随后样式表加载完成后，页面才会以正确的样式重新渲染**。 这种现象会影响用户体验，显得页面加载不连贯和不专业。
+> 是指**在网页加载过程中，用户可能会短暂地看到未应用样式的原始 HTML 内容，随后样式表加载完成后，页面才会以正确的样式重新渲染**。 这种现象会影响用户体验，显得页面加载不连贯和不专业。
 >
 > 无样式字体闪烁、无样式内容闪烁无法彻底消除，只能尽量避免
 
-代码：html同上
+代码：html 同上
 
 ```css
 @font-face {
-  font-family: 'opensans';
-  src: url('/fonts/open-sans/opensans-bold-webfont.woff2') format('woff2'),
-       url('/fonts/open-sans/opensans-bold-webfont.woff') format('woff');
+  font-family: "opensans";
+  src: url("/fonts/open-sans/opensans-bold-webfont.woff2") format("woff2"), url("/fonts/open-sans/opensans-bold-webfont.woff")
+      format("woff");
   font-weight: bold;
   font-style: normal;
   font-display: fallback;
 }
 
 @font-face {
-  font-family: 'opensans';
-  src: url('/fonts/open-sans/opensans-regular-webfont.woff2') format('woff2'),
-       url('/fonts/open-sans/opensans-regular-webfont.woff') format('woff');
+  font-family: "opensans";
+  src: url("/fonts/open-sans/opensans-regular-webfont.woff2") format("woff2"), url("/fonts/open-sans/opensans-regular-webfont.woff")
+      format("woff");
   font-weight: normal;
   font-style: normal;
 }
 
 body {
   margin: 10px;
-  font-family: 'opensans', Arial, Helvetica, sans-serif;
+  font-family: "opensans", Arial, Helvetica, sans-serif;
 }
 
 h1 {
-  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-family: Georgia, "Times New Roman", Times, serif;
 }
 
-p{
+p {
   font-weight: normal;
   font-size: 1rem;
   color: #333;
@@ -2518,8 +2378,9 @@ p{
 ```
 
 - 演示无样式内容闪烁：
-  - Chrome开发者工具——Network标签——设置DisableCache——设置Slow4G/3G——刷新页面
+  - Chrome 开发者工具——Network 标签——设置 DisableCache——设置 Slow4G/3G——刷新页面
 - **`font-display: `**：在 `@font-face` 规则中使用 `font-display` 属性，可以控制字体加载期间的行为。以下是可选的值：
+
   - **`swap`（推荐）**：
     - 在加载自定义字体前，优先显示回退字体，字体加载完成后进行替换。
     - 优点：确保文本始终可见。字体切换不会延迟文本渲染。
@@ -2534,21 +2395,21 @@ p{
     - 缺点：如果字体加载失败，文本将始终不可见，严重影响用户体验。
 
 - 减少页面闪烁方法：
-  - 之前Squirrel 上的 Web 字体生成器时，我们使用最佳设置，这里有专家设置，可以使用来减小字体大小，减少用不到的字符（如特殊符号或语言字符），从而减少体量，提升载入速度
+  - 之前 Squirrel 上的 Web 字体生成器时，我们使用最佳设置，这里有专家设置，可以使用来减小字体大小，减少用不到的字符（如特殊符号或语言字符），从而减少体量，提升载入速度
   - 确保字体规则位于 CSS 顶部，优先加载。
 
 ## 字体服务-谷歌
 
 > https://fonts.google.com/
 >
-> - 根据筛选条件搜寻字体，这里我选择了Roboto、Open Sans
-> - 搜索到之后，点击Get font，将字体加入购物袋
+> - 根据筛选条件搜寻字体，这里我选择了 Roboto、Open Sans
+> - 搜索到之后，点击 Get font，将字体加入购物袋
 > - 选择完毕之后，点击购物袋，有两种方式存储
 >   - 下载到本地：之前的章节已经讲过
->   - 获取内嵌链接：链接如下面代码中的前3个link
->     - 第一个link：告诉浏览器提前与 `https://fonts.googleapis.com` 域建立连接（DNS 查询、TLS 握手）。通过预连接减少延迟，加快后续字体文件加载速度。`rel="preconnect"` 不加载资源，只建立连接。
->     - 第二个link：同样是预连接，但指定了 `crossorigin` 属性，允许浏览器与 `https://fonts.gstatic.com` 域建立跨域连接。这是因为 `https://fonts.gstatic.com` 用于存储字体文件（如 `.woff2` 格式），需要跨域请求。`fonts.gstatic.com` 是 Google 提供的全球内容分发网络（CDN），通过预连接可加速字体加载。
->     - 第三个link：加载 Google Fonts 提供的 CSS 文件。
+>   - 获取内嵌链接：链接如下面代码中的前 3 个 link
+>     - 第一个 link：告诉浏览器提前与 `https://fonts.googleapis.com` 域建立连接（DNS 查询、TLS 握手）。通过预连接减少延迟，加快后续字体文件加载速度。`rel="preconnect"` 不加载资源，只建立连接。
+>     - 第二个 link：同样是预连接，但指定了 `crossorigin` 属性，允许浏览器与 `https://fonts.gstatic.com` 域建立跨域连接。这是因为 `https://fonts.gstatic.com` 用于存储字体文件（如 `.woff2` 格式），需要跨域请求。`fonts.gstatic.com` 是 Google 提供的全球内容分发网络（CDN），通过预连接可加速字体加载。
+>     - 第三个 link：加载 Google Fonts 提供的 CSS 文件。
 >       - 格式：`https://fonts.googleapis.com/css2?family=<字体1>&family=<字体2>&display=<策略>`
 >       - 策略可以手动更改
 
@@ -2632,15 +2493,15 @@ p{
 ```css
 body {
   margin: 10px;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
-    Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 }
 
 h1 {
-  font-family: Georgia, 'Times New Roman', Times, serif
+  font-family: Georgia, "Times New Roman", Times, serif;
 }
 
-p{
+p {
   /* font-weight: bold; */
   font-weight: normal;
 
@@ -2894,7 +2755,7 @@ p {
   - 理想行宽：研究表明，**50 到 70 个字符**是最适合阅读的行宽。
   - 单位：
     - **`ch`**：CSS 中的相对单位，等于 **“0”字符的宽度**。
-    - **`50ch`**：约等于 **60-70个字符**。
+    - **`50ch`**：约等于 **60-70 个字符**。
 
 ## 文本格式化
 
@@ -2935,7 +2796,6 @@ p {
     </p>
   </body>
 </html>
-
 ```
 
 ```css
@@ -2977,53 +2837,54 @@ p {
 p + p {
   text-indent: 2rem;
 }
-
 ```
 
--  **文本对齐（`text-align`）**
+- **文本对齐（`text-align`）**
 
-  - **功能**：控制文本的水平对齐方式。
-  - **可选值**：
-    - **`left`**（默认）：左对齐。
-    - **`right`**：右对齐。
-    - **`center`**：居中对齐。
-    - **`justify`**（不推荐）：两端对齐，可能会导致单词之间出现大块空白。
--  **首行缩进（`text-indent`）**
-  - **功能**：为段落的首行添加缩进。
-  - **单位**：通常使用 `rem` 或 `em`。
-  - 补充：`p+p{}`为关系选择器中的相邻兄弟选择器
--  **文本装饰（`text-decoration`）**
-  - **功能**：设置文本的装饰线，如下划线、删除线等。
-  - **可选值**：
-    - **`none`**（默认）：无装饰。
-    - **`underline`**：添加下划线。
-    - **`line-through`**：添加删除线。
--  **文本转换（`text-transform`）**
-  - **功能**：转换文本的大小写格式。
-  - **可选值**：
-    - **`capitalize`**：每个单词的首字母大写。
-    - **`uppercase`**：所有字母大写。
-    - **`lowercase`**：所有字母小写。
--  **文本换行与截断**
-  - `white-space`：
-    - **功能**：控制文本换行和空白处理。
-    - **可选值**：
-      - **`normal`**（默认）：正常换行。
-      - **`nowrap`**：禁止换行。
+- **功能**：控制文本的水平对齐方式。
+- **可选值**：
+  - **`left`**（默认）：左对齐。
+  - **`right`**：右对齐。
+  - **`center`**：居中对齐。
+  - **`justify`**（不推荐）：两端对齐，可能会导致单词之间出现大块空白。
+- **首行缩进（`text-indent`）**
+- **功能**：为段落的首行添加缩进。
+- **单位**：通常使用 `rem` 或 `em`。
+- 补充：`p+p{}`为关系选择器中的相邻兄弟选择器
+- **文本装饰（`text-decoration`）**
+- **功能**：设置文本的装饰线，如下划线、删除线等。
+- **可选值**：
+  - **`none`**（默认）：无装饰。
+  - **`underline`**：添加下划线。
+  - **`line-through`**：添加删除线。
+- **文本转换（`text-transform`）**
+- **功能**：转换文本的大小写格式。
+- **可选值**：
+  - **`capitalize`**：每个单词的首字母大写。
+  - **`uppercase`**：所有字母大写。
+  - **`lowercase`**：所有字母小写。
+- **文本换行与截断**
+- `white-space`：
 
-  - **`overflow` 与 `text-overflow`**
-    - **功能**：处理溢出文本，显示省略号等。
-    - **步骤**：
-      1. 设置固定宽度：`width: 50ch;`
-      2. 禁止换行：`white-space: nowrap;`
-      3. 隐藏溢出内容：`overflow: hidden;`
-      4. 显示省略号：`text-overflow: ellipsis;`
--  **多列布局**
-   - **功能**：实现多列文本布局。
-   - **属性**：
-     - **`column-count`**：列数。
-     - **`column-gap`**：列间距。
-     - **`column-rule`**：列间线。
+  - **功能**：控制文本换行和空白处理。
+  - **可选值**：
+    - **`normal`**（默认）：正常换行。
+    - **`nowrap`**：禁止换行。
+
+- **`overflow` 与 `text-overflow`**
+  - **功能**：处理溢出文本，显示省略号等。
+  - **步骤**：
+    1. 设置固定宽度：`width: 50ch;`
+    2. 禁止换行：`white-space: nowrap;`
+    3. 隐藏溢出内容：`overflow: hidden;`
+    4. 显示省略号：`text-overflow: ellipsis;`
+- **多列布局**
+
+  - **功能**：实现多列文本布局。
+  - **属性**：
+    - **`column-count`**：列数。
+    - **`column-gap`**：列间距。
+    - **`column-rule`**：列间线。
 
 - **文字方向**
   - `direction`
@@ -3046,6 +2907,7 @@ p + p {
 1. 光栅图像（Raster Images）
 
 - 特点：
+
   - 由像素（Pixels）组成，每个像素都有特定颜色值。
   - 常用于照片、扫描图像等。
   - **放大后会失真**，因为放大时像素被拉伸。
@@ -3102,7 +2964,7 @@ p + p {
 
 ## 内容图片
 
-> HTML中存在两类图片：内容图片与背景图片
+> HTML 中存在两类图片：内容图片与背景图片
 >
 > 内容图片（Content Images）是网页中直接用来展示信息或内容的图片，通常通过 `<img>` 元素插入。
 
@@ -3143,7 +3005,7 @@ body {
     - **避免省略 `alt` 属性**，否则屏幕阅读器会读出文件名（如 `line.jpg`），可能不准确或冗长
 - 图片分辨率与大小
   - 问题：如果图片原始分辨率较低，而在网页上放大显示，会导致图片模糊。
-  - 解决方法：使用原始分辨率更高的图片，或考虑使用矢量图（SVG）来处理非照片的图片。注意SVG 不适合用于照片，因其复杂的数学定义不适合表达照片中的细节。
+  - 解决方法：使用原始分辨率更高的图片，或考虑使用矢量图（SVG）来处理非照片的图片。注意 SVG 不适合用于照片，因其复杂的数学定义不适合表达照片中的细节。
 
 ## 背景图片
 
@@ -3214,13 +3076,13 @@ body {
     - `scroll`（默认）：背景图片随页面滚动。
     - `fixed`：背景图片固定，不随页面滚动。
 
-## CSS Sprites技术
+## CSS Sprites 技术
 
 > CSS Sprites 是一种将多个小图片合并成一个大图片，然后通过 CSS 控制显示特定部分的小图片的技术。这种方法可以减少 HTTP 请求的数量，从而提升网页的加载速度。
 >
 > 多个小图片需要发送多个请求，而将小图片合成后，对于小图片，只用发送一个请求，一般通过工具来完成小图片合成。
 >
-> SVG图片也可以使用该技术：https://svgsprit.es/
+> SVG 图片也可以使用该技术：https://svgsprit.es/
 
 代码
 
@@ -3289,13 +3151,14 @@ body {
 - 操作：
 
   1. 将图片拖拽到读取窗口中，
-  1. 选择图片格式，设置前缀，前缀控制了生成的css文件中，每个图片class的前缀
-  1. 点击生成，下载，会生成css文件和图片
-  1. 将图片放入素材库，拷贝css文件代码
-  1. 修改css中url路径
+  1. 选择图片格式，设置前缀，前缀控制了生成的 css 文件中，每个图片 class 的前缀
+  1. 点击生成，下载，会生成 css 文件和图片
+  1. 将图片放入素材库，拷贝 css 文件代码
+  1. 修改 css 中 url 路径
   1. 需要展示图片，使用`span.class=xxx`
-  
+
 - 优点
+
   1. 减少 HTTP 请求：
      - 将多个小图片合并成一个文件，加载时仅需一次 HTTP 请求。
      - 适合高并发场景，有助于减少服务器压力。
@@ -3314,12 +3177,12 @@ body {
 
 > **Data URLs** 是一种将图像等二进制数据直接嵌入到 HTML 或 CSS 文档中的技术，通过减少 HTTP 请求的数量来优化网页加载速度。
 >
-> Data URLs也叫Data URIs
+> Data URLs 也叫 Data URIs
 
 - 操作：
 
   1. 将图片拖拽到读取窗口中
-  2. 拷贝Image Tag内的代码
+  2. 拷贝 Image Tag 内的代码
   3. 粘贴到对应位置
 
 - **优点**
@@ -3395,9 +3258,9 @@ body {
 - 操作：
 
   1. 网站找到对应样式，复制代码
-  2. 将代码粘贴到css文件中
+  2. 将代码粘贴到 css 文件中
 
-## CSS中的图像滤镜
+## CSS 中的图像滤镜
 
 > CSS 提供了多种图像滤镜（Filters），可以直接在浏览器中动态调整图片的显示效果，而无需借助 Photoshop 等图像编辑工具。这些滤镜功能非常强大，适合应用于创意设计、交互效果等场景。
 
@@ -3498,7 +3361,7 @@ img {
 >
 > 1. **物理分辨率**：实际屏幕上的像素数量。例如，iPhone 4 的物理分辨率为 `480x320`，iPhone 4 的物理分辨率为 `960x640`。
 > 2. **逻辑分辨率**：CSS 和开发者通常基于逻辑像素操作。例如，iPhone 3、4 的逻辑分辨率均为 `480x320`。
-> 3. **设备像素比（DPR）**：定义物理像素与逻辑像素的比率。如iPhone 4 的 DPR = 2x，意味着每个逻辑像素由 2×2 个物理像素表示。而iPhone 4 的 DPR = 1x。
+> 3. **设备像素比（DPR）**：定义物理像素与逻辑像素的比率。如 iPhone 4 的 DPR = 2x，意味着每个逻辑像素由 2×2 个物理像素表示。而 iPhone 4 的 DPR = 1x。
 >
 > **问题与解决方案**
 >
@@ -3631,7 +3494,7 @@ img {
 
   - 需要拆图考虑：https://www.responsivebreakpoints.com
 
-## WebP格式及使用
+## WebP 格式及使用
 
 > 随着网络的不断发展，现代图片格式（如 **WebP**）成为优化网页性能的重要工具。WebP 图片显示效果与原图相差无几，但内存却小非常多。
 >
@@ -3670,7 +3533,6 @@ img {
     </picture>
   </body>
 </html>
-
 ```
 
 - 使用 CloudConvert 转换图片
@@ -3684,18 +3546,17 @@ img {
 - 在 HTML 中使用 WebP 图片：显示效果相差无几
 
   ```html
-      <img src="images/meal.jpg" alt="" />
-      <img src="images/meal.webp" alt="" />
+  <img src="images/meal.jpg" alt="" /> <img src="images/meal.webp" alt="" />
   ```
 
-- 浏览器支持：旧版本可能不支持webp图片，使用下面的方式，优先加载webp图片，若不支持，加载png图片
+- 浏览器支持：旧版本可能不支持 webp 图片，使用下面的方式，优先加载 webp 图片，若不支持，加载 png 图片
 
   ```html
-      <picture>
-        <source type="image/webp" srcset="/images/meal.webp" />
-        <source type="image/jpeg" srcset="images/meal.jpg" />
-        <img src="images/meal.png" alt="" />
-      </picture>
+  <picture>
+    <source type="image/webp" srcset="/images/meal.webp" />
+    <source type="image/jpeg" srcset="images/meal.jpg" />
+    <img src="images/meal.png" alt="" />
+  </picture>
   ```
 
 ## 响应式图片裁剪与缩放
@@ -3727,16 +3588,15 @@ img {
 - **`<source media>`**: 使用 `media` 属性为不同屏幕宽度定义条件，例如 `max-width` 和 `min-width`。
 - **`srcset`**: 为每种设备指定图片路径。
 
-## SVG图形
+## SVG 图形
 
-> 可缩放矢量图形SVG（Scalable Vector Graphics）是一种基于数学向量的图形格式，与栅格图像（由像素组成）不同。SVG 的特点是：
+> 可缩放矢量图形 SVG（Scalable Vector Graphics）是一种基于数学向量的图形格式，与栅格图像（由像素组成）不同。SVG 的特点是：
 >
 > - **分辨率无关**：无论放大或缩小，始终保持清晰。
 > - **文件体积小**：复杂的图形可以通过矢量定义，减少文件大小。
 > - **可编程性强**：
 >   - SVG 文件是**基于 XML 的文本文件**，可以直接编辑其代码。
 >   - 支持动态效果，例如通过 CSS 或 JavaScript 添加动画。
->
 
 代码
 
@@ -3812,14 +3672,14 @@ body {
 
 - **Font Awesome**：https://fontawesome.com/
 
-  - 先注册，设置kit，获得下面代码，放置在head标签内
+  - 先注册，设置 kit，获得下面代码，放置在 head 标签内
 
     ```css
     <script src="https://kit.fontawesome.com/adbc6ec988.js" crossorigin="anonymous"></script>
     ```
 
-  - 点击搜索图标（先选择下方的免费Free按钮），输入内容如user进行搜索
-  - 选择喜好的图标，可进行部分自定义，获得代码，在代码中存在kit的情况下，图标生效
+  - 点击搜索图标（先选择下方的免费 Free 按钮），输入内容如 user 进行搜索
+  - 选择喜好的图标，可进行部分自定义，获得代码，在代码中存在 kit 的情况下，图标生效
 
 # 表单
 
@@ -3856,10 +3716,12 @@ body {
 ```
 
 - **`<form>`** 元素表示一个表单，通常包含以下内容：
+
   - **`action` 属性**：定义表单数据提交到的目标 URL，**目前暂时省略此属性**。
   - **输入控件**：使用 `<input>` 元素接收用户输入。
 
 - **`label`** ：输入字段的描述标签，可以通过 `for` 属性与对应的输入字段关联。
+
   - 通过点击标签可以激活对应的输入字段。
 
   - 提升表单的可访问性（特别是使用屏幕阅读器的用户）。
@@ -3954,6 +3816,7 @@ button + button {
 ```
 
 1. 基础设置
+
    - `body` 样式：
      - 系统字体栈：提供跨平台一致体验。
      - 行高：设置为 `1.5`，提升文本可读性。
@@ -3967,6 +3830,7 @@ button + button {
 3. 输入字段
 
    - 样式：
+
      - 设置圆角边框（`border-radius`）和内边距（`padding`），确保视觉舒适。
      - 在`:focus`状态下：
        - 高亮边框（`border-color`）。
@@ -3979,51 +3843,52 @@ button + button {
 4. 按钮
 
    - 样式：
+
      - 按钮背景色设置为蓝色（`#0d6efd`），文字颜色设置为白色。
      - 移除默认边框（`border`）和轮廓（`outline`）。
      - 设置圆角（`border-radius`）和内边距（`padding`）。
 
-     - 交互状态  ：
+     - 交互状态 ：
        - 鼠标悬停时改变背景色（`hover`）。
        - 点击时更改背景色（`active`）。
-     
-   - 间距  ：
+
+   - 间距 ：
      - 使用选择器 `button + button` 增加按钮之间的水平间距。
 
-
 5. 分组样式
-   - `form-group`  ：
+   - `form-group` ：
      - 使用 `margin-bottom` 控制表单分组之间的垂直间距，保持布局整齐。
 
+## CSS 框架
 
-## CSS框架
-
->  CSS框架是由可重用CSS代码组成的库，帮助开发者快速创建现代、美观的网页。
+> CSS 框架是由可重用 CSS 代码组成的库，帮助开发者快速创建现代、美观的网页。
 >
 > **常见框架**：
 >
 > - **Bootstrap**：最流行，功能全面，组件丰富。
 > - **Foundation**：强调响应式设计。
-> - **Semantic UI**：基于语义化的CSS框架。
+> - **Semantic UI**：基于语义化的 CSS 框架。
 > - **UI Kit**：简洁灵活的框架。
-> - **Materialize**：基于谷歌Material Design的框架。
-> - **Milligram**：轻量化CSS框架，速度快，生产力高。
+> - **Materialize**：基于谷歌 Material Design 的框架。
+> - **Milligram**：轻量化 CSS 框架，速度快，生产力高。
 >
 > **是否必须掌握所有框架？**
 >
-> - 不必掌握所有框架，了解一种或两种常用的（如Bootstrap）即可。
-> - 项目可能使用不同框架，甚至不用框架，而是根据需要编写CSS。
+> - 不必掌握所有框架，了解一种或两种常用的（如 Bootstrap）即可。
+> - 项目可能使用不同框架，甚至不用框架，而是根据需要编写 CSS。
 
 **Bootstrap 和 Milligram 对比**
 
 - Bootstrap
 
   - 特点：
+
     - 功能丰富，组件全面（如表单、徽章、警告框等）。
     - 易于扩展，广泛应用。
 
   - 文件大小：
-    - 核心CSS文件大小约为 **20KB**。
+
+    - 核心 CSS 文件大小约为 **20KB**。
     - 对于大型项目，可能与其他资源累积，影响加载性能。
 
   - 适用场景：
@@ -4034,15 +3899,15 @@ button + button {
 
 > 官网：https://getbootstrap.com/docs/5.3/getting-started/download/
 >
-> 网址可能有变化，若失效，谷歌搜索bootstrap
+> 网址可能有变化，若失效，谷歌搜索 bootstrap
 >
-> 这里使用CDN via jsDelivr方式，拷贝网页CDN via jsDelivr下第一行代码，加载约20kb
+> 这里使用 CDN via jsDelivr 方式，拷贝网页 CDN via jsDelivr 下第一行代码，加载约 20kb
 >
 > ```css
 > <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 > ```
 
-将其加入head中后，即引用了Bootstrap，使用class标签控制代码样式，根据文档查询使用方式，找到对应的class，在对应的标签后加上对应的class即使用。
+将其加入 head 中后，即引用了 Bootstrap，使用 class 标签控制代码样式，根据文档查询使用方式，找到对应的 class，在对应的标签后加上对应的 class 即使用。
 
 代码：
 
@@ -4083,13 +3948,13 @@ button + button {
 
 > 官网：https://milligram.io
 >
-> 在Usage下，拷贝Milligram CSS下第一行，加载约2.5kb
+> 在 Usage 下，拷贝 Milligram CSS 下第一行，加载约 2.5kb
 >
 > ```css
 > <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.css">
 > ```
 
-不需要定义class就可以使用它，不需要阅读文档就可以直接使用，它也有相关的文档
+不需要定义 class 就可以使用它，不需要阅读文档就可以直接使用，它也有相关的文档
 
 ```html
 <!DOCTYPE html>
@@ -4124,7 +3989,7 @@ button + button {
 
 ## 文本字段
 
-> 本节继续使用Milligram
+> 本节继续使用 Milligram
 >
 > HTML 提供了多种类型的输入字段（input fields），用于接受用户输入。通过设置 `type` 属性，输入字段可以具有不同的行为。
 
@@ -4163,6 +4028,7 @@ textarea {
 ```
 
 - 常见 Input Field 类型
+
   - **Text**：默认类型，用于接受普通文本输入。
   - **Number**：用于接受数字输入。
   - **Password**：用于密码输入，输入内容会被掩码显示。
@@ -4184,7 +4050,7 @@ textarea {
 
 ## 数据列表
 
-> 本节继续使用Milligram
+> 本节继续使用 Milligram
 >
 > 数据列表 (`<datalist>`) 提供输入建议，当用户在输入框中输入时，显示相关选项。用户可以从建议中选择，也可以输入其他未列出的值。
 
@@ -4244,8 +4110,8 @@ textarea {
   - 定义唯一标识符，供输入字段引用。
 - `<option>` 的 `value` 属性：
   - 定义建议列表中的选项值，显示在输入框中。
-  - 加上之后，会让选择框变展现形式发生变化（如代码所示，每一个option会先展示数字下方再展示国家，某些特性情况可能会用到
-  - `data-value`：用于存储与选项关联的额外数据，加上之后，回复不加value时的展示形式
+  - 加上之后，会让选择框变展现形式发生变化（如代码所示，每一个 option 会先展示数字下方再展示国家，某些特性情况可能会用到
+  - `data-value`：用于存储与选项关联的额外数据，加上之后，回复不加 value 时的展示形式
 - **限制与扩展**
   1. 允许自由输入：
      - 数据列表不会限制用户输入，用户可以输入非列表中的值。
@@ -4256,7 +4122,7 @@ textarea {
 
 ## 下拉列表
 
-> 本节继续使用Milligram
+> 本节继续使用 Milligram
 >
 > 下拉列表使用 `<select>` 元素创建，为用户提供一组选项，用户可以从中选择一个或多个选项。
 
@@ -4310,7 +4176,7 @@ textarea {
 
 ## 复选框
 
-> 本节继续使用Milligram，并使用了`class="label-inline"`，使元素变为**内联样式的标签形式**，通过这种方式，标签和输入框可以在一行内对齐
+> 本节继续使用 Milligram，并使用了`class="label-inline"`，使元素变为**内联样式的标签形式**，通过这种方式，标签和输入框可以在一行内对齐
 >
 > 复选框（Checkbox）允许用户从一组选项中选择一个或多个选项。使用 `<input>` 元素和 `type="checkbox"` 属性创建复选框。
 
@@ -4363,7 +4229,7 @@ textarea {
 
 ## 单选按钮
 
-> 本节继续使用Milligram，并使用了`class="label-inline"`
+> 本节继续使用 Milligram，并使用了`class="label-inline"`
 >
 > 单选按钮用于在一组选项中让用户选择 **唯一** 一个选项。使用 `<input>` 元素和 `type="radio"` 属性创建。
 
@@ -4396,20 +4262,19 @@ textarea {
     </form>
   </body>
 </html>
-
 ```
 
--  **`<input type="radio">`**：创建单选按钮。
+- **`<input type="radio">`**：创建单选按钮。
 
--  **`name`**：用于分组单选按钮。只有在同一组内的按钮会互斥（仅可选一个）。
+- **`name`**：用于分组单选按钮。只有在同一组内的按钮会互斥（仅可选一个）。
 
--  **`id`**：为单选按钮分配唯一标识符，用于与 `label` 关联。
+- **`id`**：为单选按钮分配唯一标识符，用于与 `label` 关联。
 
--  **`value`**：定义单选按钮提交的值。
+- **`value`**：定义单选按钮提交的值。
 
--  **`checked`**：默认选中该单选按钮。布尔属性，无需赋值。
+- **`checked`**：默认选中该单选按钮。布尔属性，无需赋值。
 
--  **`disabled`**：禁用单选按钮，用户无法选择。布尔属性，无需赋值。
+- **`disabled`**：禁用单选按钮，用户无法选择。布尔属性，无需赋值。
 
 ## 范围滑块
 
@@ -4525,12 +4390,13 @@ textarea {
 ```
 
 - **使用 `<fieldset>` 元素**
+
   - `<fieldset>`：定义一个字段集，用于逻辑分组。
   - `<legend>`：作为分组的标题或标签，描述字段集的用途。
 
 - 如果不需要强语义支持，可使用 `<section>` 元素，配合标题（如 `<h2>`）进行分组。
 
-### 隐藏字段 
+### 隐藏字段
 
 > 隐藏字段（Hidden Fields）是表单中一种用于存储额外数据的输入字段。它们不会显示在页面上，但其数据会在表单提交时发送到服务器。
 
@@ -4619,13 +4485,13 @@ textarea {
   - `pattern`：
     - 使用正则表达式进行自定义验证。
     - 示例：`<input type="text" pattern="[A-Za-z]{3,10}" />`
-  - `number`：当设置为number时，默认step为1，可设置最大最值、最小值和step
+  - `number`：当设置为 number 时，默认 step 为 1，可设置最大最值、最小值和 step
 
 ## 表单提交与图标按钮
 
 > 在 HTML 表单中，通过按钮元素可以添加图标并提交数据。
 >
-> 这里使用Formspree进行演示，Formspree可以接收测试传入的值，注册后使用
+> 这里使用 Formspree 进行演示，Formspree 可以接收测试传入的值，注册后使用
 >
 > 官网：https://formspree.io
 
@@ -4656,8 +4522,8 @@ textarea {
 ```
 
 - 按钮与图标：
-  - 虽然`input`也可以展示button的效果，但是不建议使用
-  - `botton`括号中可以加入icon图标
+  - 虽然`input`也可以展示 button 的效果，但是不建议使用
+  - `botton`括号中可以加入 icon 图标
 - **`action`**：指定表单数据提交的目标 URL。
 - **`method` 属性**：决定数据的提交方式：
   - **`POST`**（常用）：数据放在请求体中，安全性较高，适合敏感数据的传递（如登录信息）
@@ -4824,7 +4690,7 @@ body {
 
 1. **Z 轴移动**
 
-   - 使用`translateZ()`函数，可以让元素沿 Z 轴移动，需要提前设置Perspective才能看出效果：
+   - 使用`translateZ()`函数，可以让元素沿 Z 轴移动，需要提前设置 Perspective 才能看出效果：
      - 正值：元素靠近屏幕。
      - 负值：元素远离屏幕。
 
@@ -4880,7 +4746,7 @@ body {
    - 在父元素上使用 `perspective`，使子元素共享相同的透视效果。
    - 避免在每个子元素中单独使用 `perspective()` 函数。
 
-------
+---
 
 ## CSS 过渡
 
@@ -5130,9 +4996,9 @@ body {
 
   - 通过这种方法，可以创建属于自己的网站的可复用动画库。将常用的动画规则封装成类，便于以后使用。
 
-# 简洁易维护CSS
+# 简洁易维护 CSS
 
-## CSS最佳实践
+## CSS 最佳实践
 
 1. **遵循一致的命名约定**
 
@@ -5158,7 +5024,7 @@ body {
 
 4. **排序 CSS 属性**
 
-- 按照一定顺序排列 CSS 属性可以提高可读性和一致性。可以使用工具或编辑器插件自动排序，如**按字母顺序排序**。command+shift+P，搜索sort
+- 按照一定顺序排列 CSS 属性可以提高可读性和一致性。可以使用工具或编辑器插件自动排序，如**按字母顺序排序**。command+shift+P，搜索 sort
 
 5. **利用样式继承**
 
@@ -5174,7 +5040,7 @@ body {
 - **DRY（Don't Repeat Yourself）原则**：避免重复定义相同的样式。可以通过 CSS 变量或抽象公共样式来减少冗余。
 - 使用 **CSS 变量** 来避免重复值，如常用的颜色、间距等属性。
 
-## CSS变量
+## CSS 变量
 
 1. **什么是 CSS 变量？**
 
@@ -5188,9 +5054,9 @@ body {
 
   ```css
   :root {
-      --primary-color: #ffd336; /* 定义主色 */
-      --border-size: 2px;       /* 定义边框大小 */
-      --border-radius: 10px;    /* 定义边框圆角 */
+    --primary-color: #ffd336; /* 定义主色 */
+    --border-size: 2px; /* 定义边框大小 */
+    --border-radius: 10px; /* 定义边框圆角 */
   }
   ```
 
@@ -5200,10 +5066,10 @@ body {
 
   ```css
   .box1 {
-      background-color: var(--primary-color);
+    background-color: var(--primary-color);
   }
   .box2 {
-      background-color: var(--primary-color);
+    background-color: var(--primary-color);
   }
   ```
 
@@ -5220,7 +5086,7 @@ body {
 - **可维护性高**：更改一个变量的值会自动应用到所有引用它的地方，提升了代码的可维护性和灵活性。
 - **主题化**：通过修改 CSS 变量，可以轻松实现整个网站的主题切换。
 
-## 面向对象CSS
+## 面向对象 CSS
 
 > **OOCSS**（面向对象的 CSS）是一种 CSS 结构化方法，旨在创建可复用和模块化的样式组件。它借鉴了面向对象编程的概念，通过将样式划分为结构和表现（外观）两个独立部分，减少冗余和重复，提高代码的可维护性。
 
@@ -5275,7 +5141,7 @@ body {
      .btn-primary {
        background-color: gold;
      }
-     
+
      .btn-secondary {
        background-color: dodgerBlue;
      }
@@ -5337,53 +5203,3 @@ body {
    - 随着项目的扩展，使用 BEM 命名约定的代码更容易维护和修改，因为每个元素的作用和样式都是明确的，不需要到处修改相同的样式。
 4. **可读性**：
    - BEM 的命名规则非常清晰，每个类名都表明它所属的模块和元素，能够让开发人员更容易理解代码结构。
-
-# 技巧💡
-
-**项目之后**
-
-- 浏览器优化：
-  - 需要加上标题、描述、以及其他meta，参考https://ogp.me/，我们搜索一件事情，会出现很多内容，这些meta优化了我们会看到什么的这个过程
-
-- 
-
-**高级**：
-
-- CSS Sprites：CSS Sprites 是一种将多个小图片合并成一个大图片，然后通过 CSS 控制显示特定部分的小图片的技术。这种方法可以减少 HTTP 请求的数量
-- WebP格式：WebP 图片显示效果与原图相差无几，但内存却小非常多。
-- SVG图片：复杂的图形可以通过矢量定义，减少文件大小。
-
-
-
-**中级**
-
-- `transition`：定义过度效果提升美观度
-
-- `* {}`：通用匹配符，但不建议经常使用。不适用于伪元素选择器
-- `* ,*::before,*::after {}`：通用匹配符，但不建议经常使用。
-
-- 使用标签包裹文字：选中文字，command+shift+P，输入wrap，输入想要加的标签
-- `lorem50`：lorem+数字，可以生成虚假文本
-- `li*3`：`li`+数字，生成多行列表
-- `ol>li*3`：`ol`/`ul`+`>`+`li`+数字，生成完整列表，类似还有`tr>td*3`
-- `ul>li*3{Item $}`：生成带数字的无序列表
-- `section#products`：类型名称+`#`+id名称，生成带id的类型标签
-- `section.products`：类型名称+`.`+id名称，生成带class的类型标签
-- `.container>.box*2`：快速创建div层级
-- 键盘移动代码：shift+上下左右选中代码，option+上下移动代码
-- 替换元素框：光标放在第一个元素符号末尾处，按command+D
-- 同一个元素可以有多个class，用空格分隔
-- 在`html{}`中将`font-size`设置为`62%`有助于计算
-- Chrome Dev可以查看页面在移动端上的展示情况
-
-**基础**
-
-- ctrl+L终端清屏，相当于clear
-
-- 对于空白文件，第一个`<`可以补全`<!DOCTYPE html>`
-- 输入对应的元素，VScode可以帮助补全
-- 设置img样式时，设置height或者width会等比例缩小图片，`border-radius`设置为高或者宽的一半是，相当于把图处理为圆形（图片已处理为正方形）
-- 对于空白文件，第一个`!`，可以自动补全一个HTML样板
-- 当输出段落时想要一个短语不会因为换行而分开，需要使用`&nbsp;`
-- `background` 是一个简写属性，可以用来设置多个与背景相关的属性
-
