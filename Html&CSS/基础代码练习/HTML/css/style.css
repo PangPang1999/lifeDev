@@ -1,0 +1,28 @@
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+:root {
+  --primary-color: #ffdd36;
+  --border-size: 2px;
+  --border-radius: 10px;
+}
+/* {}设置为蓝色显示 #75DAFC */
+/* --border-radius 设置为亮白色显示 #E8FFFA */
+
+.one {
+  background-color: #ffdd36;
+}
+
+.two {
+  background-color: var(--clolor-primary);
+}
+/* ()设置为浅蓝色显示 #75DAFC*/
+/* --clolor-primary设置为亮白色显示 #E8FFFA */
+
+.class {
+  color: red;
+}
