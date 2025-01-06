@@ -2657,8 +2657,10 @@ if ("color" in circle) console.log("yes"); //无输出
 ## 克隆对象
 
 > 在 JavaScript 中，如果你想要将一个对象的所有属性和方法复制到另一个对象中，可以使用多种方法。这里我们会探讨几种不同的方式，包括传统的 `for...in` 循环、`Object.assign()` 方法以及更简洁的扩展运算符（spread operator）。
+>
+> **推荐使用：扩展运算符（Spread Operator）**
 
-**使用 `for...in` 循环手动复制属性**
+**`for...in`循环**
 
 这是一个较为传统的方法，我们通过 `for...in` 循环遍历对象的所有属性，并将它们手动复制到一个新的对象中。
 
@@ -2679,29 +2681,38 @@ console.log(another);
 
 - 工作原理：我们遍历 `circle` 对象的所有属性，并将它们复制到 `another` 对象中。这个方法手动复制每个属性，但在现代 JavaScript 中有更简洁的替代方案。
 
-**使用 `Object.assign()` 方法**
+**`Object.assign()` 方法**
 
-`Object.assign()` 是一种更现代的方式，它可以将一个或多个源对象的所有可枚举属性复制到目标对象中。它返回目标对象。
+- `Object.assign()` 是一种更现代的方式，它可以将一个或多个源对象的所有可枚举属性复制到目标对象中。它返回目标对象。
+- 还可以使用 `Object.assign()` 在克隆时添加其他属性到目标对象。例如，可以在克隆时为目标对象添加额外的属性。
 
 ```js
-const circle = {
-  radius: 10,
-  draw() {
-    console.log("绘制圆形");
-  },
-};
-
-// 使用 Object.assign() 克隆对象
 const another = Object.assign({}, circle);
 
-console.log(another);
-// 输出: { radius: 10, draw: [Function: draw] }
+// const another = Object.assign(
+//   {
+//     color: "yellow",
+//   },
+//   circle
+// );
 ```
 
 - 工作原理：`Object.assign()` 的第一个参数是目标对象（在这里是一个空对象 `{}`），后续的参数是源对象（这里是 `circle`）。所有源对象的属性会被复制到目标对象，并返回目标对象。
-- 注意：`Object.assign()` 是浅拷贝，因此如果源对象中的某个属性是引用类型（如对象或数组），那么目标对象与源对象共享该引用。如果你想要深拷贝对象（包括对象内部的嵌套对象），则需要使用递归方法或一些库（如 Lodash）。
 
-**使用扩展运算符（Spread Operator）**
+- ***补充***：`Object.assign()` 是浅拷贝，因此如果源对象中的某个属性是引用类型（如对象或数组），那么目标对象与源对象共享该引用。
+
+  ```js
+  const demo = {
+    deep: {
+      level: 1,
+    },
+  };
+  const copy = Object.assign({}, demo);
+  demo.deep.level = 2;
+  console.log(copy.deep.level); // 输入2
+  ```
+
+**扩展运算符（Spread Operator）**
 
 扩展运算符（`...`）提供了一个非常简洁的方式来复制对象。这是目前最推荐的方式之一，因为它代码简洁且易读。
 
@@ -2720,28 +2731,7 @@ console.log(another);
 // 输出: { radius: 10, draw: [Function: draw] }
 ```
 
-- 工作原理：通过扩展运算符 `...`，我们可以将 `circle` 对象中的所有属性“展开”到新对象 `another` 中。这是一种非常简洁和优雅的方式。
-
-**使用 `Object.assign()` 和其他属性**
-
-你还可以使用 `Object.assign()` 在克隆时添加其他属性到目标对象。例如，可以在克隆时为目标对象添加额外的属性。
-
-```js
-const circle = {
-  radius: 10,
-  draw() {
-    console.log("绘制圆形");
-  },
-};
-
-// 克隆对象并添加新属性
-const another = Object.assign({ color: "yellow" }, circle);
-
-console.log(another);
-// 输出: { color: 'yellow', radius: 10, draw: [Function: draw] }
-```
-
-- 工作原理：这里，我们先创建一个目标对象 `{ color: 'yellow' }`，然后使用 `Object.assign()` 将 `circle` 对象的属性复制到这个目标对象中，最终返回的新对象会包含 `color` 属性和 `circle` 对象的所有属性。
+- 工作原理：通过扩展运算符 `...`，我们可以将 `circle` 对象中的所有属性“展开”到新对象 `another` 中。这是一种非常简洁和优雅的方式。该方式同样是浅拷贝。
 
 ## 内存管理与垃圾回收
 

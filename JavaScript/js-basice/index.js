@@ -5,12 +5,20 @@ const circle = {
   },
 };
 
-for (let key in circle) console.log(key, circle[key]);
+// const another = {};
+// for (let key in circle) another[key] = circle[key];
+// const another = Object.assign({}, circle);
+const another = { ...circle };
 
-// for (let key of circle) console.log(key);
-for (let key of Object.keys(circle)) console.log(key);
+console.log(another);
 
-for (let entry of Object.entries(circle)) console.log(entry);
+const demo = {
+  deep: {
+    level: 1,
+  },
+};
+// const copy = Object.assign({}, demo);
+const copy = { ...demo };
 
-if ("radius" in circle) console.log("yes");
-if ("color" in circle) console.log("yes");
+demo.deep.level = 2;
+console.log(copy.deep.level);
