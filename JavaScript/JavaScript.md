@@ -2938,153 +2938,35 @@ const message = `问候消息是: ${getGreeting("Alice")}`;
 console.log(message); // 输出: 问候消息是: 你好, Alice!
 ```
 
-## `Date` 对象介绍
+## `Date` 对象
 
-> 在 JavaScript 中，`Date` 是一个内建的对象，用于处理日期和时间。它提供了多种方法，可以让我们方便地操作日期和时间。`Date` 对象是通过 **构造函数** 创建的，可以有不同的方式进行实例化。下面我们将介绍如何使用这个对象。
+> 在 JavaScript 中，`Date` 是一个内建的对象，用于处理日期和时间。它提供了多种方法，可以让我们方便地操作日期和时间。`Date` 对象是通过 **构造函数** 创建的，可以有不同的方式进行实例化。google: javascript data
 
-### **1. 创建 `Date` 对象**
+**创建 `Date` 对象**
 
-`Date` 是一个构造函数，用来创建日期对象。它有不同的构造方式，根据传递的参数的不同，返回不同形式的日期对象。
+当代码栏仅存在以下代码时，可以控制键盘上下查看不同的 Date 类型（未出现删除部分手动输入）
 
-#### **1.1 使用无参数构造函数**
+```js
+const date = new Date();
+```
 
-如果你不传递任何参数，`Date` 对象会返回当前的日期和时间。
+常用方法：[链接](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures)
 
 ```js
 const now = new Date(); // 当前的日期和时间
-console.log(now);
+const data1 = new Date("January 1, 2025 00:00:00"); // 2025年1月1日00:00:00
+const data2 = new Date(2025, 0, 1, 12, 30, 0); // 2025年1月1日12:30:00
+
+now.setFullYear(1999); // 修改时间年份
+
+let x;
+x = now.toDateString(); // 转换时间格式
+x = now.toTimeString(); // 转换时间格式
+x = now.toISOString(); // 最常见的前后端传递时间格式
+
+x = now.getDate(); // 获取时间 日 信息
+console.log(x);
 ```
-
-#### **1.2 使用时间戳（毫秒）**
-
-你还可以使用自 1970 年 1 月 1 日以来的毫秒数来创建日期对象。例如：
-
-```js
-const dateFromTimestamp = new Date(1000000000); // 使用时间戳
-console.log(dateFromTimestamp); // 返回 1970年1月1日之后1000000000毫秒的日期
-```
-
-#### **1.3 使用日期字符串**
-
-`Date` 构造函数也接受一个日期字符串作为参数，字符串可以是多种格式。例如：
-
-```js
-const dateFromString = new Date("2025-01-01T00:00:00Z"); // 使用 ISO 8601 格式的日期字符串
-console.log(dateFromString);
-```
-
-你也可以使用其他日期格式，例如：
-
-```js
-const dateFromCustomString = new Date("January 1, 2025 00:00:00");
-console.log(dateFromCustomString);
-```
-
-**注意：** 日期字符串的格式应该遵循标准格式。关于支持的各种日期格式，你可以查阅官方文档。
-
-#### **1.4 使用年份、月份、日期等参数**
-
-`Date` 构造函数还可以接受多个数字参数来指定具体的年份、月份、日期等。
-
-```js
-const customDate = new Date(2025, 0, 1); // 2025年1月1日，月份是0（表示1月）
-console.log(customDate);
-```
-
-- **年份**：从 1900 年开始
-- **月份**：从 0 开始（0 代表 1 月，1 代表 2 月，以此类推）
-- **日期**：表示天数
-- **小时、分钟、秒、毫秒**：可选参数
-
-```js
-const fullDate = new Date(2025, 0, 1, 12, 30, 0); // 2025年1月1日12:30:00
-console.log(fullDate);
-```
-
-### **2. 获取和设置日期**
-
-`Date` 对象提供了一些 `get` 和 `set` 方法，用于获取和修改日期和时间。
-
-#### **2.1 获取日期**
-
-- `getDate()`：返回当前日期（1-31）
-- `getFullYear()`：返回当前年份（四位数）
-- `getMonth()`：返回月份（0-11）
-- `getHours()`：返回小时（0-23）
-- `getMinutes()`：返回分钟（0-59）
-- `getSeconds()`：返回秒（0-59）
-- `getMilliseconds()`：返回毫秒（0-999）
-
-**示例：**
-
-```js
-const now = new Date();
-console.log(now.getDate()); // 获取日期（1-31）
-console.log(now.getFullYear()); // 获取年份（四位数）
-console.log(now.getMonth()); // 获取月份（0-11）
-console.log(now.getHours()); // 获取小时（0-23）
-```
-
-#### **2.2 设置日期**
-
-- `setDate()`：设置日期
-- `setFullYear()`：设置年份
-- `setMonth()`：设置月份
-- `setHours()`：设置小时
-- `setMinutes()`：设置分钟
-- `setSeconds()`：设置秒
-- `setMilliseconds()`：设置毫秒
-
-**示例：**
-
-```js
-const customDate = new Date();
-customDate.setDate(15); // 设置日期为15号
-customDate.setFullYear(2025); // 设置年份为2025
-console.log(customDate);
-```
-
-### **3. 日期对象的转换方法**
-
-日期对象有几种常用的方法可以将其转换为字符串格式，适合输出或存储。
-
-#### **3.1 `toDateString()`**
-
-返回日期部分的字符串表示，忽略时间部分。
-
-```js
-const now = new Date();
-console.log(now.toDateString()); // 输出：Thu Jan 01 2025
-```
-
-#### **3.2 `toTimeString()`**
-
-返回时间部分的字符串表示，忽略日期部分。
-
-```js
-console.log(now.toTimeString()); // 输出：12:30:00 GMT+0000 (UTC)
-```
-
-#### **3.3 `toISOString()`**
-
-返回符合 ISO 8601 标准的字符串格式，通常用于 API 和后端数据传输。
-
-```js
-console.log(now.toISOString()); // 输出：2025-01-01T12:30:00.000Z
-```
-
-这个方法返回的日期字符串格式是：`YYYY-MM-DDTHH:mm:ss.sssZ`，适用于 web 或移动应用中与服务器进行数据交换时。
-
-### **4. 总结**
-
-`Date` 对象在 JavaScript 中非常重要，它为我们提供了对日期和时间的操作能力。使用 `Date` 对象时，你可以：
-
-- **创建日期**：可以使用无参数、时间戳、字符串或自定义年月日等方式。
-- **获取日期**：使用一系列 `get` 方法来获取日期的各个部分（如日期、年份、时间等）。
-- **设置日期**：使用相应的 `set` 方法来设置日期的各个部分。
-- **转换日期格式**：可以将 `Date` 对象转换为不同格式的字符串，以便输出、存储或与后端交互。
-
-通过了解和掌握 `Date` 对象，您可以轻松处理日期和时间的相关需求，无论是在前端界面还是与后端系统进行交互时。
 
 ---
 
