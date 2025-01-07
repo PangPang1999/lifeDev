@@ -844,9 +844,9 @@ console.log(type); // 输出: gold
   ```javascript
   let highIncome = true; // 高收入
   let goodCreditScore = true; // 良好的信用评分
-  
+
   let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
-  
+
   console.log(eligibleForLoan); // 输出: true
   ```
 
@@ -879,9 +879,9 @@ console.log(type); // 输出: gold
   ```js
   let highIncome = true; // 高收入
   let goodCreditScore = false; // 不良信用评分
-  
+
   let eligibleForLoan = highIncome || goodCreditScore; // 贷款批准条件
-  
+
   console.log(eligibleForLoan); // 输出: true
   ```
 
@@ -913,10 +913,10 @@ console.log(type); // 输出: gold
   ```js
   let highIncome = false; // 低收入
   let goodCreditScore = false; // 不良信用评分
-  
+
   let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
   let applicationRefused = !eligibleForLoan; // 贷款拒绝
-  
+
   console.log("Eligible for loan: " + eligibleForLoan); // 输出: false
   console.log("Application refused: " + applicationRefused); // 输出: true
   ```
@@ -1008,7 +1008,7 @@ console.log(type); // 输出: gold
   let userColor = "red"; // 用户选择的颜色
   let defaultColor = "blue"; // 默认颜色
   let currentColor = userColor || defaultColor; // 如果没有用户选择颜色，则使用默认颜色
-  
+
   console.log(currentColor); // 输出: red
   ```
 
@@ -1018,7 +1018,7 @@ console.log(type); // 输出: gold
   let userColor = undefined; // 用户未选择颜色
   let defaultColor = "blue"; // 默认颜色
   let currentColor = userColor || defaultColor; // 使用默认颜色
-  
+
   console.log(currentColor); // 输出: blue
   ```
 
@@ -1217,7 +1217,7 @@ if (hour >= 6 && hour < 12) {
 
   ```js
   let hour = 10; // 假设当前时间是上午 10 点
-  
+
   if (hour >= 0 && hour < 12) console.log("Good Morning");
   else if (hour >= 12 && hour < 18) console.log("Good Afternoon");
   else console.log("Good Evening");
@@ -1649,7 +1649,7 @@ for (let key in object) {
      for (let key in person) {
        console.log(key, person[key]); // 输出属性名和属性值
      }
-     
+
      // name Mosh
      // age 30
      ```
@@ -1743,14 +1743,14 @@ for (let element of iterable) {
 
   ```javascript
   let i = 0;
-  
+
   while (i <= 10) {
     if (i === 5) break;
-  
+
     console.log(i);
     i++;
   }
-  
+
   //输出 0-4
   ```
 
@@ -1767,18 +1767,18 @@ for (let element of iterable) {
 
   ```javascript
   let i = 0;
-  
+
   while (i <= 10) {
     // if (i === 5) break;
     if (i % 2 === 0) {
       i++;
       continue;
     }
-  
+
     console.log(i);
     i++;
   }
-  
+
   //输出 1 3 5 7 9
   ```
 
@@ -2399,7 +2399,7 @@ const obj = new Object();
    ```js
    const num1 = 42; // 数字字面量
    const num2 = new Number(42); // 使用构造函数
-   
+
    console.log(num1.constructor); // 输出：Number
    console.log(num2.constructor); // 输出：Number
    ```
@@ -2544,9 +2544,9 @@ const another = new Circle1(1);
   ```js
   let x = { value: 10 };
   let y = x; // 复制 x 的引用给 y
-  
+
   x.value = 20; // 修改 x 的 value 属性
-  
+
   console.log(x.value); // 输出 20
   console.log(y.value); // 输出 20
   ```
@@ -2578,10 +2578,10 @@ console.log(num); // 输出 10，原始值没有改变
     obj.value += 1;
     console.log(obj.value); // 输出增加后的值
   }
-  
+
   let obj = { value: 10 };
   increase(obj); // 传入 obj
-  
+
   console.log(obj.value); // 输出 11，原始对象被修改
   ```
 
@@ -2752,7 +2752,7 @@ console.log(another);
 
 - 内存回收：当对象不再被任何变量引用时，它会被垃圾回收器标记为可回收，然后释放内存。
 
-##  `Math` 对象
+## `Math` 对象
 
 > JavaScript 提供了一个非常强大的内置对象 —— **`Math`** 对象，专门用于处理各种数学常数和函数。这个对象包含了许多有用的属性和方法，可以帮助你进行数学运算，比如求最大值、最小值、生成随机数等。Google：javascript math
 
@@ -2861,7 +2861,7 @@ x = str.trim(); // 去除字符串前后空格
 x = str.trimLeft();
 x = str.trimRight();
 
-x = str.split(" "); // 将字符串使用的" "切分位数组
+x = str.split(" "); // 使用" "将字符串切分为数组
 console.log(x);
 
 console.log(str);
@@ -2889,7 +2889,7 @@ console.log(escapeMessage);
 
 > 在 JavaScript 中，**模板字面量**是一种强大且简洁的字符串操作方法。它使得我们可以更加方便地处理多行字符串、动态嵌入表达式以及格式化输出等操作。
 
-### **1. 模板字面量的基本语法**
+**基本语法**
 
 模板字面量由**反引号**（```）而非单引号或双引号定义。
 
@@ -2898,67 +2898,34 @@ const message = `这是一个模板字面量`;
 console.log(message); // 输出: 这是一个模板字面量
 ```
 
-### **2. 多行字符串**
+**格式优势**
 
-模板字面量的一个重要优势是，它允许我们直接输入多行字符串，而不需要使用转义字符（`\n`）。你只需在模板字面量中按下“回车”（Enter），就可以开始新的一行。
-
-**示例：**
+模板字面量的一个重要优势是，它允许我们直接输入，而不需要使用转义字符（`\n`）。
 
 ```js
-const message = `这是我的
-第一条消息。`;
-console.log(message);
-// 输出:
-// 这是我的
-// 第一条消息。
+const email =
+  "Hi John,\nThank you for joining my mailing list.\nRegards,\nMosh";
+
+const message = `Hi John,
+Thank you for joining my mailing list.
+Regards,
+Mosh`;
 ```
 
-对于常规字符串（使用 `""` 或 `''`）来说，必须使用 `\n` 来表示换行，这样代码看起来会不太直观。模板字面量则让我们可以直接在代码中看到输出效果。
-
-### **3. 转义字符**
-
-在常规字符串字面量中，如果需要包含特殊字符，如单引号（`'`），则必须使用反斜杠（`\`）来转义。
-
-**示例（没有模板字面量）：**
-
-```js
-const message = "这是我的 '第一' 条消息。";
-console.log(message); // 输出: 这是我的 '第一' 条消息。
-```
-
-但在模板字面量中，你不需要转义字符，因为你使用了不同的符号（反引号）来定义字符串。
-
-**示例（使用模板字面量）：**
-
-```js
-const message = `这是我的 '第一' 条消息。`;
-console.log(message); // 输出: 这是我的 '第一' 条消息。
-```
-
-### **4. 字符串插值（Placeholders）**
+**字符串插值（Placeholders）**
 
 模板字面量的另一个强大功能是**字符串插值**，即我们可以在字符串中动态地嵌入变量、常量或表达式，直接使用 `${}` 语法。
 
-**示例（使用字符串插值）：**
-
 ```js
 const name = "John";
-const message = `你好，${name}，欢迎参加 JavaScript 课程！`;
-console.log(message); // 输出: 你好，John，欢迎参加 JavaScript 课程！
+const message = `Hi ${name},
+Thank you for joining my mailing list.
+Regards,
+Mosh`;
+console.log(message);
 ```
 
-你还可以在 `${}` 中执行**计算**或者调用**函数**。
-
-**示例（使用表达式）：**
-
-```js
-const a = 5;
-const b = 10;
-const result = `数字 ${a} 和 ${b} 的和是 ${a + b}。`;
-console.log(result); // 输出: 数字 5 和 10 的和是 15。
-```
-
-你也可以在模板字面量中调用函数：
+可以在 `${}` 中执行**计算**或者调用**函数**。
 
 **示例（调用函数）：**
 
@@ -2970,59 +2937,6 @@ function getGreeting(name) {
 const message = `问候消息是: ${getGreeting("Alice")}`;
 console.log(message); // 输出: 问候消息是: 你好, Alice!
 ```
-
-### **5. 现实应用：格式化邮件内容**
-
-模板字面量特别适合用于格式化邮件或消息内容，在这些场景中，字符串的格式非常重要。
-
-没有模板字面量时，你可能会写成这样：
-
-**示例（没有模板字面量）：**
-
-```js
-const name = "John";
-const email =
-  "Hi " + name + ",\nThank you for joining my mailing list.\nRegards,\nMosh";
-console.log(email);
-// 输出:
-// Hi John,
-// Thank you for joining my mailing list.
-// Regards,
-// Mosh
-```
-
-使用模板字面量，你可以让代码看起来更简洁：
-
-**示例（使用模板字面量）：**
-
-```js
-const name = "John";
-const email = `Hi ${name},
-Thank you for joining my mailing list.
-Regards,
-Mosh`;
-
-console.log(email);
-// 输出:
-// Hi John,
-// Thank you for joining my mailing list.
-// Regards,
-// Mosh
-```
-
-你可以看到，使用模板字面量后，代码变得更直观和易读。你可以直接在代码中看到输出的格式，而不需要使用转义字符或字符串连接。
-
-### **6. 总结：模板字面量的优点**
-
-- **多行字符串**：你可以轻松创建跨越多行的字符串，而不需要使用 `\n`。
-- **更简洁的代码**：模板字面量使得字符串连接（`+`）不再必要，从而简化了代码。
-- **字符串插值**：你可以在字符串中轻松嵌入变量、表达式和函数返回值。
-- **不需要转义字符**：在模板字面量中，你不需要转义单引号（`'`）或双引号（`"`）。
-- **动态内容**：可以非常方便地格式化动态内容，例如电子邮件、报告或用户通知。
-
-### **7. 结论**
-
-模板字面量在 JavaScript 中提供了一种更灵活、更易读的方式来处理字符串。无论是在格式化多行文本、插入动态内容，还是书写邮件或通知，模板字面量都能提供比传统字符串连接更简洁、高效的解决方案。
 
 ## `Date` 对象介绍
 
