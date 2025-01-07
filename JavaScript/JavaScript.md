@@ -2699,7 +2699,7 @@ const another = Object.assign({}, circle);
 
 - 工作原理：`Object.assign()` 的第一个参数是目标对象（在这里是一个空对象 `{}`），后续的参数是源对象（这里是 `circle`）。所有源对象的属性会被复制到目标对象，并返回目标对象。
 
-- ***补充***：`Object.assign()` 是浅拷贝，因此如果源对象中的某个属性是引用类型（如对象或数组），那么目标对象与源对象共享该引用。
+- **_补充_**：`Object.assign()` 是浅拷贝，因此如果源对象中的某个属性是引用类型（如对象或数组），那么目标对象与源对象共享该引用。
 
   ```js
   const demo = {
@@ -2733,7 +2733,7 @@ console.log(another);
 
 - 工作原理：通过扩展运算符 `...`，我们可以将 `circle` 对象中的所有属性“展开”到新对象 `another` 中。这是一种非常简洁和优雅的方式。该方式同样是浅拷贝。
 
-## 内存管理与垃圾回收
+## 垃圾回收
 
 > 在低级语言如 C 或 C++ 中，我们需要手动分配和释放内存。即使是创建一个对象，也需要显式地为它分配内存空间，并在不再需要时释放这部分内存。然而，JavaScript 的内存管理与此不同，它通过自动化的 **垃圾回收机制** 来处理内存的分配和回收。作为开发者，我们不需要手动管理内存，JavaScript 引擎会在后台完成这些操作。
 
@@ -2752,8 +2752,7 @@ console.log(another);
 
 - 内存回收：当对象不再被任何变量引用时，它会被垃圾回收器标记为可回收，然后释放内存。
 
-
-## 内置 `Math` 对象
+##  `Math` 对象
 
 > JavaScript 提供了一个非常强大的内置对象 —— **`Math`** 对象，专门用于处理各种数学常数和函数。这个对象包含了许多有用的属性和方法，可以帮助你进行数学运算，比如求最大值、最小值、生成随机数等。Google：javascript math
 
@@ -2807,141 +2806,75 @@ function getRandomArbitrary(min, max) {
 }
 ```
 
-## 字符串对象 (`String`)
+## `String`对象
 
-> 在 JavaScript 中，字符串是一个非常常见的数据类型。尽管我们通常使用字符串字面量（`'hello'`）表示字符串，但实际上，字符串既可以是**原始类型**（primitive）也可以是**对象类型**（object）。接下来，我们将深入了解 `String` 对象以及一些常用的字符串方法。
+> 在 JavaScript 中，字符串有两种类型：**字符串原始类型**（Primitive String）和**字符串对象**（String Object）
+>
+> - 原始类型是不可变的，直接访问或修改字符串中的字符时，会创建一个新的字符串。
+> - 字符串对象是可以访问方法和属性的，内部 `String` 构造函数会让原始字符串具有方法和属性。
+>
+> 尽管原始字符串是不可变的，但 JavaScript 引擎在内部会自动将原始字符串封装成字符串对象来调用方法，因此在大多数情况下，我们不需要关心这个细节，直接使用字符串即可。
+>
+> google: javascript string
 
-### **1. 字符串原始类型与字符串对象**
+**字符串原始类型与字符串对象**
 
-在 JavaScript 中，字符串有两种类型：**字符串原始类型**（Primitive String）和**字符串对象**（String Object）。
+```JS
+//String primitive
+let message = "hi";
 
-- **字符串原始类型**：这是通过字面量创建的字符串，例如：
+//String object
+const another = new String("hi");
 
-  ```js
-  const message = "This is a string"; // 字符串原始类型
-  ```
+console.log(typeof message);  // 输出 "string"
+console.log(typeof another);  // 输出 "object"
 
-- **字符串对象**：通过 `String` 构造函数创建的字符串对象，它是一个对象类型：
+// 依然可以调用字符串的方法
+// message.xxx;
 
-  ```js
-  const anotherMessage = new String("This is another string"); // 字符串对象
-  ```
-
-#### **区别**：
-
-- 原始类型是不可变的，直接访问或修改字符串中的字符时，会创建一个新的字符串。
-- 字符串对象是可以访问方法和属性的，内部 `String` 构造函数会让原始字符串具有方法和属性。
-
-尽管原始字符串是不可变的，但 JavaScript 引擎在内部会自动将原始字符串封装成字符串对象来调用方法，因此在大多数情况下，我们不需要关心这个细节，直接使用字符串即可。
-
----
-
-### **2. 常用字符串方法**
-
-#### **`length` 属性**
-
-`length` 属性返回字符串的长度（即字符串中的字符数）。
-
-```js
-const message = "This is my first message.";
-console.log(message.length); // 输出：23
+// message 是原始类型字符串，不能直接修改其中的字符。
+// 这里的操作是将 message 变量指向了一个新的字符串
+message = "hello";
 ```
 
-#### **`charAt()` 和 `[]` 访问字符**
+**常用字符串方法**
 
-你可以使用 `charAt(index)` 方法或者直接使用 `[]` 来访问字符串中特定位置的字符。
-
-```js
-console.log(message.charAt(0)); // 输出：T
-console.log(message[0]); // 输出：T
-```
-
-#### **`includes()` 方法**
-
-`includes()` 方法检查字符串中是否包含指定的子字符串，返回布尔值（`true` 或 `false`）。
+常见用法见[链接](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
 
 ```js
-console.log(message.includes("first")); // 输出：true
-console.log(message.includes("not")); // 输出：false
+const str = " abc 456 789 ";
+
+let x;
+
+x = str.length; // 输出字符串长度（含空）
+x = str[0]; // 输出字符串第1位的字段（索引从0开始）
+x = str[4];
+x = str.includes("789"); // 判断字符串是否包含789
+x = str.includes("999");
+x = str.startsWith("abc"); // 判断字符串是否以abc开头
+x = str.startsWith("ccc");
+x = str.endsWith("9"); // 判断字符串是否以9结尾
+x = str.indexOf("89"); // 计算字符串中 89 第一次出现的位置
+x = str.replace("789", "999"); // 将字符串中的789替换为999，并将生成的字符串返回，不影响原字符串
+x = str.toUpperCase(); // 将字符串小写替换大写，并将生成的字符串返回，不影响原字符串
+x = str.trim(); // 去除字符串前后空格
+x = str.trimLeft();
+x = str.trimRight();
+
+console.log(x);
+
+console.log(str);
 ```
 
-#### **`startsWith()` 和 `endsWith()` 方法**
+**转义字符（Escape Characters）**
 
-`startsWith()` 方法检查字符串是否以指定的子字符串开始；`endsWith()` 方法检查字符串是否以指定的子字符串结束。
+有时候，字符串中需要使用一些特殊字符（例如引号、换行符等），这时我们需要使用转义字符（escape notation），更多见上面提供的链接。
 
-```js
-console.log(message.startsWith("This")); // 输出：true
-console.log(message.endsWith("message.")); // 输出：true
-```
-
-注意，这些方法是**区分大小写**的，因此 `startsWith("this")` 会返回 `false`。
-
-#### **`indexOf()` 方法**
-
-`indexOf()` 方法返回指定子字符串在字符串中的第一个出现位置。如果找不到该子字符串，返回 `-1`。
-
-```js
-console.log(message.indexOf("first")); // 输出：10
-console.log(message.indexOf("hello")); // 输出：-1
-```
-
-#### **`replace()` 方法**
-
-`replace()` 方法用于替换字符串中的指定内容，返回一个新的字符串。它不会修改原始字符串。
-
-```js
-const newMessage = message.replace("first", "second");
-console.log(newMessage); // 输出：This is my second message.
-console.log(message); // 输出：This is my first message.
-```
-
-#### **`toUpperCase()` 和 `toLowerCase()` 方法**
-
-`toUpperCase()` 方法将字符串转换为大写，`toLowerCase()` 方法将字符串转换为小写。
-
-```js
-console.log(message.toUpperCase()); // 输出：THIS IS MY FIRST MESSAGE.
-console.log(message.toLowerCase()); // 输出：this is my first message.
-```
-
-#### **`trim()` 方法**
-
-`trim()` 方法去除字符串两端的空白字符（包括空格、制表符等）。
-
-```js
-const paddedMessage = "   Hello World!   ";
-console.log(paddedMessage.trim()); // 输出：Hello World!
-```
-
-也可以使用 `trimLeft()` 和 `trimRight()` 去除字符串左侧和右侧的空白字符。
-
-```js
-console.log(paddedMessage.trimLeft()); // 输出：Hello World!
-console.log(paddedMessage.trimRight()); // 输出：   Hello World!
-```
-
-#### **`split()` 方法**
-
-`split()` 方法根据指定的分隔符将字符串分割成一个数组。
-
-```js
-const words = message.split(" ");
-console.log(words); // 输出：["This", "is", "my", "first", "message."]
-```
-
----
-
-### **3. 转义字符（Escape Characters）**
-
-有时候，字符串中需要使用一些特殊字符（例如引号、换行符等），这时我们需要使用**转义字符**（escape notation）。
-
-- **`\n`**：表示换行。
-- **`\t`**：表示制表符。
-- **`\'`**：表示单引号。
-- **`\"`**：表示双引号。
-- **`\\`**：表示反斜杠。
-
-例如：
+- `\n`：表示换行。
+- `\t`：表示制表符。
+- `\'`：表示单引号。
+- `\"`：表示双引号。
+- `\\`：表示反斜杠。
 
 ```js
 const escapeMessage = "It's a beautiful day.\nLet's go for a walk!";
