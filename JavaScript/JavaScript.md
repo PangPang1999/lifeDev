@@ -2861,6 +2861,7 @@ x = str.trim(); // 去除字符串前后空格
 x = str.trimLeft();
 x = str.trimRight();
 
+x = str.split(" "); // 将字符串使用的" "切分位数组
 console.log(x);
 
 console.log(str);
