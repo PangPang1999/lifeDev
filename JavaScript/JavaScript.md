@@ -844,9 +844,9 @@ console.log(type); // 输出: gold
   ```javascript
   let highIncome = true; // 高收入
   let goodCreditScore = true; // 良好的信用评分
-
+  
   let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
-
+  
   console.log(eligibleForLoan); // 输出: true
   ```
 
@@ -879,9 +879,9 @@ console.log(type); // 输出: gold
   ```js
   let highIncome = true; // 高收入
   let goodCreditScore = false; // 不良信用评分
-
+  
   let eligibleForLoan = highIncome || goodCreditScore; // 贷款批准条件
-
+  
   console.log(eligibleForLoan); // 输出: true
   ```
 
@@ -913,10 +913,10 @@ console.log(type); // 输出: gold
   ```js
   let highIncome = false; // 低收入
   let goodCreditScore = false; // 不良信用评分
-
+  
   let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
   let applicationRefused = !eligibleForLoan; // 贷款拒绝
-
+  
   console.log("Eligible for loan: " + eligibleForLoan); // 输出: false
   console.log("Application refused: " + applicationRefused); // 输出: true
   ```
@@ -1008,7 +1008,7 @@ console.log(type); // 输出: gold
   let userColor = "red"; // 用户选择的颜色
   let defaultColor = "blue"; // 默认颜色
   let currentColor = userColor || defaultColor; // 如果没有用户选择颜色，则使用默认颜色
-
+  
   console.log(currentColor); // 输出: red
   ```
 
@@ -1018,7 +1018,7 @@ console.log(type); // 输出: gold
   let userColor = undefined; // 用户未选择颜色
   let defaultColor = "blue"; // 默认颜色
   let currentColor = userColor || defaultColor; // 使用默认颜色
-
+  
   console.log(currentColor); // 输出: blue
   ```
 
@@ -1217,7 +1217,7 @@ if (hour >= 6 && hour < 12) {
 
   ```js
   let hour = 10; // 假设当前时间是上午 10 点
-
+  
   if (hour >= 0 && hour < 12) console.log("Good Morning");
   else if (hour >= 12 && hour < 18) console.log("Good Afternoon");
   else console.log("Good Evening");
@@ -1649,7 +1649,7 @@ for (let key in object) {
      for (let key in person) {
        console.log(key, person[key]); // 输出属性名和属性值
      }
-
+     
      // name Mosh
      // age 30
      ```
@@ -1743,14 +1743,14 @@ for (let element of iterable) {
 
   ```javascript
   let i = 0;
-
+  
   while (i <= 10) {
     if (i === 5) break;
-
+  
     console.log(i);
     i++;
   }
-
+  
   //输出 0-4
   ```
 
@@ -1767,18 +1767,18 @@ for (let element of iterable) {
 
   ```javascript
   let i = 0;
-
+  
   while (i <= 10) {
     // if (i === 5) break;
     if (i % 2 === 0) {
       i++;
       continue;
     }
-
+  
     console.log(i);
     i++;
   }
-
+  
   //输出 1 3 5 7 9
   ```
 
@@ -2399,7 +2399,7 @@ const obj = new Object();
    ```js
    const num1 = 42; // 数字字面量
    const num2 = new Number(42); // 使用构造函数
-
+   
    console.log(num1.constructor); // 输出：Number
    console.log(num2.constructor); // 输出：Number
    ```
@@ -2544,9 +2544,9 @@ const another = new Circle1(1);
   ```js
   let x = { value: 10 };
   let y = x; // 复制 x 的引用给 y
-
+  
   x.value = 20; // 修改 x 的 value 属性
-
+  
   console.log(x.value); // 输出 20
   console.log(y.value); // 输出 20
   ```
@@ -2578,10 +2578,10 @@ console.log(num); // 输出 10，原始值没有改变
     obj.value += 1;
     console.log(obj.value); // 输出增加后的值
   }
-
+  
   let obj = { value: 10 };
   increase(obj); // 传入 obj
-
+  
   console.log(obj.value); // 输出 11，原始对象被修改
   ```
 
@@ -2967,6 +2967,278 @@ x = now.toISOString(); // 最常见的前后端传递时间格式
 x = now.getDate(); // 获取时间 日 信息
 console.log(x);
 ```
+
+## Ex1
+
+> 创建一个名为 `address` 的对象，该对象包含三个属性：`street`、`city` 和 `zipCode`。
+>
+> 然后，创建一个名为 `showAddress` 的函数，该函数接受一个 `address` 对象，并显示该对象的所有属性及其对应的值。
+
+```js
+// 创建 address 对象
+const address = {
+  street: "a",
+  city: "b",
+  zipCode: "c",
+};
+
+// 创建 showAddress 函数
+function showAddress(address) {
+  for (let key in address) {
+    console.log(key, address[key]);
+  }
+}
+
+// 调用 showAddress 函数
+showAddress(address);
+
+// 输出
+// street a
+// city b
+// zipCode c
+```
+
+## Ex2
+
+> 在本练习中，您需要使用两种不同的函数来初始化 `address` 对象：一种是工厂函数（Factory Function），另一种是构造函数（Constructor Function）。
+
+**工厂函数实现**：返回一个新对象，使用简单的返回语法。
+
+```js
+// 工厂函数：createAddress
+function createAddress(street, city, zipCode) {
+  return {
+    // street: street,
+    street,
+    city,
+    zipCode,
+  };
+}
+
+// 创建 address 对象
+const address1 = createAddress("a", "b", "c");
+
+// 输出 address 对象
+console.log(address1);
+
+// 输出
+// { street: 'a', city: 'b', zipCode: 'c' }
+```
+
+**构造函数实现**：使用 `this` 关键字初始化对象，创建时需要使用 `new` 操作符。
+
+```js
+// 构造函数：Address
+function Address(street, city, zipCode) {
+  this.street = street;
+  this.city = city;
+  this.zipCode = zipCode;
+}
+
+// 使用 new 操作符创建 address 对象
+const address2 = new Address("a", "b", "c");
+
+// 输出 address 对象
+console.log(address2);
+
+// 输出
+// Address { street: 'a', city: 'b', zipCode: 'c' }
+```
+
+## Ex3
+
+> 在本练习中，使用上一个练习中创建的构造函数，创建两个 `address` 对象。接着，编写两个函数来检查对象的相等性：
+>
+> - `areEqual`：检查两个对象的属性是否完全相等。
+> - `areSame`：检查两个对象是否是同一个引用。
+
+```js
+// 构造函数：Address
+function Address(street, city, zipCode) {
+  this.street = street;
+  this.city = city;
+  this.zipCode = zipCode;
+}
+
+// 创建两个 address 对象
+const address1 = new Address("a", "b", "c");
+const address2 = new Address("a", "b", "c");
+
+// areEqual 函数：检查两个对象的属性是否相等
+function areEqual(address1, address2) {
+  return (
+    address1.street === address2.street &&
+    address1.city === address2.city &&
+    address1.zipCode === address2.zipCode
+  );
+}
+
+// areSame 函数：检查两个对象是否是同一个引用
+function areSame(address1, address2) {
+  return address1 === address2;
+}
+
+// 调用函数并输出结果
+console.log(areEqual(address1, address2)); // true
+console.log(areSame(address1, address2)); // false
+
+// 如果我们让 address2 引用 address1 对象
+const address3 = address1;
+console.log(areSame(address1, address3)); // true
+```
+
+- `areSame` 函数通过严格等于 (`===`) 运算符判断两个对象是否引用同一个内存地址。
+- `areEqual` 函数检查两个对象的属性是否完全相同，返回 `true` 或 `false`。
+- 即使两个对象的属性相同，它们也可能是不同的对象，只有当它们引用同一内存位置时，`areSame` 才会返回 `true`。
+
+## Ex4
+
+> 在本练习中，创建一个 `blogPost` 对象，包含以下属性：
+>
+> - `title`：博客标题
+> - `body`：博客内容
+> - `author`：作者
+> - `views`：博客被浏览的次数
+> - `comments`：每个评论包含 `author` 和 `body` 属性
+> - `isLive`：一个布尔值，表示博客是否发布。
+
+```js
+// 创建 blogPost 对象
+const post = {
+  title: "a",
+  body: "b",
+  author: "c",
+  views: 10, // 浏览次数
+  comments: [
+    {
+      author: "a",
+      body: "b",
+    },
+    {
+      author: "c",
+      body: "d",
+    },
+  ],
+  isLive: true,
+};
+
+console.log(post);
+```
+
+## Ex5
+
+> 在这个练习中，我们将使用构造函数创建一个 `post` 对象。这个构造函数与之前的构造函数有所不同，因为它针对尚未发布的草稿进行初始化。
+>
+> 假设我们正在构建一个博客引擎，用户正在草拟一篇博客，但还没有发布。在这种情况下，构造函数应如何设计呢？
+
+```js
+// 定义 Post 构造函数
+function Post(title, body, author) {
+  this.title = title; // 标题
+  this.body = body; // 内容
+  this.author = author; // 作者
+  this.views = 0; // 浏览次数，默认初始化为 0
+  this.comments = []; // 评论，初始化为空数组
+  this.isLive = false; // 是否发布，默认初始化为 false
+}
+
+// 创建 Post 对象
+const post = new Post(
+  "My First Blog Post",
+  "This is the body of my blog post.",
+  "John Doe"
+);
+
+// 输出 Post 对象
+console.log(post);
+```
+
+## Ex6
+
+> 在这个练习中，我们将模拟 Yelp.com 上的价格范围按钮（例如：便宜、中等、昂贵等）。我们需要使用对象来实现这个功能。请考虑每个对象应该包含哪些属性。
+
+```js
+// 创建价格范围数组
+const priceRanges = [
+  {
+    label: "$", // 显示给用户的标签
+    tooltip: "Inexpensive", // 鼠标悬停时显示的提示文本
+    minPerPerson: 0, // 每人最低价格
+    maxPerPerson: 10, // 每人最高价格
+  },
+  {
+    label: "$$", // 显示给用户的标签
+    tooltip: "Moderate", // 鼠标悬停时显示的提示文本
+    minPerPerson: 11, // 每人最低价格
+    maxPerPerson: 30, // 每人最高价格
+  },
+  {
+    label: "$$$", // 显示给用户的标签
+    tooltip: "Expensive", // 鼠标悬停时显示的提示文本
+    minPerPerson: 31, // 每人最低价格
+    maxPerPerson: 60, // 每人最高价格
+  },
+];
+
+// 模拟餐馆对象数组
+const restaurants = [
+  { name: "Restaurant A", averagePricePerPerson: 5 },
+  { name: "Restaurant B", averagePricePerPerson: 20 },
+  { name: "Restaurant C", averagePricePerPerson: 40 },
+];
+```
+
+# 数组
+
+## 概念
+
+> 数组（Array）是用于存储一组有序数据的集合。在 JavaScript 中，数组是对象类型，因此它们具有多种内建方法来处理元素。我们一般使用 `const` 来声明数组，这意味着数组的引用不可重新赋值，但数组的内容是可以修改的。
+
+```js
+const numbers = [3, 4];
+numbers = []; // Uncaught TypeError: Assignment to constant variable.
+```
+
+## 添加元素
+
+> 向数组中添加元素有多种方式，可以在数组的**最前面**、**中间**或**末尾**添加元素。
+
+```js
+const numbers = [3, 4];
+
+// End
+numbers.push(5, 6); // 向数组末尾添加 5 和 6
+
+// Beginning
+numbers.unshift(1, 2); // 向数组开头添加 1 和 2
+
+// Middle
+numbers.splice(2, 0, "a", "b"); // 从索引 2 开始，不删除任何元素，插入 'a' 和 'b'
+
+console.log(numbers);
+```
+
+- `.push`：向数组末尾添加元素。
+- `.unshift`：向数组开头添加元素。
+- `.splice`：可以在数组的任意位置添加、删除或替换元素。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ---
 
