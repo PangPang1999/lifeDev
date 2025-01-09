@@ -3403,6 +3403,29 @@ console.log(combineObj);
   - `concat()` 方法不仅可以用于合并普通数组，还可以用于合并对象数组。
   - 在合并后的数组中，我们看到 `objArr[0].id` 被修改成了 10，因为对象是按引用传递的，合并时我们实际上只是将 `objArr` 的引用添加到了 `combined` 中，而并没有复制该对象。（在 对象 克隆对象 一节中有讲到 浅拷贝）
 
+## 拓展运算符（`...`）
+
+> 扩展运算符（`...`）提供了一个非常简洁的方式来复制数组或对象。这是目前最推荐的方式之一，因为它代码简洁且易读。它不仅可以用于数组合并、拷贝，还可以用于对象的拷贝和合并。
+>
+> *在 对象 克隆对象 一节中有讲到拓展运算符*
+
+```JS
+const first = [1, 2, 3];
+const second = [4, 5, 6];
+
+// 合并数组和元素
+const combined = [...first, "a", ...second, "b"];
+
+// 拷贝
+// const copy = combined.slice();
+const copy = [...combined];
+
+console.log(combined);
+console.log(copy);
+```
+
+
+
 
 
 ---
