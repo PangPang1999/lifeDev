@@ -844,9 +844,9 @@ console.log(type); // 输出: gold
   ```javascript
   let highIncome = true; // 高收入
   let goodCreditScore = true; // 良好的信用评分
-  
+
   let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
-  
+
   console.log(eligibleForLoan); // 输出: true
   ```
 
@@ -879,9 +879,9 @@ console.log(type); // 输出: gold
   ```js
   let highIncome = true; // 高收入
   let goodCreditScore = false; // 不良信用评分
-  
+
   let eligibleForLoan = highIncome || goodCreditScore; // 贷款批准条件
-  
+
   console.log(eligibleForLoan); // 输出: true
   ```
 
@@ -913,10 +913,10 @@ console.log(type); // 输出: gold
   ```js
   let highIncome = false; // 低收入
   let goodCreditScore = false; // 不良信用评分
-  
+
   let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
   let applicationRefused = !eligibleForLoan; // 贷款拒绝
-  
+
   console.log("Eligible for loan: " + eligibleForLoan); // 输出: false
   console.log("Application refused: " + applicationRefused); // 输出: true
   ```
@@ -1008,7 +1008,7 @@ console.log(type); // 输出: gold
   let userColor = "red"; // 用户选择的颜色
   let defaultColor = "blue"; // 默认颜色
   let currentColor = userColor || defaultColor; // 如果没有用户选择颜色，则使用默认颜色
-  
+
   console.log(currentColor); // 输出: red
   ```
 
@@ -1018,7 +1018,7 @@ console.log(type); // 输出: gold
   let userColor = undefined; // 用户未选择颜色
   let defaultColor = "blue"; // 默认颜色
   let currentColor = userColor || defaultColor; // 使用默认颜色
-  
+
   console.log(currentColor); // 输出: blue
   ```
 
@@ -1217,7 +1217,7 @@ if (hour >= 6 && hour < 12) {
 
   ```js
   let hour = 10; // 假设当前时间是上午 10 点
-  
+
   if (hour >= 0 && hour < 12) console.log("Good Morning");
   else if (hour >= 12 && hour < 18) console.log("Good Afternoon");
   else console.log("Good Evening");
@@ -1649,7 +1649,7 @@ for (let key in object) {
      for (let key in person) {
        console.log(key, person[key]); // 输出属性名和属性值
      }
-     
+
      // name Mosh
      // age 30
      ```
@@ -1743,14 +1743,14 @@ for (let element of iterable) {
 
   ```javascript
   let i = 0;
-  
+
   while (i <= 10) {
     if (i === 5) break;
-  
+
     console.log(i);
     i++;
   }
-  
+
   //输出 0-4
   ```
 
@@ -1767,18 +1767,18 @@ for (let element of iterable) {
 
   ```javascript
   let i = 0;
-  
+
   while (i <= 10) {
     // if (i === 5) break;
     if (i % 2 === 0) {
       i++;
       continue;
     }
-  
+
     console.log(i);
     i++;
   }
-  
+
   //输出 1 3 5 7 9
   ```
 
@@ -2399,7 +2399,7 @@ const obj = new Object();
    ```js
    const num1 = 42; // 数字字面量
    const num2 = new Number(42); // 使用构造函数
-   
+
    console.log(num1.constructor); // 输出：Number
    console.log(num2.constructor); // 输出：Number
    ```
@@ -2544,9 +2544,9 @@ const another = new Circle1(1);
   ```js
   let x = { value: 10 };
   let y = x; // 复制 x 的引用给 y
-  
+
   x.value = 20; // 修改 x 的 value 属性
-  
+
   console.log(x.value); // 输出 20
   console.log(y.value); // 输出 20
   ```
@@ -2578,10 +2578,10 @@ console.log(num); // 输出 10，原始值没有改变
     obj.value += 1;
     console.log(obj.value); // 输出增加后的值
   }
-  
+
   let obj = { value: 10 };
   increase(obj); // 传入 obj
-  
+
   console.log(obj.value); // 输出 11，原始对象被修改
   ```
 
@@ -3302,7 +3302,7 @@ const add = (a, b) => {
   return a + b;
 };
 
-console.log(add(3, 4));  // 输出: 7
+console.log(add(3, 4)); // 输出: 7
 ```
 
 **示例**
@@ -3352,7 +3352,7 @@ let another = numbers;
 
 // Solution 1
 // 直接赋值一个空数组
-// numbers = []; // 
+// numbers = []; //
 
 // Solution 2 (推荐)
 // 修改数组的长度为 0
@@ -3360,7 +3360,7 @@ numbers.length = 0;
 
 // Solution 3
 // 删除所有元素
-// numbers.splice(0, numbers.length); 
+// numbers.splice(0, numbers.length);
 
 // Solution 4 (性能较差，不推荐)
 // 循环删除每个元素
@@ -3392,7 +3392,6 @@ console.log(combined);
 const combineObj = combined.concat(objArr);
 objArr[0].id = 10;
 console.log(combineObj);
-
 ```
 
 - `concat()` 方法用于合并多个数组或值，并返回一个新数组。原数组不会被修改。
@@ -3407,7 +3406,7 @@ console.log(combineObj);
 
 > 扩展运算符（`...`）提供了一个非常简洁的方式来复制数组或对象。这是目前最推荐的方式之一，因为它代码简洁且易读。它不仅可以用于数组合并、拷贝，还可以用于对象的拷贝和合并。
 >
-> *在 对象 克隆对象 一节中有讲到拓展运算符*
+> _在 对象 克隆对象 一节中有讲到拓展运算符_
 
 ```JS
 const first = [1, 2, 3];
@@ -3485,8 +3484,6 @@ let articleTitle = "Creating arrays in JavaScript";
 const slug = articleTitle.split(" ").join("-");
 console.log(slug);
 ```
-
-
 
 ---
 
