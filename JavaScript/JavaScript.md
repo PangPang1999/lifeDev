@@ -3218,25 +3218,190 @@ numbers.splice(2, 0, "a", "b"); // 从索引 2 开始，不删除任何元素，
 console.log(numbers);
 ```
 
-- `.push`：向数组末尾添加元素。
-- `.unshift`：向数组开头添加元素。
-- `.splice`：可以在数组的任意位置添加、删除或替换元素。
+- `push()` 方法用于向数组的末尾添加一个或多个元素，并返回数组的新长度。
+- `unshift()` 方法用于将一个或多个元素添加到数组的开头，并返回数组的新长度。
+- `splice()` 方法可以在数组的任何位置进行添加、删除或替换元素。其基本语法为：`splice(startIndex, deleteCount, item1, item2, ...)`。
+  - `startIndex`：指定开始操作的位置。
+  - `deleteCount`：指定要删除的元素数量。
+  - `item1, item2, ...`：指定要插入的元素。
 
+## 查找原始元素
 
+> 查找数组中的原始元素有多种方式，可以查找元素是否存在、元素的位置，或者从某个特定位置开始查找。
 
+```js
+const numbers = [1, 2, 3, 1, 4];
 
+console.log(numbers.indexOf("a")); // -1
+console.log(numbers.indexOf("1")); // -1
+console.log(numbers.indexOf(1)); // 0
+console.log(numbers.indexOf(1, 1)); // 3, 从索引1开始扫描
 
+console.log(numbers.lastIndexOf(1)); // 3
 
+console.log(numbers.indexOf(1) !== -1); // true，表示1存在于数组
+console.log(numbers.includes(1)); // true，表示1存在于数组
+```
 
+- `indexOf()` 方法返回数组中第一个匹配元素的索引。如果元素不存在，返回 `-1`。它还允许你指定一个起始位置，从指定的位置开始查找。
+- `lastIndexOf()` 方法返回数组中最后一个匹配元素的索引。如果元素不存在，返回 `-1`。
+- `includes()` 方法返回一个布尔值，表示数组是否包含某个元素。与 `indexOf()` 类似，但它返回 `true` 或 `false`，而不是索引值。
 
+## 查找对象元素
 
+> 在数组中查找对象元素时，方法与查找原始类型元素不同，因为对象是引用类型（比如 `Object`、`Array` 等）时，`indexOf()`、`includes()` 等方法会基于引用进行比较，因此即使对象的内容相同，它们也会被认为是不同的对象。为了查找对象元素，我们可以使用 `find()` 或 `findIndex()` 等方法。具体查看[文档](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find)
+>
+> Google: javascript array find
 
+```JS
+const courses = [
+  { id: 1, name: "a" },
+  { id: 2, name: "b" },
+];
 
+console.log(courses.includes({ id: 1, name: "a" })); // false
 
+const course = courses.find(function (course) {
+  return course.name === "a";
+});
 
+console.log(course);
+```
 
+- `find()` 方法返回数组中第一个符合条件的元素。如果没有找到符合条件的元素，则返回 `undefined`。通过回调函数来定义查找条件。
+- `findIndex()` 方法返回数组中第一个符合条件的元素的索引。如果没有找到符合条件的元素，则返回 `-1`。同样，通过回调函数来定义查找条件。
 
+## 箭头函数
 
+> **箭头函数**（Arrow Function）是 JavaScript 中一种简洁的函数定义方式，它使用 `=>` 语法来定义函数。箭头函数的主要特点是语法更简洁，并且它在处理 `this` 关键字时与传统的函数表达式有所不同。
+>
+> - 箭头函数的语法比传统的函数表达式更简洁。尤其是当需要传递一个简单的回调函数时，箭头函数非常方便。
+>
+> - 箭头函数还有其他的特点以及对应的限制
+>   - 箭头函数没有自己的 `this`，它会从外部作用域继承 `this`。
+>   - 箭头函数无法作为构造函数，不能使用 `new` 关键字。
+>   - 箭头函数也没有 `arguments` 对象，但可以使用剩余参数 `...args`。
+
+**基本语法**
+
+```js
+const functionName = (param1, param2) => {
+  // 函数体
+};
+```
+
+- 如果函数体只有一行，可以省略大括号 `{}` 和 `return` 关键字，直接返回计算结果。
+
+- 如果只有一个参数，圆括号 `()` 可以省略。
+- 没有参数时，圆括号必须存在
+
+**基本用法**
+
+```js
+const add = (a, b) => {
+  return a + b;
+};
+
+console.log(add(3, 4));  // 输出: 7
+```
+
+**示例**
+
+```js
+const course = courses.find(function (course) {
+  return course.name === "a";
+});
+
+// 等价于
+const course = courses.find((course) => course.name === "a");
+```
+
+## 删除元素
+
+> 向数组中删除元素有多种方式，可以在数组的**最前面**、**中间**或**末尾**删除元素。
+
+```JS
+const numbers = [1, 2, 3, 4, 5];
+
+// End
+// const last = numbers.pop();
+// console.log(numbers);
+// console.log(last);
+
+// Beginning
+// const first = numbers.shift();
+// console.log(numbers);
+// console.log(first);
+
+// Middle
+numbers.splice(2, 2);
+console.log(numbers);
+```
+
+- `pop()`：删除数组末尾的元素并返回该元素。该方法会修改原数组，数组的长度减少 1。
+- `shift()`：删除数组开头的元素并返回该元素。与 `pop()` 相似，`shift()` 会修改原数组，数组长度减少 1。
+- `splice()`：可以从数组中的任意位置删除元素。它接受两个参数：第一个是起始位置的索引，第二个是要删除的元素个数。`splice()` 也可以用于插入元素。
+
+## 清空数组
+
+> 清空数组的方法有多种，以下是几种常见的方式。在实际开发中，我们通常选择性能最优且易于理解的方法。
+
+```js
+let numbers = [1, 2, 3, 4, 5];
+let another = numbers;
+
+// Solution 1
+// 直接赋值一个空数组
+// numbers = []; // 
+
+// Solution 2 (推荐)
+// 修改数组的长度为 0
+numbers.length = 0;
+
+// Solution 3
+// 删除所有元素
+// numbers.splice(0, numbers.length); 
+
+// Solution 4 (性能较差，不推荐)
+// 循环删除每个元素
+// while (numbers.length > 0) numbers.pop();
+```
+
+- 直接赋值一个空数组：这种方式会创建一个新的数组，简洁，会使原数组引用丢失 ,在数组没有其他引用时可以使用。
+- 修改数组的长度为：这会修改原数组并清空所有元素。
+- 使用 splice 方法删除所有元素：从索引 0 开始删除所有元素，代码有点杂乱。
+- 循环删除每个元素：使用 while 循环删除每个元素。性能较差，且不如前两种方法简洁。
+
+## 组合和切割
+
+> 在 JavaScript 中，可以使用数组的 `concat()` 方法将多个数组合并成一个数组，或者使用 `slice()` 方法对数组进行切割。
+
+```js
+const first = [1, 2, 3];
+const second = [4, 5, 6];
+const objArr = [{ id: 1 }];
+
+const combined = first.concat(second);
+
+const slice = combined.slice(2, 4);
+const copy = combined.slice(); // 视为拷贝
+
+console.log(slice);
+console.log(combined);
+
+const combineObj = combined.concat(objArr);
+objArr[0].id = 10;
+console.log(combineObj);
+
+```
+
+- `concat()` 方法用于合并多个数组或值，并返回一个新数组。原数组不会被修改。
+
+- `slice(start, end)` 方法用于从数组中返回指定位置的元素，并返回一个新数组。原数组不会被修改。方法从 `start` 索引开始（包含），到 `end` 索引结束（不包括）。
+
+- 对象数组合并：
+  - `concat()` 方法不仅可以用于合并普通数组，还可以用于合并对象数组。
+  - 在合并后的数组中，我们看到 `objArr[0].id` 被修改成了 10，因为对象是按引用传递的，合并时我们实际上只是将 `objArr` 的引用添加到了 `combined` 中，而并没有复制该对象。（在 对象 克隆对象 一节中有讲到 浅拷贝）
 
 
 

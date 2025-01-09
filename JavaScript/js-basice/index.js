@@ -1,12 +1,15 @@
-const numbers = [3, 4];
+const first = [1, 2, 3];
+const second = [4, 5, 6];
+const objArr = [{ id: 1 }];
 
-// End
-numbers.push(5, 6); // add element at end of
+const combined = first.concat(second);
 
-// Beginning
-numbers.unshift(1, 2);
+const slice = combined.slice(2, 4);
+const copy = combined.slice();
 
-// Middle
-numbers.splice(2, 0, "a", "b"); // index from 0
+console.log(slice);
+console.log(combined);
 
-console.log(numbers);
+const combineObj = combined.concat(objArr);
+objArr[0].id = 10;
+console.log(combineObj);
