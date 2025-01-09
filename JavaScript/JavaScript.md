@@ -3424,7 +3424,67 @@ console.log(combined);
 console.log(copy);
 ```
 
+## 遍历数组
 
+> 在 JavaScript 中，遍历数组是处理数组数据的常见操作。我们可以使用 `for` 循环、`for...of` 循环和 `forEach()` 方法来遍历数组。下面是一些常见的数组遍历方法：
+
+```js
+const numbers = [1, 2, 3];
+
+// 使用 for...of 循环遍历数组
+for (let number of numbers) {
+  console.log(number);
+}
+
+// 使用 forEach 方法遍历数组
+numbers.forEach(function (number) {
+  console.log(number);
+});
+
+// 使用箭头函数的 forEach 方法，并获取索引
+numbers.forEach((number, index) => console.log(index, number));
+```
+
+- `for...of` 循环：是一种简洁的遍历数组的方式，它直接返回数组中的元素，不需要显式使用索引。
+
+- `forEach()` 是数组的一个内建方法，用于遍历数组并对每个元素执行一个回调函数。支持箭头函数，使代码更简洁。
+
+## `join()` 和 `split()`
+
+> `join()` 方法将数组中的所有元素连接成一个字符串，并返回该字符串。可以指定一个分隔符（默认为逗号），如果不指定分隔符，默认使用逗号分隔数组元素。
+>
+> `split()` 是字符串的方法，用于将一个字符串分割成一个数组。它根据传入的分隔符将字符串分割成多个部分，返回一个新数组。
+
+```js
+const numbers = [1, 2, 3];
+const result = numbers.join();
+console.log(result);
+
+let message = "This is my first message";
+
+// 使用空格分割字符串
+const parts = message.split(" ");
+console.log(parts);
+
+const conbined = parts.join("-");
+console.log(conbined);
+```
+
+- `join()` 方法返回一个字符串，数组元素以指定的分隔符连接起来。分隔符是可选的，若不传入，默认用逗号 `,` 作为分隔符。不会改变原始数组。
+- `split()` 方法将字符串分割成数组，并返回这个数组。传入的分隔符是必须的，可以是任意字符或正则表达式。
+
+**用途：构建 URL Slug**
+
+在构建 URL 时，空格不能出现在 URL 中。因此，需要将标题（如文章标题）中的空格替换为连字符（`-`）。这常见于创建网站的 URL Slug。
+
+```js
+// 假设有一个文章标题
+let articleTitle = "Creating arrays in JavaScript";
+
+// 通过 split 和 join 创建 URL Slug
+const slug = articleTitle.split(" ").join("-");
+console.log(slug);
+```
 
 
 

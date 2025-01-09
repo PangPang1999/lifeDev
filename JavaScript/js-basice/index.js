@@ -1,13 +1,19 @@
-const first = [1, 2, 3];
-const second = [4, 5, 6];
-const objArr = [{ id: 1 }];
+const numbers = [1, 2, 3];
+const result = numbers.join();
+console.log(result);
 
-// 合并数组和元素
-const combined = [...first, "a", ...second, "b"];
+let message = "This is my first message";
 
-// 拷贝
-// const copy = combined.slice();
-const copy = [...combined];
+// 使用空格分割字符串
+const parts = message.split(" ");
+console.log(parts);
 
-console.log(combined);
-console.log(copy);
+const conbined = parts.join("-");
+console.log(conbined);
+
+// 假设有一个文章标题
+let articleTitle = "Creating arrays in JavaScript";
+
+// 通过 split 和 join 创建 URL Slug
+const slug = articleTitle.split(" ").join("-");
+console.log(slug);
