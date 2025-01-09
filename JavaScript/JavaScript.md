@@ -3270,6 +3270,7 @@ console.log(course);
 
 - `find()` 方法返回数组中第一个符合条件的元素。如果没有找到符合条件的元素，则返回 `undefined`。通过回调函数来定义查找条件。
 - `findIndex()` 方法返回数组中第一个符合条件的元素的索引。如果没有找到符合条件的元素，则返回 `-1`。同样，通过回调函数来定义查找条件。
+- 回调函数在下一节有介绍
 
 ## 箭头函数
 
@@ -3282,6 +3283,15 @@ console.log(course);
 >   - 箭头函数无法作为构造函数，不能使用 `new` 关键字。
 >   - 箭头函数也没有 `arguments` 对象，但可以使用剩余参数 `...args`。
 
+**回调函数（callback）**：一个函数，应该返回 `true` 或 `false`。如果返回 `true`，该元素将包含，如果返回 `false`，该元素会被过滤掉。
+
+```js
+callback(element, index);
+```
+
+- element：当前处理的元素。
+- index（可选）：当前元素的索引。
+
 **基本语法**
 
 ```js
@@ -3290,8 +3300,7 @@ const functionName = (param1, param2) => {
 };
 ```
 
-- 如果函数体只有一行，可以省略大括号 `{}` 和 `return` 关键字，直接返回计算结果。
-
+- 如果函数体只有一行，_可以省略大括号 `{}` 和 `return` 关键字_，直接返回计算结果。
 - 如果只有一个参数，圆括号 `()` 可以省略。
 - 没有参数时，圆括号必须存在
 
@@ -3485,9 +3494,188 @@ const slug = articleTitle.split(" ").join("-");
 console.log(slug);
 ```
 
+## 排序数组
+
+> 在 JavaScript 中，数组的排序和反转非常常见，提供了两个内建方法：`sort()` 和 `reverse()`。
+
+**排序原始元素**
+
+```js
+const numbers = [2, 3, 1];
+
+// 排序数组
+numbers.sort();
+console.log(numbers);
+
+// 反转数组
+numbers.reverse();
+console.log(numbers);
+```
+
+- `sort()` 方法会将数组中的元素转换成字符串进行排序，因此它适用于数字和字符串的排序。但对于数字数组，它可能并不按数值排序，因为它默认是按字符串的字符编码顺序排序。
+
+- `reverse()` 方法会反转数组的顺序，修改原数组。
+
+**排序对象元素**
+
+当数组元素是对象时，`sort()` 方法默认无法直接按照对象的某个属性进行排序。需要传入一个比较函数来自定义排序规则。
+
+```js
+const courses = [
+  { id: 1, name: "node.js" },
+  { id: 2, name: "javaScript" },
+  { id: 3, name: "Python" },
+  { id: 4, name: "HTML" },
+  { id: 5, name: "css" },
+];
+
+courses.sort(function (a, b) {
+  // let nameA = a.name;
+  // let nameB = b.name;
+
+  // 使用 toUpperCase() 排除大小写敏感
+  let nameA = a.name.toUpperCase();
+  let nameB = b.name.toUpperCase();
+
+  if (nameA < nameB) return -1;
+  if (nameA > nameB) return 1;
+  return 0;
+});
+
+console.log(courses);
+```
+
+- 在 `sort()` 方法中，我们传递一个比较函数，它接受两个元素 `a` 和 `b`，然后根据它们的属性（如 `name`）进行排序。
+- 比较函数的返回值决定了排序顺序：`-1` 表示 `a` 排在 `b` 前面，`1` 表示 `b` 排在 `a` 前面，`0` 表示 `a` 和 `b` 顺序不变。
+- _底层一般使用的是 JavaScript 的快速排序，快速排序通过选择一个“基准”元素，并将数组分割成两部分，左边部分包含所有小于基准的元素，右边部分包含所有大于基准的元素。然后对这两个部分递归地进行排序。当前不必深究。_
+
+**解决大小写排序问题**
+
+JavaScript 的字符串排序是区分大小写的，通常大写字母排在小写字母前面。如果需要不区分大小写地排序字符串，可以使用 `toUpperCase()` 或 `toLowerCase()` 方法来统一大小写。
+
+## 测试数组
+
+> 在 JavaScript 中，`every()` 和 `some()` 是两个非常有用的数组方法，用于检查数组中的元素是否满足某种条件。它们都接受一个回调函数作为参数，并返回布尔值。
+
+```js
+const numbers = [1, -1, 2, 3];
+
+//evey()、some() are new method, some old browers may not support
+
+const allPositive = numbers.every(function (value) {
+  return value >= 0;
+});
+
+console.log(allPositive);
+
+const atLeastOnepositive = numbers.some(function (value) {
+  return value >= 0;
+});
+
+console.log(atLeastOnepositive);
+```
+
+- `every()` 方法检查数组中的每个元素是否都满足指定的条件。如果数组中的所有元素都满足条件，返回 `true`；否则，返回 `false`。
+- `some()` 方法检查数组中是否至少有一个元素满足指定的条件。如果数组中至少有一个元素满足条件，返回 `true`；否则，返回 `false`。
+
+## 过滤数组
+
+> `filter()` 方法用于创建一个新数组，其中包含所有通过指定测试条件的元素。它接受一个回调函数，回调函数会被应用到数组的每个元素。如果元素满足条件，则该元素将被包含在返回的新数组中。
+
+```js
+const numbers = [1, -1, 2, 3];
+
+// const filtered = numbers.filter(function (value) {
+//   return value >= 0;
+// });
+const filtered = numbers.filter((n) => n >= 0);
+
+console.log(filtered);
+```
+
+- `filter()` 方法是用于从数组中筛选出满足某一条件的元素，返回一个新数组。原数组不受影响。
+- `array.filter(callback(element, index, array), thisArg)`
+  - `callback`：一个函数，测试数组的每个元素，应该返回 `true` 或 `false`。如果返回 `true`，该元素将包含在新数组中；如果返回 `false`，该元素会被过滤掉。
+  - `element`：当前处理的数组元素。
+  - `index`（可选）：当前元素的索引。
+  - `array`（可选）：调用 `filter()` 的数组。
+  - `thisArg`（可选）：指定回调函数中的 `this` 值。
+
+## `map()` 方法
+
+> `map()` 方法用于遍历数组并对数组中的每个元素应用回调函数，返回一个新的数组，其中每个元素是原数组元素应用回调函数后的结果。
+
+**基本用法示例**
+
+```js
+const numbers = [1, -1, 2, 3];
+
+const filtered = numbers.filter((n) => n >= 0);
+
+const items = filtered.map((n) => "<li>" + n + "<li>");
+const html = "<ul>" + items.join("") + "<ul>";
+console.log(html); // <ul><li>1<li><li>2<li><li>3<li><ul>
+```
+
+**生成对象数组**
+
+```js
+const numbers = [1, -1, 2, 3];
+
+const filtered = numbers.filter((n) => n >= 0);
+
+// const items = filtered.map((n) => {
+//   const obj = { value: n };
+//   return obj;
+// });
+const items = filtered.map((n) => ({ value: n }));
+
+console.log(items);
+```
+
+- `map()` 可以将数组的每个元素转换为任何你想要的格式（如字符串、对象等）。
+- 当箭头函数的函数体 是一个对象字面量 时（比如 `{ value: n }`），JavaScript 会将 `{}` 解析为块语法的开始，而不是对象字面量。如果使用`(n) => { value: n }`，函数实际上没有返回一个对象，而是返回了 `undefined`。这是因为 `{ value: n }` 被当做一个块语法来处理，`return` 被隐式地忽略了。需要用`()`包裹返回的对象，这样 JavaScript 会正确地将其解析为一个对象字面量，而不是块语法。
+
+**拓展：链式语法**
+
+```js
+const numbers = [1, -1, 2, 3];
+
+// const filtered = numbers.filter((n) => n >= 0);
+// const items = filtered.map((n) => ({ value: n }));
+
+// 链式调用：先过滤、再映射，再过滤，再取出值
+const items = numbers
+  .filter((n) => n >= 0) // 过滤出大于等于 0 的数字
+  .map((n) => ({ value: n })) // 将每个数字映射为对象 { value: n }
+  .filter((obj) => obj.value > 1) // 过滤出 value 大于 1 的对象
+  .map((obj) => obj.value); // 将对象的 value 属性提取为数组
+
+console.log(items);
+```
+
+- 步骤：
+  1. 先过滤出大于等于 0 的数字。
+  2. 使用 `map()` 将数字转为包含 `value` 属性的对象。
+  3. 过滤掉 `value` 小于等于 1 的对象。
+  4. 最后提取出 `value` 属性，生成一个新数组。
+
 ---
 
 # 技巧
+
+- 箭头+回调函数
+
+  - 回调函数中，默认传入的是元素的值，可以用更简短的方式表达，比如`n`
+  - 当返回的是值，且仅有一行时，`return`和`{}`可以省略\*
+  - 当返回的是对象时，需要用`()`包裹返回的对象（详细解析见数组 `map()`方法）
+
+  ```js
+  // const filtered = numbers.filter(function (value) {
+  //   return value >= 0;
+  // });
+  const filtered = numbers.filter((n) => n >= 0);
+  ```
 
 - `!!` 是一个将值转换为布尔值的常见技巧。它将值转换为 `true` 或 `false`。
 
