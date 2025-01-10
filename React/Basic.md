@@ -158,7 +158,7 @@
 
 
 
-# React基础
+# React应用的构建
 
 
 
@@ -327,6 +327,148 @@ React 仅负责 UI 层，现代应用通常还需要处理以下问题：
 - 本课程的这一部分专注于 React 的核心概念，包括组件、状态、和 JSX。
 - 后续课程将深入探讨 React 生态系统中的其他工具（如状态管理、路由等）。
 
+
+
+# React 应用的基础概念
+
+
+
+## **React 基础概念：打好根基**
+
+1. **构建组件（Building Components）**。
+2. **使用 JSX 渲染标记（Rendering Markup with JSX）**。
+3. **管理组件的状态（Managing State）**。
+4. **通过 Props 向组件传递输入（Passing Input to Components）**。
+5. **调试 React 应用（Debugging React Applications）**。
+
+笔记
+
+1. 组件化开发：
+   - 学习如何创建函数组件和类组件。
+   - 理解组件的生命周期。
+2. JSX 渲染：
+   - 掌握 JSX 的语法和用法。
+   - 理解 JSX 是如何被编译成 JavaScript 的。
+3. 状态管理：
+   - 学习 `useState` 钩子。
+   - 理解状态如何触发组件的重新渲染。
+   - 理解--如何在组件中管理动态数据。
+4. 传递 Props：
+   - 学会通过 Props 向子组件传递数据。
+   - 通过属性向组件传递数据，增强组件的可重用性。
+   - 理解 Props 的不可变性。
+5. 调试技巧：
+   - 使用 React Developer Tools。
+   - 学习如何通过日志和断点排查问题。
+
+
+
+
+
+
+
+## 组件化开发-创建组件
+
+#### 1. **安装 Bootstrap**
+
+- Bootstrap 是一个流行的 CSS 库，用于快速为应用添加样式。
+- 在项目中安装 Bootstrap：
+  `npm install bootstrap`
+
+#### 2. **引入 Bootstrap**
+
+- 删除不需要的 `app.css` 和 `index.css` 文件。
+- 在 `main.tsx` 中引入 Bootstrap 样式：
+  `import 'bootstrap/dist/css/bootstrap.css';`
+
+#### 3. **创建 ListGroup 组件**
+
+- 创建 `components` 文件夹（推荐做法），并在其中创建 `list-group.tsx` 文件。
+- 使用 Pascal 命名法命名组件文件和函数（例如：`ListGroup`）。
+- 在 `app.tsx` 中导入并使用 `ListGroup` 组件。
+
+#### 4. **使用 Bootstrap List Group**
+
+- 在 Bootstrap 文档 中找到 **List group** 组件，复制标记并粘贴到组件中。
+- 注意：将 `class` 改为 `className`，因为 `class` 是 JavaScript/TypeScript 中的保留字。
+
+#### 5. **格式化代码**
+
+- 使用 **Prettier** 格式化代码，确保 JSX 代码按规范格式化。
+- 如果格式化失败，手动配置默认格式化工具。
+
+#### 6. **总结**
+
+目前的 **ListGroup** 组件已经渲染成功，但功能较为简单，接下来的课程会逐步增加更多功能，支持动态渲染和显示列表项。
+
+------
+
+### 总结归纳
+
+------
+
+本节课的核心内容是：
+
+- 如何安装并引入 **Bootstrap** 样式，使应用拥有现代的 UI 风格。
+- 如何创建和使用 React 组件，并按照惯例组织组件文件。
+- 如何使用 Bootstrap 提供的 **List group** 组件，并正确地处理 JSX 语法中的 `className` 属性。
+- 如何使用 **Prettier** 格式化代码，保证代码的整洁和规范。
+
+## react只有一个根组件
+
+##### **1. React 组件返回多个元素的限制**
+
+- React 组件只能返回 **一个元素**。
+- 如果你尝试返回多个元素，React 会报错。
+
+##### **2. 解决方案：使用 `div` 包裹**
+
+- 最常见的做法是使用一个额外的 `div` 元素将多个元素包裹起来。
+- 但这种做法会在 DOM 中多出一个 `div` 元素，这通常是不必要的。
+
+##### **3. 更好的做法：使用 `Fragment`**
+
+- **Fragment** 不会在 DOM 中添加额外的节点。
+- 通过导入 `Fragment`，并用它包裹多个子元素，我们可以避免额外的 DOM 元素。
+
+```
+import { Fragment } from "react";
+
+return (
+  <Fragment>
+    <h1>Heading</h1>
+    <ul>
+      <li>Item 1</li>
+      <li>Item 2</li>
+    </ul>
+  </Fragment>
+);
+```
+
+##### **4. 更简洁的语法：使用空标签 `<>` 和 `</>`**
+
+- 通过使用 **空标签** `<>` 和 `</>`，React 会自动使用 `Fragment` 来包裹多个元素。
+- 无需导入 `Fragment`，代码更简洁。
+
+```
+return (
+  <>
+    <h1>Heading</h1>
+    <ul>
+      <li>Item 1</li>
+      <li>Item 2</li>
+    </ul>
+  </>
+);
+```
+
+##### **5. 总结**
+
+- **`Fragment`** 是解决 React 返回多个元素的常用方法，它不会在 DOM 中添加额外的节点。
+- **空标签**（`<>` 和 `</>`）是 `Fragment` 的简洁语法。
+
+
+
 # 技巧
 
 1.[babeljs.io/repl ](https://www.babeljs.io/repl )这个网站可以看到JavaScript XML（JavaScript 扩展语法）是如何转换成 JavaScript 的。
@@ -340,5 +482,16 @@ React 仅负责 UI 层，现代应用通常还需要处理以下问题：
 /*#__PURE__*/ React.createElement("h1", null, "Hello World");
 ```
 
+2.**命令面板**（按 `Ctrl + Shift + P` / `Cmd + Shift + P`）
 
 
+
+1.**Prettier格式化代码**格式化代码时，我们可能会遇到格式化工具冲突。打开 **命令面板**，选择 `Format Document`。然后，选择 **Prettier** 作为默认代码格式化工具。
+
++ 快捷键：
+
+  - **Mac**：`Shift + Command + P`
+
+  - **Windows**：`Shift + Control + P`
+
+2.通过 `<div>` 将所有元素包裹起来:**命令面板**搜索`wrap with abbreviation`,按 `Enter`，在输入框中输入 `div`，然后按 `Enter`
