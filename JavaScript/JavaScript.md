@@ -3920,6 +3920,49 @@ const titles = movies
 console.log(titles);
 ```
 
+# 函数
+
+## 函数定义方式
+
+> 在 JavaScript 中，有两种常用的方式来定义函数：**函数声明**（Function Declaration）和**函数表达式**（Function Expression）。这两者之间的主要区别在于它们的语法结构、如何被调用以及它们的作用域行为。让我们深入了解这两种方式。
+
+```js
+// Function Declaration
+function walk() {
+  console.log("walk");
+}
+walk();
+
+// Anonymous Function Expression
+let a = function () {
+  console.log("run");
+};
+
+// Named Function Expression
+let b = function c() {
+  console.log("run");
+};
+
+a();
+let d = a;
+d();
+```
+
+**函数声明（Function Declaration）**
+
+函数声明是最常见的函数定义方式，通常直接定义一个带有名字的函数。
+
+**函数表达式（Function Expression）**
+
+函数表达式是通过将一个函数赋值给变量或常量来定义的函数。函数表达式可以是匿名函数（没有名字）或具名函数（有名字）。
+
+- 匿名函数表达式：这种写法适用于不需要在函数内部递归调用的场景。
+- 命名函数表达式：具有一个局部名称，这种写法的优势是可以在函数内部使用 `c()` 进行递归调用，也能在调试时提供更好的信息。
+
+**函数表达式的引用**
+
+通过多个变量引用同一个函数。所有引用的变量指向同一个内存中的函数对象。
+
 ---
 
 # 技巧

@@ -1,13 +1,19 @@
-const movies = [
-  { title: "a", year: 2018, rating: 4.5 },
-  { title: "b", year: 2018, rating: 4.7 },
-  { title: "c", year: 2018, rating: 3 },
-  { title: "d", year: 2017, rating: 4.5 },
-];
+// Function Declaration
+function walk() {
+  console.log("walk");
+}
+walk();
 
-const titles = movies
-  .filter((m) => m.year === 2018 && m.rating >= 4) // 过滤
-  .sort((a, b) => b.rating - a.rating) // 排序
-  .map((m) => m.title); // 提取电影标题
+// Anonymous Function Expression
+let a = function () {
+  console.log("run");
+};
 
-console.log(titles);
+// Named Function Expression
+let b = function c() {
+  console.log("run");
+};
+
+a();
+let d = a;
+d();
