@@ -1,25 +1,15 @@
-const courses = [
-  { id: 1, name: "Node.js" },
-  { id: 2, name: "JavaScript" },
-  { id: 3, name: "Python" },
-  { id: 4, name: "HTML" },
-  { id: 5, name: "CSS" },
-];
-console.log("Before sorting:", courses);
+const numbers = [1, -1, 2, 3];
 
-courses.sort(function (a, b) {
-  if (a.name < b.name) return -1;
-  if (a.name > b.name) return 1;
-  return 0;
-});
-console.log("After sorting:", courses);
+// old way of writting code
+let sum = 0;
+for (let n of numbers) sum += n;
+console.log(sum);
 
-// 使用 setTimeout 模拟延迟一秒
-// setTimeout(function () {
-//   courses.sort(function (a, b) {
-//     if (a.name < b.name) return -1;
-//     if (a.name > b.name) return 1;
-//     return 0;
-//   });
-//   console.log("After sorting:", courses);
-// }, 1300); // 1000毫秒 = 1秒
+// reduce() method
+// const sum2 = numbers.reduce((accumulator, currentValue) => {
+//   return accumulator + currentValue;
+// }, 0);
+//简化后
+const sum2 = numbers.reduce((a, c) => a + c);
+
+console.log(sum2);

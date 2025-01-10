@@ -3660,6 +3660,34 @@ console.log(items);
   3. 过滤掉 `value` 小于等于 1 的对象。
   4. 最后提取出 `value` 属性，生成一个新数组。
 
+## `reduce()` 方法
+
+> `reduce()` 方法是数组的一个强大工具，它通过逐步应用回调函数，将数组中的所有元素“归约”成一个单一的值。在计算总和、求最小值、最大值等场景中，`reduce()` 显得尤为简洁和高效。
+
+```js
+const numbers = [1, -1, 2, 3];
+
+// old way of writting code
+let sum = 0;
+for (let n of numbers) sum += n;
+console.log(sum);
+
+// reduce() method
+// const sum2 = numbers.reduce((accumulator, currentValue) => {
+//   return accumulator + currentValue;
+// }, 0);
+//简化后
+const sum2 = numbers.reduce((a, c) => a + c);
+
+console.log(sum2);
+```
+
+- `reduce()` 方法接受两个参数：
+  1. 回调函数：回调函数有两个参数，`accumulator`（累加器）和 `currentValue`（当前值）。回调函数会在数组的每个元素上依次执行。
+  2. 初始值：`reduce()` 的第二个参数。如果我们不提供初始值，`reduce()` 将使用数组的第一个元素作为累加器的初始值。这样会导致第一次执行时，`currentValue` 是数组的第二个元素。
+  3. `reduce()` 会返回最终的累加值。
+- 每次迭代时，`accumulator` 会累积当前的总和，`currentValue` 是当前正在处理的元素。
+
 ---
 
 # 技巧
