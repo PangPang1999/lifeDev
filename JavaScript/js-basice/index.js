@@ -1,15 +1,13 @@
-const numbers = [1, -1, 2, 3];
+const movies = [
+  { title: "a", year: 2018, rating: 4.5 },
+  { title: "b", year: 2018, rating: 4.7 },
+  { title: "c", year: 2018, rating: 3 },
+  { title: "d", year: 2017, rating: 4.5 },
+];
 
-// old way of writting code
-let sum = 0;
-for (let n of numbers) sum += n;
-console.log(sum);
+const titles = movies
+  .filter((m) => m.year === 2018 && m.rating >= 4) // 过滤
+  .sort((a, b) => b.rating - a.rating) // 排序
+  .map((m) => m.title); // 提取电影标题
 
-// reduce() method
-// const sum2 = numbers.reduce((accumulator, currentValue) => {
-//   return accumulator + currentValue;
-// }, 0);
-//简化后
-const sum2 = numbers.reduce((a, c) => a + c);
-
-console.log(sum2);
+console.log(titles);

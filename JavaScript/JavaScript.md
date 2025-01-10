@@ -78,7 +78,10 @@ alert("yo");
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
     <title>Document</title>
   </head>
   <body>
@@ -112,7 +115,10 @@ console.log("Hello World");
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
     <title>Document</title>
   </head>
   <body>
@@ -844,9 +850,9 @@ console.log(type); // 输出: gold
   ```javascript
   let highIncome = true; // 高收入
   let goodCreditScore = true; // 良好的信用评分
-
+  
   let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
-
+  
   console.log(eligibleForLoan); // 输出: true
   ```
 
@@ -879,9 +885,9 @@ console.log(type); // 输出: gold
   ```js
   let highIncome = true; // 高收入
   let goodCreditScore = false; // 不良信用评分
-
+  
   let eligibleForLoan = highIncome || goodCreditScore; // 贷款批准条件
-
+  
   console.log(eligibleForLoan); // 输出: true
   ```
 
@@ -913,10 +919,10 @@ console.log(type); // 输出: gold
   ```js
   let highIncome = false; // 低收入
   let goodCreditScore = false; // 不良信用评分
-
+  
   let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
   let applicationRefused = !eligibleForLoan; // 贷款拒绝
-
+  
   console.log("Eligible for loan: " + eligibleForLoan); // 输出: false
   console.log("Application refused: " + applicationRefused); // 输出: true
   ```
@@ -1008,7 +1014,7 @@ console.log(type); // 输出: gold
   let userColor = "red"; // 用户选择的颜色
   let defaultColor = "blue"; // 默认颜色
   let currentColor = userColor || defaultColor; // 如果没有用户选择颜色，则使用默认颜色
-
+  
   console.log(currentColor); // 输出: red
   ```
 
@@ -1018,7 +1024,7 @@ console.log(type); // 输出: gold
   let userColor = undefined; // 用户未选择颜色
   let defaultColor = "blue"; // 默认颜色
   let currentColor = userColor || defaultColor; // 使用默认颜色
-
+  
   console.log(currentColor); // 输出: blue
   ```
 
@@ -1217,7 +1223,7 @@ if (hour >= 6 && hour < 12) {
 
   ```js
   let hour = 10; // 假设当前时间是上午 10 点
-
+  
   if (hour >= 0 && hour < 12) console.log("Good Morning");
   else if (hour >= 12 && hour < 18) console.log("Good Afternoon");
   else console.log("Good Evening");
@@ -1649,7 +1655,7 @@ for (let key in object) {
      for (let key in person) {
        console.log(key, person[key]); // 输出属性名和属性值
      }
-
+     
      // name Mosh
      // age 30
      ```
@@ -1743,14 +1749,14 @@ for (let element of iterable) {
 
   ```javascript
   let i = 0;
-
+  
   while (i <= 10) {
     if (i === 5) break;
-
+  
     console.log(i);
     i++;
   }
-
+  
   //输出 0-4
   ```
 
@@ -1767,18 +1773,18 @@ for (let element of iterable) {
 
   ```javascript
   let i = 0;
-
+  
   while (i <= 10) {
     // if (i === 5) break;
     if (i % 2 === 0) {
       i++;
       continue;
     }
-
+  
     console.log(i);
     i++;
   }
-
+  
   //输出 1 3 5 7 9
   ```
 
@@ -1981,7 +1987,9 @@ function countTruthy(array) {
 }
 
 // 测试函数
-console.log(countTruthy([0, 1, 2, "", false, "hello", undefined, 42])); // 输出4
+console.log(
+  countTruthy([0, 1, 2, "", false, "hello", undefined, 42])
+); // 输出4
 console.log(countTruthy([false, 0, null, NaN, undefined, ""])); // 输出：0
 console.log(countTruthy([true, "Mosh", 10, [], {}])); // 输出：5
 ```
@@ -2037,7 +2045,8 @@ showProperties(movie);
 function sum(limit) {
   let total = 0; // 初始化求和变量
 
-  for (let i = 0; i <= limit; i++) if (i % 3 === 0 || i % 5 === 0) total += i;
+  for (let i = 0; i <= limit; i++)
+    if (i % 3 === 0 || i % 5 === 0) total += i;
 
   return total; // 返回最终的总和
 }
@@ -2399,7 +2408,7 @@ const obj = new Object();
    ```js
    const num1 = 42; // 数字字面量
    const num2 = new Number(42); // 使用构造函数
-
+   
    console.log(num1.constructor); // 输出：Number
    console.log(num2.constructor); // 输出：Number
    ```
@@ -2544,9 +2553,9 @@ const another = new Circle1(1);
   ```js
   let x = { value: 10 };
   let y = x; // 复制 x 的引用给 y
-
+  
   x.value = 20; // 修改 x 的 value 属性
-
+  
   console.log(x.value); // 输出 20
   console.log(y.value); // 输出 20
   ```
@@ -2578,10 +2587,10 @@ console.log(num); // 输出 10，原始值没有改变
     obj.value += 1;
     console.log(obj.value); // 输出增加后的值
   }
-
+  
   let obj = { value: 10 };
   increase(obj); // 传入 obj
-
+  
   console.log(obj.value); // 输出 11，原始对象被修改
   ```
 
@@ -2878,7 +2887,8 @@ console.log(str);
 - `\\`：表示反斜杠。
 
 ```js
-const escapeMessage = "It's a beautiful day.\nLet's go for a walk!";
+const escapeMessage =
+  "It's a beautiful day.\nLet's go for a walk!";
 console.log(escapeMessage);
 // 输出：
 // It's a beautiful day.
@@ -3220,7 +3230,7 @@ console.log(numbers);
 
 - `push()` 方法用于向数组的末尾添加一个或多个元素，并返回数组的新长度。
 - `unshift()` 方法用于将一个或多个元素添加到数组的开头，并返回数组的新长度。
-- `splice()` 方法可以在数组的任何位置进行添加、删除或替换元素。其基本语法为：`splice(startIndex, deleteCount, item1, item2, ...)`。
+- **`splice()`** 方法可以在数组的任何位置进行添加、删除或替换元素。其基本语法为：`splice(startIndex, deleteCount, item1, item2, ...)`。
   - `startIndex`：指定开始操作的位置。
   - `deleteCount`：指定要删除的元素数量。
   - `item1, item2, ...`：指定要插入的元素。
@@ -3349,7 +3359,10 @@ console.log(numbers);
 
 - `pop()`：删除数组末尾的元素并返回该元素。该方法会修改原数组，数组的长度减少 1。
 - `shift()`：删除数组开头的元素并返回该元素。与 `pop()` 相似，`shift()` 会修改原数组，数组长度减少 1。
-- `splice()`：可以从数组中的任意位置删除元素。它接受两个参数：第一个是起始位置的索引，第二个是要删除的元素个数。`splice()` 也可以用于插入元素。
+- **`splice()`** 方法可以在数组的任何位置进行添加、删除或替换元素。其基本语法为：`splice(startIndex, deleteCount, item1, item2, ...)`。
+  - `startIndex`：指定开始操作的位置。
+  - `deleteCount`：指定要删除的元素数量。
+  - `item1, item2, ...`：指定要插入的元素。
 
 ## 清空数组
 
@@ -3688,9 +3701,242 @@ console.log(sum2);
   3. `reduce()` 会返回最终的累加值。
 - 每次迭代时，`accumulator` 会累积当前的总和，`currentValue` 是当前正在处理的元素。
 
+## Ex1
+
+> 编写一个函数 `arrayFromRange(min, max)`，该函数接受两个参数 `min` 和 `max`，返回一个数组，数组包含从 `min` 到 `max` 之间的所有整数。若 `max` 小于 `min`，则返回一个空数组。
+>
+> **实现思路**
+>
+> 1. 创建空数组：首先创建一个空数组 `output`，用来存储结果。
+> 2. 遍历生成范围内的数字：使用 `for` 循环从 `min` 到 `max` 遍历。
+> 3. 将数字加入数组：在每次循环中，将当前的 `i` 值加入到 `output` 数组中。
+> 4. 返回结果：循环结束后，返回 `output` 数组。
+
+```js
+function arrayFromRange(min, max) {
+  const output = [];
+
+  for (let i = min; i <= max; i++) output.push(i);
+  return output;
+}
+
+console.log(arrayFromRange(-10, 5));
+```
+
+## Ex2
+
+> 编写一个函数 `includes(array, searchElement)`，该函数模拟 `Array.prototype.includes()` 方法的功能，检查指定的元素是否存在于数组中。如果存在，返回 `true`，否则返回 `false`。
+>
+> **实现思路**
+>
+> 1. 遍历数组：使用 `for...of` 循环遍历数组中的每个元素。
+> 2. 条件判断：如果当前元素与 `searchElement` 相等，立即返回 `true`。
+> 3. 返回 `false`：如果遍历完所有元素后没有找到匹配的元素，返回 `false`。
+
+```js
+function includes(array, searchElement) {
+  for (let element of array)
+    if (element === searchElement) return true;
+  return false;
+}
+
+const numbers = [1, 2, 3, 4];
+
+console.log(includes(numbers, 6)); // 输出: false
+```
+
+## Ex3
+
+> 编写一个函数 `except(array, excludeArray)`，该函数接受两个数组作为参数：第一个数组 `array` 是原始数组，第二个数组 `excludeArray` 是一个包含需要排除的元素的数组。该函数返回一个新数组，包含原始数组中除去排除元素后的所有元素。
+>
+> **实现思路**
+>
+> 1. 初始化输出数组：首先创建一个空数组 `output`，用来存储结果。
+> 2. 遍历原始数组：使用 `for...of` 循环遍历原始数组中的每个元素。
+> 3. 检查排除元素：检查当前元素是否在排除数组 `excludeArray` 中。如果不在排除数组中，则将该元素添加到 `output` 数组。
+> 4. 返回结果：循环结束后，返回 `output` 数组。
+
+```js
+function except(array, excludeArray) {
+  let output = [];
+
+  for (let element of array)
+    if (!excludeArray.includes(element)) output.push(element);
+  return output;
+}
+
+// 测试
+const numbers = [1, 2, 3, 4, 1, 1];
+const exclude = [1, 2];
+
+console.log(except(numbers, exclude)); // 输出: [1, 3, 5]
+```
+
+## Ex4
+
+> 编写一个函数 `move(array, index, offset)`，该函数接受一个数组 `array`，一个要移动元素的索引 `index`，以及一个偏移量 `offset`，返回一个新数组，表示在偏移后移动的结果。如果偏移量不合法（如超出数组范围），则输出错误信息。
+>
+> **实现思路**
+>
+> 1. 初始化数组副本：首先，我们需要确保不修改原始数组，因此使用扩展运算符（`...`）创建原始数组的副本。
+> 2. 使用 `splice` 删除元素：使用 `splice` 方法从数组中删除指定索引的元素，并返回被删除的元素。
+> 3. 计算目标位置：根据 `index` 和 `offset` 计算目标位置 `position`，并进行基本验证，确保目标位置合法。
+> 4. 使用 `splice` 插入元素：将删除的元素通过 `splice` 插入到新数组的计算位置。
+> 5. 验证偏移量合法性：确保偏移量不超出数组的边界，如果非法，输出错误信息并返回原数组。
+
+```js
+function move(array, index, offset) {
+  const position = index + offset;
+  if (position < 0 || position >= array.length) {
+    console.error("Invalid offset");
+    return;
+  }
+  const output = [...array];
+  const item = output.splice(index, 1)[0];
+
+  //[item]是 数组解构 语法，它从 splice() 返回的数组中提取出第一个元素，并将其赋值给 item。
+  // const [item] = output.splice(index, 1);
+  output.splice(position, 0, item);
+  return output;
+}
+
+// 测试
+const numbers = [1, 2, 3, 4];
+
+console.log(move(numbers, 1, -1)); // 输出: [2, 3, 1, 4] 
+```
+
+## Ex5
+
+> 编写一个函数 `countOccurrences(array, searchElement)`，该函数接受一个数组和一个搜索元素，返回该元素在数组中出现的次数。实现此功能的一个简单方式是使用循环，另一种方式是使用 `reduce` 方法。
+>
+> **实现思路**
+>
+> 1. **使用循环实现**：
+>    - 遍历数组，检查每个元素是否等于搜索元素。
+>    - 如果相等，增加计数器。
+>    - 返回计数器的最终值。
+> 2. **使用 `reduce` 实现**：
+>    - `reduce` 方法将数组中的所有元素“减少”到一个单一的值，这里我们将其减少到搜索元素出现的次数。
+>    - `reduce` 的回调函数有两个参数：累加器 `accumulator` 和当前元素 `currentValue`。
+>    - 每次回调时，检查当前元素是否与搜索元素相等，如果相等，则累加器加 1。
+
+**使用循环的基本实现**
+
+```js
+function countOccurrences(array, searchElement) {
+  let count = 0;
+  for (let element of array)
+    if (element === searchElement) count++;
+  return count;
+}
+
+const numbers = [1, 2, 3, 4, 2, 2, 5];
+console.log(countOccurrences(numbers, 2)); // 输出: 3
+```
+
+**使用 `reduce` 的实现**
+
+```js
+function countOccurrences(array, searchElement) {
+  return array.reduce((acc, cur) => {
+    cur === searchElement ? acc + 1 : acc;
+  }, 0);
+}
+
+// 测试
+const numbers = [1, 2, 3, 4, 2, 2, 5];
+console.log(countOccurrences(numbers, 2)); // 输出: 3
+```
+
+## Ex6
+
+> 编写一个函数 `getMax(array)`，该函数接受一个数组并返回该数组中的最大值。如果数组为空，则返回 `undefined`。
+>
+> **实现思路**
+>
+> 1. **使用基本的循环实现**：
+>    - 首先检查数组是否为空。如果为空，返回 `undefined`。
+>    - 初始化 `max` 为数组的第一个元素。
+>    - 使用循环遍历数组中的元素，比较每个元素与 `max` 的大小。如果当前元素比 `max` 大，就更新 `max`。
+>    - 返回最终的 `max` 值。
+> 2. **使用 `reduce` 实现**：
+>    - 使用 `reduce` 方法来将数组“缩减”成一个单一的最大值。
+>    - `reduce` 方法的回调函数有两个参数：累加器（`accumulator`）和当前元素（`current`）。
+>    - 每次回调时，比较 `accumulator` 和 `current` 的大小，返回较大的那个作为新的累加器。
+
+**使用循环的基本实现**
+
+```js
+function getMax(array) {
+  if (array.length === 0) return undefined;
+
+  let max = array[0];
+  for (let i = 1; i < array.length; i++)
+    if (array[i] > max) max = array[i];
+  return max;
+}
+const numbers = [1, 3, 2, 5, 4];
+
+console.log(getMax(numbers)); // 输出: 5
+```
+
+**使用 `reduce` 的实现**
+
+```js
+function getMax(array) {
+  if (array.length === 0) return undefined;
+
+  return array.reduce((acc, cur) => (acc > cur ? acc : cur)); // 返回较大的值
+}
+
+console.log(getMax([1, 3, 2, 5, 4])); // 输出: 5
+```
+
+## Ex7
+
+> 编写一个函数，处理一个电影数组，筛选出2018年，评分不低于4分的电影
+>
+> **实现思路**
+>
+> 1. 筛选电影：使用 `filter()` 方法来筛选
+> 2. 排序电影：使用 `sort()` 方法对电影数组按评分进行排序。为了确保按降序排列，需要使用自定义的比较函数。
+> 3. 提取电影标题：使用 `map()` 方法提取每部电影的 `title`。
+> 4. 返回排序后的电影标题：将排序后的电影标题存储在一个新的数组中，并将其打印出来。
+
+```js
+const movies = [
+  { title: "a", year: 2018, rating: 4.5 },
+  { title: "b", year: 2018, rating: 4.7 },
+  { title: "c", year: 2018, rating: 3 },
+  { title: "d", year: 2017, rating: 4.5 },
+];
+
+const titles = movies
+  .filter((m) => m.year === 2018 && m.rating >= 4) // 过滤
+  .sort((a, b) => b.rating - a.rating) // 排序
+  .map((m) => m.title); // 提取电影标题
+
+console.log(titles);
+```
+
 ---
 
 # 技巧
+
+> 中级
+
+- 数组解构语法
+
+  ```js
+    // const item = output.splice(index, 1)[0];
+    //[item]是 数组解构 语法，它从 splice() 返回的数组中提取出第一个元素，并将其赋值给 item。
+    const [item] = output.splice(index, 1);
+  ```
+
+  
+
+> 基础
 
 - 箭头+回调函数
 
@@ -3710,3 +3956,50 @@ console.log(sum2);
   ```js
   console.log(!!1); // 输出: true
   ```
+
+- `splice()方法`
+
+  - 2 个参数
+
+    - `startIndex`：指定从哪个索引位置开始进行修改。
+
+    - `deleteCount`：指定要删除的元素数量。
+
+      ```js
+      array.splice(startIndex, deleteCount);
+      ```
+
+  - 3 个参数
+
+    - `startIndex`：指定从哪个索引位置开始进行修改。
+
+    - `deleteCount`：指定要删除的元素数量。
+
+    - `item1`：要添加到数组的新元素，插入到 `startIndex` 位置。
+
+      ```js
+      array.splice(startIndex, deleteCount, item1);
+      ```
+
+  - 4 个或更多参数
+
+    - `startIndex`：指定从哪个索引位置开始进行修改。
+
+    - `deleteCount`：指定要删除的元素数量。
+
+    - `item1, item2, ..., itemN`：要插入到数组的新元素，这些元素会依次从 `startIndex` 位置开始插入。
+
+      ```js
+      array.splice(startIndex, deleteCount, item1, item2, ..., itemN)
+      ```
+
+  - 可将数组元素插入到目标数组
+
+    ```js
+    let arr1 = [1, 2, 3];
+    let arr2 = [];
+    
+    // 使用 splice(0, 0) 来将 arr1 的元素插入到 arr2
+    arr2.splice(0, 0, ...arr1); // 展开 arr1 的元素并插入到 arr2 的开头
+    console.log(arr2); // [1, 2, 3]
+    ```
