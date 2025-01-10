@@ -850,9 +850,9 @@ console.log(type); // 输出: gold
   ```javascript
   let highIncome = true; // 高收入
   let goodCreditScore = true; // 良好的信用评分
-  
+
   let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
-  
+
   console.log(eligibleForLoan); // 输出: true
   ```
 
@@ -885,9 +885,9 @@ console.log(type); // 输出: gold
   ```js
   let highIncome = true; // 高收入
   let goodCreditScore = false; // 不良信用评分
-  
+
   let eligibleForLoan = highIncome || goodCreditScore; // 贷款批准条件
-  
+
   console.log(eligibleForLoan); // 输出: true
   ```
 
@@ -919,10 +919,10 @@ console.log(type); // 输出: gold
   ```js
   let highIncome = false; // 低收入
   let goodCreditScore = false; // 不良信用评分
-  
+
   let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
   let applicationRefused = !eligibleForLoan; // 贷款拒绝
-  
+
   console.log("Eligible for loan: " + eligibleForLoan); // 输出: false
   console.log("Application refused: " + applicationRefused); // 输出: true
   ```
@@ -1014,7 +1014,7 @@ console.log(type); // 输出: gold
   let userColor = "red"; // 用户选择的颜色
   let defaultColor = "blue"; // 默认颜色
   let currentColor = userColor || defaultColor; // 如果没有用户选择颜色，则使用默认颜色
-  
+
   console.log(currentColor); // 输出: red
   ```
 
@@ -1024,7 +1024,7 @@ console.log(type); // 输出: gold
   let userColor = undefined; // 用户未选择颜色
   let defaultColor = "blue"; // 默认颜色
   let currentColor = userColor || defaultColor; // 使用默认颜色
-  
+
   console.log(currentColor); // 输出: blue
   ```
 
@@ -1223,7 +1223,7 @@ if (hour >= 6 && hour < 12) {
 
   ```js
   let hour = 10; // 假设当前时间是上午 10 点
-  
+
   if (hour >= 0 && hour < 12) console.log("Good Morning");
   else if (hour >= 12 && hour < 18) console.log("Good Afternoon");
   else console.log("Good Evening");
@@ -1655,7 +1655,7 @@ for (let key in object) {
      for (let key in person) {
        console.log(key, person[key]); // 输出属性名和属性值
      }
-     
+
      // name Mosh
      // age 30
      ```
@@ -1749,14 +1749,14 @@ for (let element of iterable) {
 
   ```javascript
   let i = 0;
-  
+
   while (i <= 10) {
     if (i === 5) break;
-  
+
     console.log(i);
     i++;
   }
-  
+
   //输出 0-4
   ```
 
@@ -1773,18 +1773,18 @@ for (let element of iterable) {
 
   ```javascript
   let i = 0;
-  
+
   while (i <= 10) {
     // if (i === 5) break;
     if (i % 2 === 0) {
       i++;
       continue;
     }
-  
+
     console.log(i);
     i++;
   }
-  
+
   //输出 1 3 5 7 9
   ```
 
@@ -2408,7 +2408,7 @@ const obj = new Object();
    ```js
    const num1 = 42; // 数字字面量
    const num2 = new Number(42); // 使用构造函数
-   
+
    console.log(num1.constructor); // 输出：Number
    console.log(num2.constructor); // 输出：Number
    ```
@@ -2553,9 +2553,9 @@ const another = new Circle1(1);
   ```js
   let x = { value: 10 };
   let y = x; // 复制 x 的引用给 y
-  
+
   x.value = 20; // 修改 x 的 value 属性
-  
+
   console.log(x.value); // 输出 20
   console.log(y.value); // 输出 20
   ```
@@ -2587,10 +2587,10 @@ console.log(num); // 输出 10，原始值没有改变
     obj.value += 1;
     console.log(obj.value); // 输出增加后的值
   }
-  
+
   let obj = { value: 10 };
   increase(obj); // 传入 obj
-  
+
   console.log(obj.value); // 输出 11，原始对象被修改
   ```
 
@@ -3803,7 +3803,7 @@ function move(array, index, offset) {
 // 测试
 const numbers = [1, 2, 3, 4];
 
-console.log(move(numbers, 1, -1)); // 输出: [2, 3, 1, 4] 
+console.log(move(numbers, 1, -1)); // 输出: [2, 3, 1, 4]
 ```
 
 ## Ex5
@@ -3895,7 +3895,7 @@ console.log(getMax([1, 3, 2, 5, 4])); // 输出: 5
 
 ## Ex7
 
-> 编写一个函数，处理一个电影数组，筛选出2018年，评分不低于4分的电影
+> 编写一个函数，处理一个电影数组，筛选出 2018 年，评分不低于 4 分的电影
 >
 > **实现思路**
 >
@@ -3929,12 +3929,10 @@ console.log(titles);
 - 数组解构语法
 
   ```js
-    // const item = output.splice(index, 1)[0];
-    //[item]是 数组解构 语法，它从 splice() 返回的数组中提取出第一个元素，并将其赋值给 item。
-    const [item] = output.splice(index, 1);
+  // const item = output.splice(index, 1)[0];
+  //[item]是 数组解构 语法，它从 splice() 返回的数组中提取出第一个元素，并将其赋值给 item。
+  const [item] = output.splice(index, 1);
   ```
-
-  
 
 > 基础
 
@@ -3998,7 +3996,7 @@ console.log(titles);
     ```js
     let arr1 = [1, 2, 3];
     let arr2 = [];
-    
+
     // 使用 splice(0, 0) 来将 arr1 的元素插入到 arr2
     arr2.splice(0, 0, ...arr1); // 展开 arr1 的元素并插入到 arr2 的开头
     console.log(arr2); // [1, 2, 3]
