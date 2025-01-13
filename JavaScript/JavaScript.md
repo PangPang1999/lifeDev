@@ -4067,6 +4067,46 @@ function test(discount, ...prices, p) {
 
 - 在这个错误的示例中，`p` 参数位于剩余参数 `...prices` 后面，导致出现语法错误。为了避免这种错误，应该确保 `rest` 参数始终在函数参数列表的最后。
 
+## 默认值
+
+> 默认值是为函数的参数提供初始值的机制。这样，当调用函数时，如果没有传递某个参数或传递的参数是 `undefined`，则该参数将使用默认值。
+
+**基本用法**
+
+在函数定义中，我们可以为某些参数设置默认值，防止它们为 `undefined`。这种方式比使用逻辑运算符（如 `||`）要更加简洁明了。
+
+```js
+function interest(principal, rate = 3.5, year = 5) {
+  // rate = rate || 3.5;
+  // year = year || 5;
+
+  return ((principal * rate) / 100) * year;
+}
+
+console.log(interest(10000)); // 使用默认值：rate = 3.5, year = 5
+console.log(interest(10000, undefined, 5)); // 使用默认值：rate = 3.5, year = 5
+```
+
+- 在上面的例子中，`rate` 和 `year` 都有默认值
+- 如果在调用函数时传递了 `undefined` 作为某个参数的值，那么该参数会使用默认值。如果没有传递该参数，JavaScript 也会使用默认值。
+
+**设置默认值时的注意事项**
+
+最佳实践：当为参数设置默认值时，默认值应当放在参数列表的最后。这样，如果某个参数的默认值被触发，后面的参数也能正确使用默认值。如果将默认值放在中间，可能会导致某些参数不按预期工作。
+
+```js
+function test(principal, rate = 3.5, year) {
+  return ((principal * rate) / 100) * year;
+}
+console.log(test(10000, 5)); // NaN
+console.log(test(10000, undefined, 5)); // Is ugly
+// 应将所有的default vule放在最后
+```
+
+- 在上面的 `test` 函数中，`year` 参数没有默认值。如果你调用 `test(10000, 5)`，结果是 `NaN`，因为 `year` 被当作 `undefined`，但它没有默认值。
+
+- 为了提高代码可读性，最好将带有默认值的参数放在最后，或者为所有默认值参数设置默认值。
+
 ---
 
 # 技巧

@@ -1,17 +1,9 @@
-function sum(...args) {
-  return args.reduce((a, b) => a + b);
+function interest(principal, rate = 3.5, year = 5) {
+  // rate = rate || 3.5;
+  // year = year || 5;
+
+  return ((principal * rate) / 100) * year;
 }
 
-console.log(sum(1, 2, 3, 4, 5));
-
-function countMoney(dicount, ...prices) {
-  const total = prices.reduce((a, b) => a + b);
-  return total * (1 - dicount);
-}
-
-console.log(countMoney(0.1, 20, 30));
-
-// Uncaught SyntaxError: Rest parameter must be last formal parameter
-// function test(dicount, ...prices, p) {
-//   return null;
-// }
+console.log(interest(10000)); // 使用默认值：rate = 3.5, year = 5
+console.log(interest(10000, undefined, 10)); // rate使用默认值3.5, year = 10
