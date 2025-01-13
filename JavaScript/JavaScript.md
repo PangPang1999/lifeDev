@@ -244,7 +244,7 @@ let firstName = undefined;
 let selectedColor = null;
 ```
 
-## 动态类型
+## 动态类型（1）
 
 （Dynamic Typing）
 
@@ -3986,7 +3986,86 @@ d();
 
   通过多个变量引用同一个函数。所有引用的变量指向同一个内存中的函数对象。
 
----
+## 动态类型（2）
+
+> JavaScript 是一种动态语言，函数可以接受任意数量的参数，并且可以在函数执行时动态地访问这些参数。
+
+```js
+function sum(a, b) {
+  return a + b;
+}
+
+console.log(sum(1, 2)); // 3
+console.log(sum(1)); // NaN，第二个参数为undefined，1 + undefined 得到 NaN
+console.log(sum(1, 2, 3, 4, 5)); //3，多个参数，只读取对应参数位置的参数
+```
+
+## 参数对象 (`arguments`)
+
+> 在 JavaScript 中，`arguments` 是一个特殊的对象，它包含了传递给函数的所有参数。虽然它看起来像一个数组，但它实际上并不是一个数组，而是一个类数组对象。它可以通过 `arguments` 来访问所有传递给函数的参数，并且可以用于处理可变数量的参数。
+
+```js
+function sum() {
+  let total = 0;
+  console.log(arguments);
+  for (let value of arguments) {
+    total += value;
+    console.log(value);
+  }
+  return total;
+}
+
+console.log(sum(1, 2, 3, 4, 5));
+```
+
+- `arguments` 是一个**类数组**对象，包含了传递给函数的所有参数。它没有数组的一些方法（例如 `forEach`、`map` 等）。通过 `for...of` 循环，我们可以遍历 `arguments` 对象并对每个值进行求和。
+- 在 **箭头函数** 中，不能使用 `arguments` 对象。箭头函数没有自己的 `arguments`，它会继承外部作用域的 `arguments`。
+- **`rest` 参数**（`...args`）是更现代的替代方案
+
+## 剩余参数(`...`)
+
+> 剩余参数是 ES6 引入的一项功能，它允许你将一个函数的多余参数收集成一个数组。与传统的 `arguments` 对象不同，`rest` 参数是一个真正的数组，可以直接使用数组方法（如 `reduce`、`map` 等）。
+
+**基本用法**
+
+```js
+function sum(...args) {
+  return args.reduce((a, b) => a + b, 0); // 使用 reduce 求和
+}
+
+console.log(sum(1, 2, 3, 4, 5)); // 输出 15
+```
+
+- 在这个例子中，`...args` 是一个剩余参数，它将所有传递给 `sum` 函数的参数收集到一个名为 `args` 的数组中。然后，我们使用 `reduce` 方法来对所有数字进行求和。
+
+**应用：计算总价和折扣**
+
+```js
+function countMoney(discount, ...prices) {
+  const total = prices.reduce((a, b) => a + b, 0); // 计算商品价格总和
+  return total * (1 - discount); // 应用折扣并返回最终价格
+}
+
+console.log(countMoney(0.1, 20, 30)); // 输出 45
+```
+
+- `discount` 是第一个参数，用来表示折扣。
+- `...prices` 是剩余参数，它收集所有传入的价格信息并将其存储在数组中。
+- 使用 `reduce` 方法计算价格总和，并根据折扣计算最终价格。
+
+**限制：剩余参数必须是最后一个参数**
+
+`rest` 参数必须位于函数的参数列表的最后，否则会抛出语法错误。这是因为它会收集所有剩余的参数，如果你在它之后再添加其他参数，会导致语法上的混乱。
+
+```js
+// 错误示范：`...prices` 必须是最后一个参数
+// Uncaught SyntaxError: Rest parameter must be last formal parameter
+function test(discount, ...prices, p) {
+  return null;
+}
+```
+
+- 在这个错误的示例中，`p` 参数位于剩余参数 `...prices` 后面，导致出现语法错误。为了避免这种错误，应该确保 `rest` 参数始终在函数参数列表的最后。
 
 ---
 
