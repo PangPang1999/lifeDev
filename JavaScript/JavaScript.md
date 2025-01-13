@@ -850,9 +850,9 @@ console.log(type); // 输出: gold
   ```javascript
   let highIncome = true; // 高收入
   let goodCreditScore = true; // 良好的信用评分
-
+  
   let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
-
+  
   console.log(eligibleForLoan); // 输出: true
   ```
 
@@ -885,9 +885,9 @@ console.log(type); // 输出: gold
   ```js
   let highIncome = true; // 高收入
   let goodCreditScore = false; // 不良信用评分
-
+  
   let eligibleForLoan = highIncome || goodCreditScore; // 贷款批准条件
-
+  
   console.log(eligibleForLoan); // 输出: true
   ```
 
@@ -919,10 +919,10 @@ console.log(type); // 输出: gold
   ```js
   let highIncome = false; // 低收入
   let goodCreditScore = false; // 不良信用评分
-
+  
   let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
   let applicationRefused = !eligibleForLoan; // 贷款拒绝
-
+  
   console.log("Eligible for loan: " + eligibleForLoan); // 输出: false
   console.log("Application refused: " + applicationRefused); // 输出: true
   ```
@@ -1014,7 +1014,7 @@ console.log(type); // 输出: gold
   let userColor = "red"; // 用户选择的颜色
   let defaultColor = "blue"; // 默认颜色
   let currentColor = userColor || defaultColor; // 如果没有用户选择颜色，则使用默认颜色
-
+  
   console.log(currentColor); // 输出: red
   ```
 
@@ -1024,7 +1024,7 @@ console.log(type); // 输出: gold
   let userColor = undefined; // 用户未选择颜色
   let defaultColor = "blue"; // 默认颜色
   let currentColor = userColor || defaultColor; // 使用默认颜色
-
+  
   console.log(currentColor); // 输出: blue
   ```
 
@@ -1223,7 +1223,7 @@ if (hour >= 6 && hour < 12) {
 
   ```js
   let hour = 10; // 假设当前时间是上午 10 点
-
+  
   if (hour >= 0 && hour < 12) console.log("Good Morning");
   else if (hour >= 12 && hour < 18) console.log("Good Afternoon");
   else console.log("Good Evening");
@@ -1655,7 +1655,7 @@ for (let key in object) {
      for (let key in person) {
        console.log(key, person[key]); // 输出属性名和属性值
      }
-
+     
      // name Mosh
      // age 30
      ```
@@ -1749,14 +1749,14 @@ for (let element of iterable) {
 
   ```javascript
   let i = 0;
-
+  
   while (i <= 10) {
     if (i === 5) break;
-
+  
     console.log(i);
     i++;
   }
-
+  
   //输出 0-4
   ```
 
@@ -1773,18 +1773,18 @@ for (let element of iterable) {
 
   ```javascript
   let i = 0;
-
+  
   while (i <= 10) {
     // if (i === 5) break;
     if (i % 2 === 0) {
       i++;
       continue;
     }
-
+  
     console.log(i);
     i++;
   }
-
+  
   //输出 1 3 5 7 9
   ```
 
@@ -2408,7 +2408,7 @@ const obj = new Object();
    ```js
    const num1 = 42; // 数字字面量
    const num2 = new Number(42); // 使用构造函数
-
+   
    console.log(num1.constructor); // 输出：Number
    console.log(num2.constructor); // 输出：Number
    ```
@@ -2553,9 +2553,9 @@ const another = new Circle1(1);
   ```js
   let x = { value: 10 };
   let y = x; // 复制 x 的引用给 y
-
+  
   x.value = 20; // 修改 x 的 value 属性
-
+  
   console.log(x.value); // 输出 20
   console.log(y.value); // 输出 20
   ```
@@ -2587,10 +2587,10 @@ console.log(num); // 输出 10，原始值没有改变
     obj.value += 1;
     console.log(obj.value); // 输出增加后的值
   }
-
+  
   let obj = { value: 10 };
   increase(obj); // 传入 obj
-
+  
   console.log(obj.value); // 输出 11，原始对象被修改
   ```
 
@@ -3952,6 +3952,19 @@ d();
 
 函数声明是最常见的函数定义方式，通常直接定义一个带有名字的函数。
 
+- 语法：使用 `function` 关键字定义一个有名字的函数。
+
+- 提升（Hoisting）：函数声明会被提升。这意味着函数可以在声明之前被调用。
+
+  ```JS
+  walk(); // 正常执行
+  function walk() {
+    console.log("walk");
+  }
+  ```
+
+- 
+
 **函数表达式（Function Expression）**
 
 函数表达式是通过将一个函数赋值给变量或常量来定义的函数。函数表达式可以是匿名函数（没有名字）或具名函数（有名字）。
@@ -3962,6 +3975,107 @@ d();
 **函数表达式的引用**
 
 通过多个变量引用同一个函数。所有引用的变量指向同一个内存中的函数对象。
+
+---
+
+## 函数定义方式
+
+在 JavaScript 中，有两种常用的方式来定义函数：**函数声明**（Function Declaration）和**函数表达式**（Function Expression）。这两者之间的主要区别在于它们的语法结构、如何被调用以及它们的作用域行为。让我们深入了解这两种方式。
+
+### **1. 函数声明（Function Declaration）**
+
+函数声明是最常见的函数定义方式，通常直接定义一个带有名字的函数。
+
+```js
+function walk() {
+  console.log("walk");
+}
+walk(); // 输出 "walk"
+```
+
+- **语法**：使用 `function` 关键字定义一个有名字的函数。
+- **提升（Hoisting）**：函数声明会被提升。这意味着函数可以在声明之前被调用。
+- **特点**：语法简洁，且在作用域中有效，通常用来定义全局或模块级别的函数。
+
+### **2. 函数表达式（Function Expression）**
+
+函数表达式是通过将一个函数赋值给变量或常量来定义的函数。函数表达式可以是匿名函数（没有名字）或具名函数（有名字）。
+
+```js
+// 匿名函数表达式
+let a = function () {
+  console.log("run");
+};
+
+a(); // 输出 "run"
+
+// 具名函数表达式
+let b = function c() {
+  console.log("run");
+};
+
+b(); // 输出 "run"
+```
+
+#### **匿名函数表达式**
+
+匿名函数表达式是没有名字的函数，通常用于需要临时定义一个函数并立即调用的场景。
+
+```js
+let a = function () {
+  console.log("run");
+};
+
+a(); // 输出 "run"
+```
+
+- **用途**：通常用于回调函数或临时功能的定义。
+- **缺点**：没有名字，调试时可能不如具名函数方便。
+
+#### **具名函数表达式**
+
+具名函数表达式是具有名字的函数。可以在函数内部调用自己的名字（递归调用），同时在调试时提供更清晰的堆栈跟踪。
+
+```js
+let b = function c() {
+  console.log("run");
+  c(); // 可以在内部递归调用自己
+};
+
+b(); // 输出 "run" 后递归调用自身
+```
+
+- **优势**：在函数内部可以进行递归调用；调试时能清楚显示函数的名称。
+
+### **3. 函数表达式的引用**
+
+通过多个变量引用同一个函数。所有引用的变量指向内存中的同一个函数对象。
+
+```js
+let a = function () {
+  console.log("run");
+};
+
+let d = a;
+d(); // 输出 "run"
+```
+
+- **特点**：函数表达式创建的是一个匿名的或具名的函数对象，因此可以通过多个变量或常量引用同一个函数。
+
+### **函数声明 vs 函数表达式的区别**
+
+| 特点                 | 函数声明（Function Declaration） | 函数表达式（Function Expression）    |
+| -------------------- | -------------------------------- | ------------------------------------ |
+| **语法**             | `function functionName() {}`     | `let functionName = function() {}`   |
+| **提升（Hoisting）** | 是，函数会被提升到作用域顶部     | 否，必须在定义之后调用               |
+| **是否可以递归调用** | 是                               | 匿名函数不能递归，但具名函数可以递归 |
+| **调用时机**         | 可以在函数声明之前调用           | 必须在函数表达式定义之后才能调用     |
+| **代码简洁度**       | 简洁                             | 可以灵活定义匿名函数或具名函数表达式 |
+
+### **总结**
+
+- **函数声明**适用于需要在整个作用域中使用的函数，并且它具有提升特性，允许在声明之前调用。
+- **函数表达式**则更灵活，可以定义匿名或具名函数，并且可以通过变量或常量引用同一个函数对象。它不支持提升，必须在定义之后才能调用。3
 
 ---
 
@@ -4039,7 +4153,7 @@ d();
     ```js
     let arr1 = [1, 2, 3];
     let arr2 = [];
-
+    
     // 使用 splice(0, 0) 来将 arr1 的元素插入到 arr2
     arr2.splice(0, 0, ...arr1); // 展开 arr1 的元素并插入到 arr2 的开头
     console.log(arr2); // [1, 2, 3]

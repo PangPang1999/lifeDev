@@ -99,6 +99,8 @@ open -e ~/.zprofile
 
 ### Java
 
+#### 历史
+
 官网下载链接：https://www.oracle.com/cn/java/technologies/downloads/archive/
 
 我选择了[Java SE 8 (8u211 and later)](https://www.oracle.com/cn/java/technologies/javase/javase8u211-later-archive-downloads.html)中的 macOS ARM64 DMG Installer
@@ -125,6 +127,56 @@ open -e ~/.zprofile
 echo $JAVA_HOME
 ```
 
+#### 新的
+
+上述方式安装的是 JRE，导致需要 JDK 的操作无法启动，需要安装 JDK，JDK 具备 JRE 全部功能
+**卸载原有的**
+
+```bash
+# 查看路径
+/usr/libexec/java_home -V
+
+# 删除示例，若不懂问GPT
+rm -rf /Users/quartz/Library/Java/JavaVirtualMachines/azul-1.8.0_432
+
+# 运行以下命令，确保系统中没有任何可用的 Java 版本
+/usr/libexec/java_home -V
+
+# 验证 java 和 javac 命令
+java -version
+javac -version
+```
+
+**安装新的**
+
+```BASH
+# brew更新
+brew update
+
+# 安装
+brew install --cask zulu@8
+```
+
+配置 Java 环境变量
+
+```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
+export PATH=$JAVA_HOME/bin:$PATH
+```
+
+刷新
+
+```bash
+source ~/.zprofile
+```
+
+验证
+
+```
+java -version
+javac -version
+```
+
 ### Maven
 
 根据所在不同公司，对 maven 版本的要求可能不一致
@@ -138,7 +190,9 @@ echo $JAVA_HOME
 解压后将其存放在如下目录
 
 ```
+
 /usr/local
+
 ```
 
 在终端输入
