@@ -850,9 +850,7 @@ console.log(type); // 输出: gold
   ```javascript
   let highIncome = true; // 高收入
   let goodCreditScore = true; // 良好的信用评分
-
   let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
-
   console.log(eligibleForLoan); // 输出: true
   ```
 
@@ -885,9 +883,7 @@ console.log(type); // 输出: gold
   ```js
   let highIncome = true; // 高收入
   let goodCreditScore = false; // 不良信用评分
-
   let eligibleForLoan = highIncome || goodCreditScore; // 贷款批准条件
-
   console.log(eligibleForLoan); // 输出: true
   ```
 
@@ -919,10 +915,8 @@ console.log(type); // 输出: gold
   ```js
   let highIncome = false; // 低收入
   let goodCreditScore = false; // 不良信用评分
-
   let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
   let applicationRefused = !eligibleForLoan; // 贷款拒绝
-
   console.log("Eligible for loan: " + eligibleForLoan); // 输出: false
   console.log("Application refused: " + applicationRefused); // 输出: true
   ```
@@ -1014,7 +1008,6 @@ console.log(type); // 输出: gold
   let userColor = "red"; // 用户选择的颜色
   let defaultColor = "blue"; // 默认颜色
   let currentColor = userColor || defaultColor; // 如果没有用户选择颜色，则使用默认颜色
-
   console.log(currentColor); // 输出: red
   ```
 
@@ -1024,7 +1017,6 @@ console.log(type); // 输出: gold
   let userColor = undefined; // 用户未选择颜色
   let defaultColor = "blue"; // 默认颜色
   let currentColor = userColor || defaultColor; // 使用默认颜色
-
   console.log(currentColor); // 输出: blue
   ```
 
@@ -1223,7 +1215,6 @@ if (hour >= 6 && hour < 12) {
 
   ```js
   let hour = 10; // 假设当前时间是上午 10 点
-
   if (hour >= 0 && hour < 12) console.log("Good Morning");
   else if (hour >= 12 && hour < 18) console.log("Good Afternoon");
   else console.log("Good Evening");
@@ -1655,7 +1646,6 @@ for (let key in object) {
      for (let key in person) {
        console.log(key, person[key]); // 输出属性名和属性值
      }
-
      // name Mosh
      // age 30
      ```
@@ -1749,14 +1739,11 @@ for (let element of iterable) {
 
   ```javascript
   let i = 0;
-
   while (i <= 10) {
     if (i === 5) break;
-
     console.log(i);
     i++;
   }
-
   //输出 0-4
   ```
 
@@ -1773,18 +1760,15 @@ for (let element of iterable) {
 
   ```javascript
   let i = 0;
-
   while (i <= 10) {
     // if (i === 5) break;
     if (i % 2 === 0) {
       i++;
       continue;
     }
-
     console.log(i);
     i++;
   }
-
   //输出 1 3 5 7 9
   ```
 
@@ -2587,10 +2571,8 @@ console.log(num); // 输出 10，原始值没有改变
     obj.value += 1;
     console.log(obj.value); // 输出增加后的值
   }
-
   let obj = { value: 10 };
   increase(obj); // 传入 obj
-
   console.log(obj.value); // 输出 11，原始对象被修改
   ```
 
@@ -4106,6 +4088,8 @@ console.log(test(10000, undefined, 5)); // Is ugly
 - 在上面的 `test` 函数中，`year` 参数没有默认值。如果你调用 `test(10000, 5)`，结果是 `NaN`，因为 `year` 被当作 `undefined`，但它没有默认值。
 
 - 为了提高代码可读性，最好将带有默认值的参数放在最后，或者为所有默认值参数设置默认值。
+
+## `Getter`&`Setter`
 
 ---
 
