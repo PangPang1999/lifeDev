@@ -2392,7 +2392,6 @@ const obj = new Object();
    ```js
    const num1 = 42; // 数字字面量
    const num2 = new Number(42); // 使用构造函数
-
    console.log(num1.constructor); // 输出：Number
    console.log(num2.constructor); // 输出：Number
    ```
@@ -2537,9 +2536,7 @@ const another = new Circle1(1);
   ```js
   let x = { value: 10 };
   let y = x; // 复制 x 的引用给 y
-
   x.value = 20; // 修改 x 的 value 属性
-
   console.log(x.value); // 输出 20
   console.log(y.value); // 输出 20
   ```
@@ -4167,7 +4164,6 @@ console.log(test(10000, undefined, 5)); // Is ugly
     ```js
     let arr1 = [1, 2, 3];
     let arr2 = [];
-
     // 使用 splice(0, 0) 来将 arr1 的元素插入到 arr2
     arr2.splice(0, 0, ...arr1); // 展开 arr1 的元素并插入到 arr2 的开头
     console.log(arr2); // [1, 2, 3]
