@@ -4077,6 +4077,7 @@ console.log(interest(10000, undefined, 5)); // 使用默认值：rate = 3.5, yea
 function test(principal, rate = 3.5, year) {
   return ((principal * rate) / 100) * year;
 }
+
 console.log(test(10000, 5)); // NaN
 console.log(test(10000, undefined, 5)); // Is ugly
 // 应将所有的default vule放在最后
@@ -4098,11 +4099,10 @@ console.log(test(10000, undefined, 5)); // Is ugly
    - 提高代码的可读性，简化访问。
 
 2. `getter` 的实现
-
    - 使用 `get` 关键字定义。
-
+   
    - 可以像属性一样调用，无需显式调用方法。
-
+   
 3. `setter` 的作用
 
    - 允许以赋值的形式更新对象的属性值，并自动执行额外的逻辑。
@@ -4134,12 +4134,10 @@ console.log(test(10000, undefined, 5)); // Is ugly
 const person = {
   firstName: "Mosh",
   lastName: "Hamedani",
-
   // Getter
   get fullName() {
     return `${this.firstName} ${this.lastName}`;
   },
-
   // Setter
   set fullName(value) {
     const parts = value.split(" ");
@@ -4205,7 +4203,6 @@ console.log(person);
 const person = {
   firstName: "Mosh",
   lastName: "Hamedani",
-
   set fullName(value) {
     // 检查输入是否为字符串
     if (typeof value !== "string") {
@@ -4223,7 +4220,6 @@ const person = {
     this.lastName = parts[1];
   },
 };
-
 try {
   // person.fullName = null;  // 抛出异常：Value is not a string
   person.fullName = ""; // 抛出异常：Invalid full name
@@ -4232,6 +4228,104 @@ try {
 }
 console.log(person); // 输出对象，检查是否修改成功
 ```
+
+## Scope
+
+> 简述：**作用域**定义了变量、常量或函数在代码中可访问的范围。作用域的分类和规则是 JavaScript 中的重要概念，正确理解作用域有助于编写更高效和可维护的代码。
+
+**知识树**
+
+1. 全局作用域（Global Scope）
+   - 变量或常量在代码的任何地方都可以访问。
+   - 缺点：容易被意外修改，增加程序出错的风险。
+   - 最佳实践：尽量避免定义全局变量。
+2. 局部作用域（Local Scope）
+   - 变量或常量定义在函数或代码块中，其作用域仅限于该函数或代码块内。
+   - 局部作用域有助于减少变量冲突。
+3. 块级作用域（Block Scope）
+   - 使用 `let` 和 `const` 声明的变量，其作用域限制在最近的 `{}` 内。
+   - 不同代码块（如 `if`、`for` 等）中可以定义相同名称的变量，互不干扰。
+4. 变量的优先级
+   - 局部变量优先于全局变量。
+   - 如果函数中有与全局变量同名的变量，函数内部会优先使用局部变量。
+
+**代码示例**
+
+- 全局作用域
+
+  ```js
+  const color = "red"; // 全局变量
+  function start() {
+    console.log(color); // 可以访问全局变量，输出 "red"
+  }
+  start();
+  console.log(color); // 输出 "red"
+  ```
+
+- 局部作用域
+
+  ```js
+  function start() {
+    const message = "hi"; // 局部变量，作用域仅限于 start 函数
+    console.log(message); // 输出 "hi"
+  }
+  start();
+  // console.log(message); // 报错：message 未定义
+  ```
+
+- 块级作用域
+
+  ```js
+  function start() {
+    if (true) {
+      const blockVariable = "inside block";
+      console.log(blockVariable); // 输出 "inside block"
+    }
+    // console.log(blockVariable); // 报错：blockVariable 未定义
+  }
+  start();
+  ```
+
+- 变量优先级
+
+  ```js
+  const color = "red"; // 全局变量
+  function start() {
+    const color = "blue"; // 局部变量，覆盖全局变量
+    console.log(color); // 输出 "blue"
+  }
+  start();
+  console.log(color); // 输出 "red"
+  ```
+
+  
+
+
+
+
+
+## Test
+
+> 简述
+
+**知识树**
+
+1. 知识点
+2. 知识点
+3. 知识点
+   - 细分
+   - 细分
+4. 知识点
+
+**代码示例**
+
+```js
+
+```
+
+
+
+
 
 ---
 
