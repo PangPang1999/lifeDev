@@ -4088,6 +4088,54 @@ console.log(test(10000, undefined, 5)); // Is ugly
 
 ## `Getter`&`Setter`
 
+> 在 JavaScript 中，`Getter` 和 `Setter` 是对象中用于访问和修改属性的一种特殊方法。通过 `Getter`，我们可以像访问属性一样调用方法；通过 `Setter`，我们可以对属性赋值，同时执行额外的逻辑。
+
+示例
+
+```js
+const person = {
+  firstName: "Mosh",
+  lastName: "Hamedani",
+
+  // Getter
+  get fullName() {
+    return `${this.firstName} ${this.lastName}`;
+  },
+
+  // Setter
+  set fullName(value) {
+    const parts = value.split(" ");
+    if (parts.length !== 2) {
+      throw new Error("Invalid full name");
+    }
+    this.firstName = parts[0];
+    this.lastName = parts[1];
+  },
+};
+
+// 使用 Getter
+console.log(person.fullName); // 输出：Mosh Hamedani
+
+// 使用 Setter
+person.fullName = "John Smith";
+console.log(person);
+// 输出：{ firstName: "John", lastName: "Smith", fullName: [Getter/Setter] }
+```
+
+- Getter
+
+  - 使用 `get` 关键字定义。
+  - 作用：让方法像属性一样被访问。
+  - 在上面的例子中，`person.fullName` 实际上是调用了 `get fullName()` 方法，但看起来像是直接访问了一个属性。
+
+- Setter
+  - 使用 `set` 关键字定义。
+  - 作用：在设置属性时执行额外逻辑。
+  - 在上面的例子中，当调用 `person.fullName = "John Smith"`时：
+    - `value` 为 `"John Smith"`。
+    - `split(" ")` 将字符串按空格分割成数组 `["John", "Smith"]`。
+    - `this.firstName` 和 `this.lastName` 分别被设置为数组的两个元素。
+
 ---
 
 # 技巧

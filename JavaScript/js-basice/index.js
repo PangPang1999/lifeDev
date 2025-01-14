@@ -1,9 +1,27 @@
-function interest(principal, rate = 3.5, year = 5) {
-  // rate = rate || 3.5;
-  // year = year || 5;
+const person = {
+  firstName: "Mosh",
+  lastName: "Hamedani",
 
-  return ((principal * rate) / 100) * year;
-}
+  // Getter
+  get fullName() {
+    return `${this.firstName} ${this.lastName}`;
+  },
 
-console.log(interest(10000)); // 使用默认值：rate = 3.5, year = 5
-console.log(interest(10000, undefined, 10)); // rate使用默认值3.5, year = 10
+  // Setter
+  set fullName(value) {
+    const parts = value.split(" ");
+    if (parts.length !== 2) {
+      throw new Error("Invalid full name");
+    }
+    this.firstName = parts[0];
+    this.lastName = parts[1];
+  },
+};
+
+// 使用 Getter
+console.log(person.fullName); // 输出：Mosh Hamedani
+
+// 使用 Setter
+person.fullName = "John Smith";
+console.log(person);
+// 输出：{ firstName: "John", lastName: "Smith", fullName: [Getter/Setter] }
