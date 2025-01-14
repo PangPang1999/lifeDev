@@ -2,26 +2,31 @@ const person = {
   firstName: "Mosh",
   lastName: "Hamedani",
 
-  // Getter
-  get fullName() {
-    return `${this.firstName} ${this.lastName}`;
-  },
-
-  // Setter
   set fullName(value) {
+    // 检查输入是否为字符串
+    if (typeof value !== "string") {
+      throw new Error("Value is not a string");
+    }
+
+    // 分割输入并验证是否有两个部分
     const parts = value.split(" ");
     if (parts.length !== 2) {
-      throw new Error("Invalid full name");
+      throw new Error(
+        "Invalid full name. Enter a first and last name."
+      );
     }
+
+    // 设置 firstName 和 lastName
     this.firstName = parts[0];
     this.lastName = parts[1];
   },
 };
 
-// 使用 Getter
-console.log(person.fullName); // 输出：Mosh Hamedani
+try {
+  // person.fullName = null;  // 抛出异常：Value is not a string
+  person.fullName = ""; // 抛出异常：Invalid full name
+} catch (e) {
+  alert(e.message); // 在界面上显示错误信息
+}
 
-// 使用 Setter
-person.fullName = "John Smith";
-console.log(person);
-// 输出：{ firstName: "John", lastName: "Smith", fullName: [Getter/Setter] }
+console.log(person); // 输出对象，检查是否修改成功

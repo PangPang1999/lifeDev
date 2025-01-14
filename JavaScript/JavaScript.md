@@ -4088,9 +4088,47 @@ console.log(test(10000, undefined, 5)); // Is ugly
 
 ## `Getter`&`Setter`
 
-> 在 JavaScript 中，`Getter` 和 `Setter` 是对象中用于访问和修改属性的一种特殊方法。通过 `Getter`，我们可以像访问属性一样调用方法；通过 `Setter`，我们可以对属性赋值，同时执行额外的逻辑。
+> 简述：在 JavaScript 中，`getter` 和 `setter` 是定义对象属性的特殊方法，用于控制属性的读取和赋值行为。`getter` 用于访问属性值，而 `setter` 用于修改或设置属性值。它们可以使代码更简洁、更具可读性。
 
-示例
+**知识树**
+
+1. `getter` 的作用
+
+   - 允许以属性的形式访问对象的方法，而不需要显式调用它。
+   - 提高代码的可读性，简化访问。
+
+2. `getter` 的实现
+
+   - 使用 `get` 关键字定义。
+
+   - 可以像属性一样调用，无需显式调用方法。
+
+3. `setter` 的作用
+
+   - 允许以赋值的形式更新对象的属性值，并自动执行额外的逻辑。
+   - 提供数据验证或转换的机会。
+
+4. `setter` 的实现
+
+   - 使用 `set` 关键字定义。
+
+   - 必须接收一个参数，该参数表示被赋予的值。
+
+   - 可以在赋值时执行额外的逻辑，例如验证或解析。
+
+5. 使用场景
+
+   - 创建计算属性（如动态生成的值）。
+   - 在属性赋值时执行验证或逻辑。
+   - 简化对象的外部接口。
+
+6. 注意事项
+
+   - `getter` 必须返回一个值。
+   - `setter` 必须接收一个参数作为值。
+   - 一旦定义了 `getter` 和 `setter`，对象属性就会变得不可直接操作，而是通过访问器方法控制。
+
+**代码示例**
 
 ```js
 const person = {
@@ -4105,9 +4143,6 @@ const person = {
   // Setter
   set fullName(value) {
     const parts = value.split(" ");
-    if (parts.length !== 2) {
-      throw new Error("Invalid full name");
-    }
     this.firstName = parts[0];
     this.lastName = parts[1];
   },
@@ -4122,19 +4157,81 @@ console.log(person);
 // 输出：{ firstName: "John", lastName: "Smith", fullName: [Getter/Setter] }
 ```
 
-- Getter
+## `Try`&`Catch`
 
-  - 使用 `get` 关键字定义。
-  - 作用：让方法像属性一样被访问。
-  - 在上面的例子中，`person.fullName` 实际上是调用了 `get fullName()` 方法，但看起来像是直接访问了一个属性。
+> 简述：`try...catch` 是 JavaScript 中用于处理异常（Exception）的机制。通过 `try` 块捕获异常并在 `catch` 块中处理这些异常，可以让程序更健壮，避免因错误中断执行。
 
-- Setter
-  - 使用 `set` 关键字定义。
-  - 作用：在设置属性时执行额外逻辑。
-  - 在上面的例子中，当调用 `person.fullName = "John Smith"`时：
-    - `value` 为 `"John Smith"`。
-    - `split(" ")` 将字符串按空格分割成数组 `["John", "Smith"]`。
-    - `this.firstName` 和 `this.lastName` 分别被设置为数组的两个元素。
+**知识树**
+
+1. 异常抛出（Throwing Exceptions）
+
+   - 使用 `throw` 关键字显式地抛出一个异常。
+
+   - 异常可以是任何类型（如字符串、对象、错误对象等），但推荐使用 `Error` 对象来创建标准化的错误信息。
+
+   - 一旦抛出异常，代码将跳过当前的执行路径，转而进入最近的 `catch` 块。
+
+2. 异常捕获（Catching Exceptions）
+
+   - 使用 `try` 块包裹可能发生错误的代码。
+   - 如果代码抛出异常，程序会跳转到与 `try` 块关联的 `catch` 块，并将异常对象作为参数传递给 `catch`。
+
+3. 错误对象
+
+   - JavaScript 提供了 `Error` 构造函数，用于创建错误对象。
+   - 常用的错误类型包括：
+     - `Error`（通用错误）
+     - `TypeError`（类型错误）
+     - `ReferenceError`（引用错误）
+
+4. 代码结构：
+
+   ```js
+   try {
+     // 可能会抛出异常的代码
+   } catch (e) {
+     // 处理异常的代码
+   }
+   ```
+
+5. 异常控制流程
+   - 捕获异常：`try` 块中的代码一旦抛出异常，后续代码不再执行，直接跳转到 `catch` 块。
+   - 处理异常：`catch` 块接收异常对象，通过 `e.message` 获取错误信息。
+   - 恢复正常执行：处理完异常后，程序继续执行 `catch` 块之后的代码。
+
+**代码示例**
+
+```js
+const person = {
+  firstName: "Mosh",
+  lastName: "Hamedani",
+
+  set fullName(value) {
+    // 检查输入是否为字符串
+    if (typeof value !== "string") {
+      throw new Error("Value is not a string");
+    }
+    // 分割输入并验证是否有两个部分
+    const parts = value.split(" ");
+    if (parts.length !== 2) {
+      throw new Error(
+        "Invalid full name. Enter a first and last name."
+      );
+    }
+    // 设置 firstName 和 lastName
+    this.firstName = parts[0];
+    this.lastName = parts[1];
+  },
+};
+
+try {
+  // person.fullName = null;  // 抛出异常：Value is not a string
+  person.fullName = ""; // 抛出异常：Invalid full name
+} catch (e) {
+  alert(e.message); // 在界面上显示错误信息
+}
+console.log(person); // 输出对象，检查是否修改成功
+```
 
 ---
 
