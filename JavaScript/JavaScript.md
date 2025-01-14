@@ -4099,10 +4099,11 @@ console.log(test(10000, undefined, 5)); // Is ugly
    - 提高代码的可读性，简化访问。
 
 2. `getter` 的实现
+
    - 使用 `get` 关键字定义。
-   
+
    - 可以像属性一样调用，无需显式调用方法。
-   
+
 3. `setter` 的作用
 
    - 允许以赋值的形式更新对象的属性值，并自动执行额外的逻辑。
@@ -4298,15 +4299,100 @@ console.log(person); // 输出对象，检查是否修改成功
   console.log(color); // 输出 "red"
   ```
 
-  
+## `Let/Const`&`Var`
 
+> 简述：在 JavaScript 中，可以使用 `let`、`const` 和 `var` 来声明变量。尽管它们都能声明变量，但它们在作用域、提升行为以及全局变量处理上有显著差异
 
+**知识树**
 
+1. `var` 的特点
 
+   - 变量是函数作用域（Function Scope），而非块作用域。
+   - 声明的全局变量会自动添加到全局对象（浏览器中的 `window` 对象）上。
+   - 变量声明会被提升，但初始化不会。
+
+2. `let` 的特点
+
+   - 变量是块作用域（Block Scope），限制在最近的 `{}` 内。
+   - 不会将全局变量附加到全局对象上。
+   - 声明的变量会被提升，但在初始化之前不可访问（称为暂时性死区（Temporal Dead Zone, TDZ））。
+
+3. `const` 的特点
+
+   - 与 `let` 类似，具有块作用域。
+   - 声明时必须初始化，且初始化后不可重新赋值。
+   - 对于对象或数组，`const` 确保的是变量的引用地址不可变，但对象内容可以更改。
+
+4. 使用建议
+
+   - 避免使用 `var`，因为它是函数作用域，容易引发错误。
+   - 优先使用 `const`，只有在需要改变变量值时使用 `let`。
+
+5. 函数补充
+
+   - 在global下声明的函数会自动加到全局对象（浏览器中的 `window` 对象）上，但可以避免
+
+     ```js
+     function sayHi() {
+       console.log("hi");
+     }
+     window.sayHi();// 输出："hi"
+     ```
+
+**代码示例**
+
+1. Var变量是函数作用域，而非块作用域
+
+   ```js
+   function start() {
+     for (var i = 0; i < 5; i++) {
+       console.log(i); // 输出：0, 1, 2, 3, 4
+     }
+     console.log(i); // 输出：5，`i` 可在循环外访问
+   }
+   
+   start();
+   ```
+
+   如果使用 `let`，循环外访问 `i` 会报错：
+
+   ```js
+   function start() {
+     for (let i = 0; i < 5; i++) {
+       console.log(i); // 输出：0, 1, 2, 3, 4
+     }
+     console.log(i); // 报错：i 未定义
+   }
+   
+   start();
+   ```
+
+2. `var` 声明的是全局变量（函数），会自动添加到 `window` 对象
+
+   ```js
+   var name = "melody"; // 全局变量
+   let age = 25;        // 全局变量
+   
+   console.log(window.name); // 输出："melody"
+   console.log(window.age);  // 输出：undefined
+   
+   ```
+
+3. 变量声明提升
+
+   ```js
+   console.log(x); // 输出：undefined（声明提升，但未初始化）
+   var x = 10;
+   
+   console.log(y); // 报错：y is not defined
+   let y = 20;
+   ```
+
+   
 
 ## Test
 
-> 简述
+> 简述：
 
 **知识树**
 
@@ -4322,8 +4408,6 @@ console.log(person); // 输出对象，检查是否修改成功
 ```js
 
 ```
-
-
 
 
 

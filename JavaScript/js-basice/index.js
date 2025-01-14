@@ -1,9 +1,23 @@
-const color = "red"; // 全局变量
-
 function start() {
-  const color = "blue"; // 局部变量，覆盖全局变量
-  console.log(color); // 输出 "blue"
+  for (var i = 0; i < 5; i++) {
+    console.log(i);
+    if (true) {
+      // var color = "red";
+      let color = "red";
+    }
+  }
+
+  console.log(i);
+  // console.log(color);
 }
 
 start();
-console.log(color); // 输出 "red"
+
+var name = "melody";
+let age = 25;
+function sayHi() {
+  console.log("hi");
+}
+console.log(window.name);
+console.log(window.age);
+window.sayHi();
