@@ -1,24 +1,17 @@
-function playVideo(a, b) {
-  console.log(this);
+function countOccurrences(array, searchElement) {
+  if (!Array.isArray(array)) {
+    throw new Error("Invalid array");
+  }
+
+  return array.reduce((accu, curr) => {
+    return curr === searchElement ? accu + 1 : accu;
+  }, 0);
 }
 
-const fn = playVideo.bind({ name: "Moth" });
-fn();
-// 等价
-playVideo.bind({ name: "Moth" })();
-
-// 结合回调函数使用
-const video = {
-  title: "a",
-  tags: ["a", "b", "c"],
-  showTags() {
-    this.tags.forEach(
-      function (tag) {
-        console.log(this.title, tag);
-      }.bind(this)
-    );
-  },
-};
-video.showTags();
-
-playVideo.bind({ name: "Moth" })();
+try {
+  const numbers = [1, 2, 3, 4];
+  const count = countOccurrences(null, 1);
+  console.log(count);
+} catch (e) {
+  console.log(e.message);
+}

@@ -4578,23 +4578,9 @@ console.log(person); // 输出对象，检查是否修改成功
    video.showTags(); // 正常输出标题和标签
    ```
 
-**特殊情况**
+**补充**
 
-1. 动态添加方法
-
-   ```js
-   const video = {
-     title: "a",
-   };
-
-   video.stop = function () {
-     console.log(this); // 输出 video 对象
-   };
-
-   video.stop();
-   ```
-
-2. 全局函数附加到 `window` 对象
+1. 普通函数附加到 `window` 对象
 
    ```js
    function sayHi() {
@@ -4603,6 +4589,126 @@ console.log(person); // 输出对象，检查是否修改成功
    
    console.log(window.sayHi); // 输出：函数本身
    ```
+
+## Ex1
+
+> **要求**：创建一个函数 `sum`，该函数接受不定数量的参数，并返回它们的和，同时，使其能够接受一个数组，并仍然返回相同的结果。你需要检测传入的参数是否是数组。
+>
+> **解法**
+>
+> 1. 使用 Rest 参数
+>    使用 Rest 参数 (`...items`) 来接收不定数量的参数。Rest 参数会将所有传入的参数收集到一个数组中。
+> 2. 检测是否是数组
+>    使用 `Array.isArray()` 方法检查传入的参数是否是一个数组。
+> 3. 计算数组元素的和
+>    使用 `reduce()` 方法对数组中的每个元素进行求和。
+> 4. 处理嵌套数组的情况
+>    如果传入的参数是一个数组，且该数组内部包含其他数组，则需要将其展开，避免嵌套。
+
+```js
+function some(...items) {
+  // 使用一个辅助函数来递归展开数组
+  function flatten(arr) {
+    return arr.reduce((acc, curr) => {
+      if (Array.isArray(curr)) {
+        // 如果 curr 是数组，递归展开
+        return acc.concat(flatten(curr));
+      } else {
+        // 否则直接加入到结果数组
+        return acc.concat(curr);
+      }
+    }, []);
+  }
+
+  // 展开所有传入的参数
+  const flatItems = flatten(items);
+
+  // 计算所有展开元素的总和
+  return flatItems.reduce((a, b) => a + b, 0);
+}
+
+console.log(some(1, [1, 1], 1)); // 输出: 4
+```
+
+**拓展ES10：`flat()`方法**
+
+```js
+function some(...items) {
+  // 扁平化一次，仅处理嵌套的数组
+  items = items.flat();
+
+  // 计算所有数字的总和
+  return items.reduce((a, b) => a + b, 0);
+}
+
+console.log(some(1, [1, 1], 1)); // 输出: 4
+```
+
+## Ex2
+
+> **要求**：创建一个 `circle` 对象，使用对象字面量语法。这个对象应该有一个 `radius` 属性，既可以读取也可以修改，同时有一个只读的 `area` 属性。你不应该能够从外部设置 `area`，但可以读取它。
+>
+> **解法**
+>
+> 1. 创建一个 `circle` 对象
+>    使用对象字面量语法创建 `circle` 对象，并添加 `radius` 属性。
+> 2. 只读 `area` 属性
+>    使用 `getter` 来创建只读属性 `area`，计算其值为圆的面积，公式为 `Math.PI * radius * radius`。
+> 3. 不能设置 `area`
+>    通过只定义 `getter`，没有 `setter`，确保外部无法修改 `area` 的值。
+
+```js
+const circle = {
+  radius: 1,
+  // 只读属性 - 面积
+  get area() {
+    return Math.PI * this.radius * this.radius;
+  },
+};
+
+console.log(circle.area); // 输出圆的面积
+circle.radius = 10; // 修改半径
+console.log(circle.area); // 输出新的面积
+circle.area = 100;
+console.log(circle.area); // 无法设置只读属性，输出之前计算的面积
+```
+
+## Ex3
+
+> **要求**：我们之前做过一个练习，要求统计数组中某个元素的出现次数。现在需要修改该函数，加入错误处理，确保如果传入的参数不是有效的数组时，能够抛出异常，并且处理这些异常。
+>
+> **解法**
+>
+> 1. **验证参数类型**
+>    使用 `Array.isArray()` 方法检查第一个参数是否为有效的数组，如果不是，则抛出异常。
+> 2. **错误处理**
+>    使用 `try...catch` 语句来捕获和处理抛出的异常，并在 `catch` 块中输出错误信息。
+> 3. **异常抛出**
+>    如果第一个参数不是数组，使用 `throw new Error('Invalid array')` 来抛出异常。
+
+```JS
+function countOccurrences(array, searchElement) {
+  if (!Array.isArray(array)) {
+    throw new Error("Invalid array");
+  }
+
+  return array.reduce((acc, curr) => {
+    return curr === searchElement ? acc + 1 : acc;
+  }, 0);
+}
+
+try {
+  const numbers = [1, 2, 3, 4];
+  const count = countOccurrences(null, 1);
+  console.log(count);
+} catch (e) {
+  console.log(e.message);
+}
+```
+
+
+
+# 模版
 
 ## Test
 
@@ -4622,6 +4728,22 @@ console.log(person); // 输出对象，检查是否修改成功
 ```js
 
 ```
+
+## Ex
+
+> **要求**：
+>
+> **解法**：
+>
+> 1. Step1：
+> 2. Step2：
+
+解法
+
+```js
+```
+
+
 
 ---
 
