@@ -4307,9 +4307,10 @@ console.log(person); // 输出对象，检查是否修改成功
 
 1. `var` 的特点
 
-   - 变量是函数作用域（Function Scope），而非块作用域。
-   - 声明的全局变量会自动添加到全局对象（浏览器中的 `window` 对象）上。
-   - 变量声明会被提升，但初始化不会。
+   1. _避免使用它_
+   2. 变量是函数作用域（Function Scope），而非块作用域。
+   3. 声明的全局变量会自动添加到全局对象（浏览器中的 `window` 对象）上。
+   4. 变量声明会被提升，但初始化不会。
 
 2. `let` 的特点
 
@@ -4330,18 +4331,18 @@ console.log(person); // 输出对象，检查是否修改成功
 
 5. 函数补充
 
-   - 在global下声明的函数会自动加到全局对象（浏览器中的 `window` 对象）上，但可以避免
+   - 在 global 下声明的函数会自动加到全局对象（浏览器中的 `window` 对象）上，但可以避免
 
      ```js
      function sayHi() {
        console.log("hi");
      }
-     window.sayHi();// 输出："hi"
+     window.sayHi(); // 输出："hi"
      ```
 
 **代码示例**
 
-1. Var变量是函数作用域，而非块作用域
+1. Var 变量是函数作用域，而非块作用域
 
    ```js
    function start() {
@@ -4350,7 +4351,7 @@ console.log(person); // 输出对象，检查是否修改成功
      }
      console.log(i); // 输出：5，`i` 可在循环外访问
    }
-   
+
    start();
    ```
 
@@ -4363,7 +4364,7 @@ console.log(person); // 输出对象，检查是否修改成功
      }
      console.log(i); // 报错：i 未定义
    }
-   
+
    start();
    ```
 
@@ -4371,11 +4372,10 @@ console.log(person); // 输出对象，检查是否修改成功
 
    ```js
    var name = "melody"; // 全局变量
-   let age = 25;        // 全局变量
-   
+   let age = 25; // 全局变量
+
    console.log(window.name); // 输出："melody"
-   console.log(window.age);  // 输出：undefined
-   
+   console.log(window.age); // 输出：undefined
    ```
 
 3. 变量声明提升
@@ -4388,7 +4388,221 @@ console.log(person); // 输出对象，检查是否修改成功
    let y = 20;
    ```
 
+## `This`
+
+> 简述：`this` 是 JavaScript 中一个非常常见但容易混淆的概念。它的值取决于函数的调用方式。通过理解 `this` 的行为，我们可以更清楚地掌握 JavaScript 中的对象方法、回调函数以及构造函数的作用。
+
+**知识树**
+
+1. `this` 的含义
+   - `this` 指向当前执行上下文的对象。
+   - 在对象方法中，`this` 指向调用该方法的对象。（无论是一开始就写下的方法还是后续添加的方法）
+   - 在普通函数中，`this` 指向全局对象（在浏览器中是 `window`）
+   - 在构造函数中，使用 `new` 操作符创建一个新的空对象，让`this` 指向一个该空对象，随后进行构造函数内的代码执行。
+   - 在**回调函数**中， `this` 默认指向全局对象，但可以通过额外参数或绑定方法改变。
+   - 在箭头函数中，`this` 的值取决于定义时的上下文，继承自外层作用域。
+
+2. 解决**回调函数**中 `this` 引用问题
+
+   - 在回调函数后，加上`this`参数，但不一定所有方法都适配
+   - 在对象中引入`self`或`that`来指向对象中的`this`，在回调函数中引用`self`
+   - 使用 `call()` 和 `apply()`：这两个方法可以显式地指定函数执行时的 `this` 值，但它的参数传递方式有所不同。
+     - `call` 方法的第一个参数是指定 `this` 的对象，后面的参数则是传递给函数的参数。
+     - `apply` 的第一个参数是指定 `this` 的对象，第二个参数是一个数组，它会被传递给函数。
+
+   - 使用 `bind()`：`bind` 方法和 `call`、`apply` 类似，都允许你显式地指定 `this` 值，但不同的是，`bind` 不会立即调用函数，而是返回一个新的函数。
+     - `bind` 方法创建了一个新函数，该函数的 `this` 被固定为。可以结合回调函数使用。
+     - `bind` 方法的第一个参数是指定 `this` 的对象，后面的参数则是传递给函数的参数。
+   - 箭头函数（最优）：箭头函数不会创建自己的 `this`，它会继承外层作用域的 `this`。
+
+**代码示例**
+
+1. 方法调用
+
+   ```js
+   const video = {
+     title: "a",
+     play() {
+       console.log(this); // 输出 video 对象
+     },
+   };
+   video.play();
+   video.stop = function () {
+     console.log(this);
+   };
+   video.stop();
+   ```
+
+2. 普通函数调用
+
+   ```js
+   function playVideo() {
+     console.log(this);
+   }
+
+   playVideo(); // 在浏览器中输出 window 对象
+   ```
+
+3. 构造函数调用
+
+   ```js
+   function Video(title) {
+     this.title = title;
+     console.log(this);
+   }
+
+   const v = new Video("a"); // 输出新创建的 Video 对象
+   ```
+
+4. **回调函数**中的 `this`
+
+   ```js
+   const video = {
+     title: "a",
+     tags: ["a", "b", "c"],
+     showTags() {
+       this.tags.forEach(function (tag) {
+         console.log(this.title, tag); // this.title 为 undefined，因为 this 指向全局对象
+         console.log(this); // 在浏览器中输出 window 对象
+       });
+     },
+   };
    
+   video.showTags();
+   ```
+
+5. 在箭头函数中的`this`
+
+   ```js
+   const video = {
+     title: "a",
+     tags: ["a", "b", "c"],
+     showTags() {
+       this.tags.forEach((tag) => {
+         console.log(this.title, tag); // 箭头函数继承外层的 this
+       });
+     },
+   };
+   
+   video.showTags(); // 正常输出标题和标签
+   ```
+
+**解决回调函数中 `this` 问题**
+
+1. 传递 `this` 参数（不一定都适用）
+
+   ```js
+   const video = {
+     title: "a",
+     tags: ["a", "b", "c"],
+     showTags() {
+       this.tags.forEach(function (tag) {
+         console.log(this.title, tag);
+       }, this); // 将 this 作为第二个参数传递
+     },
+   };
+   
+   video.showTags(); // 正常输出标题和标签
+   ```
+
+2. 在对象中引入`self`或`that`（传统方法，需要理解）
+
+   ```js
+   const video = {
+     title: "a",
+     tags: ["a", "b", "c"],
+     showTags() {
+       const self = this; // 引入self
+       this.tags.forEach(function (tag) {
+         console.log(self.title, tag);
+       });
+     },
+   };
+   
+   video.showTags(); // 正常输出标题和标签
+   ```
+
+3. 使用 `call()` 和 `apply()`
+
+   ```js
+   function playVideo(a, b) {
+     console.log(this);
+   }
+   
+   playVideo.call({ name: "Moth" }, 1, 2);
+   playVideo.apply({ name: "Moth" }, [1, 2]);
+   
+   playVideo();
+   ```
+
+4. 使用 `bind()`
+
+   ```js
+   function playVideo(a, b) {
+     console.log(this);
+   }
+   
+   const fn = playVideo.bind({ name: "Moth" });
+   fn();
+   // 等价
+   playVideo.bind({ name: "Moth" })();
+   
+   // 结合回调函数使用
+   const video = {
+     title: "a",
+     tags: ["a", "b", "c"],
+     showTags() {
+       this.tags.forEach(
+         function (tag) {
+           console.log(this.title, tag);
+         }.bind(this)
+       );
+     },
+   };
+   video.showTags();
+   ```
+
+5. 使用箭头函数
+
+   ```js
+   const video = {
+     title: "a",
+     tags: ["a", "b", "c"],
+     showTags() {
+       this.tags.forEach((tag) => {
+         console.log(this.title, tag); // 箭头函数继承外层的 this
+       });
+     },
+   };
+   
+   video.showTags(); // 正常输出标题和标签
+   ```
+
+**特殊情况**
+
+1. 动态添加方法
+
+   ```js
+   const video = {
+     title: "a",
+   };
+
+   video.stop = function () {
+     console.log(this); // 输出 video 对象
+   };
+
+   video.stop();
+   ```
+
+2. 全局函数附加到 `window` 对象
+
+   ```js
+   function sayHi() {
+     console.log("hi");
+   }
+   
+   console.log(window.sayHi); // 输出：函数本身
+   ```
 
 ## Test
 
@@ -4408,8 +4622,6 @@ console.log(person); // 输出对象，检查是否修改成功
 ```js
 
 ```
-
-
 
 ---
 

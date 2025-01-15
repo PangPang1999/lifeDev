@@ -1,23 +1,24 @@
-function start() {
-  for (var i = 0; i < 5; i++) {
-    console.log(i);
-    if (true) {
-      // var color = "red";
-      let color = "red";
-    }
-  }
-
-  console.log(i);
-  // console.log(color);
+function playVideo(a, b) {
+  console.log(this);
 }
 
-start();
+const fn = playVideo.bind({ name: "Moth" });
+fn();
+// 等价
+playVideo.bind({ name: "Moth" })();
 
-var name = "melody";
-let age = 25;
-function sayHi() {
-  console.log("hi");
-}
-console.log(window.name);
-console.log(window.age);
-window.sayHi();
+// 结合回调函数使用
+const video = {
+  title: "a",
+  tags: ["a", "b", "c"],
+  showTags() {
+    this.tags.forEach(
+      function (tag) {
+        console.log(this.title, tag);
+      }.bind(this)
+    );
+  },
+};
+video.showTags();
+
+playVideo.bind({ name: "Moth" })();
