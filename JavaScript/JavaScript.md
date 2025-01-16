@@ -29,36 +29,39 @@
 
 # 入门
 
-## 什么是 JavaScript
+## JavaScript 概念
 
-**JavaScript 是什么?**
+**知识树**
 
-- 当今最流行和广泛使用的编程语言之一。
+1. JavaScript 是什么?
 
-**JavaScript 能做什么？**
+   - 当今最流行和广泛使用的编程语言之一。
 
-- 可以用于构建完整的网页应用、移动应用、实时网络应用（如聊天和视频流服务）、命令行工具甚至游戏
+2. JavaScript 能做什么？
 
-  **JavaScript 代码在哪里运行？**
+   - 可以用于构建完整的网页应用、移动应用、实时网络应用（如聊天和视频流服务）、命令行工具甚至游戏
 
-- 最初只能在浏览器中运行。每个浏览器都有一个 JavaScript 引擎来执行代码（例如 Firefox 和 Chrome 的引擎）
+3. JavaScript 代码在哪里运行？
 
-- 通过 Node.js，JavaScript 也可以在浏览器之外运行，从而使开发者可以用 JavaScript 构建 Web 和移动应用的后端。
+   - 最初只能在浏览器中运行。每个浏览器都有一个 JavaScript 引擎来执行代码（例如 Firefox 和 Chrome 的引擎）
 
-**JavaScript 与 ECMA Script 的区别是什么？**
+   - 通过 Node.js，JavaScript 也可以在浏览器之外运行，从而使开发者可以用 JavaScript 构建 Web 和移动应用的后端。
 
-- ECMAScript 是一种规范，定义了 JavaScript 语言的标准。
-- JavaScript 是遵循 ECMAScript 规范的编程语言
+4. JavaScript 与 ECMA Script 的区别是什么？
 
-**Chrome Dev Tool**
+   - ECMAScript 是一种规范，定义了 JavaScript 语言的标准。
 
-Chrome Dev Tool 的 Console 中可以写一些简单 JavaScript 代码。
+   - JavaScript 是遵循 ECMAScript 规范的编程语言
 
-```javascript
-console.log("Hello");
-2 + 2;
-alert("yo");
-```
+5. Chrome Dev Tool 的基本使用
+
+   Chrome Dev Tool 的 Console 可以用于调试，其中可以写一些简单 JavaScript 代码。
+
+   ```javascript
+   console.log("Hello");
+   2 + 2;
+   alert("yo");
+   ```
 
 ## 设置开发环境
 
@@ -68,10 +71,18 @@ alert("yo");
 
 ## 基础代码
 
-> 将 `<script>` 元素放在 `<body>` 标签的末尾，所有现有元素之后。
->
-> 1. **浏览器解析顺序**：浏览器会从上到下解析 HTML 文件。如果将 JavaScript 放在 `<head>` 部分，浏览器可能会先解析和执行 JavaScript，这可能会延迟页面内容的渲染，导致页面加载时显示白屏或空白。
-> 2. **与页面元素交互**：JavaScript 通常需要操作页面中的元素（例如显示或隐藏元素）。将脚本放在页面底部，可以确保所有 HTML 元素都已加载和渲染。
+**知识树**
+
+1. 代码结构：
+   - 单 html 文件中，将 `<script>` 元素放在 `<body>` 标签的末尾，所有元素之后。
+2. 浏览器解析顺序：
+   - 浏览器会从上到下解析 HTML 文件。如果将 JavaScript 放在 `<head>` 部分，浏览器可能会先解析和执行 JavaScript，这可能会延迟页面内容的渲染，导致页面加载时显示白屏或空白。
+3. 与页面元素交互：
+   - JavaScript 通常需要操作页面中的元素（例如显示或隐藏元素）。将脚本放在页面底部，可以确保所有 HTML 元素都已加载和渲染。
+4. 快捷指令：
+   - 空的 HTML 文件中，输入`!`，按下回车生成模版文件
+
+**代码示例**
 
 ```html
 <!DOCTYPE html>
@@ -85,173 +96,190 @@ alert("yo");
     <title>Document</title>
   </head>
   <body>
-    <script>
-      // This is not my first Javascipt code
-      console.log("Hello World"); // 将命令输出到控制台，可用于调试
+    <script src="index.js">
+      console.log("Hello World"); // 将命令输出到控制台
     </script>
   </body>
 </html>
 ```
 
-- JavaScript 代码写在`<script>`标签内
-- `<script>`标签放在`<body>`的最下面
-
 ## 分离 JS
 
-> 在 **index.html** 中的 `<script>` 标签内编写的 JavaScript 代码应该提取到一个单独的文件中。
->
-> - 更好的代码组织和管理。
->
-> - JavaScript 文件可以被多个 HTML 页面复用。
->
-> - 页面加载性能提升，因为浏览器可以缓存外部 JS 文件。
+**知识树**
 
-```javascript
-console.log("Hello World");
-```
+1. 分离 JavaScript 代码的优点
 
-```html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0"
-    />
-    <title>Document</title>
-  </head>
-  <body>
-    <script src="index.js"></script>
-  </body>
-</html>
-```
+   - 更好的代码组织和管理。
+
+   - JavaScript 文件可以被多个 HTML 页面复用。
+
+   - 页面加载性能提升，因为浏览器可以缓存外部 JS 文件。
+
+2. 分离方式
+
+   - 在`<body>`或者`<head>`标签内引用对应的文件
+
+**代码示例**
+
+1. 在`index.html`中引用
+
+   ```js
+   <!DOCTYPE html>
+   <html lang="en">
+     <head>
+       <meta charset="UTF-8" />
+       <meta
+         name="viewport"
+         content="width=device-width, initial-scale=1.0"
+       />
+       <title>Document</title>
+     </head>
+     <body>
+       <script src="index.js"></script>
+     </body>
+   </html>
+   ```
+
+- 分离出的 js 文件
+
+  ```js
+  console.log("Hello World");
+  ```
 
 ## Node 环境运行 JS
 
-命令行工具，文件夹路径下，运行
+在命令行工具（终端），文件（index.js）所在路径下，运行
 
 ```bash
 node index.js
-# Hello World
+# 输出：Hello World
 ```
 
 # 基础
 
 ## 变量
 
-> 变量（Variables）用于暂时存储数据在计算机的内存中。变量给内存中的存储位置一个名称，使用这个名称可以在后续访问该位置的数据。
->
-> 在 JavaScript 中，我们使用**`let`**关键字来声明变量。
->
-> _在早期，`var` 用得较多，但因为它存在一些问题，现在推荐使用 `let`。_
+> 简述：变量（Variables）用于暂时存储数据在计算机的内存中。变量给内存中的存储位置一个名称，使用这个名称可以在后续访问该位置的数据。在 JavaScript 中，我们使用**`let`**关键字来声明变量。在早期，`var` 用得较多，但因为它存在一些问题，现在需要使用 `let`。
 
-**声明方式**：`let`
+**知识树**
 
-- 默认情况下，声明的变量未初始化时，它的值为 `undefined`
+1. 变量声明方式
+   - 使用`let`直接声明变量，也可以初始化变量，并给它赋值
+   - 默认情况下，声明的变量未初始化时，它的值为 `undefined`
+   - 可以使用`let`同时声明多个变量，变量之间用`,`隔开
+2. 最佳实践
+   - 现代最佳实践是每个变量单独声明在一行，并且每个声明语句后加上分号
+3. 命名变量的规则
+   - 不能是保留关键字（如 `let`、`if`、`var` 等）。如果使用保留关键字，编译时会报错。
+   - 命名要有意义，避免使用无意义的变量名（如 `x`）。一个好的变量名可以更清晰地表明它代表的含义。
+   - 不能包含空格或连字符。如果需要多个词，可以使用**驼峰命名法**（camelCase），例如 `firstName`。
+   - 不能以数字开头。例如，`1stName` 是无效的，正确的方式应该是 `firstName1`。
+   - 变量名是大小写敏感的，`firstName` 和 `firstname` 被视为不同的变量。
 
-  ```js
-  let name;
-  console.log(name); // 输出 undefined
-  ```
+**代码示例**
 
-- 可以初始化变量，并给它赋值
+1. 声明变量
 
-  ```js
-  let name = "Mosh";
-  console.log(name); // 输出 Mosh
-  ```
+   ```js
+   let name;
+   console.log(name); // 输出 undefined
+   ```
 
-**命名变量的规则**
+2. 声明并赋值
 
-- 不能是保留关键字（如 `let`、`if`、`var` 等）。如果使用保留关键字，编译时会报错。
-- 命名要有意义，避免使用无意义的变量名（如 `x`）。一个好的变量名可以更清晰地表明它代表的含义。
-- 不能包含空格或连字符。如果需要多个词，可以使用**驼峰命名法**（camelCase），例如 `firstName`。
-- 不能以数字开头。例如，`1stName` 是无效的，正确的方式应该是 `firstName1`。
-- 变量名是大小写敏感的，`firstName` 和 `firstname` 被视为不同的变量。
+   ```js
+   let name = "Mosh";
+   console.log(name); // 输出 Mosh
+   ```
 
-**多个变量声明**
+3. 声明多个变量
 
-- 多个变量声明：可以在一行中声明多个变量，使用逗号分隔
+   ```js
+   let firstName, lastName;
+   // 声明 和 赋值 可以组合
+   // let firstName = 'Mosh' , lastName;
+   ```
 
-  ```js
-  let firstName, lastName;
-  // let firstName = 'Mosh' , lastName;
-  ```
+4. 最佳实践
 
-- 现代最佳实践是每个变量单独声明在一行，并且每个声明语句后加上分号
-
-  ```js
-  let firstName;
-  let lastName;
-  ```
+   ```js
+   let firstName;
+   let lastName;
+   ```
 
 ## 常量
 
-> 在实际应用中，有时我们希望某些值在程序运行过程中保持不变，以避免不小心更改其值引起的错误和 bug。这时，我们使用**常量（Constants）**。
->
-> **变量**（`let`）的值可以改变；而**常量**（`const`）的值一旦赋值后就不能再改变。
->
-> _在早期，`var` 用得较多，但因为它存在一些问题，现在推荐使用 `const`。_
+> 简述：常量（Constants）是指一旦被赋值就不能再修改的数据。它们用于存储在程序运行过程中不会改变的值。常量提供了代码的可读性和可维护性，防止不小心修改这些值。在 JavaScript 中，我们使用 **`const`** 关键字来声明常量。与变量不同，常量一旦声明并初始化后，不能再赋予新的值，否则会抛出错误。在早期，`var` 用得较多，但因为它存在一些问题，现在需要使用 `let`。
 
-**声明方式**：`const`
+**知识树**
 
-```js
-const interestRate = 0.05;
-console.log(interestRate); // 输出: 0.05
-```
+1. 声明常量
 
-**常量赋值后的限制**
+   - 使用`const`声明，必须要带值
 
-- 一旦声明为常量，常量的值就不能再被修改，如果尝试修改常量的值，程序会抛出错误
+2. 常量的限制
+   - 一旦声明为常量，常量的值就不能再被修改，如果尝试修改常量的值，程序会抛出错误
+3. 最佳实践
+   - 如果你不打算更改一个变量的值，使用 `const` 声明它作为常量是最佳实践。
+   - 如果需要更改值，则应使用 `let` 来声明变量。
 
-  ```js
-  const interestRate = 0.3;
-  interestRate = 1;
-  console.log(interestRate);
-  //index.js:2 Uncaught TypeError: Assignment to constant variable.
-  ```
+**代码示例**
 
-**常量的最佳实践**
+1. 声明常量
 
-- 如果你不打算更改一个变量的值，使用 `const` 声明它作为常量是最佳实践。
-- 如果需要更改值，则应使用 `let` 来声明变量。
+   ```js
+   const interestRate = 0.05;
+   console.log(interestRate); // 输出: 0.05
+   ```
+
+2. 常量的限制
+
+   ```js
+   const interestRate = 0.3;
+   interestRate = 1;
+   console.log(interestRate);
+   //index.js:2 Uncaught TypeError: Assignment to constant variable.
+   ```
 
 ## 原始数据类型
 
-> 在 JavaScript 中，数据类型大致分为两类：
+> 简述：在 JavaScript 中，数据类型大致分为两类：
 >
-> - **原始数据类型（Primitives）**，也称为值类型。
-> - **引用数据类型（Reference Types）**，将在后续课程中讲解。
+> - **原始数据类型（Primitives）**，也称为值类型。包含字符串，数字，布尔值，未定义，空值
+> - **引用数据类型（Reference Types）**，包含对象（Object）、数组（Array）、函数（Function），将在后续课程中讲解。
 
-**原始数据类型**
+**知识树**
 
-- 字符串（String）：字符串是由一系列字符组成的文本数据。
-- 数字（Number）：数字用于表示整数和浮动数。
-- 布尔值（Boolean）：布尔值只有两种可能的值：`true` 或 `false`。布尔值常用于逻辑判断。
+1. 字符串（String）：字符串是由一系列字符组成的文本数据。
+2. 数字（Number）：数字用于表示整数和浮动数。
+3. 布尔值（Boolean）：布尔值只有两种可能的值：`true` 或 `false`。布尔值常用于逻辑判断。
+4. 未定义（Undefined）：`undefined` 是 JavaScript 中的一个原始数据类型，它表示“未初始化”或“没有值”。这与变量声明时的状态相关。如果声明了一个变量但没有给它赋值，它的默认值就是 `undefined`。`undefined` 也可以显式地赋值给变量，但这种做法不常见。
+5. 空值（Null）：明 `null` 是一个表示“空对象引用”的特殊类型。它与 `undefined` 不同，`undefined` 是未定义的状态，而 `null` 是显式的空值。
+6. 历史遗留问题：使用 `typeof` 运算符检查 `null` 时，返回的类型是 `"object"`。这显然与 `null` 作为原始类型的身份不符，且这一行为至今未被修复，主要是出于向后兼容性考虑。
 
-- 未定义（Undefined）：如果声明了一个变量但没有给它赋值，它的默认值就是 `undefined`。`undefined` 也可以显式地赋值给变量，但这种做法不常见。
-
-- 空值（Null）：`null` 是一个表示“无”或“空”的值。它常用在你想显式清除变量值的场合。
-
-  _示例：假设用户可以选择颜色。如果用户没有做选择，我们将 `selectedColor` 设为 `null`。当用户选择了颜色时，我们可以重新赋值给该变量。_
+**代码示例**
 
 ```js
-let name = "Alice"; // 字符串字面量
-let age = 30; // 数字字面量
-let isApproved = true; // 布尔值字面量
-let firstName = undefined;
-let selectedColor = null;
+let userName = "Alice"; // 字符串字面量
+let userAge = 30; // 数字字面量
+let isUserApproved = true; // 布尔值字面量
+let userFirstName; // 默认是 undefined
+let userFavoriteColor = null; // 代表空值
+
+// 类型检查
+console.log(typeof userName); // "string"
+console.log(typeof userAge); // "number"
+console.log(typeof isUserApproved); // "boolean"
+console.log(typeof userFirstName); // "undefined"
+console.log(typeof userFavoriteColor); // "object"（注意：这是 JavaScript 的历史遗留问题）
 ```
 
 ## 动态类型（1）
 
-（Dynamic Typing）
-
-> #### **静态语言与动态语言的区别**
+> 简述：JavaScript 是一种 **动态类型（Dynamic Typing）语言**，这意味着变量在声明时不需要指定类型，变量的类型可以在运行时动态变化。
 >
 > - **静态语言**：在静态类型语言（如 Java、C++）中，变量的类型在编译时就已经固定，声明变量时必须指定类型，且在后续不能更改。
-> - **动态语言**：在动态类型语言（如 JavaScript）中，变量的类型是在运行时根据赋给它的值来决定的，且可以随时更改。这就是 JavaScript 的特点。
+> - **动态语言**：在动态类型语言（如 JavaScript）中，变量的类型是在运行时根据赋给它的值来决定的，且可以随时更改。
 
 当上节代码正在运行时，在 Chrome Dev Tool 中，使用命令更改变量类型
 
@@ -4383,7 +4411,7 @@ console.log(person); // 输出对象，检查是否修改成功
    ```js
    console.log(x); // 输出：undefined（声明提升，但未初始化）
    var x = 10;
-   
+
    console.log(y); // 报错：y is not defined
    let y = 20;
    ```
@@ -4401,12 +4429,12 @@ console.log(person); // 输出对象，检查是否修改成功
    - 在构造函数中，使用 `new` 操作符创建一个新的空对象，让`this` 指向一个该空对象，随后进行构造函数内的代码执行。
    - 在**回调函数**中， `this` 默认指向全局对象，但可以通过额外参数或绑定方法改变。
    - 在箭头函数中，`this` 的值取决于定义时的上下文，继承自外层作用域。
-
 2. 解决**回调函数**中 `this` 引用问题
 
    - 在回调函数后，加上`this`参数，但不一定所有方法都适配
    - 在对象中引入`self`或`that`来指向对象中的`this`，在回调函数中引用`self`
    - 使用 `call()` 和 `apply()`：这两个方法可以显式地指定函数执行时的 `this` 值，但它的参数传递方式有所不同。
+
      - `call` 方法的第一个参数是指定 `this` 的对象，后面的参数则是传递给函数的参数。
      - `apply` 的第一个参数是指定 `this` 的对象，第二个参数是一个数组，它会被传递给函数。
 
@@ -4467,7 +4495,7 @@ console.log(person); // 输出对象，检查是否修改成功
        });
      },
    };
-   
+
    video.showTags();
    ```
 
@@ -4483,7 +4511,7 @@ console.log(person); // 输出对象，检查是否修改成功
        });
      },
    };
-   
+
    video.showTags(); // 正常输出标题和标签
    ```
 
@@ -4501,7 +4529,7 @@ console.log(person); // 输出对象，检查是否修改成功
        }, this); // 将 this 作为第二个参数传递
      },
    };
-   
+
    video.showTags(); // 正常输出标题和标签
    ```
 
@@ -4518,7 +4546,7 @@ console.log(person); // 输出对象，检查是否修改成功
        });
      },
    };
-   
+
    video.showTags(); // 正常输出标题和标签
    ```
 
@@ -4528,10 +4556,10 @@ console.log(person); // 输出对象，检查是否修改成功
    function playVideo(a, b) {
      console.log(this);
    }
-   
+
    playVideo.call({ name: "Moth" }, 1, 2);
    playVideo.apply({ name: "Moth" }, [1, 2]);
-   
+
    playVideo();
    ```
 
@@ -4541,12 +4569,12 @@ console.log(person); // 输出对象，检查是否修改成功
    function playVideo(a, b) {
      console.log(this);
    }
-   
+
    const fn = playVideo.bind({ name: "Moth" });
    fn();
    // 等价
    playVideo.bind({ name: "Moth" })();
-   
+
    // 结合回调函数使用
    const video = {
      title: "a",
@@ -4574,7 +4602,7 @@ console.log(person); // 输出对象，检查是否修改成功
        });
      },
    };
-   
+
    video.showTags(); // 正常输出标题和标签
    ```
 
@@ -4586,7 +4614,7 @@ console.log(person); // 输出对象，检查是否修改成功
    function sayHi() {
      console.log("hi");
    }
-   
+
    console.log(window.sayHi); // 输出：函数本身
    ```
 
@@ -4630,7 +4658,7 @@ function some(...items) {
 console.log(some(1, [1, 1], 1)); // 输出: 4
 ```
 
-**拓展ES10：`flat()`方法**
+**拓展 ES10：`flat()`方法**
 
 ```js
 function some(...items) {
@@ -4706,8 +4734,6 @@ try {
 }
 ```
 
-
-
 # 模版
 
 ## Test
@@ -4741,9 +4767,12 @@ try {
 解法
 
 ```js
+
 ```
 
+---
 
+参考字幕，和笔记。补全笔记。字幕：""，笔记：""
 
 ---
 
