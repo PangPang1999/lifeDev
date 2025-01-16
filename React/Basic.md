@@ -464,8 +464,20 @@ return (
 - **解决方法**：使用 **`map`** 方法，遍历数组并渲染每个项目。通过返回一个新的 JSX 元素来动态生成列表。
 
 ```jsx
-const items = ['New York', 'San Francisco', 'Tokyo', 'London', 'Paris'];
-const listItems = items.map(item => <li>{item}</li>);
+function ListGroup() {
+  const items = ["London", "Tokyo", "New York"];
+  return (
+    <>
+      <h1>List</h1>
+      <ul className="list-group">
+        {items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </>
+  );
+}
+export default ListGroup;
 ```
 
 ##### **2. 使用 `map` 方法**
@@ -485,11 +497,6 @@ const listItems = items.map(item => <li>{item}</li>);
 ##### **4. 为什么需要 `key` 属性？**
 
 - React 使用 `key` 来优化渲染过程，尤其是在添加、删除或更新列表项时，帮助 React 精确地更新 DOM。
-
-##### **5. 最佳实践**
-
-- 在实际应用中，如果列表项是从 API 获取的，通常会有一个唯一的 `ID` 字段，可以将其作为 `key`。
-- 在这个例子中，我们直接使用列表项的值作为 `key`。
 
 ------
 
