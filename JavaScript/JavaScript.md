@@ -73,13 +73,13 @@
 
 **知识树**
 
-1. 代码结构：
+1. 代码结构
    - 单 html 文件中，将 `<script>` 元素放在 `<body>` 标签的末尾，所有元素之后。
-2. 浏览器解析顺序：
+2. 浏览器解析顺序
    - 浏览器会从上到下解析 HTML 文件。如果将 JavaScript 放在 `<head>` 部分，浏览器可能会先解析和执行 JavaScript，这可能会延迟页面内容的渲染，导致页面加载时显示白屏或空白。
-3. 与页面元素交互：
+3. 与页面元素交互
    - JavaScript 通常需要操作页面中的元素（例如显示或隐藏元素）。将脚本放在页面底部，可以确保所有 HTML 元素都已加载和渲染。
-4. 快捷指令：
+4. 快捷指令
    - 空的 HTML 文件中，输入`!`，按下回车生成模版文件
 
 **代码示例**
@@ -107,7 +107,7 @@
 
 **知识树**
 
-1. 分离 JavaScript 代码的优点
+1. JavaScript 代码 分离的优点
 
    - 更好的代码组织和管理。
 
@@ -157,7 +157,7 @@ node index.js
 
 # 基础
 
-## 变量
+## 变量基础
 
 > 简述：变量（Variables）用于暂时存储数据在计算机的内存中。变量给内存中的存储位置一个名称，使用这个名称可以在后续访问该位置的数据。在 JavaScript 中，我们使用**`let`**关键字来声明变量。在早期，`var` 用得较多，但因为它存在一些问题，现在需要使用 `let`。
 
@@ -207,13 +207,13 @@ node index.js
    let lastName;
    ```
 
-## 常量
+## 常量基础
 
 > 简述：常量（Constants）是指一旦被赋值就不能再修改的数据。它们用于存储在程序运行过程中不会改变的值。常量提供了代码的可读性和可维护性，防止不小心修改这些值。在 JavaScript 中，我们使用 **`const`** 关键字来声明常量。与变量不同，常量一旦声明并初始化后，不能再赋予新的值，否则会抛出错误。在早期，`var` 用得较多，但因为它存在一些问题，现在需要使用 `let`。
 
 **知识树**
 
-1. 声明常量
+1. 常量声明
 
    - 使用`const`声明，必须要带值
 
@@ -245,8 +245,8 @@ node index.js
 
 > 简述：在 JavaScript 中，数据类型大致分为两类：
 >
-> - **原始数据类型（Primitives）**，也称为值类型。包含字符串，数字，布尔值，未定义，空值
-> - **引用数据类型（Reference Types）**，包含对象（Object）、数组（Array）、函数（Function），将在后续课程中讲解。
+> - **原始数据类型（Primitives）**，也称为值类型。包含字符串、数字、布尔值、未定义、空值。
+> - **引用数据类型（Reference Types）**，包含对象（Object）、数组（Array）、函数（Function），将在之后讲解。
 
 **知识树**
 
@@ -274,303 +274,271 @@ console.log(typeof userFirstName); // "undefined"
 console.log(typeof userFavoriteColor); // "object"（注意：这是 JavaScript 的历史遗留问题）
 ```
 
-## 动态类型（1）
+## 动态类型基础
 
 > 简述：JavaScript 是一种 **动态类型（Dynamic Typing）语言**，这意味着变量在声明时不需要指定类型，变量的类型可以在运行时动态变化。
 >
 > - **静态语言**：在静态类型语言（如 Java、C++）中，变量的类型在编译时就已经固定，声明变量时必须指定类型，且在后续不能更改。
 > - **动态语言**：在动态类型语言（如 JavaScript）中，变量的类型是在运行时根据赋给它的值来决定的，且可以随时更改。
 
-当上节代码正在运行时，在 Chrome Dev Tool 中，使用命令更改变量类型
+**代码示例**
 
-```bash
-typeof isApproved
-# 'boolean'
+```js
+let userName = "Alice"; // 字符串字面量
+console.log(typeof userName); // "string"
+userName = 6;
+console.log(typeof userName); // "number"
 ```
 
-```bash
-isApproved = 1;
-typeof isApproved;
-# 'number'
-```
+## 对象基础
 
-_下一节引入：原始类型的默认类型是 undefined，而引用类型的默认类型是 object 对象_
+> 简述：在 JavaScript 中，对象（Object）是引用类型的一种。它用于表示具有多个属性和行为的实体。对象可以包含各种类型的值，包括字符串、数字、布尔值、数组、甚至其他对象。通过使用对象，我们可以将相关的属性和方法组合在一起，简化代码并提升代码的可读性与组织性。
 
-```bash
-typeof firstName
-# 'undefined'
-typeof selectedColor
-# 'object'
-```
+**知识树**
 
-## 对象
+1. 对象创建方式
+   - 在 JavaScript 中，使用花括号 `{}` 创建一个对象，这是最常见的对象创建方式，称为“对象字面量”。
+2. 对象属性访问和修改的方式
+   - 点`.`表示法：最常见的方式，用于访问和修改对象的属性。
+   - 方括号`[]`表示法：用于动态访问属性，或当属性名中包含空格或特殊字符时。例如，属性名包含空格或数字时需要使用方括号表示法。
+   - 间接访问：方括号也可以通过变量间接访问对象的属性。
 
-> #### 引用类型（Reference Types）
+**代码示例**
+
+1. 对象创建
+
+   ```js
+   let person = {
+     name: "Mosh",
+     age: 30,
+   };
+   console.log(person);
+   // {name: 'Mosh', age: 30}
+   ```
+
+2. 对象的属性的访问和修改
+
+   ```js
+   // 点（.）表示法
+   person.name = "John";
+   console.log(person.name); // 输出: John
+
+   // 方括号（[]）表示法
+   person["name"] = "Mary";
+   console.log(person["name"]); // 输出: Mary
+
+   // 方括号（[]）表示法（间接）
+   let selection = "name";
+   //这里的 person[selection] 实际上等同 person[name]
+   person[selection] = "Pang";
+   console.log(person.name); // 输出: Pang
+   ```
+
+## 数组基础
+
+> 简述：数组（Array）是用来存储一组有序数据的集合。在 JavaScript 中，数组是一种非常常用的数据结构。你可以用它来表示任何类型的列表，比如购物车中的产品列表、用户选择的颜色列表等。
+
+**知识树**
+
+1. 数组创建方式
+
+   - 数组可以通过 数组字面量（`[]`）来创建，这是一种非常简洁且常用的方式。
+   - 可以创建空数组，也可以在创建时给数组添加元素。
+
+2. 数组元素访问方式
+
+   - 数组是有序的，基于索引来访问，索引从 `0` 开始。
+   - 通过 `[]` 和索引访问数组中的元素。
+
+3. 数组的动态特性
+
+   - 数组的长度和元素类型是可以变化的。数组的大小在运行时根据元素的添加或删除自动调整。
+     - 使用`push`添加元素时，默认加到数组最后，同时数组自动更新长度
+     - 指定位置添加元素时，会将数组指定为位置的值进行添加/修改，若数组未达到该长度，会自动拓展至该长度，未定义位置默认未`undefined`
+   - 与其他编程语言不同，JavaScript 数组中的每个元素不必是相同的数据类型。你可以将字符串、数字、布尔值等不同类型的数据存储在同一个数组中。
+
+4. 数组的`length`属性
+
+   - 每个数组都有一个 `length` 属性，表示数组中元素的数量。
+   - 空元素（如稀疏数组中的空位）也会被计入 `length，即返回数组的最大索引 + 1。
+
+5. 数组的类型
+
+   - 在 JavaScript 中，数组本质上是对象（`typeof` 返回的是 `object`），因此数组不仅可以存储数据，还可以拥有对象的方法和属性。
+
+6. 最佳实践
+
+   - 在创建数组时，使用有意义的命名，以便代码更加易于理解和维护。
+
+   - 不要将数组用作关联数据存储（对于需要键值对存储的情况，应使用对象）。
+
+**代码示例**
+
+1. 数组创建
+
+   ```js
+   // 创建一个空数组
+   let selectedColors = [];
+   console.log(selectedColors); // 输出: []
+   ```
+
+2. 数组创建时赋值
+
+   ```js
+   // 创建数组并初始化元素
+   let selectedColors = ["red", "blue"];
+   console.log(selectedColors); // 输出: ['red', 'blue']
+   ```
+
+3. 元素访问
+
+   ```js
+   // 通过索引访问数组中的元素
+   console.log(selectedColors[0]); // 输出: "red"  (访问数组中的第一个元素)
+   console.log(selectedColors[1]); // 输出: "blue" (访问数组中的第二个元素)
+   ```
+
+4. 数组的动态特性
+
+   ```js
+   // 创建数组并初始化元素
+   let selectedColors = ["red", "blue"];
+   console.log(selectedColors); // 输出: ['red', 'blue']
+
+   // 使用`push`方法添加元素到数组末尾
+   selectedColors.push("white");
+   console.log(selectedColors); // 输出: ['red', 'blue', 'white']
+
+   // 指定位置添加元素：如果位置未达到，数组会自动扩展
+   selectedColors[9] = 666;
+   console.log(selectedColors[8]); // 输出: undefined (索引 8 没有元素，数组扩展至此)
+   console.log(selectedColors[9]); // 输出: 666 (数组的第 9 个元素是 666)
+   console.log(selectedColors); // 输出: ['red', 'blue', 'white', empty x 6, 666]
+   ```
+
+5. 数组的类型
+
+   ```js
+   console.log(typeof selectedColors); // 输出: "object" (数组的类型是对象)
+   ```
+
+## 函数基础
+
+> 简述：函数（Functions）是 JavaScript 中的基本构建块之一。函数是执行任务或计算值的一组语句。通过函数，你可以将重复使用的代码封装起来，使得程序更加简洁和高效。
+
+**知识树**
+
+1. 函数声明
+   - 使用 `function` 关键字来声明一个函数。函数通常需要一个名称、圆括号`()`和花括号`{}`。
+     - 圆括号表示函数参数的位置（可以为空）。
+     - 花括号包含函数的主体，其中定义了函数的执行内容。
+2. 函数参数（Parameters）
+   - 参数（Parameter）：函数定义时的占位符，它在函数声明中定义，用来表示将来传入的值。例如，函数的参数 `name` 只是一个变量名，它不会在函数外部存在，直到函数被调用时，实参才会赋值给它。
+   - 实参（Argument）：实际传入函数的值。当我们调用一个函数时，我们把值传递给函数的参数，这些值就是实参。
+   - 函数可以有多个参数，参数之间使用逗号分隔。
+   - 如果在调用函数时没有为某个参数传递值，JavaScript 会为其默认赋值 `undefined`。
+
+**示例代码**
+
+1. 函数声明
+
+   ```js
+   function greet() {
+     console.log("Hello World");
+   }
+   greet(); // 输出: Hello World
+   ```
+
+2. 函数参数（Parameters）
+
+   ```js
+   function greetWithName(name) {
+     console.log("Hello " + name);
+   }
+   greetWithName("John"); // 输出: Hello John
+
+   function greetWithFullName(firstName, lastName) {
+     console.log("Hello " + firstName + " " + lastName);
+   }
+   greetWithFullName("John", "Smith"); // 输出: Hello John Smith
+   greetWithFullName("John"); // 输出: Hello John undefined
+   ```
+
+## 函数类型基础
+
+> 简述：在 JavaScript 中，函数可以分为两大类型：执行任务的函数和计算值的函数。前者用于执行某些操作，后者则用于返回计算的结果。
 >
-> 引用类型包括对象（Object）、数组（Array）、函数（Function），这一节讲对象 Object
->
-> #### **什么是对象？**
->
-> - **定义**：在 JavaScript 中，对象（Object）是引用类型的一种。它类似于现实生活中的对象，比如一个“人”。
-> - **现实生活中的例子**：一个人可能有多个属性，比如姓名、年龄、地址等，这些属性共同构成了“人”这个对象的描述。
-> - **编程中的应用**：在编程中，如果多个变量是相关的，并且它们描述同一个实体（如“人”），我们可以把这些变量组合到一个对象中，这样代码会更加简洁和清晰。
-
-**如何创建对象**
-
-- **对象字面量**：在 JavaScript 中，使用花括号 `{}` 创建一个对象，这是最常见的对象创建方式，称为“对象字面量”。
-
-  _定义了一个名为 person 的对象，包含两个属性：name 和 age，分别设置为 "Mosh" 和 30。_
-
-  ```js
-  let person = {
-    name: "Mosh",
-    age: 30,
-  };
-  console.log(person);
-  // {name: 'Mosh', age: 30}
-  ```
-
-**访问和修改对象的属性**
-
-- **点（.）表示法**：这是访问和修改对象属性最常用的方式。
-
-  ```js
-  person.name = "John"; // 修改对象的name属性
-  console.log(person.name); // 输出: John
-  ```
-
-- **方括号（[]）表示法**：另一种访问和修改对象属性的方式，通常用于动态访问属性，或者当属性名中包含空格或特殊字符时。
-
-  ```js
-  person["name"] = "Mary"; // 修改对象的name属性
-  console.log(person["name"]); // 输出: Mary
-  ```
-
-- **方括号（[]）表示法（间接）**
-
-  ```JS
-  let selection = "name";
-  //这里的 person[selection] 实际上等同 person[name]
-  person[selection] = "Mary";
-  console.log(person.name);
-  ```
-
-## 数组
-
-> 数组（Array）是用来存储一组有序数据的集合。在 JavaScript 中，数组是一种非常常用的数据结构。你可以用它来表示任何类型的列表，比如购物车中的产品列表、用户选择的颜色列表等。
-
-**创建数组**
-
-在 JavaScript 中，你可以通过数组字面量（`[]`）来创建一个数组。数组字面量是一对方括号，数组中的每个元素用逗号分隔。
-
-- 创建空数组
-
-  ```js
-  let selectedColors = []; // 创建一个空数组(使用有意义的命名，而不是 sc )
-  console.log(selectedColors); // 输出: []
-  ```
-
-- 在创建时赋值
-
-  ```js
-  let selectedColors = ["red", "blue"];
-  console.log(selectedColors); // 输出: ['red', 'blue']
-  ```
-
-**访问数组元素**
-
-每个数组中的元素都有一个索引，索引是从 `0` 开始的。你可以通过索引来访问数组中的元素。
-
-```js
-console.log(selectedColors[0]); // 输出: "red"  (访问数组中的第一个元素)
-console.log(selectedColors[1]); // 输出: "blue" (访问数组中的第二个元素)
-```
-
-**数组是动态的**
-
-JavaScript 的数组是动态的，这意味着数组的长度和元素类型是可以变化的。你可以随时向数组中添加新元素，数组的长度会自动更新。
-
-- 使用`push`添加：默认加到数组最后，会自动更新数组长度
-
-  ```js
-  selectedColors.push("white");
-  console.log(selectedColors); // 输出 ['red', 'blue', push: 'white']
-  ```
-
-- 指定位置添加：添加/修改数组指定为位置的值，若已有值会替换，若数组未达到该长度，会自动拓展，未定义位置默认未`undefined`
-
-  ```js
-  selectedColors[9] = "grey";
-  console.log(selectedColors[8]); // 输出 undefined
-  ```
-
-**数组中的元素可以是不同类型**
-
-与其他编程语言不同，JavaScript 数组中的每个元素不必是相同的数据类型。你可以将字符串、数字、布尔值等不同类型的数据存储在同一个数组中。
-
-```js
-selectedColors.push(1); // 向数组中添加数字
-console.log(selectedColors);
-//输出 ['red', 'blue', 'white', empty × 6, 'grey', 1]
-```
-
-**数组的类型**
-
-虽然我们通常将数组视为一种特殊的数据结构，但在 JavaScript 中，数组实际上是一种对象。这意味着数组不仅可以存储数据，还可以拥有一些属性和方法。
-
-```js
-console.log(typeof selectedColors); // 输出: "object" (数组的类型是对象)
-```
-
-**数组的 `length` 属性**
-
-每个数组都有一个 `length` 属性，表示数组中元素的数量。你可以通过访问 `length` 属性来获取数组的大小。空元素也被视为元素。
-
-```js
-console.log(selectedColors.length); // 输出: 11 (数组中有 11 个元素)
-```
-
-## 函数
-
-> 函数（Functions）是 JavaScript 中的基本构建块之一。函数是执行任务或计算值的一组语句。通过函数，你可以将重复使用的代码封装起来，使得程序更加简洁和高效。
-
-**函数声明**
-
-在 JavaScript 中，你可以使用 `function` 关键字来声明一个函数。函数通常需要一个名称、圆括号和花括号。
-
-```js
-function greet() {
-  console.log("Hello World");
-}
-greet(); // 输出: Hello World
-```
-
-- 这里，`greet` 是函数的名称。
-- `()` 是圆括号，表示函数参数的位置（可以为空）。
-- `{}` 是花括号，包含函数的主体，其中定义了函数的执行内容。
-
-**函数参数（Parameters）**
-
-函数可以接受输入值，我们称之为**参数**。参数在函数内部作为变量使用，可以影响函数的行为。
-
-```js
-function greet(name) {
-  console.log("Hello " + name);
-}
-greet("John"); // 输出: Hello John
-```
-
-- 在函数声明时，`name` 是函数的**参数（Parameter）**。
-- 在调用函数时，`"John"` 是传递给 `name` 参数的**实际值**，我们称之为**实参（Argument）**。
-
-**多个参数**
-
-函数可以有多个参数，参数之间使用逗号分隔。
-
-```js
-function greet(firstName, lastName) {
-  console.log("Hello " + firstName + " " + lastName);
-}
-greet("John", "Smith"); // 输出: Hello John Smith
-```
-
-- `firstName` 和 `lastName` 是函数的两个参数。
-- 在调用函数时，我们需要分别为这两个参数传递相应的实参。
-
-**缺少参数的情况**
-
-如果在调用函数时没有为某个参数传递值，JavaScript 会为其默认赋值 `undefined`。
-
-```js
-function greet(firstName, lastName) {
-  console.log("Hello " + firstName + " " + lastName);
-}
-greet("John"); // 输出: Hello John undefined
-```
-
-- 由于缺少 `lastName` 参数，JavaScript 自动将其赋值为 `undefined`。
-
-## 函数类型
-
-> 在 JavaScript 中，函数可以分为执行任务的函数和计算值的函数。我们先来看一个执行任务的函数，它的任务是显示某些内容到控制台。
-
-**任务型函数**
-
-下面这个函数的主要任务就是将某些信息打印到控制台：
-
-```js
-function greet() {
-  console.log("Hello World");
-}
-```
-
-这里的 `greet` 函数只是执行任务，即输出“Hello World”到控制台。
-
-**计算型函数**
-
-有时，我们的函数不仅仅执行任务，还需要计算某些值，并将计算结果返回。比如，下面的例子是一个计算平方的函数：
-
-```js
-function square(number) {
-  return number * number; // 计算并返回数字的平方
-}
-```
-
-这里的 `square` 函数接受一个参数 `number`，并返回它的平方（`number * number`）。注意，`return` 关键字用于返回计算结果。返回值可以被用来做其他操作。
-
-**函数调用**
-
-我们可以通过调用这个 `square` 函数来获取结果，并将其赋值给变量：
-
-```js
-let result = square(5);
-console.log(result); // 输出: 25
-```
-
-这段代码中，`square(5)` 调用返回了 `25`，然后将其赋给了 `result` 变量，最后通过 `console.log(result)` 输出到控制台。
-
-**直接在调用中使用返回值**
-
-有时我们不需要单独声明一个变量来存储返回值，可以直接在 `console.log` 中调用函数：
-
-```js
-console.log(square(5)); // 输出: 25
-```
-
-这里，`square(5)` 直接返回结果，并被传递给 `console.log` 打印到控制台。
-
-**函数调用的嵌套**
-
-注意到，`console.log` 本身也是一个函数调用，因为它有一对圆括号，并且我们传递了一个参数给它。这里的 `square(5)` 是作为参数传递给了 `console.log`。
-
-```js
-console.log(square(5)); // square(5) 返回 25，然后传给 console.log 打印
-```
-
-每个函数调用都会被执行，首先是 `square(5)` 被调用计算平方，接着结果被传递给 `console.log` 来显示。
+> - **命令式编程（Imperative Programming）**：任务型函数更符合命令式编程的特点，因为它们强调通过指令控制程序的行为，执行操作而不一定返回结果。
+> - **函数式编程（Functional Programming）**：计算型函数更符合函数式编程的特点。函数式编程强调**纯函数**，即给定相同输入总是返回相同输出，并且尽量避免副作用。计算型函数通常是纯函数，因为它们只关注输入输出，没有副作用。
+
+**知识树**
+
+1. 函数分类
+   - 任务型函数：用于执行某些操作，不返回值。
+   - 计算型函数：用于执行计算并返回结果。
+2. 函数调用
+   - 调用函数，若存在返回值，可以声明变量/常量获取结果。
+   - 函数调用的嵌套：（具备返回值的）函数可以作为参数传递给另一个函数进行调用，在函数调用中处理返回值，无需额外变量。
+     - 从内到外依次执行函数
+3. 补充：
+   - 将 JavaScript 中的函数分为“任务型”和“计算型”并不是一种正式的编程范式。这种分类更多是对函数作用和行为的描述，用来帮助理解不同类型的函数在实际应用中的职责和作用。它与一些编程范式有一定的联系：
+     - 命令式编程（Imperative Programming）：任务型函数更符合命令式编程的特点，因为它们强调通过指令控制程序的行为，执行操作而不一定返回结果。
+     - 函数式编程（Functional Programming）：计算型函数更符合函数式编程的特点。函数式编程强调 纯函数，即给定相同输入总是返回相同输出，并且尽量避免副作用。计算型函数通常是纯函数，因为它们只关注输入输出，没有副作用。
+
+**代码示例**
+
+1. 任务型函数：没有返回值
+
+   ```js
+   function greet() {
+     console.log("Hello World");
+   }
+   greet(); // 输出: Hello World
+   ```
+
+2. 计算型函数：返回结果
+
+   ```js
+   function square(number) {
+     return number * number; // 计算并返回数字的平方
+   }
+   ```
+
+3. 函数调用：通过调用 `square(5)`，我们得到了返回的结果 `25`，并将其赋给变量 `result`，然后输出到控制台。
+
+   ```js
+   let result = square(5);
+   console.log(result); // 输出: 25
+   ```
+
+4. 直接在调用中使用返回值：`console.log` 本身也是一个函数调用，直接在 `console.log` 中调用 `square(5)`，并将返回值传递给 `console.log` 打印到控制台。
+
+   ```js
+   console.log(square(5)); // 输出: 25
+   ```
 
 # 运算符
 
-## 概念
+## 概念和分类
 
-> 在 JavaScript 中，**运算符**是用于与变量和常量一起创建表达式的工具。通过这些表达式，我们可以实现逻辑和算法。
+> 简述：**运算符**是用于与变量和常量一起创建表达式的工具。通过这些表达式，我们可以实现逻辑和算法。
 
-**运算符的分类**：
+**知识树**
 
 1. 算术运算符（Arithmetic Operators）
-   用于执行数学计算，例如加、减、乘、除。
+   - 用于执行数学计算，例如加、减、乘、除。
 2. 赋值运算符（Assignment Operators）
-   用于给变量赋值，例如将一个值或表达式的结果赋给变量。
+   - 用于给变量赋值，例如将一个值或表达式的结果赋给变量。
 3. 比较运算符（Comparison Operators）
-   用于比较两个值的大小或关系，例如是否相等、大于或小于。
+   - 用于比较两个值的大小或关系，例如是否相等、大于或小于。
 4. 逻辑运算符（Logical Operators）
-   用于执行布尔逻辑操作，例如 AND（且）、OR（或）、NOT（非）。
+   - 用于执行布尔逻辑操作，例如 AND（且）、OR（或）、NOT（非）。
 5. 位运算符（Bitwise Operators）
-   用于对数值的二进制位进行操作，例如按位与、按位或、按位异或。
+   - 用于对数值的二进制位进行操作，例如按位与、按位或、按位异或。
 
 ## 算术运算符
 
-> 算术运算符（Arithmetic Operators）用于在 JavaScript 中执行数学计算。这些运算符与数学运算类似，可以对变量和常量进行计算并生成新值。
+> 简述：算术运算符（Arithmetic Operators）用于在 JavaScript 中执行数学计算。这些运算符与数学运算类似，可以对变量和常量进行计算并生成新值。
 
 **基本算术运算符**
 
@@ -4751,9 +4719,17 @@ try {
 
 **代码示例**
 
-```js
+1. 知识点 1
 
-```
+   ```js
+
+   ```
+
+2. 知识点 2
+
+   ```js
+
+   ```
 
 ## Ex
 
