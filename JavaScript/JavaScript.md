@@ -322,11 +322,9 @@ console.log(typeof userName); // "number"
    // 点（.）表示法
    person.name = "John";
    console.log(person.name); // 输出: John
-
    // 方括号（[]）表示法
    person["name"] = "Mary";
    console.log(person["name"]); // 输出: Mary
-
    // 方括号（[]）表示法（间接）
    let selection = "name";
    //这里的 person[selection] 实际上等同 person[name]
@@ -456,7 +454,7 @@ console.log(typeof userName); // "number"
      console.log("Hello " + name);
    }
    greetWithName("John"); // 输出: Hello John
-
+   
    function greetWithFullName(firstName, lastName) {
      console.log("Hello " + firstName + " " + lastName);
    }
@@ -540,560 +538,512 @@ console.log(typeof userName); // "number"
 
 > 简述：算术运算符（Arithmetic Operators）用于在 JavaScript 中执行数学计算。这些运算符与数学运算类似，可以对变量和常量进行计算并生成新值。
 
-**基本算术运算符**
+**知识树**
 
-- 加法（Addition）：用于两个数相加。
+1. 基本算术运算符
+   - 加法（Addition）：用于两个数相加。
+   - 减法（Subtraction）：用于两个数相减。
+   - 乘法（Multiplication）：用于两个数相乘。
+   - 除法（Division）：用于两个数相除。
+   - 取余（Remainder of Division）：`%`用于计算两个数相除后的余数。
+   - 指数运算（Exponentiation）：计算一个数的幂，使用双星号 `**` 表示
+2. 增强的算术运算符
+   - 自增运算符（Increment）
+     - 前置自增（`++x`）：先将变量的值加 1，然后返回新的值。
+     - 后置自增（`x++`）： 先返回变量的当前值，然后再将变量的值加 1。
+   - 自减运算符（Decrement）
+     - 前置自减（`--x`）
+     - 后置自减（`x--`）
 
-  ```js
-  let x = 10;
-  let y = 5;
-  console.log(x + y); // 输出: 15
-  ```
+**代码示例**
 
-- 减法（Subtraction）：用于两个数相减。
+1. 加法（Addition）
 
-  ```js
-  console.log(x - y); // 输出: 5
-  ```
+   ```js
+   let x = 10;
+   let y = 5;
+   console.log(x + y); // 输出: 15
+   ```
 
-- 乘法（Multiplication）：用于两个数相乘。
+2. 减法（Subtraction）
 
-  ```js
-  console.log(x * y); // 输出: 50
-  ```
+   ```js
+   console.log(x - y); // 输出: 5
+   ```
 
-- 除法（Division）：用于两个数相除。
+3. 乘法（Multiplication）
 
-  ```js
-  console.log(x / y); // 输出: 2
-  ```
+   ```js
+   console.log(x * y); // 输出: 50
+   ```
 
-- 取余（Remainder of Division）：用于计算两个数相除后的余数。
+4. 除法（Division）
 
-  ```js
-  console.log(x % y); // 输出: 0
-  ```
+   ```js
+   console.log(x / y); // 输出: 2
+   ```
 
-- 指数运算（Exponentiation）
+5. 取余（Remainder of Division）
 
-  计算一个数的幂，使用双星号 `**` 表示。
+   ```js
+   console.log(x % y); // 输出: 0
+   ```
 
-  ```js
-  console.log(x ** y); // 输出: 100000（10 的 5 次方）
-  ```
+6. 指数运算（Exponentiation）
 
-**增强的算术运算符**
+   ```js
+   console.log(x ** y); // 输出: 100000（10 的 5 次方）
+   ```
 
-- 自增运算符（Increment）：用于将变量的值加 1。符号为 `++`，根据符号的位置（前置或后置），行为有所不同。
+7. 自增运算符（Increment）
 
-  - 前置自增（`++x`）： 先将变量的值加 1，然后返回新的值。
+   - 前置自增（`++x`）
 
-    ```js
-    let x = 10;
-    console.log(++x); // 输出: 11
-    ```
+     ```js
+     let x = 10;
+     console.log(++x); // 输出: 11
+     ```
 
-    - 后置自增（`x++`）： 先返回变量的当前值，然后再将变量的值加 1。
+   - 后置自增（`x++`）
 
-      ```js
-      let x = 10;
-      console.log(x++); // 输出: 10
-      console.log(x); // 输出: 11
-      ```
+     ```js
+     let x = 10;
+     console.log(x++); // 输出: 10
+     console.log(x); // 输出: 11
+     ```
 
-- **自减运算符（Decrement）**：用于将变量的值减 1。符号为 `--`，也分为前置和后置两种。
+8. 自减运算符（Decrement）
 
-  - **前置自减（`--x`）：** 先将变量的值减 1，然后返回新的值。
+   - 前置自减（`--x`）：先将变量的值减 1，然后返回新的值。
 
-    ```js
-    let x = 10;
-    console.log(--x); // 输出: 9
-    ```
+     ```js
+     let x = 10;
+     console.log(--x); // 输出: 9
+     ```
 
-  - **后置自减（`x--`）：** 先返回变量的当前值，然后再将变量的值减 1。
+   - 后置自减（`x--`）：先返回变量的当前值，然后再将变量的值减 1。
 
-    ```js
-    let x = 10;
-    console.log(x--); // 输出: 10
-    console.log(x); // 输出: 9
-    ```
+     ```js
+     let x = 10;
+     console.log(x--); // 输出: 10
+     console.log(x); // 输出: 9
+     ```
 
 ## 赋值运算符
 
-> **赋值运算符（Assignment Operators）** 用于将值赋给变量。我们已经在之前的示例中看到过简单的赋值运算符，它通过将右侧的值赋给左侧的变量来起作用。
+> 简述：赋值运算符（Assignment Operators）用于将值赋给变量。我们可以通过赋值运算符将一个表达式的结果存储到一个变量中。
 
-**基本赋值运算符**
+**知识树**
 
-- 最常见的赋值运算符是 `=`，它将右侧的值赋给左侧的变量。
+1. 基本赋值运算符
+   - 简单赋值运算符 `=`，它将右侧的值赋给左侧的变量。
+2. 结合算术运算符的赋值
+   - 结合赋值运算符，可以更高效地对变量进行运算并同时更新它的值。
+3. 简化的运算符写法：通过将算术运算符与赋值运算符结合，我们可以用更短的方式实现相同的功能。
+   - 加法赋值 `+=`：将当前值与指定值相加并赋回变量。
+   - 减法赋值 `-=`：将当前值与指定值相减并赋回变量。
+   - 乘法赋值 `\*=`：将当前值与指定值相乘并赋回变量。
+   - 除法赋值 `/=`：将当前值除以指定值并赋回变量
+   - 取余赋值 `%=`：将当前值对指定值求余并赋回变量。
+   - 指数赋值 `\**=`：将当前值与指定值的幂运算结果赋回变量。
 
-  ```js
-  let x = 10; // 使用简单赋值运算符，将值 10 赋给变量 x
-  ```
+**代码示例**
 
-**结合算术运算符的赋值**
+1. 基本赋值运算符
 
-在上节课中，我们学习了算术运算符（如加法、减法、乘法等）。结合赋值运算符，可以更高效地对变量进行运算并同时更新它的值。
+   ```js
+   let x = 10; // 将值 10 赋给变量 x
+   ```
 
-例如：
+2. 结合算术运算符的赋值
 
-```js
-let x = 10;
-// 我们想将 x 的值加 5，然后再赋回 x
-x = x + 5;
-console.log(x); // 输出: 15
-```
+   ```js
+   let x = 10;
+   // 将 x 的值加 5，然后赋回 x
+   x = x + 5;
+   console.log(x); // 输出: 15
+   ```
 
-虽然这样写是完全可以的，但有一种更简单的方式，即**加法赋值运算符**。
+3. 简化的运算符写法
 
-**简化的运算符写法**
+   - 加法赋值（`+=`）
 
-通过将算术运算符与赋值运算符结合，我们可以用更短的方式实现相同的功能。例如：
+     ```js
+     let x = 10;
+     x += 5; // 等同于 x = x + 5
+     console.log(x); // 输出: 15
+     ```
 
-```js
-let x = 10;
-// 加法赋值
-x += 5; // 等同于 x = x + 5
-console.log(x); // 输出: 15
+   - 减法赋值（`-=`）
 
-// 乘法赋值
-x *= 2; // 等同于 x = x * 2
-console.log(x); // 输出: 30
-```
+     ```js
+     x -= 5; // 等同于 x = x - 5
+     ```
 
-**支持的组合运算符**
+   - 乘法赋值（`*=`）
 
-除了加法赋值运算符 `+=`，我们还可以将其他的算术运算符与赋值运算符结合使用：
+     ```js
+     x *= 3; // 等同于 x = x * 3
+     ```
 
-- **减法赋值运算符** `-=`：用于减去一个值并将结果赋回变量。
+   - 除法赋值（`/=`）
 
-  ```js
-  x -= 5; // 等同于 x = x - 5
-  ```
+     ```js
+     x /= 2; // 等同于 x = x / 2
+     ```
 
-- **除法赋值运算符** `/=`：用于将变量除以一个值并将结果赋回变量。
+   - 取余赋值（`%=`）
 
-  ```js
-  x /= 2; // 等同于 x = x / 2
-  ```
+     ```js
+     x %= 4; // 等同于 x = x % 4
+     ```
 
-- **乘法赋值运算符** `*=`：用于将变量乘以一个值并将结果赋回变量。
+   - 指数赋值（`**=`）
 
-  ```js
-  x *= 3; // 等同于 x = x * 3
-  ```
-
-- **取余赋值运算符** `%=`：用于对变量求余数并将结果赋回变量。
-
-  ```js
-  x %= 4; // 等同于 x = x % 4
-  ```
-
-- **指数赋值运算符** `**=`：用于计算变量的幂并将结果赋回变量。
-
-  ```js
-  x **= 2; // 等同于 x = x ** 2
-  ```
+     ```js
+     x **= 2; // 等同于 x = x ** 2
+     ```
 
 ## 比较运算符
 
-> 比较运算符（Comparison Operators）用于比较两个值的大小或关系。比较运算的结果始终是一个布尔值（Boolean），即 `true` 或 `false`。这些运算符也称为**关系运算符（Relational Operators）**
+> 简述：比较运算符（Comparison Operators）用于比较两个值的大小或关系。比较运算的结果始终是一个布尔值（Boolean），即 `true` 或 `false`。这些运算符也称为**关系运算符（Relational Operators）**。
 
-- 大于（Greater Than）：`>`
+**知识树**
 
-  检查一个值是否大于另一个值。
+1. 大于（Greater Than）：`>`
 
-  ```js
-  let x = 10;
-  console.log(x > 5); // 输出: true
-  ```
+   - 检查一个值是否大于另一个值。
 
-  在此示例中，`x` 的值是 10，`x > 5` 表示 `x` 是否大于 5。因为条件成立，所以结果是 `true`。
+2. 大于或等于（Greater Than or Equal To）：`>=`
 
-- 大于或等于（Greater Than or Equal To）：`>=`
+   - 检查一个值是否大于或等于另一个值。
 
-  检查一个值是否大于或等于另一个值。
+3. 小于（Less Than）：`<`
 
-  ```js
-  console.log(x >= 10); // 输出: true
-  ```
+   - 检查一个值是否小于另一个值。
 
-  这里，`x` 的值是 10，`x >= 10` 表示 `x` 是否大于或等于 10。条件成立，因此结果是 `true`。
+4. 小于或等于（Less Than or Equal To）：`<=`
 
-- 小于（Less Than）：`<`
+   - 检查一个值是否小于或等于另一个值。
 
-  检查一个值是否小于另一个值。
+**代码示例**
 
-  ```js
-  console.log(x < 5); // 输出: false
-  ```
+1. 大于（`>`）
 
-  因为 `x` 的值是 10，不小于 5，所以结果是 `false`。
+   ```js
+   let x = 10;
+   console.log(x > 5); // 输出: true
+   ```
 
-- 小于或等于（Less Than or Equal To）：`<=`
+2. 大于或等于（`>=`）
 
-  检查一个值是否小于或等于另一个值。
+   ```js
+   console.log(x >= 10); // 输出: true
+   ```
 
-  ```js
-  console.log(x <= 10); // 输出: true
-  ```
+3. 小于（`<`）
 
-  条件成立，因为 `x` 等于 10，结果为 `true`。
+   ```js
+   console.log(x < 5); // 输出: false
+   ```
+
+4. 小于或等于（`<=`）
+
+   ```js
+   console.log(x <= 10); // 输出: true
+   ```
 
 ## 相等运算符
 
-> JavaScript 中提供了两种相等运算符：**严格相等运算符（Strict Equality Operator）** 和 **宽松相等运算符（Loose Equality Operator）**
+> 简述：JavaScript 中提供了两种相等运算符：**严格相等运算符（Strict Equality Operator）** 和 **宽松相等运算符（Loose Equality Operator）**，它们用于比较两个值是否相等，但判断标准有所不同。
 
-**严格相等运算符（`===`）**：要求左右两边的值类型和值本身必须完全相等
+**知识树**
 
-- 严格相等
+1. 严格相等运算符：`===`
+   - 要求左右两边的值类型和值都完全相同。
+2. 严格不相等运算符：`!==`
+   - 要求左右两边的值类型和值都不相同。
+3. 宽松相等运算符：`==`
+   - 比较前会进行类型转换，使得两边的值类型一致，然后再进行比较。
+4. 宽松不相等运算符：`!=`
+   - 比较前会进行类型转换，使得两边的值类型一致，然后再进行不等比较。
 
-  ```js
-  console.log(x === "10"); // 输出: false
-  ```
+**代码示例**
 
-  这里，虽然 `x` 和 `"10"` 的值相同，但数据类型不同（`x` 是数字，`"10"` 是字符串），所以结果是 `false`。
+1. 严格相等运算符（`===`）
 
-- 严格不相等
+   ```js
+   let x = 10;
+   console.log(x === "10"); // 输出: false
+   ```
 
-  ```js
-  console.log(x !== 10); // 输出: false
-  ```
+2. 严格不相等运算符（`!==`）
 
-  这里，`x` 的值是 10，且类型为数字，与比较值完全一致，因此结果为 `false`。
+   ```js
+   console.log(x !== 10); // 输出: false
+   ```
 
-**宽松相等运算符（`==`）**：在比较前会尝试将两边的值进行类型转换，使其类型一致，然后再比较值。
+3. 宽松相等运算符（`==`）
 
-- 相等（Equality）：`==`
+   ```js
+   console.log(x == "10"); // 输出: true
+   console.log(true == 1); // 输出: true
+   console.log(false == 0); // 输出: true
+   ```
 
-  ```js
-  console.log(x == "10"); // 输出: true
-  console.log(true == 1); // 输出: true，这里 true 被强制转换为1
-  console.log(false == 0); // 输出: true，这里 false 被强制转换为0
-  ```
+4. 宽松不相等运算符（`!=`）
 
-  在此示例中，JavaScript 会将字符串 `"10"` 转换为数字 `10` 进行比较，因此结果是 `true`。
-
-- 不相等（Not Equal To）：`!=`
-  ```js
-  console.log(x != "5"); // 输出: true
-  ```
-  因为 `x` 的值是 10，而不是 `"5"`，所以结果为 `true`。
+   ```js
+   console.log(x != "5"); // 输出: true
+   ```
 
 ## 三元运算符
 
-> **三元运算符**（Ternary Operator），也叫条件运算符，是 JavaScript 中一个非常简洁且常用的工具，用于根据条件决定赋值或执行操作。
+> 简述：三元运算符（Ternary Operator），也叫条件运算符，是 JavaScript 中一个非常简洁且常用的工具，用于根据条件决定赋值或执行操作。
 
-**语法结构**
+**知识树**
 
-```js
-condition ? expression1 : expression2;
-```
+1. 语法结构
+   - `condition ? expression1 : expression2`
+     - `condition`：返回布尔值的条件表达式
+     - `expression1`：当条件为 `true` 时执行的表达式或返回的值
+     - `expression2`：当条件为 `false` 时执行的表达式或返回的值
+2. 应用场景
+   - 简单的条件判断并赋值
+   - 根据条件选择值或执行轻量逻辑
+3. 注意事项
+   - 可读性：虽然三元运算符很简洁，但如果逻辑过于复杂，可能会影响代码可读性。可以考虑改用 `if...else` 语句。
+   - 嵌套使用：_避免嵌套多个三元运算符，以免代码难以维护。若嵌套使用，**代码质检**会报告异常_
 
-- `condition`：一个返回布尔值的条件表达式。
-- `expression1`：当 `condition` 为 `true` 时执行的表达式或返回的值。
-- `expression2`：当 `condition` 为 `false` 时执行的表达式或返回的值。
+**代码示例**
 
-**示例：客户类型**
+1. 简单的三元运算符
 
-假设我们需要根据客户的积分来确定其类型：如果积分大于或等于 100，则为 "金牌客户"。否则，为 "银牌客户"。
+   ```js
+   let points = 120; // 声明一个变量，用于记录客户积分
+   let type = points >= 100 ? "gold" : "silver"; // 使用三元运算符判断客户类型
+   console.log(type); // 输出: gold
+   ```
 
-```js
-let points = 120; // 声明一个变量，用于记录客户积分
-let type = points >= 100 ? "gold" : "silver"; // 使用三元运算符判断客户类型
-console.log(type); // 输出: gold
-```
+2. 嵌套三元运算符：这里的三元运算符嵌套判断了 `x` 的值，根据不同条件返回不同的结果。
 
-在这个例子中，如果 `points >= 100` 为 `true`，将 `type` 设置为 `'gold'`，否则设置为 `'silver'`。
-
-**应用场景**
-
-1. 简单的条件判断并赋值。
-2. 需要根据条件选择值或执行轻量逻辑时。
-
-**注意事项**
-
-- 可读性：虽然三元运算符很简洁，但如果逻辑过于复杂，可能会影响代码可读性。可以考虑改用 `if...else` 语句。
-- 嵌套使用：_避免嵌套多个三元运算符，以免代码难以维护。若嵌套使用，代码质检会报告异常_
+   ```js
+   let x = 15;
+   let result = x > 10 ? (x < 20 ? "A" : "B") : "C";
+   console.log(result); // 输出: A
+   ```
 
 ## 逻辑运算符
 
-> **逻辑运算符**用于基于多个条件进行决策。在 JavaScript 中，有三种常用的逻辑运算符：**逻辑与**（AND）、**逻辑或**（OR）、**逻辑非**（NOT）。
+> 简述：**逻辑运算符**用于基于多个条件进行决策。在 JavaScript 中，有三种常用的逻辑运算符：**逻辑与**（AND）、**逻辑或**（OR）、**逻辑非**（NOT）。
 
-**逻辑与运算符（`&&`）**：逻辑与运算符用于检查两个条件是否同时为 `true`。只有当两个操作数都为 `true` 时，结果才为 `true`。
+**知识树**
 
-- 基本语法
+1. 逻辑与运算符：`&&`
+   - 检查两个条件是否同时为 `true`。
+   - 只有当两个操作数都为 `true` 时，结果才为 `true`。
+2. 逻辑或运算符：`||`
+   - 检查至少一个条件为 `true` 时，结果为 `true`。
+   - 如果两个操作数都为 `false`，结果为 `false`。
+3. 逻辑非运算符：`!`
+   - 取反一个布尔值。
+   - 如果原值为 `true`，则结果为 `false`；如果原值为 `false`，则结果为 `true`。
 
-  ```javascript
-  operand1 && operand2;
-  ```
+**代码示例**
 
-  - 当 `operand1` 和 `operand2` 都为 `true` 时，结果为 `true`。
-  - 否则，结果为 `false`。
+1. 逻辑与运算符（`&&`）
 
-- 示例
+   ```js
+   console.log(true && true); // 输出: true
+   console.log(true && false); // 输出: false
+   console.log(false && true); // 输出: false
+   console.log(false && false); // 输出: false
+   ```
 
-  ```javascript
-  console.log(true && true); // 输出: true
-  console.log(true && false); // 输出: false
-  console.log(false && true); // 输出: false
-  console.log(false && false); // 输出: false
-  ```
+   实际应用：贷款申请（要求高收入且良好的信用评分）
 
-- 实际应用：贷款申请
+   ```js
+   let highIncome = true; // 高收入
+   let goodCreditScore = true; // 良好的信用评分
+   let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
+   console.log(eligibleForLoan); // 输出: true
+   ```
 
-  假设我们正在构建一个贷款审批应用，我们希望检查一个申请人是否同时符合“高收入”和“良好的信用评分”两个条件，才能批准贷款：
+2. 逻辑或运算符（`||`）
 
-  ```javascript
-  let highIncome = true; // 高收入
-  let goodCreditScore = true; // 良好的信用评分
-  let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
-  console.log(eligibleForLoan); // 输出: true
-  ```
+   ```js
+   console.log(true || true); // 输出: true
+   console.log(true || false); // 输出: true
+   console.log(false || true); // 输出: true
+   console.log(false || false); // 输出: false
+   ```
 
-  在这个例子中，只有当申请人同时符合这两个条件（高收入且良好的信用评分），`eligibleForLoan` 才为 `true`，表示该申请人符合贷款资格。
+   实际应用：贷款申请（只需满足一个条件即可）
 
-**逻辑或运算符（`||`）**：逻辑或运算符用于检查至少有一个条件为 `true`，结果便为 `true`。只要有一个操作数为 `true`，结果就是 `true`。
+   ```js
+   let highIncome = true; // 高收入
+   let goodCreditScore = false; // 不良信用评分
+   let eligibleForLoan = highIncome || goodCreditScore; // 贷款批准条件
+   console.log(eligibleForLoan); // 输出: true
+   ```
 
-- 基本语法
+3. 逻辑非运算符（`!`）
 
-  ```javascript
-  operand1 || operand2;
-  ```
+   ```js
+   console.log(!true); // 输出: false
+   console.log(!false); // 输出: true
+   ```
 
-  - 当 `operand1` 或 `operand2` 任意一个为 `true` 时，结果为 `true`。
-  - 如果两个操作数都为 `false`，结果才为 `false`。
+   实际应用：拒绝贷款（不符合贷款条件）
 
-- 示例
-
-  ```js
-  console.log(true || true); // 输出: true
-  console.log(true || false); // 输出: true
-  console.log(false || true); // 输出: true
-  console.log(false || false); // 输出: false
-  ```
-
-- 实际应用：
-
-  假设一个贷款申请人只要满足以任一条件即可批准贷款，收入较高，或者信用评分较高
-
-  ```js
-  let highIncome = true; // 高收入
-  let goodCreditScore = false; // 不良信用评分
-  let eligibleForLoan = highIncome || goodCreditScore; // 贷款批准条件
-  console.log(eligibleForLoan); // 输出: true
-  ```
-
-  在这个例子中，只要申请人满足一个条件（如高收入），就会被批准贷款。
-
-**逻辑非运算符（`!`）**：逻辑非运算符用于取反一个布尔值。如果原值为 `true`，则结果为 `false`；如果原值为 `false`，则结果为 `true`。
-
-- 基本语法
-
-  ```js
-  !operand;
-  ```
-
-  - 如果 `operand` 为 `true`，结果为 `false`。
-
-  - 如果 `operand` 为 `false`，结果为 `true`。
-
-- 示例
-
-  ```js
-  console.log(!true); // 输出: false
-  console.log(!false); // 输出: true
-  ```
-
-- 实际应用：拒绝贷款
-
-  在贷款审批应用中，如果申请人不符合贷款条件（即 `eligibleForLoan` 为 `false`），我们可以使用逻辑非运算符来判断其是否被拒绝贷款。
-
-  ```js
-  let highIncome = false; // 低收入
-  let goodCreditScore = false; // 不良信用评分
-  let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
-  let applicationRefused = !eligibleForLoan; // 贷款拒绝
-  console.log("Eligible for loan: " + eligibleForLoan); // 输出: false
-  console.log("Application refused: " + applicationRefused); // 输出: true
-  ```
-
-  在此例中，因为 `eligibleForLoan` 为 `false`，使用 `!eligibleForLoan` 后，`applicationRefused` 为 `true`，表示申请被拒绝。
+   ```js
+   let highIncome = false; // 低收入
+   let goodCreditScore = false; // 不良信用评分
+   let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
+   let applicationRefused = !eligibleForLoan; // 贷款拒绝
+   console.log("Eligible for loan: " + eligibleForLoan); // 输出: false
+   console.log("Application refused: " + applicationRefused); // 输出: true
+   ```
 
 ## 逻辑运算符与非布尔值
 
-> 在上一讲中，我们学习了逻辑运算符，并且我们都使用了布尔值（`true` 或 `false`）作为操作数。但是在 JavaScript 中，与许多编程语言不同，**逻辑运算符也可以与非布尔值一起使用**。这非常强大！
+> 简述：在 JavaScript 中，逻辑运算符 不仅可以与布尔值一起使用，还能与非布尔值进行操作。通过这种方式，逻辑运算符返回的结果不仅仅是布尔值，而是根据操作数的类型而有所不同。
 
-**逻辑或运算符（`||`）与非布尔值**
+**知识树**
 
-在 JavaScript 中，逻辑运算符不仅限于布尔值。当我们将 非布尔值 与逻辑运算符一起使用时，结果不一定是 `true` 或 `false`。这取决于操作数的值。让我们通过几个例子来理解这一点。
+1. 逻辑或运算符`||`与非布尔值
 
-- 示例
+   - 当与非布尔值操作时，逻辑运算符的结果可能是这些值本身，而不是 `true` 或 `false`。
 
-  ```js
-  console.log(false || true); // 输出: true
-  console.log(false || "Mosh"); // 输出: Mosh
-  console.log(false || 1); // 输出: 1
-  ```
+2. Truthy 和 Falsy 值：
 
-  - 在第一个例子中，第二个操作数是 `true`，因此返回 `true`。
+   - 当我们使用逻辑运算符时，JavaScript 会将操作数解释为“truthy”（真值）或“falsy”（假值）。这些值并不等同于布尔值的 `true` 或 `false`，但它们可以在逻辑运算中起到类似的作用。
 
-  - 在第二个例子中，第二个操作数是一个字符串 `"Mosh"`，因此返回这个字符串。
+   - Falsy 值在布尔上下文中被视为 `false`。这些值包括：
 
-  - 在第三个例子中，第二个操作数是数字 `1`，因此返回 `1`。
+     - `undefined`
 
-- 关键点： JavaScript 的逻辑运算符返回的结果不仅限于布尔值，它可能是任何值，这取决于操作数的类型。
+     - `false`
 
-**Truthy 和 Falsy 值**
+     - `null`
 
-当我们使用逻辑运算符时，JavaScript 会将操作数解释为“**truthy**”（真值）或“**falsy**”（假值）。这些值并不等同于布尔值的 `true` 或 `false`，但它们可以在逻辑运算中起到类似的作用。
+     - `0`
 
-- Falsy 值：在 JavaScript 中，有一些值被认为是 **falsy**（假值），它们会在布尔上下文中被转换为 `false`。这些值包括：
+     - `NaN`
 
-  - `undefined`
+     - `""`（空字符串）
 
-  - `false`
+   - Truthy 值在布尔上下文中被视为 `true`。任何不是 **falsy** 的值都被认为是 **truthy**（真值）。这包括字符串、非零数字、对象、数组、函数等。
 
-  - `null`
+3. 短路计算（Short-circuiting）
 
-  - `0`
+   - 逻辑运算符会在确定结果后停止评估其他操作数。
 
-  - `NaN`
+4. 现实世界的应用：默认值
 
-  - `""`（空字符串）
+   - 使用逻辑运算符为变量设置默认值。
 
-- Truthy 值：任何不是 **falsy** 的值都被认为是 **truthy**（真值）。这包括字符串、非零数字、对象、数组、函数等。
+5. 补充
 
-  ```js
-  // 示例
-  console.log(!!undefined); // 输出: false
-  console.log(!!false); // 输出: false
-  console.log(!!"Mosh"); // 输出: true
-  console.log(!!1); // 输出: true
-  console.log(!!{}); // 输出: true
-  ```
+   - `!!` 是一个将值转换为布尔值的常见技巧。它将值转换为 `true` 或 `false`。
 
-  - `!!` 是一个将值转换为布尔值的常见技巧。它将值转换为 `true` 或 `false`。
+**代码示例**
 
-**短路计算（Short-circuiting）**
+1. 逻辑或运算符（`||`）与非布尔值
 
-逻辑运算符的强大之处在于它们的 **短路特性**。当 JavaScript 计算逻辑表达式时，一旦它找到一个确定的结果，它就会停止评估其他操作数。
+   ```js
+   console.log(false || true); // 输出: true
+   console.log(false || "Mosh"); // 输出: Mosh
+   console.log(false || 1); // 输出: 1
+   ```
 
-- 逻辑或（`||`）：_如果左侧的操作数是 truthy，那么结果就是左侧的值，右侧的操作数将不再被计算（短路）。如果左侧是 falsy，那么 JavaScript 会继续评估右侧的操作数。_
+2. Truthy 和 Falsy 值
 
-- 示例
+   ```js
+   console.log(!!undefined); // 输出: false
+   console.log(!!false); // 输出: false
+   console.log(!!"Mosh"); // 输出: true
+   console.log(!!1); // 输出: true
+   console.log(!!{}); // 输出: true
+   ```
 
-  ```js
-  console.log(false || "Mosh"); // 输出: Mosh
-  console.log(false || 1); // 输出: 1
-  console.log("Mosh" || "John"); // 输出: Mosh
-  ```
+3. 短路计算（Short-circuiting）：`"Mosh"` 是 truthy，因此立即返回 `"Mosh"`，并且右侧的 `"John"` 被忽略。
 
-  - 在第一个例子中，`false` 是 falsy，因此继续评估右侧的操作数 `"Mosh"`，并返回 `"Mosh"`。
+   ```js
+   console.log("Mosh" || "John"); // 输出: Mosh（右侧的 "John" 被忽略）
+   ```
 
-  - 在第二个例子中，`false` 也是 falsy，因此继续评估右侧的 `1`，并返回 `1`。
+4. 现实世界的应用：默认值
 
-  - 在第三个例子中，`"Mosh"` 是 truthy，因此立即返回 `"Mosh"`，并且右侧的 `"John"` 被忽略。
+   ```js
+   let userColor = "red"; // 用户选择的颜色
+   let defaultColor = "blue"; // 默认颜色
+   let currentColor = userColor || defaultColor; // 如果没有用户选择颜色，则使用默认颜色
+   console.log(currentColor); // 输出: red
+   ```
 
-**现实世界的应用：默认值**
-
-逻辑运算符非常适合用来设置 默认值。例如，如果用户未选择颜色，我们可以使用一个默认颜色。
-
-- 示例：设置默认颜色
-
-  ```js
-  let userColor = "red"; // 用户选择的颜色
-  let defaultColor = "blue"; // 默认颜色
-  let currentColor = userColor || defaultColor; // 如果没有用户选择颜色，则使用默认颜色
-  console.log(currentColor); // 输出: red
-  ```
-
-  如果用户未选择颜色（例如，`userColor` 为 `undefined`），我们将使用默认颜色。
-
-  ```javascript
-  let userColor = undefined; // 用户未选择颜色
-  let defaultColor = "blue"; // 默认颜色
-  let currentColor = userColor || defaultColor; // 使用默认颜色
-  console.log(currentColor); // 输出: blue
-  ```
+   ```js
+   let userColor = undefined; // 用户未选择颜色
+   let defaultColor = "blue"; // 默认颜色
+   let currentColor = userColor || defaultColor; // 使用默认颜色
+   console.log(currentColor); // 输出: blue
+   ```
 
 ## 位运算符
 
-> 在 JavaScript 中，位运算符（bitwise operators）用于按位操作数字的二进制表示。位运算符与逻辑运算符相似，但它们作用于数字的单个位（bit）。
+> 简述：在 JavaScript 中，位运算符（bitwise operators）用于按位操作数字的二进制表示。位运算符与逻辑运算符相似，但它们作用于数字的单个位（bit）。
 
-**基本概念**
+**知识树**
 
-- 位运算符直接操作数字的二进制位，通过逐个位地进行比较。
-- 位与（AND）：仅当两个对应的位都为 `1` 时，结果才为 `1`。
-- 位或（OR）：只要两个对应的位中有一个为 `1`，结果就是 `1`。
+1. 位运算符基本概念
 
-**位运算符实例**
+   - 位运算符直接操作数字的二进制位，通过逐个位地进行比较。
 
-- 位或运算符（`|`）
+   - 位与运算符`&`：仅当两个对应的位都为 `1` 时，结果才为 `1`。
+   - 位或运算符`|`：只要两个对应的位中有一个为 `1`，结果就是 `1`。
+   - 取反操作符`~`：对操作数的每一位进行取反（即 `1` 变为 `0`，`0` 变为 `1`）。
 
-  ```js
-  let result = 5 | 3; // 位或操作
-  console.log(result); // 输出: 7
-  ```
+2. 位运算符的应用
 
-  解释：5 的二进制是 `0101`，3 的二进制是 `0011`，经过位或操作后得到 `0111`（即 7）。
+   - 权限管理系统
+     - 使用位运算符分配与检查权限
+     - 位与运算符检查权限
+     - 位运算符取消权限
 
-- 位与运算符（`&`）
+**代码示例**
 
-  ```js
-  let result = 5 & 3; // 位与操作
-  console.log(result); // 输出: 1
-  ```
+1. 位与运算符（`&`）：5 的二进制是 `0101`，3 的二进制是 `0011`，经过位与操作后得到 `0001`（即 1）。
 
-  解释：5 的二进制是 `0101`，3 的二进制是 `0011`，经过位与操作后得到 `0001`（即 1）。
+   ```js
+   let result = 5 & 3; // 位与操作
+   console.log(result); // 输出: 1
+   ```
 
-**位运算符的现实应用**
+2. 位或运算符（`|`）：5 的二进制是 `0101`，3 的二进制是 `0011`，经过位或操作后得到 `0111`（即 7）
 
-虽然位运算符在日常开发中不常见，但它们有一些特殊的应用场景。例如，我们可以使用位运算符来处理 **权限管理系统**。假设我们要给用户分配权限，如读取、写入和执行权限，可以通过位运算符来实现这些权限的分配与检查。
+   ```js
+   let result = 5 | 3; // 位或操作
+   console.log(result); // 输出: 7
+   ```
 
-- 权限管理系统示例：我们可以将每个权限表示为一个二进制位，然后通过位运算符来添加和检查这些权限。
+3. 权限管理系统应用
 
-  - 读取权限（readPermission）：`0001`（十进制为 1）
-  - 写入权限（writePermission）：`0010`（十进制为 2）
-  - 执行权限（executePermission）：`0100`（十进制为 4）
-
-- 示例
-
-  ```js
-  // 定义各个权限的二进制表示
-  const readPermission = 4; // 0100
-  const writePermission = 2; // 0010
-  const executePermission = 1; // 0001
-
-  // 用户的权限
-  let myPermission = 0; // 初始无权限
-
-  // 给用户添加读取和写入权限
-  myPermission = myPermission | readPermission | writePermission;
-
-  console.log(myPermission); // 输出: 6 (0110)
-  ```
-
-- 检查权限
-
-  可以使用 位与运算符（`&`） 来检查用户是否拥有某个特定权限。
-
-  ```js
-  let message = myPermission & readPermission ? "Yes" : "No";
-  console.log(message); // 输出: Yes
-  ```
-
-  - 解释：通过使用位与运算符，我们检查 `myPermission` 中是否包含 `readPermission` 权限。如果结果为 `1`，表示用户拥有该权限，输出 `"Yes"`。
-
-- 取消权限
-
-  通过位运算符我们也能取消某个权限，例如，如果我们希望取消读取权限：
-
-  ```js
-  myPermission = myPermission & ~readPermission; // 取消读取权限
-  console.log(myPermission); // 输出: 2 (0010)
-  ```
-
-  - 解释：`~readPermission` 是 `readPermission` 的按位取反操作，表示禁用该权限。通过位与运算符，我们从 `myPermission` 中去除了读取权限。
+   ```js
+   // 定义各个权限的二进制表示
+   const readPermission = 4; // 0100
+   const writePermission = 2; // 0010
+   const executePermission = 1; // 0001
+   // 用户的权限
+   let myPermission = 0; // 初始无权限
+   myPermission = myPermission | readPermission | writePermission;
+   console.log(myPermission); // 输出: 6 (0110)
+   // 检查权限
+   let message = myPermission & readPermission ? "Yes" : "No";
+   console.log(message); // 输出: Yes
+   // 取消权限
+   myPermission = myPermission & ~readPermission; // 取消读取权限
+   console.log(myPermission); // 输出: 2 (0010)
+   ```
 
 ## 运算符优先级
 
@@ -4379,7 +4329,7 @@ console.log(person); // 输出对象，检查是否修改成功
    ```js
    console.log(x); // 输出：undefined（声明提升，但未初始化）
    var x = 10;
-
+   
    console.log(y); // 报错：y is not defined
    let y = 20;
    ```
@@ -4479,7 +4429,7 @@ console.log(person); // 输出对象，检查是否修改成功
        });
      },
    };
-
+   
    video.showTags(); // 正常输出标题和标签
    ```
 
@@ -4570,7 +4520,7 @@ console.log(person); // 输出对象，检查是否修改成功
        });
      },
    };
-
+   
    video.showTags(); // 正常输出标题和标签
    ```
 
@@ -4582,7 +4532,7 @@ console.log(person); // 输出对象，检查是否修改成功
    function sayHi() {
      console.log("hi");
    }
-
+   
    console.log(window.sayHi); // 输出：函数本身
    ```
 
@@ -4728,7 +4678,7 @@ try {
 2. 知识点 2
 
    ```js
-
+   
    ```
 
 ## Ex
