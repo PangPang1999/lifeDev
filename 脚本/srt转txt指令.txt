@@ -1,0 +1,6 @@
+find "/Users/fang/Desktop/React" -type f -name "*.srt" -exec sh -c '
+for file; do
+output="${file%.srt}.txt"
+sed -n "/^[^0-9]*$/p" "$file" > "$output"
+done
+' sh {} +
