@@ -140,11 +140,11 @@
    </html>
    ```
 
-- 分离出的 js 文件
+   - 分离出的 js 文件
 
-  ```js
-  console.log("Hello World");
-  ```
+     ```js
+     console.log("Hello World");
+     ```
 
 ## Node 环境运行 JS
 
@@ -345,20 +345,20 @@ console.log(typeof userName); // "number"
 
 2. 数组元素访问方式
 
-   - 数组是有序的，基于索引来访问，索引从 `0` 开始。
-   - 通过 `[]` 和索引访问数组中的元素。
+   - 数组是有序的，基于`index`索引来访问，`index`从 `0` 开始。
+   - 通过 `[]` 和`index`索引访问数组中的元素，例如`arr[index]`。
 
 3. 数组的动态特性
 
    - 数组的长度和元素类型是可以变化的。数组的大小在运行时根据元素的添加或删除自动调整。
      - 使用`push`添加元素时，默认加到数组最后，同时数组自动更新长度
-     - 指定位置添加元素时，会将数组指定为位置的值进行添加/修改，若数组未达到该长度，会自动拓展至该长度，未定义位置默认未`undefined`
-   - 与其他编程语言不同，JavaScript 数组中的每个元素不必是相同的数据类型。你可以将字符串、数字、布尔值等不同类型的数据存储在同一个数组中。
+     - 指定位置添加元素时，会在数组指定位置进行添加/修改值，若数组未达到该长度，会自动拓展至该长度，未定义位置默认为`undefined`
+   - 与其他编程语言不同，JavaScript 数组中的每个元素不必是相同的数据类型。可以将字符串、数字、布尔值等不同类型的数据存储在同一个数组中。
 
 4. 数组的`length`属性
 
    - 每个数组都有一个 `length` 属性，表示数组中元素的数量。
-   - 空元素（如稀疏数组中的空位）也会被计入 `length，即返回数组的最大索引 + 1。
+   - 空元素（如稀疏数组中的空位）也会被计入 `length`， `length`即为返回数组的最大索引 + 1。
 
 5. 数组的类型
 
@@ -454,7 +454,7 @@ console.log(typeof userName); // "number"
      console.log("Hello " + name);
    }
    greetWithName("John"); // 输出: Hello John
-   
+
    function greetWithFullName(firstName, lastName) {
      console.log("Hello " + firstName + " " + lastName);
    }
@@ -478,7 +478,7 @@ console.log(typeof userName); // "number"
    - 调用函数，若存在返回值，可以声明变量/常量获取结果。
    - 函数调用的嵌套：（具备返回值的）函数可以作为参数传递给另一个函数进行调用，在函数调用中处理返回值，无需额外变量。
      - 从内到外依次执行函数
-3. 补充：
+3. 补充
    - 将 JavaScript 中的函数分为“任务型”和“计算型”并不是一种正式的编程范式。这种分类更多是对函数作用和行为的描述，用来帮助理解不同类型的函数在实际应用中的职责和作用。它与一些编程范式有一定的联系：
      - 命令式编程（Imperative Programming）：任务型函数更符合命令式编程的特点，因为它们强调通过指令控制程序的行为，执行操作而不一定返回结果。
      - 函数式编程（Functional Programming）：计算型函数更符合函数式编程的特点。函数式编程强调 纯函数，即给定相同输入总是返回相同输出，并且尽量避免副作用。计算型函数通常是纯函数，因为它们只关注输入输出，没有副作用。
@@ -825,13 +825,15 @@ console.log(typeof userName); // "number"
    console.log(type); // 输出: gold
    ```
 
-2. 嵌套三元运算符：这里的三元运算符嵌套判断了 `x` 的值，根据不同条件返回不同的结果。
+2. 嵌套三元运算符
 
    ```js
    let x = 15;
    let result = x > 10 ? (x < 20 ? "A" : "B") : "C";
    console.log(result); // 输出: A
    ```
+
+   - 这里的三元运算符嵌套判断了 `x` 的值，根据不同条件返回不同的结果。
 
 ## 逻辑运算符
 
@@ -860,15 +862,6 @@ console.log(typeof userName); // "number"
    console.log(false && false); // 输出: false
    ```
 
-   实际应用：贷款申请（要求高收入且良好的信用评分）
-
-   ```js
-   let highIncome = true; // 高收入
-   let goodCreditScore = true; // 良好的信用评分
-   let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
-   console.log(eligibleForLoan); // 输出: true
-   ```
-
 2. 逻辑或运算符（`||`）
 
    ```js
@@ -878,7 +871,25 @@ console.log(typeof userName); // "number"
    console.log(false || false); // 输出: false
    ```
 
-   实际应用：贷款申请（只需满足一个条件即可）
+3. 逻辑非运算符（`!`）
+
+   ```js
+   console.log(!true); // 输出: false
+   console.log(!false); // 输出: true
+   ```
+
+4. 逻辑与实际应用
+
+5. ```js
+   let highIncome = true; // 高收入
+   let goodCreditScore = true; // 良好的信用评分
+   let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
+   console.log(eligibleForLoan); // 输出: true
+   ```
+
+   - 要求高收入且良好的信用评分
+
+6. 逻辑或实际应用：
 
    ```js
    let highIncome = true; // 高收入
@@ -887,23 +898,7 @@ console.log(typeof userName); // "number"
    console.log(eligibleForLoan); // 输出: true
    ```
 
-3. 逻辑非运算符（`!`）
-
-   ```js
-   console.log(!true); // 输出: false
-   console.log(!false); // 输出: true
-   ```
-
-   实际应用：拒绝贷款（不符合贷款条件）
-
-   ```js
-   let highIncome = false; // 低收入
-   let goodCreditScore = false; // 不良信用评分
-   let eligibleForLoan = highIncome && goodCreditScore; // 贷款批准条件
-   let applicationRefused = !eligibleForLoan; // 贷款拒绝
-   console.log("Eligible for loan: " + eligibleForLoan); // 输出: false
-   console.log("Application refused: " + applicationRefused); // 输出: true
-   ```
+   - 只需满足一个条件即可
 
 ## 逻辑运算符与非布尔值
 
@@ -967,20 +962,15 @@ console.log(typeof userName); // "number"
    console.log(!!{}); // 输出: true
    ```
 
-3. 短路计算（Short-circuiting）：`"Mosh"` 是 truthy，因此立即返回 `"Mosh"`，并且右侧的 `"John"` 被忽略。
+3. 短路计算（Short-circuiting）
 
    ```js
    console.log("Mosh" || "John"); // 输出: Mosh（右侧的 "John" 被忽略）
    ```
 
-4. 现实世界的应用：默认值
+   - `"Mosh"` 是 truthy，因此立即返回 `"Mosh"`，并且右侧的 `"John"` 被忽略。
 
-   ```js
-   let userColor = "red"; // 用户选择的颜色
-   let defaultColor = "blue"; // 默认颜色
-   let currentColor = userColor || defaultColor; // 如果没有用户选择颜色，则使用默认颜色
-   console.log(currentColor); // 输出: red
-   ```
+4. 现实世界的应用：
 
    ```js
    let userColor = undefined; // 用户未选择颜色
@@ -988,6 +978,8 @@ console.log(typeof userName); // "number"
    let currentColor = userColor || defaultColor; // 使用默认颜色
    console.log(currentColor); // 输出: blue
    ```
+
+   - 可以使用逻辑运算设置默认值
 
 ## 位运算符
 
@@ -1012,19 +1004,23 @@ console.log(typeof userName); // "number"
 
 **代码示例**
 
-1. 位与运算符（`&`）：5 的二进制是 `0101`，3 的二进制是 `0011`，经过位与操作后得到 `0001`（即 1）。
+1. 位与运算符（`&`）
 
    ```js
    let result = 5 & 3; // 位与操作
    console.log(result); // 输出: 1
    ```
 
-2. 位或运算符（`|`）：5 的二进制是 `0101`，3 的二进制是 `0011`，经过位或操作后得到 `0111`（即 7）
+   - 5 的二进制是 `0101`，3 的二进制是 `0011`，经过位与操作后得到 `0001`（即 1）。
+
+2. 位或运算符（`|`）
 
    ```js
    let result = 5 | 3; // 位或操作
    console.log(result); // 输出: 7
    ```
+
+   - 5 的二进制是 `0101`，3 的二进制是 `0011`，经过位或操作后得到 `0111`（即 7）
 
 3. 权限管理系统应用
 
@@ -1047,77 +1043,122 @@ console.log(typeof userName); // "number"
 
 ## 运算符优先级
 
-> 每种运算符都有自己的优先级，优先级较高的运算符会先执行。常见的运算符优先级从高到低大致如下：
->
-> 1. **括号** `()`：括号中的表达式最先计算。
-> 2. **乘法、除法、取余** `* / %`：这些运算符优先级较高。
-> 3. **加法、减法** `+ -`：这些运算符优先级低于乘除运算。
-> 4. **比较运算符** `== !== < > <= >=`。
-> 5. **逻辑运算符** `&& ||`：这些运算符优先级最低。
+> 简述：每种运算符都有自己的优先级，优先级较高的运算符会先执行。理解运算符优先级非常重要，以确保在复杂表达式中得到正确的计算结果。
 
-- 示例
+**知识树**
 
-  ```js
-  let result = 3 + 4 * 2;
-  console.log(result); // 输出: 11
-  ```
+1. 运算符优先级的顺序
 
-  - 解释：这个结果为 `11`，而不是 `14`，因为乘法（`*`）运算符的优先级高于加法（`+`）运算符。因此，首先执行 `4 * 2`，得到 `8`，然后再执行 `3 + 8`，最终结果为 `11`。
+   - 括号 `()`：括号中的表达式最先计算。
+   - 乘法、除法、取余 `* / %`：这些运算符优先级较高。
+   - 加法、减法 `+ -`：这些运算符优先级低于乘除运算。
+   - 比较运算符 `== !== < > <= >=`。
+   - 逻辑运算符 `&& ||`：这些运算符优先级最低。
 
-- 使用括号明确优先级
+2. 运算符优先级应用
+   - 使用括号明确优先级，避免错误。
 
-  由于不同的运算符有不同的优先级，在处理复杂表达式时，建议使用 **括号** 来明确表达式的计算顺序，以避免因运算符优先级导致的错误。
+**代码示例**
 
-  ```js
-  let result = (3 + 4) * 2;
-  console.log(result); // 输出: 14
-  ```
+1. 运算符优先级示例
 
-  解释：在这个例子中，使用括号强制先执行 `3 + 4`，然后再乘以 `2`，所以最终结果是 `14`。
+   ```js
+   let result = 3 + 4 * 2;
+   console.log(result); // 输出: 11
+   ```
 
-## Ex1 交换元素
+   - 这个结果为 `11`，而不是 `14`，因为乘法（`*`）运算符的优先级高于加法（`+`）运算符。因此，首先执行 `4 * 2`，得到 `8`，然后再执行 `3 + 8`，最终结果为 `11`。
 
-> 下面是最常见的交换方式，如果仅仅是交换数字，还有其他交换方式
+2. 使用括号明确优先级
 
-```js
-let a = "red";
-let b = "blue";
+   ```js
+   let result = (3 + 4) * 2;
+   console.log(result); // 输出: 14
+   ```
 
-let c = a;
-a = b;
-b = c;
+   - 在这个例子中，使用括号强制先执行 `3 + 4`，然后再乘以 `2`，所以最终结果是 `14`。
 
-console.log(a); // 输出：blue
-console.log(b); // 输出：red
-```
+## 交换元素
+
+> 简述：交换两个变量的值是常见的编程操作，主要通过第三个变量实现，而加减法和位运算仅适用于数字。
+
+**知识树**
+
+1. 交换元素最常见的方法
+   - 使用第三个变量
+2. 加减法交换（仅适用于数字）
+3. 位运算交换（仅适用于整数）
+
+**代码示例**
+
+1. 使用第三个变量交换元素（适用于任意数据类型）
+
+   ```js
+   let a = "red";
+   let b = "blue";
+
+   let temp = a; // 使用临时变量
+   a = b;
+   b = temp;
+
+   console.log(a); // 输出：blue
+   console.log(b); // 输出：red
+   ```
+
+2. 加减法交换（仅适用于数字）
+
+   ```js
+   let a = 1,
+     b = 2;
+   a = a + b; // a = 3
+   b = a - b; // b = 1
+   a = a - b; // a = 2
+
+   console.log(a); // 输出：2
+   console.log(b); // 输出：1
+   ```
+
+3. 位运算交换（仅适用于整数）
+
+   ```js
+   let a = 1,
+     b = 2;
+   a = a ^ b; // a = 3
+   b = a ^ b; // b = 1
+   a = a ^ b; // a = 2
+
+   console.log(a); // 输出：2
+   console.log(b); // 输出：1
+   ```
 
 # 控制流程
 
 ## `if` 和 `else` 条件语句
 
-> 两种常见的条件语句：**if 和 else**，以及 **switch 和 case**。本节我们先讨论 `if` 和 `else`，下节将讨论 `switch` 和 `case`。
->
-> 假设我们要根据当前的小时数来决定显示不同的问候信息。例如：
->
-> - 如果当前小时在早上（0-11 之间），显示 "Good Morning"。
-> - 如果是下午（12-17 之间），显示 "Good Afternoon"。
-> - 否则显示 "Good Evening"。
->
-> 这时我们可以使用 `if` 和 `else` 条件语句来实现这个逻辑。
+> 简述：`if` 和 `else` 是常见的条件语句，用于根据特定条件执行不同的代码块。在 JavaScript 中，它们帮助我们根据条件判断来控制程序的流程。
 
-**基本语法**
+**知识树**
 
-1. `if` 语句：首先，我们使用 `if` 关键字，然后在圆括号内添加一个条件表达式。如果条件表达式为 `true`，那么 `if` 语句后面的代码将被执行。
+1. `if`语句
+   - 条件为 `true` 时执行代码
+2. `else if`语句
+   - 用于检查多个条件
+3. `else`语句
+   - 默认执行的操作（当所有条件都不满足时）
 
-   ```javascript
+**代码示例**：
+
+1. `if`语句
+
+   ```js
    if (condition) {
      // 条件为 true 时执行的代码
    }
    ```
 
-2. `else if` 语句：如果 `if` 条件不成立，还可以使用 `else if` 来检查其他条件。
+2. `else if`语句
 
-   ```javascript
+   ```js
    if (condition) {
      // 条件为 true 时执行的代码
    } else if (otherCondition) {
@@ -1125,9 +1166,9 @@ console.log(b); // 输出：red
    }
    ```
 
-3. `else` 语句：如果没有其他条件满足，可以使用 `else` 来执行最后的默认操作。
+3. `else`语句
 
-   ```javascript
+   ```js
    if (condition) {
      // 条件为 true 时执行的代码
    } else {
@@ -1135,46 +1176,80 @@ console.log(b); // 输出：red
    }
    ```
 
-**示例：根据时间问候用户**
+4. 基本 `if` 示例
 
-假设我们已经获取到了当前的小时数，我们想根据不同的小时数来显示不同的问候语。
+   ```js
+   let hour = 10; // 假设当前时间是上午 10 点
+   if (hour >= 6 && hour < 12) {
+     console.log("Good Morning");
+   }
+   ```
 
-```js
-let hour = 10; // 假设当前时间是上午 10 点
+   - 假设我们已经获取到了当前的小时数，我们想根据不同的小时数来显示不同的问候语。
 
-if (hour >= 6 && hour < 12) {
-  console.log("Good Morning");
-} else if (hour >= 12 && hour < 18) {
-  console.log("Good Afternoon");
-} else {
-  console.log("Good Evening");
-}
-```
+5. `if` 与 `else if` 语句示例
 
-- `if` 语句检查当前时间是否在早晨（0 到 11 点之间）。如果是，则输出 "Good Morning"。
+   ```js
+   let hour = 10; // 假设当前时间是上午 10 点
+   if (hour >= 6 && hour < 12) {
+     console.log("Good Morning");
+   } else if (hour >= 12 && hour < 18) {
+     console.log("Good Afternoon");
+   }
+   ```
 
-- 如果第一个条件不成立，`else if` 语句会检查时间是否在下午（12 到 17 点之间）。如果是，则输出 "Good Afternoon"。
+6. `if`、`else if` 与 `else` 语句示例
 
-- 如果上述条件都不成立，`else` 语句会执行，输出 "Good Evening"。
+   ```js
+   let hour = 10; // 假设当前时间是上午 10 点
+   if (hour >= 6 && hour < 12) {
+     console.log("Good Morning");
+   } else if (hour >= 12 && hour < 18) {
+     console.log("Good Afternoon");
+   } else {
+     console.log("Good Evening");
+   }
+   ```
 
-- 进一步简化代码：在这个例子中，如果只有单个语句需要执行，我们可以省略大括号 `{}` 来简化代码。
+7. 简化版代码
 
-  ```js
-  let hour = 10; // 假设当前时间是上午 10 点
-  if (hour >= 0 && hour < 12) console.log("Good Morning");
-  else if (hour >= 12 && hour < 18) console.log("Good Afternoon");
-  else console.log("Good Evening");
-  ```
+   ```js
+   let hour = 10; // 假设当前时间是上午 10 点
+   if (hour >= 0 && hour < 12) console.log("Good Morning");
+   else if (hour >= 12 && hour < 18)
+     console.log("Good Afternoon");
+   else console.log("Good Evening");
+   ```
 
 ## `switch` 和 `case` 条件语句
 
-> 假设我们想要根据用户的角色（比如访客、版主或管理员）显示不同的消息。虽然我们可以使用多个 **if** 和 **else** 语句来实现这个逻辑，但我们也可以使用 **switch** 和 **case** 来使代码更加简洁和清晰。
+> 简述：`switch` 和 `case` 是常用的条件语句，用于根据一个变量的值执行不同的代码块。相比多个 `if` 和 `else`，`switch` 语句能更简洁地处理多重条件。
 
-**基本语法**
+**知识树**
 
-1. `switch` 语句：`switch` 语句用于根据一个变量的值执行不同的代码块。
+1. `switch`语句
+   - 根据变量的值执行不同的代码块
+2. `case`语句
+   - 每个 `case` 与 `switch` 中的变量值进行匹配
+3. `break`语句
+   - 防止执行后续的 `case` 语句（防止 fall-through）
+4. `default`语句
+   - 处理所有未匹配到 `case` 的情况
+5. `fall-through`行为
+   - 忘记 `break` 会导致程序继续执行后续 `case` 的代码
+6. 优缺点：
+   - 优点：
+     - 简洁、直观，适用于需要多个条件判断的情况。
+     - 更清晰的语法，尤其是在多个值需要匹配时。
+   - 缺点：
+     - 忘记 `break` 会导致意外的 **fall-through** 行为。
+     - 条件较少时，使用 `switch` 可能显得有些臃肿。
 
-   ```javascript
+**代码示例**：
+
+1. `switch` 语句的基本用法
+
+   ```js
    switch (variable) {
      case value1:
        // 如果变量的值等于 value1，执行这段代码
@@ -1187,223 +1262,226 @@ if (hour >= 6 && hour < 12) {
    }
    ```
 
-2. `case` 语句：每个 `case` 用来与 `switch` 中的变量值进行比较。如果相等，则执行对应的代码块。
+2. 根据用户角色显示消息
 
-3. `break` 语句：`break` 用来跳出 `switch` 语句块，防止执行后续的 `case` 语句。如果没有 `break`，`switch` 会继续执行下面的所有语句（即 **fall-through** 行为）。
+   ```js
+   let role = "guest"; // 假设当前角色是 "guest"
 
-4. `default` 语句：`default` 是一个可选的语句，用来处理所有没有匹配到任何 `case` 的情况。
+   switch (role) {
+     case "guest":
+       console.log("Guest user");
+       break;
+     case "moderator":
+       console.log("Moderator user");
+       break;
+     case "admin":
+       console.log("Admin user");
+       break;
+     default:
+       console.log("Unknown role");
+   }
+   ```
 
-**示例：根据用户角色显示信息**
+3. `fall-through` 行为示例（没有使用 `break`）
 
-假设我们有一个变量 `role`，它代表当前用户的角色。我们希望根据用户的角色显示不同的消息，比如 Guest、Moderator 或 Admin。使用 `switch` 和 `case` 可以轻松实现：
+   ```js
+   let role = "guest";
 
-```js
-let role = "guest"; // 假设当前角色是 "guest"
+   switch (role) {
+     case "guest":
+       console.log("Guest user");
+     case "moderator":
+       console.log("Moderator user");
+     case "admin":
+       console.log("Admin user");
+     default:
+       console.log("Unknown role");
+   }
 
-switch (role) {
-  case "guest":
-    console.log("Guest user");
-    break;
-  case "moderator":
-    console.log("Moderator user");
-    break;
-  case "admin":
-    console.log("Admin user");
-    break;
-  default:
-    console.log("Unknown role");
-}
-```
+   // Guest user
+   // Moderator user
+   // Admin user
+   // Unknown role
+   ```
 
-- `switch (role)`：我们用 `role` 变量来进行比较。
+   - 这里缺少 `break`，导致程序执行了所有 `case` 语句。
 
-- `case "guest"`：如果 `role` 是 `"guest"`，输出 `"Guest user"`。
+4. 用 `if` 和 `else` 实现相同的逻辑
 
-- `case "moderator"`：如果 `role` 是 `"moderator"`，输出 `"Moderator user"`。
+   ```js
+   let role = "guest";
 
-- `case "admin"`：如果 `role` 是 `"admin"`，输出 `"Admin user"`。
-
-- `default`：如果 `role` 不是 `"guest"`、`"moderator"` 或 `"admin"`，就输出 `"Unknown role"`。
-
-**`break` 和 `fall-through` 行为**
-
-如果在 `case` 语句中忘记写 `break`，会发生 **fall-through** 行为，即程序会继续执行下一个 `case` 语句。
-
-```js
-let role = "guest";
-
-switch (role) {
-  case "guest":
-    console.log("Guest user");
-  case "moderator":
-    console.log("Moderator user");
-  case "admin":
-    console.log("Admin user");
-  default:
-    console.log("Unknown role");
-}
-```
-
-在这个例子中，即使 `role` 是 `"guest"`，它仍然会输出 `"Guest user"`、`"Moderator user"`、`"Admin user"` 和 `"Unknown role"`。为了避免这种情况，我们需要在每个 `case` 后面加上 `break`，以确保程序在匹配到一个 `case` 后停止。
-
-**用 `if` 和 `else` 实现相同的逻辑**
-
-实际上，使用 `switch` 和 `case` 来实现逻辑并不是唯一的选择，我们也可以使用多个 `if` 和 `else` 来实现相同的功能。比如：
-
-```js
-let role = "guest";
-
-if (role === "guest") console.log("Guest user");
-else if (role === "moderator") console.log("Moderator user");
-else if (role === "admin") console.log("Admin user");
-else console.log("Unknown role");
-```
-
-- 在这里，我们使用了 严格相等（`===`） 来比较 `role` 的值。如果 `role` 是 `"guest"`，就输出 `"Guest user"`；否则，如果 `role` 是 `"moderator"`，输出 `"Moderator user"`，以此类推。
-
-**`switch` 和 `case` 的优缺点**
-
-- 优点：
-  - 当需要比较一个变量与多个值时，`switch` 和 `case` 可以让代码更简洁和直观。
-  - 语法清晰，容易理解，尤其是在有多个条件判断的情况下。
-- 缺点：
-  - 使用 `switch` 时需要为每个 `case` 添加 `break`，否则可能会发生 **fall-through** 行为，导致意外的执行多个 `case`。
-  - 相比 `if` 和 `else`，`switch` 语句在某些场景下会显得有些臃肿，特别是当条件较少时。
+   if (role === "guest") console.log("Guest user");
+   else if (role === "moderator") console.log("Moderator user");
+   else if (role === "admin") console.log("Admin user");
+   else console.log("Unknown role");
+   ```
 
 ## `For`循环语句
 
-> 有时我们希望重复某个操作多次，我们可以使用循环（LOOP）来简化。循环在 JavaScript 中有多种类型，所有这些循环的核心作用是：**重复某个操作若干次**。常见的循环有：
->
-> - `for` 循环
-> - `while` 循环
-> - `do while` 循环
-> - `for in` 循环
-> - `for of` 循环
->
-> 这些循环的基本作用相同，但它们的起始和结束方式略有不同。我们从 `for` 循环开始。
+> 简述：`for` 循环语句是用于重复执行代码块的一种常见控制结构。它有三部分组成：初始化表达式、条件表达式和增量表达式，通常用于已知循环次数的场景。
 
-**基本语法**
+**知识树**
 
-由三个表达式组成，初始表达式、条件表达式、增量表达式
+1. `for`循环基本结构
+   - 包含初始表达式、条件判断、增量表达式，以及循环体
+   - 初始表达式 (`initialExpression`)：用于声明和初始化循环变量。通常使用 `let` 来声明一个索引变量 `i`，这是 `for` 循环的常见约定。
+   - 条件表达式 (`condition`)：控制循环是否继续，循环会在这个条件为 `true` 时继续执行。
+   - 增量表达式 (`incrementExpression`)：每次循环结束时，更新变量的值。常见的操作是使用递增操作符。
+   - 循环体：控制循环变量的增减
 
-```js
-for (initialExpression; condition; incrementExpression) {
-  // 循环体
-}
-```
+**代码示例**
 
-1. 初始表达式 (`initialExpression`)：用来声明和初始化变量。通常使用 `let` 来声明一个索引变量 `i`，这是 `for` 循环的常见约定。
+1. `for` 循环的基本用法
 
-   ```javascript
-   let i = 0;
+   ```js
+   for (let i = 0; i < 5; i++) {
+     console.log("Hello World");
+   }
    ```
 
-2. 条件表达式 (`condition`)：循环会在这个条件为 `true` 时继续执行。
+   - `let i = 0` 初始化 `i` 为 0。
+   - `i < 5` 是循环的条件表达式，表示当 `i` 小于 5 时继续执行。
+   - `i++` 每次循环结束时，`i` 自增 1。
 
-   ```javascript
-   i < 5; // 条件：i 小于 5
+2. 输出 `i` 的值
+
+   ```js
+   for (let i = 0; i < 5; i++) {
+     console.log("Hello World", i);
+   }
    ```
 
-3. 增量表达式 (`incrementExpression`)：每次循环结束时，更新变量的值。常见的操作是使用递增操作符。
+   - 输出每次循环时的 `i` 的值，帮助观察循环执行过程。
 
-   ```javascript
-   i++; // i 每次增加 1
+3. 筛选奇数
+
+   ```js
+   for (let i = 1; i <= 5; i++) {
+     if (i % 2 !== 0) console.log(i); // 输出奇数
+   }
    ```
 
-**完整示例：**
+   - 使用 `if` 语句筛选出 `i` 为奇数的值并输出。
 
-```javascript
-for (let i = 0; i < 5; i++) {
-  console.log("Hello World");
-}
-```
+4. 倒序输出奇数
 
-- 在第一次执行时，`i` 为 0，满足 `i < 5` 的条件，执行循环体中的代码。
-- 执行完循环体后，`i++`，`i` 增加 1，变成 1，再次检查条件。
-- 这个过程会重复，直到 `i` 达到 5，此时 `i < 5` 的条件不成立，循环终止。
+   ```js
+   for (let i = 5; i >= 1; i--) {
+     if (i % 2 !== 0) console.log(i);
+   }
+   ```
 
-**输出 i 的值**
-
-为了观察循环的执行过程，我们可以在循环中输出 `i` 的值。
-
-```js
-for (let i = 0; i < 5; i++) {
-  console.log("Hello World", i);
-}
-```
-
-**筛选奇数**
-
-假设我们想要输出从 1 到 5 的奇数，可以结合 `if` 语句：
-
-```javascript
-for (let i = 1; i <= 5; i++) {
-  if (i % 2 !== 0) console.log(i); // 输出奇数
-}
-```
-
-**倒序输出**
-
-有时我们需要逆序执行循环，例如输出 5 到 1 的奇数：
-
-```javascript
-for (let i = 5; i >= 1; i--) {
-  if (i % 2 !== 0) console.log(i); // 输出奇数
-}
-```
+   - 改变初始值、判断和增量，倒序输出
 
 ## `while` 循环语句
 
-> 在上一节中，我们使用 `for` 循环来显示所有的奇数，现在我们将使用 `while` 循环来实现相同的功能。
->
-> - 在 `for` 循环中，循环变量（如 `i`）是循环的一部分，而在 `while` 循环中，循环变量需要在循环外部声明。
->
-> - `while` 循环的条件判断和执行过程与 `for` 循环类似，适合在循环次数不确定时使用。
-> - 在实际开发中，选择使用 `for` 或 `while` 循环通常取决于代码的清晰度和实际需求。
+> 简述：`while` 循环是一种在循环次数不确定时非常有用的控制结构。与 `for` 循环相比，`while` 循环将循环变量的声明放置在循环外部，允许更加灵活的循环控制。`while` 循环适合用于条件驱动的循环，直到条件不再满足时停止执行。
 
-**`while` 循环的基本结构**
+**知识树**
 
-```javascript
-while (condition) {
-  // 循环体
-}
-```
+1. `while`循环的基本语法
+   - `condition`：判断循环是否继续的条件表达式
+   - 循环体：在每次条件满足时执行的代码
+2. 与`for`循环的区别
+   - `for` 循环适合已知循环次数时使用
+   - `while` 循环适合循环次数未知，基于条件判断的场景
+3. `while`循环的使用场景
+   - 条件驱动的循环
+   - 输入验证、文件读取、网络请求等
+4. 最佳实践
+   - 循环体内的条件判断必须小心，以防止出现死循环（即条件永远为 `true`）。
 
-- `condition`：循环继续执行的条件。只要条件为 `true`，循环就会继续。
-- 循环体中的代码会在每次条件为 `true` 时执行。
+**代码示例**
 
-**将 `for` 循环转换为 `while` 循环**
+1. `while` 循环的基本结构
 
-我们以显示从 1 到 5 的奇数为例，将 `for` 循环转换为 `while` 循环。
+   ```javascript
+   while (condition) {
+     // 循环体
+   }
+   ```
 
-- `for` 循环版本：
+   - `condition`：循环的条件，只有为 `true` 时才会继续循环，通常是布尔表达式。
+   - 循环体中的代码会在每次条件为 `true` 时执行，直到条件为 `false`。
 
-  ```javascript
-  for (let i = 1; i <= 5; i++) {
-    if (i % 2 !== 0) console.log(i); // 输出奇数
-  }
-  ```
+2. 将 `for` 循环转换为 `while` 循环
 
-- 转换为 `while` 循环：
+   - `for` 循环版本：显示从 1 到 5 的奇数
 
-  ```javascript
-  let i = 1; // 在循环外部声明 i
-  while (i <= 5) {
-    if (i % 2 !== 0) console.log(i); // 输出奇数
-    i++; // 增加 i
-  }
-  ```
+     ```javascript
+     for (let i = 1; i <= 5; i++) {
+       if (i % 2 !== 0) console.log(i); // 输出奇数
+     }
+     ```
 
-  1. 声明变量：在 `while` 循环中，`i` 必须在循环外部声明。这与 `for` 循环不同，`for` 循环中的 `i` 只在循环内部有效，而在 `while` 循环中，我们需要在外部提前声明。
-  2. 条件表达式：`while` 循环会先检查条件 (`i <= 5`)，如果条件为 `true`，循环体会执行。然后，每次循环结束时，`i` 会增加 1。
-  3. 循环执行：在每次迭代中，`i` 会增加 1，直到 `i > 5`，循环停止。
+   - 转换为 `while` 循环：
+
+     ```javascript
+     let i = 1; // 在循环外部声明 i
+     while (i <= 5) {
+       if (i % 2 !== 0) console.log(i); // 输出奇数
+       i++; // 增加 i
+     }
+     ```
+
+   - 关键点分析：
+     1. 声明变量：`while` 循环要求循环变量在循环外部声明（如 `let i = 1`）。这与 `for` 循环的语法不同，后者通常会在循环内部进行声明。
+     2. 条件判断：`while` 循环首先会判断条件 `i <= 5`，如果为 `true`，则执行循环体。如果为 `false`，则跳出循环。
+     3. 循环体：每次循环结束时，必须手动更新变量 `i`，如 `i++`。这与 `for` 循环中的自增操作 `i++` 相似，但在 `while` 循环中我们需要显式地处理。
 
 ## `do-while` 循环语句
 
-> `do-while` 循环与 `while` 循环类似，但有一个重要的区别：
->
-> - 在 `while` 循环中，条件是在每次循环开始之前检查，如果条件为 `false`，循环体不会执行。
-> - 在 `do-while` 循环中，循环体会**至少执行一次**，然后再检查条件。
+> 简述：`do-while` 循环是 `while` 循环的一种变体，最大的不同在于它总是至少执行一次循环体。无论初始条件是否满足，`do-while` 都会先执行一次循环体，然后再判断条件是否继续循环。它适合那些需要先执行操作后再验证条件的场景。
+
+**知识树**
+
+1. `do-while` 循环的基本语法
+   - `do`：先执行循环体。
+   - `while`：循环结束后检查条件，决定是否继续执行。
+2. `do-while` 与 `while` 循环的区别
+   - `while` 循环：在条件为 `false` 时，循环体不会执行一次。
+   - `do-while` 循环：条件检查发生在循环体执行之后，确保循环体至少执行一次。
+3. `do-while` 循环的应用场景
+   - 至少执行一次操作，如用户输入验证。
+   - 需要先执行某些操作后再检查条件。
+   - 特别适用于那些条件最初不确定的场景。
+4. 最佳实践
+   - 若不正确更新条件变量，可能会导致死循环。
+
+**代码示例**
+
+1. `do-while` 循环的基本结构
+
+   ```js
+   do {
+     // 循环体
+   } while (condition);
+   ```
+
+   - 这里，`condition` 是在每次循环结束后评估的。如果条件为 `true`，则继续执行，否则退出循环。
+
+2. 将 `while` 循环转换为 `do-while` 循环
+
+   - `while` 循环版本：
+
+     ```js
+     let i = 1; // 初始化变量
+     while (i <= 5) {
+       if (i % 2 !== 0) console.log(i); // 输出奇数
+       i++; // 增加 i
+     }
+     ```
+
+   - 转换为 `do-while` 循环：
+
+     ```js
+     let i = 1; // 初始化变量
+     do {
+       if (i % 2 !== 0) console.log(i); // 输出奇数
+       i++; // 增加 i
+     } while (i <= 5);
+     ```
 
 **`do-while` 循环的基本语法**
 
@@ -1438,74 +1516,39 @@ do {
   } while (i <= 5);
   ```
 
-**`do-while` 的特点**
-
-即使初始条件为 `false`，`do-while` 循环仍会执行一次。例如：
-
-```javascript
-let i = 6; // 初始化变量
-do {
-  console.log(i); // 输出 i
-  i++; // 增加 i
-} while (i <= 5); // 条件为 false
-
-//输出结果 6
-```
-
-- 执行过程
-
-  1. 首先执行 `do` 块中的代码。
-
-  2. 然后检查 `while` 条件：
-
-     - 如果条件为 `true`，返回第 1 步，继续执行。
-
-     - 如果条件为 `false`，循环终止。
-
-**`do-while` 的适用场景**
-
-虽然在实际编程中很少使用 `do-while` 循环，但在某些情况下它是有用的。例如：
-
-1. 确保用户至少输入一次：
-
-   ```javascript
-   let input;
-   do {
-     input = prompt("Enter a number greater than 10:");
-   } while (input <= 10);
-   console.log("You entered:", input);
-   ```
-
-2. 需要先执行操作，再检查条件：
-
-   ```javascript
-   let isRunning = true;
-   do {
-     console.log("Executing the operation...");
-     // 根据某些逻辑更新 isRunning
-     isRunning = false; // 模拟终止条件
-   } while (isRunning);
-   ```
+  - 分析：
+    1. 初始化：`i` 在循环开始前初始化。
+    2. 条件检查：与 `while` 循环不同，`do-while` 会首先执行循环体，然后检查条件。如果条件为 `false`，循环会终止。
+    3. 执行至少一次：即使 `i` 初始为 `6`，在 `do-while` 中仍会执行一次循环体。
 
 ## 无限循环
 
-> **无限循环（Infinite Loops）**
->
-> **无限循环概念：**
->
-> - **无限循环**是指循环永远不会终止，代码会一直执行，直到强制停止程序。
-> - 这种情况通常是由于忘记更新循环条件或条件永远为 `true` 导致的。
->
-> **为什么要避免无限循环？**
->
-> - 无限循环会占用计算机的 CPU 资源，导致程序无响应，甚至可能导致浏览器或计算机崩溃。
-> - 如果不小心创建了无限循环，你可能需要强制关闭浏览器或程序来恢复正常。
+> 简述：无限循环（Infinite Loop）是指程序中的循环条件永远为 `true`，导致循环无法停止，程序在执行时陷入无尽的重复操作中。无限循环通常是由循环条件的逻辑错误或遗漏导致的，虽然有时被用作特定的控制结构，但它们需要谨慎使用。错误的无限循环可能导致系统资源的耗尽，甚至程序崩溃。
 
-**无限循环的常见示例**
+**知识树**
 
-1. `while` 循环中的无限循环：
+1. 无限循环的定义
+   - 循环条件永远为 `true`，导致程序无法退出。
+   - 通常由于漏更新循环变量或条件判断错误。
+2. 无限循环的危害
+   - 消耗过多的 CPU 资源，导致程序卡死。
+   - 导致浏览器或计算机崩溃，或导致系统变得无响应。
+   - 强制停止程序是唯一的解决方案。
+3. 无限循环的常见示例
+   - `while` 循环中的无限循环。
+   - `do-while` 循环中的无限循环。
+   - `for` 循环中的无限循环。
+4. 如何避免无限循环
+   - 确保循环条件的合理性。
+   - 在循环体中适时更新控制变量，避免条件永远成立。
+5. 无限循环的应用场景
+   - 在某些特定情况下，确实需要使用无限循环（例如：事件监听、服务器的持续运行等）。
 
-   ```javascript
+**代码示例**
+
+1. `while` 循环中的无限循环
+
+   ```js
    let i = 1; // 初始化变量
    while (i <= 5) {
      console.log(i);
@@ -1513,11 +1556,11 @@ do {
    }
    ```
 
-   - 问题：由于 `i` 没有更新，`i <= 5` 的条件始终为 `true`，导致循环永远不会结束。
+   - 问题：在这个示例中，`i` 没有在循环体内更新，因此条件 `i <= 5` 始终为 `true`，导致循环无法终止。
 
-2. `do-while` 循环中的无限循环：
+2. `do-while` 循环中的无限循环
 
-   ```javascript
+   ```js
    let x = 1; // 初始化变量
    do {
      console.log(x);
@@ -1525,310 +1568,505 @@ do {
    } while (true); // 条件始终为 true
    ```
 
-   - 问题：`while (true)` 保证循环条件一直成立，导致循环永远不会终止。
+   - 问题：`while (true)` 保证条件永远为 `true`，即使循环体中的代码执行多次，条件始终不会改变，从而导致无限循环。
 
-3. `for` 循环中的无限循环：
+3. `for` 循环中的无限循环
 
-   ```javascript
+   ```js
    for (let i = 1; i > 0; i++) {
      console.log(i);
    }
    ```
 
-- 问题：条件 `i > 0` 始终为 `true`，导致循环永远不会结束。
+   - 问题：这里，循环条件 `i > 0` 始终为 `true`，即使 `i` 不断递增，条件始终成立，导致循环永远无法退出。
 
-或者：
+4. 经典的 `for` 循环无限循环形式
 
-```javascript
-for (;;) {
-  console.log("This loop runs forever!");
-}
-```
+   ```js
+   for (;;) {
+     console.log("This loop runs forever!");
+   }
+   ```
 
-- 问题：`for` 循环中没有初始化、条件或更新语句，导致循环无条件执行。
+   - 问题：此代码省略了初始化、条件和更新语句，等同于写了一个没有任何限制条件的无限循环，循环会一直执行下去。
 
 ## `for-in` 循环
 
-> **`for-in` 循环概念**
->
-> - `for-in` 循环用于遍历对象的属性或数组的索引。
-> - 它适用于对象中的所有可枚举属性，但并不适合迭代数组中的元素（有更理想的方法）。
+> 简述：`for-in` 循环用于遍历对象的可枚举属性，或者数组的索引。虽然它在对象属性迭代中非常有效，但在数组迭代中并不是最优选择，它会遍历数组的索引，而不是数组的值，如果数组对象上有额外的可枚举属性，它们也会被遍历到，这会影响数组的遍历效果。
 
-**基本语法**
+**知识树**
 
-```javascript
-for (let key in object) {
-  // 在每次迭代中，key 是对象的一个属性名
-}
-```
+1. `for-in` 基本结构
+   - 适用于遍历对象的属性名或数组的索引。
+   - 关键字 `in` 用来表示“遍历”的操作。
+   - 迭代时，循环变量 (`key`) 会获取每一个属性名或索引。
+2. `for-in` 用于对象遍历
+   - 可以用来遍历对象的所有可枚举属性。
+   - 每次迭代时，循环变量 `key` 会设置为对象的一个属性名。
+   - 可以通过 `key` 动态访问属性值。
+3. `for-in` 用于数组
+   - `for-in` 可以遍历数组，但会遍历所有索引（包括非标准索引），并且不能直接访问数组元素的值。
+   - 它不会返回数组元素本身，而是返回索引。
+4. `for-in` 的局限性
+   - 不适合数组的遍历，可能会返回非标准的属性。
+   - 相比之下，`for-of` 更适合用于数组的元素迭代。
+5. 使用方括号表示法访问对象属性
+   - 由于对象的属性名是动态的，`for-in` 循环中获取的 `key` 必须使用方括号表示法 (`object[key]`) 来访问属性值。
 
-- `key`：循环变量，在每次迭代时会被设置为对象的一个属性名。
-- `object`：要遍历的对象。
+**代码示例**
 
-**对象中的 `for-in`**
+1. `for-in` 循环的基本语法
 
-1. 定义对象：
-
-   ```javascript
-   let person = {
-     name: "Mosh",
-     age: 30,
-   };
+   ```js
+   for (let key in object) {
+     // 在每次迭代中，key 是对象的一个属性名
+   }
    ```
 
-2. 遍历对象的属性：
+   - `key`：循环变量，它在每次迭代中将是对象的一个属性名。
+   - `object`：要遍历的对象。
 
-   ```javascript
-   for (let key in person) console.log(key); // 输出属性名
-   // name
-   // age
-   ```
+2. `for-in` 在对象中的使用
 
-3. 访问属性的值：
+   - 定义对象
 
-   - 可以使用**方括号表示法**来访问属性值，因为属性名是动态的（即变量 `key` 的值）。
+     ```js
+     let person = {
+       name: "Mosh",
+       age: 30,
+     };
+     ```
 
-     ```javascript
+   - 遍历对象的属性
+
+     ```js
+     for (let key in person) {
+       console.log(key); // 输出属性名
+     }
+     // 输出：
+     // name
+     // age
+     ```
+
+   - 访问属性的值
+
+     ```js
      for (let key in person) {
        console.log(key, person[key]); // 输出属性名和属性值
      }
+     // 输出：
      // name Mosh
      // age 30
      ```
 
-**为什么使用方括号表示法？**
+3. 使用方括号表示法访问属性
 
-- person 中没有`key`这个属性，而如果写成`person.key`，这个表达式会在运行时间计算，会报错，应该用下面的表达
-
-  示例：
-
-  ```javascript
-  for (let key in person) console.log(key, person[key]);
-  ```
-
-**数组中的 `for-in`**
-
-虽然 `for-in` 可以用来遍历数组，但它不是最理想的选择。
-
-1. 定义数组：
-
-   ```javascript
-   let colors = ["red", "green", "blue"];
+   ```js
+   for (let key in person) {
+     console.log(key, person[key]); // 正确地输出属性名和值
+   }
    ```
 
-2. 使用索引来访问数组元素：
+   - `key` 是动态的，`person.key` 会查找一个名为 `key` 的属性，而实际的属性名保存在 `key` 变量中。正确的访问方式是通过 `person[key]`，这保证了属性值的正确访问。
 
-   ```javascript
-   for (let index in colors) console.log(index, colors[index]);
+4. `for-in` 在数组中的使用
+
+   ```js
+   let colors = ["red", "green", "blue"];
+   for (let index in colors) {
+     console.log(index, colors[index]); // 输出索引和值
+   }
+   // 输出：
    // 0 red
    // 1 green
    // 2 blue
    ```
 
-**`for-in` 的局限性**
+   - 使用索引访问数组元素
 
-- 不适合遍历数组：
-  - `for-in` 遍历的是索引，而不是值。
-  - 它可能会遍历数组中非标准的属性（如自定义属性）。
-- 更好的选择：`for-of`
-  - `for-of` 循环更适合数组，它直接迭代数组的元素，而不是索引。
+5. `for-in` 的局限性
+
+   ```js
+   let arr = [10, 20, 30];
+   arr.customProperty = "Custom Value";
+
+   for (let index in arr) {
+     console.log(index, arr[index]); // 会输出索引和自定义属性
+   }
+   // 输出：
+   // 0 10
+   // 1 20
+   // 2 30
+   // customProperty Custom Value
+   ```
+
+   - `for-in` 会遍历数组中所有的可枚举属性，包括数组的自定义属性（例如添加到数组对象中的额外属性）
 
 ## `for-of` 循环
 
-> - `for-of` 循环是一种新的（ES6）、更简洁的方式，用于遍历**数组中的元素**。
-> - 与 `for-in` 不同，`for-of` 直接访问数组的元素，而不是索引。
+> 简述：`for-of` 循环是 ES6 引入的语法，专门用于遍历**可迭代对象**（如数组、字符串、Set、Map 等）。与 `for-in` 不同，`for-of` 直接访问数组的元素值，而不是索引，因此它是遍历数组时更理想的选择。
 
-**基本语法**
+**知识树**
 
-```javascript
-for (let element of iterable) {
-  // 在每次迭代中，element 是当前迭代的值
-}
-```
+1. `for-of` 基本结构
+   - 用于遍历可迭代对象（如数组、字符串、Map、Set 等）的元素。
+   - `element` 是循环变量，在每次迭代中保存当前迭代的值。
+   - 适用于数组、字符串等序列类型。
+2. `for-of` 与 `for-in` 的区别
+   - `for-in` 用于遍历对象的属性名或数组的索引。
+   - `for-of` 直接访问数组的元素值，更适合用于数组的遍历。
+3. `for-of` 的局限性
+   - 不能用于遍历对象的属性名。若需要遍历对象属性，仍应使用 `for-in` 循环。
 
-- `element`：循环变量，在每次迭代中保存数组中的一个元素。
-- `iterable`：可迭代的对象，例如数组、字符串等。
+**代码示例**
 
-**数组中的 `for-of`**
+1. `for-of` 循环的基本语法
 
-1. 定义数组：
-
-   ```javascript
-   let colors = ["red", "green", "blue"];
+   ```js
+   for (let element of iterable) {
+     // 在每次迭代中，element 是当前迭代的值
+   }
    ```
 
-2. 遍历数组的元素：
+   - `element`：循环变量，在每次迭代中保存可迭代对象的一个元素。
+   - `iterable`：可迭代的对象，如数组、字符串、Map 等。
 
-   ```javascript
-   for (let color of colors) console.log(color); // 输出数组中的元素
+2. 在数组中使用 `for-of`
 
+   ```js
+   let colors = ["red", "green", "blue"];
+   for (let color of colors) {
+     console.log(color);
+   }
+   // 输出：
    // red
    // green
    // blue
    ```
 
-3. 优点：无需处理索引
+   - `for-of` 直接访问数组的元素，无需手动处理索引。
 
-   - 在传统的 `for` 或 `for-in` 循环中，我们需要通过索引访问元素。
-   - `for-of` 直接提供数组的元素，无需额外处理索引。
+3. 在字符串中使用 `for-of`
+
+   ```js
+   let word = "hello";
+   for (let letter of word) {
+     console.log(letter);
+   }
+   // 输出：
+   // h
+   // e
+   // l
+   // l
+   // o
+   ```
+
+   - 字符串也是可迭代对象，可以使用 `for-of` 循环遍历其每个字符。
+
+4. `for-of` 的局限性：不能用于遍历对象的属性
+
+   ```js
+   let person = { name: "Alice", age: 30 };
+
+   // 错误示例
+   for (let prop of person) {
+     console.log(prop);
+   }
+   // 会报错，因为 person 是一个普通对象，无法直接用 for-of 遍历属性
+   ```
+
+   - `for-of` 无法用于遍历对象的属性名，应使用 `for-in` 来处理对象的属性。
 
 ## `break` 和 `continue` 关键词
 
-> - **`break`**：终止当前循环，直接跳出循环块。
-> - **`continue`**：跳过当前循环的剩余代码，直接进入下一次迭代。使用的较少，可能会被认为是垃圾代码。
+> 简述：`break` 和 `continue` 是控制循环流程的两个重要关键词。`break` 用于立即终止循环，跳出当前的循环块；而 `continue` 则用于跳过当前迭代的剩余部分，直接进入下一次迭代。虽然这两个关键词在控制循环流程中非常有用，但滥用它们可能会导致代码可读性下降，特别是在复杂的循环结构中。
 
-**`break`**
+**知识树**
 
-- 基本概念：在循环中，`break` 会立即终止循环，不再执行剩余的迭代。
+1. `break` 基本概念
+   - 用于终止当前循环，跳出循环体。
+   - 适用于 `for`、`while` 和 `do-while` 等循环中。
+2. `continue` 基本概念
+   - 跳过当前循环中的剩余代码，直接进入下一次循环的迭代。
+   - 适用于 `for`、`while` 和 `do-while` 等循环中。
+3. 最佳实践
+   - 过度使用 `break` 或 `continue` 可能会让循环逻辑变得难以理解，尤其是在复杂的嵌套循环中。
+   - 更加清晰的控制结构，如 `if` 判断，通常能替代这些关键字。
 
-- 示例
+**代码示例**
 
-  ```javascript
-  let i = 0;
-  while (i <= 10) {
-    if (i === 5) break;
-    console.log(i);
-    i++;
-  }
-  //输出 0-4
-  ```
+1. `break` 终止循环
 
-  解释：
+   ```js
+   let i = 0;
+   while (i <= 10) {
+     if (i === 5) break;
+     console.log(i);
+     i++;
+   }
+   // 输出：
+   // 0
+   // 1
+   // 2
+   // 3
+   // 4
+   ```
 
-  - 当 `i` 等于 5 时，`if` 条件为 `true`，执行 `break`。
-  - 循环立即终止，不再继续执行。
+   - 解释：当 `i` 等于 5 时，`if` 条件为 `true`，执行 `break` 语句。`break` 语句使得 `while` 循环立即结束，不再执行剩余的循环体。输出仅为 0 至 4。
 
-**`continue`**
+2. `continue` 跳过当前迭代
 
-- 基本概念：`continue` 会跳过当前循环的剩余部分，直接进入下一次迭代。
+   ```js
+   let i = 0;
+   while (i <= 10) {
+     if (i % 2 === 0) {
+       i++;
+       continue; // 跳过偶数的输出
+     }
+     console.log(i);
+     i++;
+   }
+   // 输出：
+   // 1
+   // 3
+   // 5
+   // 7
+   // 9
+   ```
 
-- 示例
+   - 解释：在每次迭代中，`if (i % 2 === 0)` 用来检查当前数字是否为偶数。如果是偶数，`continue` 会跳过当前迭代的 `console.log(i)` 部分，直接进行下一次迭代。只有奇数被输出，偶数被跳过。
 
-  ```javascript
-  let i = 0;
-  while (i <= 10) {
-    // if (i === 5) break;
-    if (i % 2 === 0) {
-      i++;
-      continue;
-    }
-    console.log(i);
-    i++;
-  }
-  //输出 1 3 5 7 9
-  ```
+## 循环总结
 
-  解释：
+> 简述：循环（LOOP）是编程中最常用的控制结构之一，它允许在条件满足的情况下重复执行一段代码。JavaScript 提供了多种循环类型，每种类型适用于不同的情境。理解这些循环的特点、用途及其优缺点，有助于在不同的编程场景中作出最合适的选择。
 
-  - 当 `i` 是偶数时，`continue` 跳过 `console.log(i)`，直接进入下一次迭代。
-  - 只有奇数被打印出来。
+**知识树**
 
-## Ex1 返回两个数中的较大值
+1. `for` 循环
+   - 用途：当你知道循环的次数时，使用 `for` 循环最为合适。
+   - 结构：初始化、条件、增量三部分组成。
+   - 用法：一般用于索引明确、操作数目固定的场景。
+2. `while` 循环
 
-> 编写一个函数：
->
-> 1. 接受两个数字作为参数。
-> 2. 返回两个数字中的较大值。
->
-> 测试此函数时请考虑以下情况：
->
-> - 当第一个数字较大时。
-> - 当第二个数字较大时。
-> - 当两个数字相等时。
+   - 用途：当你不知道循环次数，且希望根据某个条件持续执行时，使用 `while` 循环。
+   - 结构：仅包含条件，若条件满足则进入循环体。
+   - 用法：适合基于条件变化的循环，尤其是终止条件未知时。
+
+3. `do while` 循环
+
+   - 用途：与 `while` 循环类似，但它至少会执行一次循环体，即使条件最初就不满足。
+   - 结构：先执行代码块，再判断条件。
+   - 用法：适用于需要保证至少执行一次代码的情况。
+
+4. `for in` 循环
+
+   - 用途：用于遍历对象的属性或数组的索引。
+   - 结构：遍历对象属性或数组的键（索引）。
+   - 缺点：不适合遍历数组，因为它可能遍历到非数组的属性。
+
+5. `for of` 循环
+   - 用途：用于遍历数组或其他可迭代对象的值。
+   - 结构：直接获取数组元素，避免了数组索引的干扰。
+   - 优点：语法简单且高效，避免了 `for in` 的缺陷。
+
+**代码示例**
+
+1. `for` 循环的基本用法
+
+   ```js
+   for (let i = 0; i < 5; i++) {
+     console.log(i); // 输出 0, 1, 2, 3, 4
+   }
+   ```
+
+   - 用途：当已知循环次数时，`for` 循环是最直接的选择。适用于索引值已知并且递增（或递减）的情况。
+
+2. `while` 循环的基本用法
+
+   ```js
+   let i = 0;
+   while (i < 5) {
+     console.log(i); // 输出 0, 1, 2, 3, 4
+     i++;
+   }
+   ```
+
+   - 用途：当循环的条件是动态的，或者循环次数在执行之前未知时，使用 `while` 循环。适用于根据条件持续执行的场景。
+
+3. `do while` 循环的基本用法
+
+   ```js
+   let i = 0;
+   do {
+     console.log(i); // 输出 0, 1, 2, 3, 4
+     i++;
+   } while (i < 5);
+   ```
+
+   - 用途：与 `while` 循环类似，区别在于无论条件是否满足，`do while` 至少执行一次循环体。适合那些需要先执行后判断的场景。
+
+4. `for in` 循环的基本用法（遍历对象）
+
+   ```js
+   const obj = { a: 1, b: 2, c: 3 };
+   for (let key in obj) {
+     console.log(key, obj[key]); // 输出 a 1, b 2, c 3
+   }
+   ```
+
+   - 用途：`for in` 循环用于遍历对象的所有可枚举属性。由于它遍历的是对象的键，因此它更适用于对象的遍历。
+
+5. `for of` 循环的基本用法（遍历数组）
+
+   ```js
+   const arr = [10, 20, 30, 40, 50];
+   for (let value of arr) {
+     console.log(value); // 输出 10, 20, 30, 40, 50
+   }
+   ```
+
+   - 用途：`for of` 循环用于遍历数组或其他可迭代对象的值，避免了 `for in` 的缺点。它直接访问数组的元素，简洁且高效。
+
+## Ex1: 返回两个数中的最大值
+
+> **要求**：编写一个函数，接受两个数字作为参数，并返回这两个数字中的最大值。测试该函数，确保其能正确处理不同的输入。
+
+**解法**：
+
+1. Step1：定义函数 `max`，接受两个参数 `a` 和 `b`，使用 `if` 语句比较两者的大小。
+2. Step2：优化代码，去除 `else`，直接返回较大的值。
+3. Step3：进一步优化，使用条件运算符简化代码，使其更加简洁。
+
+**代码**
 
 ```js
+// Step 1: 使用 if 语句比较 a 和 b 的大小
+// function max(a, b) {
+//   if (a > b) {
+//     return a;
+//   } else {
+//     return b;
+//   }
+// }
+
+// Step 2: 优化，去掉 else
+// function max(a, b) {
+//   if (a > b) {
+//     return a;
+//   }
+//   return b;
+// }
+
+// Step 3: 使用条件运算符进一步优化
 function max(a, b) {
-  return a > b ? a : b; // 如果 a 比 b 大，返回 a；否则返回 b
+  return a > b ? a : b;
 }
 
 // 测试函数
-console.log(max(5, 10)); // 输出：10
-console.log(max(20, 15)); // 输出：20
-console.log(max(7, 7)); // 输出：7
+console.log(max(5, 10)); // 输出 10
+console.log(max(20, 10)); // 输出 20
+console.log(max(10, 10)); // 输出 10
 ```
 
-## Ex2 判断图片是否是横向
+## Ex2 判断图片是否为横向图片
 
-> 编写一个函数：
->
-> 1. 接受图片的宽度和高度作为参数。
-> 2. 如果图片是横向（宽度大于高度），返回 `true`。
-> 3. 否则返回 `false`。
->
-> **提示：** 避免显式返回 `true` 或 `false`，直接返回表达式的值。
+> **要求**：编写一个函数 `isLandscape`，该函数接受两个参数：图片的宽度和高度。如果图片是横向的（即宽度大于高度），返回 `true`；否则，返回 `false`。
+
+**解法**：
+
+1. Step1：使用 `if` 和 `else` 语句，判断宽度是否大于高度，如果是，返回 `true`，否则返回 `false`。
+2. Step2：优化代码，使用条件运算符（`? :`），简化 `if` 和 `else` 的逻辑。
+3. Step3：进一步优化，直接返回条件表达式的值，而不需要显式返回 `true` 或 `false`。
+
+**代码**
 
 ```js
+// Step 1: 使用 if 和 else 语句判断
+// function isLandscape(width, height) {
+//   if (width > height) {
+//     return true;
+//   } else {
+//     return false;
+//   }
+// }
+
+// Step 2: 使用条件运算符优化
+// function isLandscape(width, height) {
+//   return width > height ? true : false;
+// }
+
+// Step 3: 进一步优化，直接返回条件表达式
 function isLandscape(width, height) {
-  return width > height; // 如果宽度大于高度，返回 true；否则返回 false
+  return width > height; // 直接返回判断结果
 }
 
 // 测试函数
-console.log(isLandscape(1920, 1080)); // 输出：true（横向）
-console.log(isLandscape(1080, 1920)); // 输出：false（纵向）
-console.log(isLandscape(1000, 1000)); // 输出：false（正方形）
+console.log(isLandscape(1920, 1080)); // 输出 true (横向图片)
+console.log(isLandscape(1080, 1920)); // 输出 false (纵向图片)
 ```
 
 ## Ex3 实现 FizzBuzz 算法
 
-> 编写一个函数 `fizzBuzz`，接受一个输入值并返回以下结果：
+> **要求**：编写一个函数 `fizzBuzz`，接受一个输入并返回一个字符串：
 >
-> 1. 如果输入值是数字且能被 **3 和 5** 同时整除，返回字符串 `"FizzBuzz"`。
-> 2. 如果输入值是数字且能被 **3** 整除，返回字符串 `"Fizz"`。
-> 3. 如果输入值是数字且能被 **5** 整除，返回字符串 `"Buzz"`。
-> 4. 如果输入值是数字但不能被 3 或 5 整除，返回输入值本身。
-> 5. 如果输入值不是数字（例如布尔值、字符串等），返回 `"Not a number"` 或 JavaScript 的特殊值 `NaN`。
+> - 如果输入是数字且能被 3 整除，返回 "Fizz"。
+> - 如果输入是数字且能被 5 整除，返回 "Buzz"。
+> - 如果输入既能被 3 又能被 5 整除，返回 "FizzBuzz"。
+> - 如果输入不是数字，返回 "Not a number"。
+
+**代码**
 
 ```javascript
 function fizzBuzz(input) {
-  // 检查输入是否为数字
+  // Step 1: 检查是否为数字
   if (typeof input !== "number") {
-    return NaN; // 返回 JavaScript 的特殊值 NaN
+    return "Not a number";
   }
 
-  // 检查是否能被 3 和 5 同时整除（优先检查 ）
+  // Step 2: 检查是否能被 3 和 5 整除
   if (input % 3 === 0 && input % 5 === 0) {
     return "FizzBuzz";
   }
 
-  // 检查是否能被 3 整除
+  // Step 3: 检查是否能被 3 整除
   if (input % 3 === 0) {
     return "Fizz";
   }
 
-  // 检查是否能被 5 整除
+  // Step 4: 检查是否能被 5 整除
   if (input % 5 === 0) {
     return "Buzz";
   }
 
-  // 返回输入值本身
+  // 如果都不能被 3 或 5 整除，返回原始数字
   return input;
 }
 
 // 测试函数
-console.log(fizzBuzz(false)); // 输出：NaN
-console.log(fizzBuzz("hello")); // 输出：NaN
-console.log(fizzBuzz(15)); // 输出："FizzBuzz"
-console.log(fizzBuzz(9)); // 输出："Fizz"
-console.log(fizzBuzz(10)); // 输出："Buzz"
-console.log(fizzBuzz(7)); // 输出：7cc
+console.log(fizzBuzz(15)); // 输出 'FizzBuzz' (能被 3 和 5 整除)
+console.log(fizzBuzz(9)); // 输出 'Fizz' (能被 3 整除)
+console.log(fizzBuzz(10)); // 输出 'Buzz' (能被 5 整除)
+console.log(fizzBuzz(7)); // 输出 7 (既不能被 3 也不能被 5 整除)
+console.log(fizzBuzz("a")); // 输出 'Not a number' (不是数字)
 ```
 
 ## Ex4 检查车速并计算扣分
 
-> 编写一个函数 `checkSpeed`：
+> **要求**：实现一个 `checkSpeed` 函数，接受一个车速参数并根据车速判断是否超速：
 >
-> 1. 接收一个参数 `speed`，表示车辆的速度。
-> 2. 假设限速为 70 km/h。
-> 3. 如果车速在限速及以下，打印 `"Ok"`。
-> 4. 每超过限速 5 km/h 记 1 分，使用 `Math.floor` 计算扣分点数。
-> 5. 如果扣分超过 12 分，打印 `"License suspended"`，否则打印扣分点数。
->
-> 测试此函数时请考虑以下情况：
->
-> - 当车速在限速范围内。
-> - 当车速略微超速，但未达到扣分点。
-> - 当车速超过限速并产生扣分点数。
-> - 当扣分超过 12 分时。
+> - 如果车速低于或等于限速，输出 "OK"。
+> - 如果车速超过限速，根据超速的情况计算罚分（每超速 5 公里，罚 1 分）。
+> - 如果罚分超过 12 分，输出 "License Suspended"。
+> - 否则，输出当前罚分。
+
+**解法**：
+
+1. Step1：首先，定义一个常量 `speedLimit` 代表限速，以避免代码中的“魔法数字”。
+2. Step2：检查车速是否小于等于限速，若是则返回 "OK"。
+3. Step3：如果车速超过限速，计算超速的公里数，并根据每 5 公里罚 1 分的规则计算罚分。
+4. Step4：如果罚分超过 12 分，则输出 "License Suspended"；否则，输出当前罚分。
+
+**代码**
 
 ```javascript
 function checkSpeed(speed) {
@@ -1852,158 +2090,169 @@ checkSpeed(70); // 输出：Ok
 checkSpeed(71); // 输出：Ok
 checkSpeed(75); // 输出：Points：1
 checkSpeed(80); // 输出：Points: 2
-checkSpeed(130); // 输出：Points: 2
+checkSpeed(130); // 输出：Points: 12
 checkSpeed(135); // 输出：License suspended
 ```
 
-## Ex5 显示数字的奇偶性
+## Ex5 显示奇偶数
 
-> 编写一个函数 `showNumbers`，接收一个参数 `limit`：
->
-> 1. 输出从 `0` 到 `limit` 的所有数字。
-> 2. 对于每个数字，如果是偶数，显示 `"even"`；如果是奇数，显示 `"odd"`。
->
-> 测试此函数时请考虑以下情况：
->
-> - `limit` 为 0。
-> - `limit` 为正整数。
-> - `limit` 为较大的正整数。
+> **要求**：编写一个函数 `showNumbers`，接受一个参数 `limit`，从 0 开始依次打印每个数字。如果数字是偶数，显示 `even`，否则显示 `odd`。
+
+**解法**：
+
+1. Step1：使用 `for` 循环从 0 遍历到 `limit`，检查每个数字是否为偶数。
+2. Step2：用条件运算符判断当前数字是 `even` 还是 `odd`，然后与数字一起打印。
+
+**代码**
 
 ```javascript
+// 方法 1：直接用 if...else 判断
+// function showNumbers(limit) {
+//   for (let i = 0; i <= limit; i++) {
+//     if (i % 2 === 0) {
+//       console.log(i, "even");
+//     } else {
+//       console.log(i, "odd");
+//     }
+//   }
+// }
+
+// 方法 2：使用条件运算符简化
 function showNumbers(limit) {
   for (let i = 0; i <= limit; i++) {
-    const message = i % 2 === 0 ? "even" : "odd"; // 判断奇偶性
+    const message = i % 2 === 0 ? "even" : "odd";
     console.log(i, message);
   }
 }
 
 // 测试函数
-showNumbers(0); // 输出：0 even
-showNumbers(3); // 输出：0 even, 1 odd, 2 even, 3 odd
-showNumbers(10); // 输出：0 到 10 的奇偶性
+showNumbers(5);
+// 输出:
+// 0 even
+// 1 odd
+// 2 even
+// 3 odd
+// 4 even
+// 5 odd
 ```
 
 ## Ex6 统计数组中的 Truthy 值
 
-> 编写一个函数 `countTruthy`：
->
-> 1. 接收一个数组作为参数。
-> 2. 返回数组中 truthy 值的数量。
->
-> **提示：**
->
-> - Truthy 值是指在布尔上下文中会被视为 `true` 的值。
-> - 常见的 falsey 值包括：
->   - `undefined`
->   - `null `
->   - 空字符串 `""`
->   - `false`
->   - 数字 `0`
->   - `NaN`
+> **要求**：实现一个函数 `countTruthy`，接受一个数组参数并返回数组中 truthy 值的数量。
 
-```javascript
-function countTruthy(array) {
-  let count = 0; // 初始化计数器
+**解法**：
 
-  // 使用 for-of 循环遍历数组
-  for (let value of array) {
-    if (value) {
-      // 检查值是否为 truthy
-      count++; // 如果是 truthy，则计数器加 1
-    }
-  }
+1. Step1：初始化一个计数器 `count`，用来记录数组中 truthy 值的数量。
+2. Step2：使用 `for...of` 循环遍历数组，对每个元素判断是否为 truthy。如果是，则增加计数器。
+3. Step3：返回最终计数器的值。
 
-  return count; // 返回计数结果
-}
-
-// 测试函数
-console.log(
-  countTruthy([0, 1, 2, "", false, "hello", undefined, 42])
-); // 输出4
-console.log(countTruthy([false, 0, null, NaN, undefined, ""])); // 输出：0
-console.log(countTruthy([true, "Mosh", 10, [], {}])); // 输出：5
-```
-
-## Ex7 显示对象中的字符串属性
-
-> 编写一个函数 `showProperties`：
->
-> 1. 接收一个对象作为参数。
-> 2. 遍历对象中的所有属性。
-> 3. 如果属性的值是字符串类型，显示该属性及其值。
->
-> **测试用例：**
->
-> - 对象中包含多个数据类型的属性。
-> - 只输出值为字符串类型的属性。
+**代码**
 
 ```javascript
 function showProperties(obj) {
-  for (let key in obj)
-    if (typeof obj[key] === "string") console.log(key, obj[key]);
+  for (let key in obj) {
+    if (typeof obj[key] === "string") {
+      console.log(key, obj[key]);
+    }
+  }
 }
 
-// 测试对象
+// 测试函数
 const movie = {
   title: "Inception",
   releaseYear: 2010,
-  rating: 8.8,
   director: "Christopher Nolan",
+  rating: 8.8,
 };
 
-// 测试函数
 showProperties(movie);
-// 输出：
+// 输出:
+// title Inception
+// director Christopher Nolan
+```
+
+## Ex7 显示对象字符串属性
+
+> **要求**：实现一个函数 `showProperties`，接受一个对象参数，并打印所有值为字符串类型的属性及其值。
+
+**解法**：
+
+1. Step1：使用 `for...in` 遍历对象的所有属性。
+2. Step2：用 `typeof` 检查属性值是否为字符串类型。如果是，则打印属性名和对应值。
+
+**代码**
+
+```javascript
+function showProperties(obj) {
+  for (let key in obj) {
+    if (typeof obj[key] === "string") {
+      console.log(key, obj[key]);
+    }
+  }
+}
+
+// 测试函数
+const movie = {
+  title: "Inception",
+  releaseYear: 2010,
+  director: "Christopher Nolan",
+  rating: 8.8,
+};
+
+showProperties(movie);
+// 输出:
 // title Inception
 // director Christopher Nolan
 ```
 
 ## Ex8 求指定范围内的倍数之和
 
-> 编写一个函数 `sum`：
->
-> 1. 接收一个参数 `limit`。
-> 2. 计算并返回从 `0` 到 `limit` 范围内所有 **3 或 5 的倍数** 之和。
->
-> **测试用例：**
->
-> - `limit` 为正整数。
-> - `limit` 包含多个 3 和 5 的倍数。
-> - `limit` 为较小值，例如 0。
+> **要求**：实现一个函数 `sum`，接受一个参数 `limit`，返回范围 `0` 到 `limit` 中所有是 `3` 或 `5` 倍数的数字之和。
+
+**解法**：
+
+1. Step1：初始化一个变量 `sum` 用于累加符合条件的数字。
+2. Step2：使用 `for` 循环遍历从 `0` 到 `limit` 的所有数字，判断数字是否是 `3` 或 `5` 的倍数。
+3. Step3：如果是倍数，将其加到 `sum` 中。
+4. Step4：返回最终的 `sum` 值。
+
+**代码**
 
 ```javascript
 function sum(limit) {
-  let total = 0; // 初始化求和变量
+  let sum = 0;
 
-  for (let i = 0; i <= limit; i++)
-    if (i % 3 === 0 || i % 5 === 0) total += i;
+  for (let i = 0; i <= limit; i++) {
+    if (i % 3 === 0 || i % 5 === 0) {
+      sum += i;
+    }
+  }
 
-  return total; // 返回最终的总和
+  return sum;
 }
 
 // 测试函数
-console.log(sum(10)); // 输出：33 （3 + 5 + 6 + 9 + 10）
-console.log(sum(0)); // 输出：0
-console.log(sum(15)); // 输出：60 （3 + 5 + 6 + 9 + 10 + 12 + 15）
+console.log(sum(10)); // 输出: 33 (3 + 5 + 6 + 9 + 10)
 ```
 
 ## Ex9 计算学生的成绩
 
-> 编写一个函数 `calculateGrade`：
+> **要求**：实现一个函数 `calculateGrade`，接受一个数组 `marks`，计算其平均分并返回对应的等级（A-F）。根据以下标准确定等级：
 >
-> 1. 接收一个数组 `marks`，表示学生在不同科目的分数。
-> 2. 首先计算分数的平均值。
-> 3. 根据以下表格，将平均分映射到对应的成绩等级：
->
-> | 平均分范围 | 成绩 |
-> | ---------- | ---- |
-> | 90 - 100   | A    |
-> | 80 - 89    | B    |
-> | 70 - 79    | C    |
-> | 60 - 69    | D    |
-> | 小于 60    | F    |
->
-> **提示：** 使用单一职责原则，将平均值计算与成绩映射分开实现。
+> - 平均分 ≥ 90：A
+> - 平均分 ≥ 80：B
+> - 平均分 ≥ 70：C
+> - 平均分 ≥ 60：D
+> - 平均分 < 60：F
+
+**解法**：
+
+1. Step1：计算 `marks` 数组的平均分。
+   - 使用循环累加 `marks` 中的分数，然后将总和除以数组长度得到平均值。
+   - 抽取一个通用函数 `calculateAverage` 来计算任意数组的平均值。
+2. Step2：根据平均分映射到对应的等级。
+   - 使用一系列的条件判断语句（`if`）返回对应的等级。
+   - 优化代码逻辑，减少冗余条件。
 
 ```javascript
 // 计算数组中数值的平均值
@@ -2069,31 +2318,36 @@ showStars(5);
 */
 ```
 
-## Ex11 显示范围内的素数
+## Ex11 检查并打印素数
 
-> 编写一个函数 `showPrimes`：
+> **要求**：实现两个函数：
 >
-> 1. 接收一个参数 `limit`，表示显示的素数范围。
-> 2. 打印所有从 `2` 到 `limit` 范围内的素数。
->
-> **提示：**
->
-> - 素数是指只能被 `1` 和自身整除的正整数（如 `2, 3, 5, 7, 11` 等）。
-> - 使用单一职责原则，将判断素数的逻辑提取到一个独立函数中。
+> 1. `isPrime(number)`：判断一个数字是否是素数。如果是素数，返回 `true`，否则返回 `false`。
+> 2. `showPrimes(limit)`：打印从 `2` 到指定 `limit` 范围内的所有素数。
+
+**解法**：
+
+1. Step1：实现 `isPrime` 函数
+   - 使用循环从 `2` 到 `number-1` 检查是否存在能整除 `number` 的因数。
+   - 如果找到因数，返回 `false`，否则返回 `true`。
+2. Step2：实现 `showPrimes` 函数
+   - 遍历从 `2` 到 `limit` 的所有数字。
+   - 对每个数字调用 `isPrime` 函数，若为素数则打印。
 
 ```javascript
 // 判断一个数是否是素数
 function isPrime(number) {
-  for (let factor = 2; factor < number; factor++)
-    if (number % factor === 0) return false; // 如果有其他因数，返回 false
-
-  return true; // 没有其他因数，返回 true
+  for (let factor = 2; factor < number; factor++) {
+    if (number % factor === 0) return false; // 如果找到因数，返回 false
+  }
+  return true; // 没有找到因数，返回 true
 }
 
 // 打印范围内的所有素数
 function showPrimes(limit) {
-  for (let number = 2; number <= limit; number++)
+  for (let number = 2; number <= limit; number++) {
     if (isPrime(number)) console.log(number); // 如果是素数，打印该数
+  }
 }
 
 // 测试函数
@@ -4329,7 +4583,7 @@ console.log(person); // 输出对象，检查是否修改成功
    ```js
    console.log(x); // 输出：undefined（声明提升，但未初始化）
    var x = 10;
-   
+
    console.log(y); // 报错：y is not defined
    let y = 20;
    ```
@@ -4429,7 +4683,7 @@ console.log(person); // 输出对象，检查是否修改成功
        });
      },
    };
-   
+
    video.showTags(); // 正常输出标题和标签
    ```
 
@@ -4520,7 +4774,7 @@ console.log(person); // 输出对象，检查是否修改成功
        });
      },
    };
-   
+
    video.showTags(); // 正常输出标题和标签
    ```
 
@@ -4532,7 +4786,7 @@ console.log(person); // 输出对象，检查是否修改成功
    function sayHi() {
      console.log("hi");
    }
-   
+
    console.log(window.sayHi); // 输出：函数本身
    ```
 
@@ -4651,56 +4905,6 @@ try {
   console.log(e.message);
 }
 ```
-
-# 模版
-
-## Test
-
-> 简述：
-
-**知识树**
-
-1. 知识点
-2. 知识点
-3. 知识点
-   - 细分
-   - 细分
-4. 知识点
-
-**代码示例**
-
-1. 知识点 1
-
-   ```js
-
-   ```
-
-2. 知识点 2
-
-   ```js
-   
-   ```
-
-## Ex
-
-> **要求**：
->
-> **解法**：
->
-> 1. Step1：
-> 2. Step2：
-
-解法
-
-```js
-
-```
-
----
-
-参考字幕，和笔记。补全笔记。字幕：""，笔记：""
-
----
 
 # 技巧
 
