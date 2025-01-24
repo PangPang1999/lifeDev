@@ -274,7 +274,7 @@ console.log(typeof userFirstName); // "undefined"
 console.log(typeof userFavoriteColor); // "object"（注意：这是 JavaScript 的历史遗留问题）
 ```
 
-## 动态类型基础
+## 动态类型
 
 > 简述：JavaScript 是一种 **动态类型（Dynamic Typing）语言**，这意味着变量在声明时不需要指定类型，变量的类型可以在运行时动态变化。
 >
@@ -454,7 +454,7 @@ console.log(typeof userName); // "number"
      console.log("Hello " + name);
    }
    greetWithName("John"); // 输出: Hello John
-
+   
    function greetWithFullName(firstName, lastName) {
      console.log("Hello " + firstName + " " + lastName);
    }
@@ -1126,7 +1126,7 @@ console.log(typeof userName); // "number"
    a = a ^ b; // a = 3
    b = a ^ b; // b = 1
    a = a ^ b; // a = 2
-
+   
    console.log(a); // 输出：2
    console.log(b); // 输出：1
    ```
@@ -1310,7 +1310,7 @@ console.log(typeof userName); // "number"
 
    ```js
    let role = "guest";
-
+   
    if (role === "guest") console.log("Guest user");
    else if (role === "moderator") console.log("Moderator user");
    else if (role === "admin") console.log("Admin user");
@@ -1689,7 +1689,7 @@ do {
    ```js
    let arr = [10, 20, 30];
    arr.customProperty = "Custom Value";
-
+   
    for (let index in arr) {
      console.log(index, arr[index]); // 会输出索引和自定义属性
    }
@@ -1767,7 +1767,7 @@ do {
 
    ```js
    let person = { name: "Alice", age: 30 };
-
+   
    // 错误示例
    for (let prop of person) {
      console.log(prop);
@@ -2245,14 +2245,11 @@ console.log(sum(10)); // 输出: 33 (3 + 5 + 6 + 9 + 10)
 > - 平均分 ≥ 60：D
 > - 平均分 < 60：F
 
-**解法**：
+解法：
 
-1. Step1：计算 `marks` 数组的平均分。
-   - 使用循环累加 `marks` 中的分数，然后将总和除以数组长度得到平均值。
-   - 抽取一个通用函数 `calculateAverage` 来计算任意数组的平均值。
-2. Step2：根据平均分映射到对应的等级。
-   - 使用一系列的条件判断语句（`if`）返回对应的等级。
-   - 优化代码逻辑，减少冗余条件。
+1. Step1：首先计算成绩的平均分。将所有成绩加起来，并除以成绩的个数。
+2. Step2：根据平均分映射对应的成绩等级。
+3. Step3：为了保持代码简洁和符合单一职责原则，将计算平均分和映射等级的功能分别提取成单独的函数。
 
 ```javascript
 // 计算数组中数值的平均值
@@ -2277,24 +2274,15 @@ const marks = [85, 90, 78, 92, 88];
 console.log(calculateGrade(marks)); // 输出：B
 ```
 
-## Ex10 显示星星图案
+## Ex10 打印星号图案
 
-> 编写一个函数 `showStars`：
->
-> 1. 接收一个参数 `rows`，表示图案的行数。
-> 2. 输出星星图案，其中第 `n` 行包含 `n` 个星星。
->
-> **示例：**
->
-> 调用 `showStars(5)`，结果应如下：
->
-> ```
-> *
-> **
-> ***
-> ****
-> *****
-> ```
+> **要求**：编写一个函数 `showStars`，接受一个参数 `rows`，表示要打印的行数。每一行的星号数量与行数相同，例如，第一行一个星号，第二行两个星号，以此类推，直到第 `rows` 行为 `rows` 个星号。
+
+**解法**：
+
+1. Step1：使用外层 `for` 循环遍历行数 `rows`，每次迭代代表一行。
+2. Step2：在每一行中，使用内层 `for` 循环控制打印星号的数量，星号数量等于当前的行数。
+3. Step3：通过 `console.log` 打印每行的星号图案。
 
 ```javascript
 function showStars(rows) {
@@ -2318,7 +2306,7 @@ showStars(5);
 */
 ```
 
-## Ex11 检查并打印素数
+## Ex11 打印质数
 
 > **要求**：实现两个函数：
 >
@@ -2327,12 +2315,9 @@ showStars(5);
 
 **解法**：
 
-1. Step1：实现 `isPrime` 函数
-   - 使用循环从 `2` 到 `number-1` 检查是否存在能整除 `number` 的因数。
-   - 如果找到因数，返回 `false`，否则返回 `true`。
-2. Step2：实现 `showPrimes` 函数
-   - 遍历从 `2` 到 `limit` 的所有数字。
-   - 对每个数字调用 `isPrime` 函数，若为素数则打印。
+1. Step1：使用 `for` 循环遍历从 2 到 `limit` 的每个数字。
+2. Step2：对每个数字，使用另一个 `for` 循环检查是否存在因子（除了 1 和该数本身），如果找到因子则说明该数不是质数。
+3. Step3：如果该数没有任何因子，则为质数，打印输出。
 
 ```javascript
 // 判断一个数是否是素数
@@ -2363,962 +2348,1196 @@ showPrimes(10);
 
 # 对象
 
-## 概念
+## JS面向对象编程
 
-> 在之前的课程中，你已经了解了一些关于 **对象** 的知识。对象是键值对（key-value pairs）的集合。当你有多个属性密切相关时，我们可以将它们封装到一个对象中。对象中还可以放入方法。
+> **简述**：对象是 JavaScript 中用于将相关属性和方法封装在一起的核心概念，通常用于组织和操作具有相似特性的实体。OOP 是一种将程序建模为对象集合并通过相互协作实现功能的编程范式。
 
-```js
-const circle = {
-  radius: 5,
-  location: {
-    x: 10,
-    y: 20,
-  },
-  isVisible: true,
-  draw: function () {
-    console.log("draw");
-  },
-};
+**知识树**
 
-circle.draw();
-```
+1. 对象的基本概念
+   - 对象是键值对（key-value pairs）的集合，用于描述实体的特性和行为。
+   - 属性（Property）：描述对象的状态，可以是基本类型、对象、数组或函数。
+   - 方法（Method）：对象中的函数，用于描述对象的行为。
+     - 方法依附于对象。
+     - 函数独立于对象存在。
+2. 创建对象的方式
+   - 对象字面量（Object Literal）：最常见的方式，适用于简单的对象。
+   - 工厂函数（Factory Function）：通过函数创建对象，以实现复用。
+   - 构造函数（Constructor Function）：使用 `new` 操作符创建对象，适用于更复杂的对象。
+3. 对象的使用
+   - 使用点语法（`.`）或方括号语法（`[]`）访问对象的属性和方法。
+   - 对象的方法操作其属性，实现行为和状态的结合。
+4. 面向对象编程的核心思想
+   - 封装：将相关数据（属性）和行为（方法）组织在一个对象中。
+   - 抽象：通过对象模型化现实世界的实体。
+   - 继承：允许对象基于其他对象扩展功能（将在后续学习）。
+   - 多态：对象可以以不同形式表现（将在后续学习）。
 
-**面向对象编程 (OOP)**
+**代码示例**
 
-当我们把属性和方法组织到一个对象中时，这就是 _面向对象编程（Object-Oriented Programming, OOP）_ 的一种表现。在面向对象编程中，我们通常将程序看作是由多个对象组成的，而这些对象通过相互交互来完成某些功能。
+1. 对象基础
 
-在我们的例子中，`circle` 是一个对象，它有一些属性（如 `location`、`radius` 和 `isVisible`）以及一个方法（`draw`）。当我们说到 "调用 `circle` 对象的 `draw` 方法" 时，实际上是在说我们正在调用该对象的一个 **方法**（而不是函数）。
-
-**方法与函数的区别**
-
-在 JavaScript 中，如果一个函数是作为对象的一部分定义的，我们就称它为 **方法**。所以，`circle.draw` 是 `circle` 对象的一个方法。方法与普通函数的主要区别在于：方法是隶属于某个对象的。
-
-**使用点语法访问对象的属性和方法**
-
-一旦我们定义了对象并且为其添加了属性和方法，就可以使用 点语法 来访问它们：
-
-```js
-circle.draw();
-console.log(circle.location.x); // 输出 10
-```
+   ```js
+   // 对象字面量方式创建对象
+   const circle = {
+     radius: 1, // 属性
+     location: { x: 1, y: 1 }, // 嵌套对象
+     isVisible: true, // 布尔值
+     draw: function () {
+       // 方法
+       console.log("draw");
+     },
+   };
+   
+   // 访问属性和方法
+   console.log(circle.radius); // 输出: 1
+   console.log(circle.location.x); // 输出: 1
+   circle.draw(); // 输出: draw
+   ```
 
 ## 工厂函数
 
-> 假设你想要创建两个圆形对象，我们可能会重复相同的代码（这里特指方法的代码），如果在对象中有方法，最好用函数来创建对象
+> **简述**：工厂函数是一种创建对象的简洁方式，避免重复代码，将对象的属性和方法集中定义在一个地方，从而实现高效的复用和维护。
 
-```JS
-function createCircle(radius) {
-  return {
-    radius,
-    draw() {
-      console.log("draw");
-    },
-  };
-}
+**知识树**
 
-const circle1 = createCircle(5);
-console.log(circle1);
-const circle2 = createCircle(10);
-console.log(circle2);
-```
+1. 对象创建问题
+   - 使用对象字面量创建多个对象会导致代码重复，特别是当对象中包含逻辑（如方法）时。
+   - 代码重复使得维护困难，一处修改需要在多个地方同步更改。
+2. 工厂函数的概念
+   - 工厂函数是一个函数，用于动态创建对象并返回。
+   - 通过参数化工厂函数，可以为每个对象设置独立的属性值。
+3. 工厂函数的优化
+   - 属性简化：如果属性名和变量名相同，可以省略值，直接写属性名。
+   - 方法简化：使用 ES6 简写方法定义。传统的`methodName: function () {}`，可以简写为`methodName() {}`。
+4. 工厂函数的优势
+   - 复用性：逻辑集中定义，减少代码重复。
+   - 可维护性：修复或更新逻辑只需修改工厂函数。
 
-- `return`：由于代码结果简单，这里省略了`const`定义对象，再由`return`返回对象的步骤，直接在`return`语句中构建对象
-- 属性简写：如果属性的`key`等于`value`，如`radius: radius`，可以进行简写
+**代码示例**
 
-- 方法简写：传统的`methodName: function () {}`，可以简写为`methodName() {}`，这在 ES6 中引入
+1. 工厂函数
+
+   ```js
+   function createCircle(radius) {
+     return {
+       radius,
+       draw() {
+         console.log("draw");
+       },
+     };
+   }
+   
+   // 创建对象
+   const circle1 = createCircle(1);
+   const circle2 = createCircle(2);
+   
+   // 访问属性和方法
+   console.log(circle1.radius); // 输出: 1
+   circle1.draw(); // 输出: draw
+   console.log(circle2.radius); // 输出: 2
+   circle2.draw(); // 输出: draw
+   ```
+
+   - `return`：由于代码结果简单，这里省略了`const`定义对象，再由`return`返回对象的步骤，直接在`return`语句中构建对象
+   - `radius` 简写：当属性名和变量名一致时，可直接写 `radius`。
+   - 方法 `draw` 的简写：直接写 `draw() {}`，更简洁。
+
 
 ## 构造函数
 
-> **构造函数**（Constructor Function）。与工厂函数类似，构造函数的任务是创建对象，但其命名约定和实现方式有所不同。两种构建方式没有优劣之分。
+> **简述**：构造函数是一种创建对象的模式，通过 `new` 操作符动态创建对象。相比工厂函数，构造函数更贴近面向对象编程语言（如 Java、C#）的对象创建方式。
 
-**命名约定**
+**知识树**
 
-- *工厂函数*的命名：驼峰命名法（Camel Notation）
+1. 构造函数的命名规范
+   - 使用 Pascal 命名法：所有单词首字母大写（如 `Circle`）。
+   - 与工厂函数的 Camel 命名法（首单词小写，其余单词首字母大写）区别开来。
+2. 构造函数的定义与使用
+   - 使用 `this` 关键字初始化属性和方法。
+   - 通过 `new` 操作符创建对象：
+     - 自动创建一个空对象。
+     - 将 `this` 指向该对象。
+     - 返回这个新对象。
+3. 构造函数的关键特点
+   - 没有显式 `return` 语句。
+   - 属性和方法通过 `this` 绑定到新创建的对象上。
+   - 更贴近传统 OOP 编程风格。
+4. 工厂函数与构造函数的对比
+   - 工厂函数返回对象；构造函数使用 `this` 初始化属性。
+   - 命名规则不同：工厂函数使用 Camel 命名法，构造函数使用 Pascal 命名法。
+   - 使用场景根据开发者背景和团队约定而定，两者功能等效。
 
-  - 在工厂函数中，我们使用驼峰命名法，遵循以下规则：
-    - 第一个单词的首字母小写。
-    - 之后每个单词的首字母大写。
+**代码示例**
 
-- *构造函数*的命名：帕斯卡命名法（Pascal Notation）
-  - 在构造函数中，我们使用帕斯卡命名法，遵循以下规则：
-    - 每个单词的首字母都大写。
+1. 构造函数
 
-**构造函数的定义**
+   ```js
+   function Circle(radius) {
+     // 使用 `this` 初始化属性
+     this.radius = radius;
+   
+     // 添加方法
+     this.draw = function () {
+       console.log("draw");
+     };
+   }
+   
+   // 使用 `new` 创建对象
+   const circle1 = new Circle(1);
+   const circle2 = new Circle(2);
+   
+   // 访问属性和方法
+   console.log(circle1.radius); // 输出: 1
+   circle1.draw(); // 输出: draw
+   console.log(circle2.radius); // 输出: 2
+   circle2.draw(); // 输出: draw
+   ```
 
-我们通过定义一个函数，并使用 `this` 关键字为对象添加属性和方法。
+## 对象动态特性
 
-```JS
-function Circle(radius) {
-  this.radius = radius;
-  this.draw = function () {
-    console.log("draw");
-  };
-}
+> **简述**：在 JavaScript 中，对象是动态的。这意味着对象创建后可以随时添加或删除属性和方法。即使使用 `const` 声明对象，也只限制对象引用不可更改，而不限制对象内容的修改。
 
-const circle = new Circle(1);
-```
+**知识树**
 
-## 动态特性
+1. 对象的动态特性
+   - 对象可以在运行时添加或删除属性和方法。
+   - 对象的成员包括属性（存储数据）和方法（实现行为）。
+2. `const` 声明的限制
+   - `const` 仅限制对象引用不可更改。
+   - 对象内部的属性和方法仍然可以被修改或删除。
 
-> 在 JavaScript 中，对象是动态的，这意味着我们可以在创建对象后随时添加新的属性或方法，也可以移除现有的属性或方法。
+**代码示例**
 
-**动态添加属性和方法**
+1. 动态添加属性和方法
 
-我们可以通过点语法或方括号语法为对象添加新的属性。
+   ```js
+   const circle = {
+     radius: 5, // 初始属性
+   };
+   
+   // 动态添加属性
+   circle.color = "yellow";
+   
+   // 动态添加方法
+   circle.draw = function () {
+     console.log("Drawing a circle");
+   };
+   
+   console.log(circle);
+   // 输出：{ radius: 5, color: 'yellow', draw: [Function (anonymous)] }
+   ```
 
-```js
-const circle = {
-  radius: 1,
-};
+2. 动态删除属性和方法
 
-circle.color = "yellow";
-circle.draw = function () {};
+   ```js
+   // 删除属性
+   delete circle.color;
+   
+   // 删除方法
+   delete circle.draw;
+   
+   console.log(circle);
+   // 输出：{ radius: 5 }
+   ```
 
-console.log(circle);
-```
+3.  `const` 声明的行为
 
-**动态移除属性和方法**
-
-我们可以使用 `delete` 操作符移除对象的属性或方法。
-
-```JS
-const circle = {
-  radius: 1,
-  color: "yellow",
-  draw() {},
-};
-
-delete circle.color;
-delete circle.draw;
-
-console.log(circle);
-```
-
-**使用 `const` 创建对象**
-
-在 JavaScript 中，`const` 声明的变量是 **常量**，意味着变量的引用不能被重新分配。
-
-```JS
-const circle = {
-  radius: 5,
-};
-
-circle = {}; // 抛出错误：Assignment to constant variable
-```
-
-虽然 `const` 禁止重新赋值变量，但对象的内容是可以修改的，因为对象存储在内存中的引用并未改变。
+   ```js
+   const circle = {
+     radius: 5,
+   };
+   
+   circle.radius = 10; // 可以修改属性
+   console.log(circle.radius); // 输出：10
+   
+   // circle = {}; // 错误：不能重新分配对象引用
+   // Uncaught TypeError: Assignment to constant variable.
+   ```
 
 ## `constructor` 属性
 
-> 在 JavaScript 中，每个对象都有一个名为 **`constructor`** 的属性，它引用了用于构造或创建该对象的函数。
+> **简述**：JavaScript 中每个对象都有一个 `constructor` 属性，它引用用于创建该对象的构造函数。通过 `constructor` 属性，我们可以查看对象是由哪个构造函数创建的。
 
-**示例：对象的 `constructor` 属性**
+**知识树**
 
-```js
-function createCircle(radius) {
-  return {
-    radius,
-    draw() {
-      console.log("draw");
-    },
-  };
-}
-const circle = new createCircle(1);
+1. `constructor` 的定义
+   - 所有对象都有一个 `constructor` 属性。
+   - 它指向创建该对象的构造函数。
+2. 对象的创建方式及其构造函数
+   - 对象字面量：由内置的 `Object` 构造函数创建。
+   - 自定义构造函数：通过 `new` 操作符和构造函数显式创建。
+   - 内置类型构造函数：
+     - 字符串：`String`
+     - 数字：`Number`
+     - 布尔值：`Boolean`
+3. 推荐的创建方式
+   - 使用字面量语法（如 `{}`、`""`、`[]`）比直接调用构造函数更简洁、更直观。
 
-function Circle(radius) {
-  this.radius = radius;
-  this.draw = function () {
-    console.log("draw");
-  };
-}
+**代码示例**
 
-const another = new Circle(1);
-console.log(circle.constructor); // 输出：Object
-console.log(another.constructor); // 输出：Circle
-```
-
-1. `circle.constructor`:
-   - `circle` 是通过工厂函数 `createCircle` 创建的。
-   - 工厂函数返回的是一个 对象字面量，因此 `circle.constructor` 的值为内置的 `Object` 构造函数。
-2. `another.constructor`:
-   - `another` 是通过构造函数 `Circle` 创建的。
-   - 因此 `another.constructor` 的值是 `Circle` 函数本身。
-
-**对象字面量与 `Object` 构造函数**
-
-当使用对象字面量（如 `{}`）创建对象时，JavaScript 引擎会在内部使用内置的 `Object` 构造函数。
-
-```js
-const obj = {};
-// 等价于
-const obj = new Object();
-```
-
-**内置构造函数**
-
-除了 `Object`，JavaScript 中还有一些其他内置构造函数：
-
-1. `String`：
-
-   - 创建字符串。
-   - 推荐使用字符串字面量（单引号、双引号或模板字符串）而不是 `String` 构造函数。
+1. 使用 `constructor` 查看构造函数
 
    ```js
-   const str1 = "Hello"; // 字符串字面量
-   const str2 = new String("Hello"); // 使用构造函数
-
-   console.log(str1.constructor); // 输出：String
-   console.log(str2.constructor); // 输出：String
+   // 使用自定义构造函数
+   function createCircle(radius) {
+     return {
+       radius,
+       draw() {
+         console.log("draw");
+       },
+     };
+   }
+   const circle = new createCircle(1);
+   
+   // 使用对象字面量
+   function Circle(radius) {
+     this.radius = radius;
+     this.draw = function () {
+       console.log("draw");
+     };
+   }
+   
+   const another = new Circle(1);
+   console.log(circle.constructor); // 输出: [Function: Object]
+   console.log(another.constructor); // 输出: [Function: Circle]
    ```
 
-2. `Boolean`：
-
-   - 创建布尔值。
-   - 推荐使用布尔字面量 `true` 或 `false`。
+2. 内置构造函数的行为
 
    ```js
-   const bool1 = true; // 布尔字面量
-   const bool2 = new Boolean(false); // 使用构造函数
-
-   console.log(bool1.constructor); // 输出：Boolean
-   console.log(bool2.constructor); // 输出：Boolean
+   // 使用内置构造函数
+   const str = new String("Hello");
+   console.log(str.constructor); // 输出: [Function: String]
+   
+   // 使用字符串字面量
+   const strLiteral = "Hello";
+   console.log(strLiteral.constructor); // 输出: [Function: String]
    ```
 
-3. `Number`：
-
-   - 创建数字。
-   - 推荐使用数字字面量（如 `42`）而不是 `Number` 构造函数。
+3. 字面量 vs 构造函数
 
    ```js
-   const num1 = 42; // 数字字面量
-   const num2 = new Number(42); // 使用构造函数
-   console.log(num1.constructor); // 输出：Number
-   console.log(num2.constructor); // 输出：Number
+   // 数组
+   const arrLiteral = [];
+   const arrConstructor = new Array();
+   
+   console.log(arrLiteral.constructor); // 输出: [Function: Array]
+   console.log(arrConstructor.constructor); // 输出: [Function: Array]
+   
+   // 数字
+   const numLiteral = 42;
+   const numConstructor = new Number(42);
+   
+   console.log(numLiteral.constructor); // 输出: [Function: Number]
+   console.log(numConstructor.constructor); // 输出: [Function: Number]
    ```
 
 ## 函数是 对象
 
-> 在 JavaScript 中，函数不仅仅是执行某些操作的代码块，它们也是对象。函数本身也有属性和方法，和普通对象一样。
+> **简述**：在 JavaScript 中，函数本质上是对象。函数不仅可以被调用，还拥有一些内建属性和方法，允许更灵活和动态的操作。
 
-**函数作为对象**
+**知识树**
 
-在 JavaScript 中，函数本身是对象。这意味着函数不仅具有执行代码的能力，还拥有一些内置的属性和方法。如方法`call`、`bind`、`apply`，如属性`name`返回函数的名称，`length`返回函数的参数数量。
+1. 函数的本质
 
-```js
-function Circle(radius) {
-  this.radius = radius;
-  this.draw = function () {
-    console.log("draw");
-  };
-}
+   - 函数是 `Function` 构造函数创建的对象。
+   - 函数可以有属性（如 `name`, `length`）和方法（如 `call`, `apply`, `bind`）。
 
-const circle = new Circle(1);
+2. 函数的属性
 
-console.log(Circle.name); // 输出：Circle
-console.log(Circle.length); // 输出：1
-```
+   - `name`：函数的名称。
+   - `length`：函数参数的个数。
+   - `constructor`：引用创建函数的 `Function` 构造函数。
 
-**构造函数与函数作为对象**
+3. 函数的动态构建
 
-每个对象都有一个 `constructor` 属性，指向用于创建该对象的函数。在函数的情况下，`constructor` 属性指向 `Function` 构造函数，因为在 JavaScript 中，函数是通过 `Function` 构造函数创建的。
+   - 可以通过 `Function` 构造函数动态创建函数。
 
-```js
-console.log(Circle.constructor); // 输出：function Function() { [native code] }
-```
+4. 函数的方法（后续函数章节详细说明）
 
-我们可以显式地创建一个函数对象。例如，下面的代码创建了一个 `circle` 函数对象：
+   - `call()`：调用函数，并明确指定 `this` 和参数。
+   - `apply()`：与 `call()` 类似，但以数组形式传递参数。
+   - `bind()`：返回一个绑定了特定 `this` 值的新函数。
 
-```js
-const Circle1 = new Function(
-  "radius",
-  `
-  this.radius = radius;
-  this.draw = function() {
-    console.log("draw");
-  };
-  `
-);
+   - *`call()`、`apply()`这些方法一般不直接作用在构造函数上，因为它们的本意是执行一个函数，而构造函数的场景需要结合 `new` 操作符使用。如果直接对构造函数使用 `call()` 或 `apply()`，可能会导致一些问题，例如 `this` 指向问题，或者实例无法继承构造函数的原型方法。`bind()` 在构造函数上的使用也比较少*
 
-const another = new Circle1(1);
-```
+**代码示例**
 
-**`call`方法 和 `apply`方法**
+1. 函数的属性
 
-- 在 JavaScript 中，`call` 方法允许我们显式地设置一个函数的 `this` 上下文。通过 `call` 方法调用构造函数时，它实际上是通过改变 `this` 的上下文来执行函数的代码。而 `return this;` 在构造函数中的作用是返回当前的 `this`，也就是当前的对象。
+   ```js
+   function Circle(radius) {
+     this.radius = radius;
+     this.draw = function () {
+       console.log("Draw a circle");
+     };
+   }
+   
+   console.log(Circle.name); // 输出: "Circle"
+   console.log(Circle.length); // 输出: 1 (参数个数)
+   console.log(Circle.constructor); // 输出: [Function: Function]
+   ```
 
-  - 核心概念
-    1. `this` 指向：当你使用 `new` 关键字时，`this` 会指向新创建的对象。而当你使用 `call` 或 `apply` 时，`this` 可以显式地指向你指定的对象。
-    2. `return this` 的作用：在构造函数内部使用 `return this;`，意味着返回当前的 `this` 对象，这通常是在构造函数外部不使用 `new` 关键字时的一种显式行为。然而，`call` 方法不依赖于 `return this;` 来创建新的对象，因为 `call` 内部已经将 `this` 显式绑定到了目标对象。
-  - 多自己测试
+2. 使用 `Function` 构造函数
 
-  ```js
-  function Circle(radius) {
-    this.radius = radius;
-    this.draw = function () {
-      console.log("draw");
-    };
-    return this; // 若没有显示，call方法将返回underfined
-  }
-  const circle1 = Circle.call({}, 1);
-  // 等价于
-  function Circle(radius) {
-    this.radius = radius;
-    this.draw = function () {
-      console.log("draw");
-    };
-  }
-  const circle = new Circle(1);
-  // 等价于
-  function Circle(radius) {
-    this.radius = radius;
-    this.draw = function () {
-      console.log("draw");
-    };
-  }
-  const c = {};
-  Circle.call(c, 1);
-  ```
+   ```js
+   const Circle = new Function(
+     "radius",
+     `
+     this.radius = radius;
+     this.draw = function () {
+       console.log("Draw a circle");
+     };
+   `
+   );
+   
+   const circle = new Circle(5);
+   circle.draw(); // 输出: "Draw a circle"
+   ```
 
-- `apply` 方法
+3.  `call` 、 `apply` 和  `bind` 方法
 
-  `apply` 与 `call` 很相似，唯一的区别在于 **参数传递的方式**。`call` 需要我们逐个传递参数，而 `apply` 允许我们传递一个数组。
+   ```js
+   function greet(greeting, punctuation) {
+     console.log(`${greeting}, ${this.name}${punctuation}`);
+   }
+   
+   const person = { name: "John" };
+   
+   // 使用 call
+   greet.call(person, "Hello", "!"); // 输出: "Hello, John!"
+   
+   // 使用 apply
+   greet.apply(person, ["Hi", "."]); // 输出: "Hi, John."
+   
+   // 使用 bind
+   const sayHi = greet.bind(person, "Hello", "!");
+   sayHi(); // 输出: "Hello, John!"
+   ```
 
-  在这里，`apply` 也会将第一个参数作为 **`this`** 上下文传递，并将第二个参数作为函数参数传递。
+4. 补充作用于构造函数的情况
 
-  ```js
-  circle.apply({}, [5]); // 第二个参数是一个数组
-  ```
+   ```js
+   function Circle(radius) {
+     this.radius = radius;
+     this.draw = function () {
+       console.log("draw");
+     };
+     return this; // 若没有显式返回this，使用call/apply方法将返回underfined
+   }
+   const circle1 = Circle.call({}, 1);
+   console.log("circle1:", circle1); // 输出 circle1: {radius: 1, draw: ƒ}
+   const circle2 = Circle.apply({}, [1]);
+   console.log("circle2:", circle2); // 输出 circle1: {radius: 1, draw: ƒ}
+   
+   const circle3 = Circle.bind({}, 1);
+   console.log("circle3:", circle3);
+   // 输出
+   // circle3: ƒ Circle(radius) {
+   //   this.radius = radius;
+   //   this.draw = function () {
+   //     console.log("draw");
+   //   };
+   //   return this; // 若没有显式返回this，使用call/apply方法将返回underfined
+   // }
+   ```
 
 ## 值类型与引用类型
 
-> 在 JavaScript 中，数据类型分为两大类：值类型（也称为原始类型）和引用类型。理解它们的区别对于深入掌握 JavaScript 非常重要，尤其是在涉及到原型和继承的部分。
->
-> - 值类型的特点是：当你将一个变量赋值给另一个变量时，是复制的值，它们是 独立的。这意味着，如果其中一个变量的值发生了改变，不会影响另一个变量。
-> - 引用类型的特点是：当你将一个引用类型的变量赋值给另一个变量时，赋值的是内存地址（即引用），因此 两个变量指向同一个对象，它们之间是 相互关联的。当你通过一个变量修改对象的属性时，另一个变量的值也会受到影响。
+> **简述**：JavaScript 的数据分为两大类：**值类型**（primitives）和**引用类型**（reference types）。它们的存储方式和行为存在根本区别。
 
-**值类型（原始类型）**
+**知识树**
 
-值类型是指变量直接存储其值的数据类型。在 JavaScript 中，值类型包括：
+1. 值类型（Primitives）
+   - 包括：`Number`、`String`、`Boolean`、`Symbol`、`undefined` 和 `null`。
+   - 特性：
+     - 直接存储在变量中。
+     - 通过 值拷贝 进行赋值，拷贝的是实际的值。
+     - 每个变量独立存储其值，修改一个变量不会影响另一个。
+2. 引用类型（Reference Types）
+   - 包括：`Object`、`Array`、`Function`。
+   - 特性：
+     - 变量存储的是对象的内存地址（引用）。
+     - 通过 引用拷贝 进行赋值，多个变量共享同一个内存地址。
+     - 修改对象属性时，所有引用都会反映变化。
+3. 函数中的行为
+   - 传递值类型时，会复制值本身，函数内部的更改不会影响外部变量。
+   - 传递引用类型时，会复制内存地址，函数内部修改对象会影响外部对象。
 
-- Number（数字）
-- String（字符串）
-- Boolean（布尔值）
-- Symbol（符号，ES6 引入）
-- Null（空值）
-- Undefined（未定义）
+**代码示例**
 
-**引用类型（对象）**
+1. 值类型的拷贝
 
-引用类型则是指变量存储的是指向数据的 引用 或 地址，而不是数据本身。在 JavaScript 中，引用类型包括：
+   ```js
+   let x = 10;
+   let y = x; // 值拷贝
+   
+   y = 20;
+   
+   console.log(x); // 输出: 10
+   console.log(y); // 输出: 20
+   ```
 
-- Object（对象）
-- Function（函数）
-- Array（数组）
+2. 引用类型的拷贝
 
-**值类型与引用类型的行为示例**
+   ```js
+   let x = { value: 10 };
+   let y = x; // 引用拷贝
+   
+   y.value = 20;
+   
+   console.log(x.value); // 输出: 20
+   console.log(y.value); // 输出: 20
+   ```
 
-- 值类型：
+3. 函数中的值类型
 
-  ```js
-  let x = 10;
-  let y = x; // 复制 x 的值给 y
+   ```js
+   function increase(number) {
+     number++;
+   }
+   
+   let num = 10;
+   increase(num);
+   
+   console.log(num); // 输出: 10
+   ```
 
-  x = 20; // 修改 x 的值
+4. 函数中的引用类型
 
-  console.log(x); // 输出 20
-  console.log(y); // 输出 10
-  ```
-
-  - 在这个例子中，`x` 和 `y` 是 **独立的**。修改 `y` 的值不会影响到 `x`，因为它们存储的是不同的值。
-
-- 引用类型：
-
-  ```js
-  let x = { value: 10 };
-  let y = x; // 复制 x 的引用给 y
-  x.value = 20; // 修改 x 的 value 属性
-  console.log(x.value); // 输出 20
-  console.log(y.value); // 输出 20
-  ```
-
-  - 在这个例子中，`x` 和 `y` 都引用同一个对象。当通过 `y` 修改对象的 `value` 属性时，`x` 的 `value` 也发生了变化，因为它们指向同一个对象。
-
-**函数传参：值类型与引用类型**
-
-- 值类型作为函数参数
-
-```js
-function increase(number) {
-  number += 1;
-  console.log(number); // 输出增加后的值
-}
-
-let num = 10;
-increase(num); // 传入 num
-
-console.log(num); // 输出 10，原始值没有改变
-```
-
-- 在这个例子中，`number` 是一个值类型（数字）。当我们将 `num` 传递给 `increase` 函数时，实际上是复制了 `num` 的值到 `number` 变量。它们是独立的，所以 `num` 的值没有发生改变。
-
-- 引用类型作为函数参数
-
-  ```js
-  function increase(obj) {
-    obj.value += 1;
-    console.log(obj.value); // 输出增加后的值
-  }
-  let obj = { value: 10 };
-  increase(obj); // 传入 obj
-  console.log(obj.value); // 输出 11，原始对象被修改
-  ```
-
-  - 在这个例子中，`obj` 是一个引用类型。当我们将 `obj` 传递给 `increase` 函数时，我们传递的是该对象的引用。函数内部修改对象的 `value` 属性时，外部的 `obj` 也受到了影响，因为它们指向同一个对象。
+   ```js
+   function increase(obj) {
+     obj.value++;
+   }
+   
+   let obj = { value: 10 };
+   increase(obj);
+   
+   console.log(obj.value); // 输出: 11
+   ```
 
 ## 枚举对象的属性
 
-> 在 JavaScript 中，有多种方式可以遍历对象的属性和方法。每种方法都有其特定的用途，理解这些方法之间的差异对于高效地操作对象非常重要。
+> **简述**：JavaScript 中有几种遍历对象的属性和方法的方式，包括 `for...in` 循环、`for...of` 循环结合 `Object.keys()` 和 `Object.entries()` 方法，以及使用 `in` 操作符检查对象是否包含某个属性。这些方法可以帮助开发者有效地访问和操作对象的各个部分。
 
-**`for...in` 循环**
+**知识树**
 
-`for...in` 循环是最简单的遍历对象属性（包括方法）的方法之一。
+1. `for...in` 循环
+   - 用于遍历对象的所有可枚举属性（包括方法）。
+   - 循环时返回的是对象的 键（key）。
+2. `for...of` 循环
+   - 仅用于遍历 可迭代对象（如数组、字符串、Map 等），不能直接用于对象。
+   - 结合 `Object.keys()` 或 `Object.entries()` 可用于对象。
+3. `Object.keys()` 方法
+   - 返回对象的所有键，以字符串数组的形式。
+   - 可以与 `for...of` 循环结合使用。
+4. `Object.entries()` 方法
+   - 返回对象的所有属性的 键值对，每对以数组形式存储。
+   - 结合 `for...of` 循环，可以遍历对象的键值对。
+5. `in` 操作符
+   - 检查对象是否具有某个属性或方法。
 
-```js
-const circle = {
-  radius: 1,
-  draw() {
-    console.log("draw");
-  },
-};
+**代码示例**
 
-for (let key in circle) console.log(key, circle[key]);
-```
+1. 使用 `for...in` 遍历对象的属性
 
-- 工作原理：`for...in` 循环会遍历对象的 所有可枚举属性（包括方法）。`key` 是属性名（例如 `radius` 或 `draw`），`circle[key]` 用于访问该属性的值。
+   ```js
+   let circle = {
+     radius: 10,
+     draw() {
+       console.log('Drawing a circle');
+     }
+   };
+   
+   // 遍历对象的属性
+   for (let key in circle) {
+     console.log(key); // 输出: radius, draw
+     console.log(circle[key]); // 输出: 10, function draw()
+   }
+   ```
 
-**`for...of` 循环**
+2. 使用 `for...of` 与 `Object.keys()` 结合
 
-`for...of` 循环适用于 可迭代对象（例如数组、字符串、Map）。若对象本身并不可迭代，直接对对象使用 `for...of` 循环会抛出错误。
+   ```js
+   let circle = {
+     radius: 10,
+     draw() {
+       console.log('Drawing a circle');
+     }
+   };
+   
+   // 使用 Object.keys() 获取所有键并与 for...of 循环结合
+   for (let key of Object.keys(circle)) {
+     console.log(key); // 输出: radius, draw
+   }
+   ```
 
-```js
-for (let key of circle) {
-  // 错误： "circle 不是可迭代对象"
-  console.log(key);
-}
-```
+3. 使用 `Object.entries()` 遍历对象的键值对
 
-不过，我们可以使用 `Object.keys()` 或 `Object.entries()` 方法，将对象转换为数组，从而使其可以用 `for...of` 循环进行遍历。
+   ```js
+   let circle = {
+     radius: 10,
+     draw() {
+       console.log('Drawing a circle');
+     }
+   };
+   
+   // 使用 Object.entries() 获取所有键值对并遍历
+   for (let [key, value] of Object.entries(circle)) {
+     console.log(key, value); // 输出: radius 10, draw function draw()
+   }
+   ```
 
-**`Object.keys()` 方法**
+4. 使用 `in` 操作符检查属性是否存在
 
-输入一个`Object`，能看到许多方法，
+   ```js
+   let circle = {
+     radius: 10,
+     draw() {
+       console.log('Drawing a circle');
+     }
+   };
+   
+   console.log('radius' in circle); // 输出: true
+   console.log('color' in circle);  // 输出: false
+   ```
 
-`Object.keys()` 方法返回一个包含对象自身所有可枚举属性名的数组。
+## 克隆和合并对象
 
-```js
-for (let key of Object.keys(circle)) console.log(key);
-```
+> **简述**：JavaScript 中有多种方式克隆对象或合并多个对象，包括传统的 `for...in` 循环、`Object.assign()` 方法，以及更简洁的扩展运算符（`...`）。
 
-- 工作原理：`Object.keys(circle)` 会将对象的键（如 `['radius', 'draw']`）转换成一个数组。我们可以使用 `for...of` 循环遍历这个数组。
+**知识树**
 
-**`Object.entries()` 方法**
+1. 克隆对象的方法
+   - `for...in` 循环
+   - `Object.assign()` 方法
+   - 扩展运算符（Spread Operator）
+2. `Object.assign()` 方法
+   - 用于将源对象的所有属性复制到目标对象。
+   - 可用于克隆单个对象，或者将多个对象合并到一个目标对象中。
+3. 扩展运算符（Spread Operator）
+   - 用于快速克隆对象或合并对象。
+   - 通过将对象的所有属性展开到新对象中，实现浅拷贝。
 
-`Object.entries()` 方法返回一个包含对象自身所有可枚举属性 `[key, value]` 对的数组。
+**代码示例**
 
-```js
-for (let entry of Object.entries(circle)) console.log(entry);
-```
+1. 使用 `for...in` 循环克隆对象
 
-- 工作原理：`Object.entries(circle)` 将对象转换为一个键值对数组（如 `[['radius', 10], ['draw', function]]`）。每个 `entry` 是一个包含键和值的数组。
+   ```js
+   let circle = {
+     radius: 10,
+     draw() {
+       console.log('Drawing a circle');
+     }
+   };
+   
+   // 使用 for...in 循环复制对象属性
+   let another = {};
+   for (let key in circle) {
+     another[key] = circle[key];
+   }
+   
+   console.log(another); // 输出: { radius: 10, draw: function }
+   ```
 
-**`in` 方法**
+2. 使用 `Object.assign()` 克隆对象
 
-可以使用 `in` 操作符检查一个对象是否包含某个特定的属性或方法。这对于在执行某些操作前进行条件检查非常有用。
+   ```js
+   let circle = {
+     radius: 10,
+     draw() {
+       console.log('Drawing a circle');
+     }
+   };
+   
+   // 使用 Object.assign() 克隆对象
+   let another = Object.assign({}, circle);
+   
+   console.log(another); // 输出: { radius: 10, draw: function }
+   ```
 
-```js
-if ("radius" in circle) console.log("yes"); // 输出：yes
-if ("color" in circle) console.log("yes"); //无输出
-```
+3. 使用扩展运算符（Spread Operator）克隆对象
 
-- 工作原理：`in` 操作符用于检查一个特定的属性是否存在于对象中，即使该属性的值为 `undefined`。如果属性存在，则返回 `true`，否则返回 `false`。
+   ```js
+   let circle = {
+     radius: 10,
+     draw() {
+       console.log('Drawing a circle');
+     }
+   };
+   
+   // 使用扩展运算符（Spread Operator）克隆对象
+   let another = { ...circle };
+   
+   console.log(another); // 输出: { radius: 10, draw: function }
+   ```
 
-## 克隆对象
+4. 合并多个对象
 
-> 在 JavaScript 中，如果你想要将一个对象的所有属性和方法复制到另一个对象中，可以使用多种方法。这里我们会探讨几种不同的方式，包括传统的 `for...in` 循环、`Object.assign()` 方法以及更简洁的扩展运算符（spread operator）。
->
-> **推荐使用：扩展运算符（Spread Operator）**
-
-**`for...in`循环**
-
-这是一个较为传统的方法，我们通过 `for...in` 循环遍历对象的所有属性，并将它们手动复制到一个新的对象中。
-
-```js
-const circle = {
-  radius: 1,
-  draw() {
-    console.log("draw");
-  },
-};
-
-const another = {};
-
-for (let key in circle) another[key] = circle[key];
-
-console.log(another);
-```
-
-- 工作原理：我们遍历 `circle` 对象的所有属性，并将它们复制到 `another` 对象中。这个方法手动复制每个属性，但在现代 JavaScript 中有更简洁的替代方案。
-
-**`Object.assign()` 方法**
-
-- `Object.assign()` 是一种更现代的方式，它可以将一个或多个源对象的所有可枚举属性复制到目标对象中。它返回目标对象。
-- 还可以使用 `Object.assign()` 在克隆时添加其他属性到目标对象。例如，可以在克隆时为目标对象添加额外的属性。
-
-```js
-const another = Object.assign({}, circle);
-
-// const another = Object.assign(
-//   {
-//     color: "yellow",
-//   },
-//   circle
-// );
-```
-
-- 工作原理：`Object.assign()` 的第一个参数是目标对象（在这里是一个空对象 `{}`），后续的参数是源对象（这里是 `circle`）。所有源对象的属性会被复制到目标对象，并返回目标对象。
-
-- **_补充_**：`Object.assign()` 是浅拷贝，因此如果源对象中的某个属性是引用类型（如对象或数组），那么目标对象与源对象共享该引用。
-
-  ```js
-  const demo = {
-    deep: {
-      level: 1,
-    },
-  };
-  const copy = Object.assign({}, demo);
-  demo.deep.level = 2;
-  console.log(copy.deep.level); // 输入2
-  ```
-
-**扩展运算符（Spread Operator）**
-
-扩展运算符（`...`）提供了一个非常简洁的方式来复制对象。这是目前最推荐的方式之一，因为它代码简洁且易读。
-
-```js
-const circle = {
-  radius: 10,
-  draw() {
-    console.log("绘制圆形");
-  },
-};
-
-// 使用扩展运算符克隆对象
-const another = { ...circle };
-
-console.log(another);
-// 输出: { radius: 10, draw: [Function: draw] }
-```
-
-- 工作原理：通过扩展运算符 `...`，我们可以将 `circle` 对象中的所有属性“展开”到新对象 `another` 中。这是一种非常简洁和优雅的方式。该方式同样是浅拷贝。
+   ```js
+   let circle = {
+     radius: 10,
+     draw() {
+       console.log('Drawing a circle');
+     }
+   };
+   
+   let color = {
+     color: 'yellow'
+   };
+   
+   // 使用 Object.assign() 合并对象
+   let merged1 = Object.assign({}, circle, color);
+   console.log(merged1); // 输出: { radius: 10, draw: function, color: 'yellow' }
+   
+   // 使用扩展运算符合并对象
+   let merged2 = { ...circle, ...color };
+   console.log(merged2); // 输出: { radius: 10, draw: function, color: 'yellow' }
+   ```
 
 ## 垃圾回收
 
-> 在低级语言如 C 或 C++ 中，我们需要手动分配和释放内存。即使是创建一个对象，也需要显式地为它分配内存空间，并在不再需要时释放这部分内存。然而，JavaScript 的内存管理与此不同，它通过自动化的 **垃圾回收机制** 来处理内存的分配和回收。作为开发者，我们不需要手动管理内存，JavaScript 引擎会在后台完成这些操作。
+> **简述**：JavaScript 的内存管理与垃圾回收机制与 C/C++ 等低级语言不同，开发者无需手动管理内存分配和回收。JavaScript 自动处理内存，垃圾回收器会定期查找不再使用的变量并释放其占用的内存。
 
-**自动内存分配与回收**
+**知识树**
 
-- 内存分配：当我们创建一个对象或变量时，即便是空对象，JavaScript 引擎会自动分配内存。例如，声明一个对象时，内存会在创建对象的同时被分配。
+1. 内存管理
+   - 在 JavaScript 中，内存管理由引擎自动处理，开发者无需手动分配或释放内存。
+2. 垃圾回收
+   - 自动回收不再使用的变量和对象的内存。
+   - 垃圾回收器根据一些复杂算法在后台运行，判断哪些变量不再使用，并释放它们的内存。
+3. 垃圾回收的工作原理
+   - 通过引用计数和标记清除等算法确定哪些对象可以被回收。
+4. JavaScript 内存分配与释放
+   - JavaScript 中的对象、数组、函数等都是动态分配内存的，当这些数据不再被引用时，垃圾回收器会回收它们的内存。
 
-  ```js
-  const obj = {
-    name: "Circle",
-    radius: 10,
-  };
-  ```
+**代码示例**
 
-  在这段代码中，内存会在 `obj` 对象被初始化时自动分配，并为该对象的属性（如 `name` 和 `radius`）分配空间。
+1. JavaScript 的内存分配
 
-- 内存回收：当对象不再被任何变量引用时，它会被垃圾回收器标记为可回收，然后释放内存。
+   ```js
+   let obj = { name: "JavaScript" }; // 创建一个对象，内存自动分配
+   let arr = [1, 2, 3]; // 创建一个数组，内存自动分配
+   ```
+
+   - 在 JavaScript 中，像对象和数组这样的数据结构的内存会在创建时自动分配，开发者无需关注内存的具体分配过程。
+
+2. 垃圾回收
+
+   ```js
+   let obj = { name: "JavaScript" };
+   obj = null; // obj 不再引用原来的对象，垃圾回收器会回收该对象的内存
+   ```
+
+   - 当对象和数组不再被引用时，它们的内存会被垃圾回收器自动回收。由于没有其他变量引用该对象，垃圾回收器会自动清除 `obj` 所占用的内存。
 
 ## `Math` 对象
 
-> JavaScript 提供了一个非常强大的内置对象 —— **`Math`** 对象，专门用于处理各种数学常数和函数。这个对象包含了许多有用的属性和方法，可以帮助你进行数学运算，比如求最大值、最小值、生成随机数等。Google：javascript math
+> **简述**：JavaScript 提供了一个内置的 **`Math`** 对象，它包含了许多用于数学计算的常数和函数。可以用来执行数学运算，比如求最大值、最小值、生成随机数等。
 
-**`Math` 对象概述**
+**知识树**
 
-`Math` 对象是一个内置的全局对象，不需要使用 `new` 关键字来创建它的实例。它包含了许多静态属性和方法，帮助我们处理数学运算。常见用法见[链接](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math)
+1. Math 对象简介
+   - 内置的数学工具类
+   - 提供常见的数学函数和常量
+2. 常用属性
+   - `Math.PI`: 圆周率常数。
+   - 其他数学常量。
+3. 常用方法
+   - `Math.abs()`: 求绝对值。
+   - `Math.random()`: 生成随机数。
+   - `Math.max()`: 返回最大值。
+   - `Math.min()`: 返回最小值。
+4. 应用示例
+   - 使用 `Math.random()` 生成区间随机数。
+   - 使用 `Math.max()` 和 `Math.min()` 查找最大/最小值。
 
-- 常用属性：
+**代码示例**
 
-  - `Math.PI`：表示圆周率常数（π）。
+1. 生成随机数
 
-  - `Math.E`：表示自然对数的底数（e）。
+   ```js
+   console.log(Math.random());  // 生成一个 0 到 1 之间的随机数
+   ```
 
-  - `Math.LN2`：表示 2 的自然对数。
+   - `Math.random()` 返回一个 0 到 1 之间的随机小数，每次调用时返回的值不同。
 
-  - `Math.LN10`：表示 10 的自然对数。
+2. 生成区间内的随机数
 
-  - `Math.SQRT2`：表示 2 的平方根。
+   ```js
+   function getRandomInt(min, max) {
+     return Math.floor(Math.random() * (max - min + 1)) + min;
+   }
+   console.log(getRandomInt(1, 100));  // 生成一个 1 到 100 之间的随机整数
+   ```
 
-- 常用方法：
+   - `Math.random()` 生成 0 到 1 之间的数，再通过 `Math.floor()` 使其变成整数，并缩放到你所需的区间。
 
-  - `Math.abs(x)`：返回数值 `x` 的绝对值。
+3. 求最大值和最小值
 
-  - `Math.random()`：返回一个 0 到 1 之间的随机浮动数。
+   ```js
+   let numbers = [10, 5, 100, 25];
+   console.log(Math.max(...numbers));  // 100
+   console.log(Math.min(...numbers));  // 5
+   ```
 
-  - `Math.max(...values)`：返回给定数值中的最大值。
-
-  - `Math.min(...values)`：返回给定数值中的最小值。
-
-  - `Math.pow(x, y)`：返回 `x` 的 `y` 次方。
-
-**使用 `Math` 对象**
-
-```js
-let x;
-
-// 生成0-1的随机数
-// x = Math.random();
-
-//四舍五入
-// x = Math.round(1.9);
-
-// 找出最大数
-x = Math.max(1, 2, 3, 4, 5);
-
-console.log(x);
-
-// 生成指定区间的随机数（链接也有）
-function getRandomArbitrary(min, max) {
-  return Math.random() * (max - min) + min;
-}
-```
+   - `Math.max()` 和 `Math.min()` 可以接受多个参数，返回最大或最小的值。通过展开运算符 `...` 可以直接传递数组中的多个元素。
 
 ## `String`对象
 
-> 在 JavaScript 中，字符串有两种类型：**字符串原始类型**（Primitive String）和**字符串对象**（String Object）
->
-> - 原始类型是不可变的，直接访问或修改字符串中的字符时，会创建一个新的字符串。
-> - 字符串对象是可以访问方法和属性的，内部 `String` 构造函数会让原始字符串具有方法和属性。
->
-> 尽管原始字符串是不可变的，但 JavaScript 引擎在内部会自动将原始字符串封装成字符串对象来调用方法，因此在大多数情况下，我们不需要关心这个细节，直接使用字符串即可。
->
-> google: javascript string
+> **简述**：JavaScript 中的 **`String`** 对象用于处理文本数据。虽然字符串是原始类型，但 JavaScript 会自动将其包装为对象，允许使用字符串对象的属性和方法。String 对象提供了很多有用的方法，比如查找字符、替换内容、转换大小写等。
 
-**字符串原始类型与字符串对象**
+**知识树**
 
-```JS
-//String primitive
-let message = "hi";
+1. String 原始类型与对象
+   - 字符串可以是原始类型（primitive）或字符串对象（通过 `new String()` 创建）。
+   - `typeof` 操作符可以区分这两者：原始字符串返回 `'string'`，字符串对象返回 `'object'`。
+2. 常用属性
+   - `length`: 获取字符串的字符数。
+3. 常用方法
+   - `includes()`: 检查字符串是否包含某个子字符串。
+   - `startsWith()`: 检查字符串是否以指定子字符串开头。
+   - `endsWith()`: 检查字符串是否以指定子字符串结尾。
+   - `indexOf()`: 查找子字符串在字符串中的位置。
+   - `replace()`: 替换字符串中的内容。
+   - `toUpperCase()`: 将字符串转换为大写。
+   - `toLowerCase()`: 将字符串转换为小写。
+   - `trim()`: 移除字符串两端的空格。
+   - `split()`: 按照指定字符将字符串分割成数组。
+4. 转义字符
+   - `\'`、`\"`、`\n`、`\t`等，处理特殊字符和换行符。
+5. 模板字面量（Template Literals）：
+   - 使用反引号（```）创建字符串，可以嵌入表达式，支持多行字符串。
 
-//String object
-const another = new String("hi");
+**代码示例**
 
-console.log(typeof message);  // 输出 "string"
-console.log(typeof another);  // 输出 "object"
+1. 字符串长度
 
-// 依然可以调用字符串的方法
-// message.xxx;
+   ```js
+   const message = "Hello, World!";
+   console.log(message.length);  // 输出 13
+   ```
 
-// message 是原始类型字符串，不能直接修改其中的字符。
-// 这里的操作是将 message 变量指向了一个新的字符串
-message = "hello";
-```
+   - `length` 返回字符串的字符数。
 
-**常用字符串方法**
+2. 查找子字符串
 
-常见用法见[链接](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+   ```js
+   const message = "This is my first message.";
+   console.log(message.includes("my"));  // true
+   console.log(message.includes("hello"));  // false
+   ```
 
-```js
-const str = " abc 456 789 ";
+   - `includes()` 检查字符串中是否包含某个子字符串，返回布尔值。
 
-let x;
+3. 判断字符串开始和结束
 
-x = str.length; // 输出字符串长度（含空）
-x = str[0]; // 输出字符串第1位的字段（索引从0开始）
-x = str[4];
-x = str.includes("789"); // 判断字符串是否包含789
-x = str.includes("999");
-x = str.startsWith("abc"); // 判断字符串是否以abc开头
-x = str.startsWith("ccc");
-x = str.endsWith("9"); // 判断字符串是否以9结尾
-x = str.indexOf("89"); // 计算字符串中 89 第一次出现的位置
-x = str.replace("789", "999"); // 将字符串中的789替换为999，并将生成的字符串返回，不影响原字符串
-x = str.toUpperCase(); // 将字符串小写替换大写，并将生成的字符串返回，不影响原字符串
-x = str.trim(); // 去除字符串前后空格
-x = str.trimLeft();
-x = str.trimRight();
+   ```js
+   const message = "Hello, World!";
+   console.log(message.startsWith("Hello"));  // true
+   console.log(message.endsWith("!"));  // true
+   ```
 
-x = str.split(" "); // 使用" "将字符串切分为数组
-console.log(x);
+   - `startsWith()` 检查字符串是否以指定子字符串开始，`endsWith()` 检查是否以指定子字符串结束。
 
-console.log(str);
-```
+4. 查找子字符串的索引
 
-**转义字符（Escape Characters）**
+   ```js
+   const message = "This is my first message.";
+   console.log(message.indexOf("my"));  // 输出 8
+   ```
 
-有时候，字符串中需要使用一些特殊字符（例如引号、换行符等），这时我们需要使用转义字符（escape notation），更多见上面提供的链接。
+   - `indexOf()` 返回子字符串第一次出现的位置，如果没有找到则返回 `-1`。
 
-- `\n`：表示换行。
-- `\t`：表示制表符。
-- `\'`：表示单引号。
-- `\"`：表示双引号。
-- `\\`：表示反斜杠。
+5. 字符串替换
 
-```js
-const escapeMessage =
-  "It's a beautiful day.\nLet's go for a walk!";
-console.log(escapeMessage);
-// 输出：
-// It's a beautiful day.
-// Let's go for a walk!
-```
+   ```js
+   const message = "This is my first message.";
+   const newMessage = message.replace("first", "second");
+   console.log(newMessage);  // "This is my second message."
+   ```
+
+   - `replace()` 用于替换字符串中的内容。注意，它返回的是新字符串，不会修改原字符串。
+
+6. 大小写转换
+
+   ```js
+   const message = "This is my first message.";
+   console.log(message.toUpperCase());  // "THIS IS MY FIRST MESSAGE."
+   console.log(message.toLowerCase());  // "this is my first message."
+   ```
+
+   - `toUpperCase()` 和 `toLowerCase()` 将字符串转换为大写或小写。
+
+7. 去除空格
+
+   ```js
+   const message = "  Hello, World!  ";
+   console.log(message.trim());  // "Hello, World!"
+   ```
+
+   - `trim()` 移除字符串两端的空格，`trimLeft()` 和 `trimRight()` 分别移除左侧和右侧的空格。
+
+8. 字符串分割
+
+   ```js
+   const message = "This is my first message.";
+   const words = message.split(" ");
+   console.log(words);  // ["This", "is", "my", "first", "message."]
+   ```
+
+   - `split()` 根据指定的分隔符将字符串拆分成数组。
+
+9. 转义字符
+
+   ```js
+   const message = "It\'s a great day!";
+   console.log(message);  // "It's a great day!"
+   ```
+
+   - 使用 `\'` 作为转义字符来插入引号，`\n` 插入换行符等。
+
+10. 模板字面量
+
+    ```js
+    const name = "John";
+    const greeting = `Hello, ${name}!`;
+    console.log(greeting);  // "Hello, John!"
+    ```
+
+    - 使用反引号创建字符串，允许嵌入变量或表达式。
 
 ## 模板字面量
 
-> 在 JavaScript 中，**模板字面量**是一种强大且简洁的字符串操作方法。它使得我们可以更加方便地处理多行字符串、动态嵌入表达式以及格式化输出等操作。
+> **简述**：模板字面量是 JavaScript 中一种更加灵活和简洁的字符串表示方式。与传统的字符串字面量（使用单引号或双引号）相比，模板字面量使用反引号（`` `）定义，支持多行字符串和嵌入表达式，使得字符串的操作更为直观和易读。
 
-**基本语法**
+**知识树**
 
-模板字面量由**反引号**（```）而非单引号或双引号定义。
+1. 定义模板字面量
+   - 使用反引号（`` `）包围字符串，而不是使用单引号或双引号。
+   - 支持多行字符串，避免了使用换行符（`\n`）来手动拼接多行。
+2. 内嵌表达式
+   - 可以在模板字面量中嵌入变量和表达式，通过 `${}` 语法将其嵌入字符串中。
+   - 支持任何可以产生值的表达式，比如变量、运算、函数调用等。
+3. 拼接字符串
+   - 通过模板字面量，可以避免传统字符串拼接时使用 `+` 符号，使得代码更清晰易读。
+   - 也不需要像传统字符串那样手动处理换行符或特殊字符。
+4. 应用场景
+   - 模板字面量非常适用于动态生成内容，如发送邮件、构建复杂的HTML或生成用户友好的消息。
 
-```js
-const message = `这是一个模板字面量`;
-console.log(message); // 输出: 这是一个模板字面量
-```
+**代码示例**
 
-**格式优势**
+1. 多行字符串
 
-模板字面量的一个重要优势是，它允许我们直接输入，而不需要使用转义字符（`\n`）。
+   ```js
+   const message = `This is my
+   first message.`;
+   console.log(message);
+   // 输出：
+   // This is my
+   // first message.
+   ```
 
-```js
-const email =
-  "Hi John,\nThank you for joining my mailing list.\nRegards,\nMosh";
+   - 使用反引号直接书写多行字符串，不需要使用 `\n` 或字符串拼接。
 
-const message = `Hi John,
-Thank you for joining my mailing list.
-Regards,
-Mosh`;
-```
+2. 插入变量
 
-**字符串插值（Placeholders）**
+   ```js
+   const name = "John";
+   const message = `Hi, ${name}!`;
+   console.log(message);  // 输出 "Hi, John!"
+   ```
 
-模板字面量的另一个强大功能是**字符串插值**，即我们可以在字符串中动态地嵌入变量、常量或表达式，直接使用 `${}` 语法。
+   - `${}` 用于插入变量或表达式，允许动态替换字符串中的部分内容。
 
-```js
-const name = "John";
-const message = `Hi ${name},
-Thank you for joining my mailing list.
-Regards,
-Mosh`;
-console.log(message);
-```
+3. 内嵌表达式
 
-可以在 `${}` 中执行**计算**或者调用**函数**。
+   ```js
+   const num1 = 5;
+   const num2 = 10;
+   const message = `The sum of ${num1} and ${num2} is ${num1 + num2}.`;
+   console.log(message);  // 输出：The sum of 5 and 10 is 15.
+   ```
 
-**示例（调用函数）：**
+   - 在 `${}` 内可以直接嵌入表达式，支持数学运算、函数调用等。
 
-```js
-function getGreeting(name) {
-  return `你好, ${name}!`;
-}
+4. 使用函数调用表达式
 
-const message = `问候消息是: ${getGreeting("Alice")}`;
-console.log(message); // 输出: 问候消息是: 你好, Alice!
-```
+   ```js
+   function getGreeting(name) {
+     return `你好, ${name}!`;
+   }
+   
+   const message = `问候消息是: ${getGreeting("Alice")}`;
+   console.log(message); // 输出: 问候消息是: 你好, Alice!
+   ```
+
+   - 使用函数调用表达式让字符串内容不仅仅是静态的变量插值，还可以通过函数逻辑进行动态生成。
+
+5. 逃逸字符（Escaping Characters）
+
+   ```js
+   const message = `It's a great day!`;
+   console.log(message);  // 输出：It's a great day!
+   ```
+
+   - 使用模板字面量时，直接书写字符串中的特殊字符（如单引号或双引号），不需要使用 `\` 转义。
+
+6. 处理多行格式
+
+   ```js
+   const name = "John";
+   const message = `Hi ${name},
+   
+   Thank you for joining our mailing list.
+   
+   Regards,
+   Your Company`;
+   console.log(message);
+   ```
+
+   - 模板字面量使得构建复杂、格式化良好的字符串变得容易，尤其在处理动态内容（如邮件、消息模板）时，避免了手动拼接和冗余的字符。
 
 ## `Date` 对象
 
-> 在 JavaScript 中，`Date` 是一个内建的对象，用于处理日期和时间。它提供了多种方法，可以让我们方便地操作日期和时间。`Date` 对象是通过 **构造函数** 创建的，可以有不同的方式进行实例化。google: javascript data
+> **简述**：JavaScript 中的 `Date` 对象用于处理日期和时间。通过它，开发者可以创建日期对象、获取和设置日期/时间的各个部分，并且可以将日期格式化为不同的字符串表示形式。`Date` 对象在处理时间戳、日期差异、时间格式化等方面非常重要。
 
-**创建 `Date` 对象**
+**知识树**
 
-当代码栏仅存在以下代码时，可以控制键盘上下查看不同的 Date 类型（未出现删除部分手动输入）
+1. 创建 Date 对象的方式
+   - 不带参数：获取当前日期和时间。
+   - 传递字符串：解析特定日期时间格式的字符串。
+   - 传递数字：指定自 1970 年 1 月 1 日以来的毫秒数。
+   - 传递年月日等数值：通过指定年、月、日等创建日期对象。
+2. 获取和设置日期
+   - 使用 `.get` 和 `.set` 系列方法来获取和设置日期的各个部分（如年、月、日、小时等）。
+3. 转换日期格式
+   - `.toDateString()`：返回日期部分的字符串。
+   - `.toTimeString()`：返回时间部分的字符串。
+   - `.toISOString()`：返回符合 ISO 8601 标准的日期时间字符串，常用于与服务器的数据交互。
+
+**代码示例**
+
+1. 创建 Date 对象
+
+   ```js
+   // 当前时间
+   const now = new Date();
+   console.log("当前时间:", now);  // 输出当前的日期和时间
+   
+   // 字符串格式日期
+   const dateString = new Date("2023-12-31T23:59:59");
+   console.log("字符串格式日期:", dateString);  // 输出: Sun Dec 31 2023 23:59:59 GMT+0000 (Coordinated Universal Time)
+   
+   // 时间戳
+   const timestampDate = new Date(1672531199000);  // 时间戳（毫秒）
+   console.log("时间戳日期:", timestampDate);  // 输出: Sat Dec 31 2022 23:59:59 GMT+0000 (Coordinated Universal Time)
+   
+   // 传递年、月、日等数字
+   const specificDate = new Date(2023, 0, 1);  // 2023 年 1 月 1 日
+   console.log("年、月、日指定日期:", specificDate);  // 输出: Sun Jan 01 2023 00:00:00 GMT+0000 (Coordinated Universal Time)
+   ```
+
+2. 获取和设置日期的方法
+
+   ```js
+   // 获取年份、月份、日期
+   console.log("当前年份:", now.getFullYear());  // 获取当前年份，例如 2023
+   console.log("当前月份:", now.getMonth());     // 获取当前月份（从 0 开始的数字）
+   console.log("当前日期:", now.getDate());      // 获取当前日期（1-31）
+   
+   // 设置日期
+   now.setFullYear(2025);
+   now.setMonth(6);  // 设置为 7 月（注意月份从 0 开始）
+   now.setDate(15);  // 设置为 15 日
+   console.log("修改后的日期:", now);  // 输出修改后的日期
+   ```
+
+3. 日期格式化方法
+
+   ```js
+   // `toDateString()` 返回日期部分的字符串
+   console.log("日期字符串:", now.toDateString());  // 输出例如: Thu Jan 01 2025
+   
+   // `toTimeString()` 返回时间部分的字符串
+   console.log("时间字符串:", now.toTimeString());  // 输出例如: 00:00:00 GMT+0000 (Coordinated Universal Time)
+   
+   // `toISOString()` 返回符合 ISO 8601 标准的日期时间字符串
+   console.log("ISO 格式日期:", now.toISOString());  // 输出例如: 2025-01-01T00:00:00.000Z
+   ```
+
+## Ex1: 显示地址对象的属性
+
+> **要求**：创建一个 `address` 对象，包含 `street`、`city` 和 `zipCode` 三个属性。然后编写一个函数 `showAddress`，该函数接受一个地址对象并显示其所有属性及其对应的值。
+
+**解法**：
+
+1. Step1：创建一个 `address` 对象，包含 `street`、`city` 和 `zipCode` 三个属性，使用对象字面量语法初始化。
+2. Step2：创建 `showAddress` 函数，使用 `for...in` 循环遍历 `address` 对象的每个属性，并通过 `console.log` 打印出属性名和对应的值。
+
+**代码**
 
 ```js
-const date = new Date();
-```
-
-常用方法：[链接](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures)
-
-```js
-const now = new Date(); // 当前的日期和时间
-const data1 = new Date("January 1, 2025 00:00:00"); // 2025年1月1日00:00:00
-const data2 = new Date(2025, 0, 1, 12, 30, 0); // 2025年1月1日12:30:00
-
-now.setFullYear(1999); // 修改时间年份
-
-let x;
-x = now.toDateString(); // 转换时间格式
-x = now.toTimeString(); // 转换时间格式
-x = now.toISOString(); // 最常见的前后端传递时间格式
-
-x = now.getDate(); // 获取时间 日 信息
-console.log(x);
-```
-
-## Ex1
-
-> 创建一个名为 `address` 的对象，该对象包含三个属性：`street`、`city` 和 `zipCode`。
->
-> 然后，创建一个名为 `showAddress` 的函数，该函数接受一个 `address` 对象，并显示该对象的所有属性及其对应的值。
-
-```js
-// 创建 address 对象
+// Step1: 创建地址对象
 const address = {
-  street: "a",
-  city: "b",
-  zipCode: "c",
+  street: '123 Main St',
+  city: 'New York',
+  zipCode: '10001'
 };
 
-// 创建 showAddress 函数
+// Step2: 创建函数，显示地址信息
 function showAddress(address) {
   for (let key in address) {
-    console.log(key, address[key]);
+    console.log(key + ": " + address[key]);
   }
 }
 
-// 调用 showAddress 函数
+// 调用函数显示地址
 showAddress(address);
-
-// 输出
-// street a
-// city b
-// zipCode c
 ```
 
-## Ex2
+## Ex2: 初始化对象
 
-> 在本练习中，您需要使用两种不同的函数来初始化 `address` 对象：一种是工厂函数（Factory Function），另一种是构造函数（Constructor Function）。
+> **要求**：分别使用工厂函数和构造函数初始化一个地址对象。
 
-**工厂函数实现**：返回一个新对象，使用简单的返回语法。
+**解法**：
+
+1. Step1：使用工厂函数 `createAddress` 来创建一个地址对象，返回一个包含 `street`、`city` 和 `zipCode` 属性的新对象。
+2. Step2：使用构造函数 `Address` 来创建一个地址对象，利用 `this` 关键字将地址对象的属性赋值。
+
+**代码**
 
 ```js
-// 工厂函数：createAddress
+// Step1: 使用工厂函数创建地址对象
 function createAddress(street, city, zipCode) {
   return {
-    // street: street,
-    street,
-    city,
-    zipCode,
+    street: street,
+    city: city,
+    zipCode: zipCode
   };
 }
 
-// 创建 address 对象
-const address1 = createAddress("a", "b", "c");
-
-// 输出 address 对象
+// 使用工厂函数创建一个地址对象
+const address1 = createAddress('123 Main St', 'New York', '10001');
 console.log(address1);
 
-// 输出
-// { street: 'a', city: 'b', zipCode: 'c' }
-```
-
-**构造函数实现**：使用 `this` 关键字初始化对象，创建时需要使用 `new` 操作符。
-
-```js
-// 构造函数：Address
+// Step2: 使用构造函数创建地址对象
 function Address(street, city, zipCode) {
   this.street = street;
   this.city = city;
   this.zipCode = zipCode;
 }
 
-// 使用 new 操作符创建 address 对象
-const address2 = new Address("a", "b", "c");
-
-// 输出 address 对象
+// 使用构造函数创建一个地址对象
+const address2 = new Address('123 Main St', 'New York', '10001');
 console.log(address2);
-
-// 输出
-// Address { street: 'a', city: 'b', zipCode: 'c' }
 ```
 
-## Ex3
+## Ex3: 比较对象的相等性
 
-> 在本练习中，使用上一个练习中创建的构造函数，创建两个 `address` 对象。接着，编写两个函数来检查对象的相等性：
->
-> - `areEqual`：检查两个对象的属性是否完全相等。
-> - `areSame`：检查两个对象是否是同一个引用。
+> **要求**：使用构造函数创建两个地址对象，并实现两个函数：`areEqual` 用于检查两个对象的属性是否相等，`areSame` 用于检查两个对象是否引用同一个内存地址。
+
+**解法**：
+
+1. Step1：创建两个地址对象，`address1` 和 `address2`，并用构造函数初始化它们。
+2. Step2：实现 `areEqual` 函数，检查两个地址对象的所有属性是否相等；
+3. 实现 `areSame` 函数，检查两个地址对象是否指向相同的内存地址。
+
+**代码**
 
 ```js
-// 构造函数：Address
+// 构造函数定义
 function Address(street, city, zipCode) {
   this.street = street;
   this.city = city;
   this.zipCode = zipCode;
 }
 
-// 创建两个 address 对象
-const address1 = new Address("a", "b", "c");
-const address2 = new Address("a", "b", "c");
+// 创建两个地址对象
+const address1 = new Address('123 Main St', 'New York', '10001');
+const address2 = new Address('123 Main St', 'New York', '10001');
 
-// areEqual 函数：检查两个对象的属性是否相等
-function areEqual(address1, address2) {
-  return (
-    address1.street === address2.street &&
-    address1.city === address2.city &&
-    address1.zipCode === address2.zipCode
-  );
-}
-
-// areSame 函数：检查两个对象是否是同一个引用
+// 检查两个对象是否引用同一内存位置
 function areSame(address1, address2) {
   return address1 === address2;
 }
 
-// 调用函数并输出结果
-console.log(areEqual(address1, address2)); // true
-console.log(areSame(address1, address2)); // false
+// 检查两个对象的属性是否相等
+function areEqual(address1, address2) {
+  return address1.street === address2.street &&
+         address1.city === address2.city &&
+         address1.zipCode === address2.zipCode;
+}
 
-// 如果我们让 address2 引用 address1 对象
-const address3 = address1;
-console.log(areSame(address1, address3)); // true
+// 测试 areSame 函数
+console.log(areSame(address1, address2));  // false，因为它们是不同的对象
+console.log(areSame(address1, address1));  // true，因为它们是同一个对象
+
+// 测试 areEqual 函数
+console.log(areEqual(address1, address2)); // true，因为它们的属性相同
 ```
 
-- `areSame` 函数通过严格等于 (`===`) 运算符判断两个对象是否引用同一个内存地址。
-- `areEqual` 函数检查两个对象的属性是否完全相同，返回 `true` 或 `false`。
-- 即使两个对象的属性相同，它们也可能是不同的对象，只有当它们引用同一内存位置时，`areSame` 才会返回 `true`。
+## Ex4: 创建一个博客帖子对象
 
-## Ex4
+> **要求**：创建一个博客帖子对象，包含以下属性：`title`（标题）、`body`（内容）、`author`（作者）、`views`（查看次数）、`comments`（评论列表），其中每个评论包括`author`和`body`，最后还有一个布尔值属性`isLive`（是否发布）。
 
-> 在本练习中，创建一个 `blogPost` 对象，包含以下属性：
->
-> - `title`：博客标题
-> - `body`：博客内容
-> - `author`：作者
-> - `views`：博客被浏览的次数
-> - `comments`：每个评论包含 `author` 和 `body` 属性
-> - `isLive`：一个布尔值，表示博客是否发布。
+**解法**：
+
+1. Step1：使用对象字面量语法创建博客帖子对象，给每个属性赋值。
+2. Step2：确保`comments`属性是一个数组，包含若干评论对象，每个评论对象有`author`和`body`属性。
+3. Step3：设置`isLive`属性为`true`或`false`，表示帖子是否已发布。
+4. Step4：在控制台输出帖子对象，检查所有属性和嵌套的评论数组是否正确。
 
 ```js
-// 创建 blogPost 对象
+// 创建博客帖子对象
 const post = {
-  title: "a",
-  body: "b",
-  author: "c",
-  views: 10, // 浏览次数
+  title: "Learning JavaScript",
+  body: "This is the body of the blog post. It explains JavaScript fundamentals.",
+  author: "John Doe",
+  views: 1500,
   comments: [
-    {
-      author: "a",
-      body: "b",
-    },
-    {
-      author: "c",
-      body: "d",
-    },
+    { author: "Alice", body: "Great post, really helpful!" },
+    { author: "Bob", body: "Thanks for the explanation, very clear." }
   ],
-  isLive: true,
+  isLive: true
 };
 
+// 输出博客帖子对象
 console.log(post);
 ```
 
-## Ex5
+## Ex5: 创建一个草稿博客帖子
 
-> 在这个练习中，我们将使用构造函数创建一个 `post` 对象。这个构造函数与之前的构造函数有所不同，因为它针对尚未发布的草稿进行初始化。
->
-> 假设我们正在构建一个博客引擎，用户正在草拟一篇博客，但还没有发布。在这种情况下，构造函数应如何设计呢？
+> **要求**：使用构造函数创建一个博客帖子对象，该对象的属性包括：`title`（标题）、`body`（内容）、`author`（作者）。同时，`views`（查看次数）默认为 `0`，`comments`（评论列表）默认为空数组，`isLive`（是否发布）默认为 `false`，表示帖子尚未发布。
+
+**解法**：
+
+1. Step1：创建一个名为 `Post` 的构造函数，该构造函数接收 `title`、`body` 和 `author` 参数。`views`、`comments`和 `isLive` 在构造时分别初始化为默认值。
+2. Step2：在构造函数内部，使用 `this` 来初始化对象的各个属性，并确保默认值设置正确。
+3. Step3：创建一个新帖子对象，传入必要的参数并验证初始化结果。
+
+**代码**
+
+```js
+// 构造函数创建博客帖子对象
+function Post(title, body, author) {
+  this.title = title;
+  this.body = body;
+  this.author = author;
+  this.views = 0; // 默认查看次数为 0
+  this.comments = []; // 默认评论为空数组
+  this.isLive = false; // 默认未发布
+}
+
+// 使用构造函数创建一个新帖子
+const post1 = new Post("JavaScript Basics", "This post covers the basics of JavaScript.", "John Doe");
+
+// 输出博客帖子对象
+console.log(post1);
+```
+
+
 
 ```js
 // 定义 Post 构造函数
@@ -3342,9 +3561,16 @@ const post = new Post(
 console.log(post);
 ```
 
-## Ex6
+## Ex6: 模拟价格范围的对象模型
 
-> 在这个练习中，我们将模拟 Yelp.com 上的价格范围按钮（例如：便宜、中等、昂贵等）。我们需要使用对象来实现这个功能。请考虑每个对象应该包含哪些属性。
+> **要求**：创建一个表示不同价格范围的对象数组，每个对象代表一种价格范围，并包含以下属性：`label`（显示给用户的标签）、`tooltip`（悬停时显示的提示信息）、`minPerPerson`（每个人的最低餐费）和 `maxPerPerson`（每个人的最高餐费）。这些对象将用于类似 Yelp 这样的应用中进行餐厅过滤。
+
+**解法**：
+
+1. Step1：定义一个 `priceRanges` 数组，数组中每个元素是一个表示价格范围的对象。每个对象包含：`label`、`tooltip`、`minPerPerson` 和 `maxPerPerson` 属性。
+2. Step2：通过这些价格范围的属性，可以过滤餐厅列表，显示符合特定价格区间的餐厅。
+
+**代码**
 
 ```js
 // 创建价格范围数组
@@ -4583,7 +4809,7 @@ console.log(person); // 输出对象，检查是否修改成功
    ```js
    console.log(x); // 输出：undefined（声明提升，但未初始化）
    var x = 10;
-
+   
    console.log(y); // 报错：y is not defined
    let y = 20;
    ```
@@ -4683,7 +4909,7 @@ console.log(person); // 输出对象，检查是否修改成功
        });
      },
    };
-
+   
    video.showTags(); // 正常输出标题和标签
    ```
 
@@ -4774,7 +5000,7 @@ console.log(person); // 输出对象，检查是否修改成功
        });
      },
    };
-
+   
    video.showTags(); // 正常输出标题和标签
    ```
 
@@ -4786,7 +5012,7 @@ console.log(person); // 输出对象，检查是否修改成功
    function sayHi() {
      console.log("hi");
    }
-
+   
    console.log(window.sayHi); // 输出：函数本身
    ```
 
