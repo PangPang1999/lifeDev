@@ -2348,7 +2348,7 @@ showPrimes(10);
 
 # 对象
 
-## JS面向对象编程
+## JS 面向对象编程
 
 > **简述**：对象是 JavaScript 中用于将相关属性和方法封装在一起的核心概念，通常用于组织和操作具有相似特性的实体。OOP 是一种将程序建模为对象集合并通过相互协作实现功能的编程范式。
 
@@ -2443,7 +2443,6 @@ showPrimes(10);
    - `radius` 简写：当属性名和变量名一致时，可直接写 `radius`。
    - 方法 `draw` 的简写：直接写 `draw() {}`，更简洁。
 
-
 ## 构造函数
 
 > **简述**：构造函数是一种创建对象的模式，通过 `new` 操作符动态创建对象。相比工厂函数，构造函数更贴近面向对象编程语言（如 Java、C#）的对象创建方式。
@@ -2515,15 +2514,15 @@ showPrimes(10);
    const circle = {
      radius: 5, // 初始属性
    };
-   
+
    // 动态添加属性
    circle.color = "yellow";
-   
+
    // 动态添加方法
    circle.draw = function () {
      console.log("Drawing a circle");
    };
-   
+
    console.log(circle);
    // 输出：{ radius: 5, color: 'yellow', draw: [Function (anonymous)] }
    ```
@@ -2533,27 +2532,27 @@ showPrimes(10);
    ```js
    // 删除属性
    delete circle.color;
-   
+
    // 删除方法
    delete circle.draw;
-   
+
    console.log(circle);
    // 输出：{ radius: 5 }
    ```
 
-3.  `const` 声明的行为
+3. `const` 声明的行为
 
-   ```js
-   const circle = {
-     radius: 5,
-   };
-   
-   circle.radius = 10; // 可以修改属性
-   console.log(circle.radius); // 输出：10
-   
-   // circle = {}; // 错误：不能重新分配对象引用
-   // Uncaught TypeError: Assignment to constant variable.
-   ```
+```js
+const circle = {
+  radius: 5,
+};
+
+circle.radius = 10; // 可以修改属性
+console.log(circle.radius); // 输出：10
+
+// circle = {}; // 错误：不能重新分配对象引用
+// Uncaught TypeError: Assignment to constant variable.
+```
 
 ## `constructor` 属性
 
@@ -2589,7 +2588,7 @@ showPrimes(10);
      };
    }
    const circle = new createCircle(1);
-   
+
    // 使用对象字面量
    function Circle(radius) {
      this.radius = radius;
@@ -2597,7 +2596,7 @@ showPrimes(10);
        console.log("draw");
      };
    }
-   
+
    const another = new Circle(1);
    console.log(circle.constructor); // 输出: [Function: Object]
    console.log(another.constructor); // 输出: [Function: Circle]
@@ -2609,7 +2608,7 @@ showPrimes(10);
    // 使用内置构造函数
    const str = new String("Hello");
    console.log(str.constructor); // 输出: [Function: String]
-   
+
    // 使用字符串字面量
    const strLiteral = "Hello";
    console.log(strLiteral.constructor); // 输出: [Function: String]
@@ -2660,7 +2659,7 @@ showPrimes(10);
    - `apply()`：与 `call()` 类似，但以数组形式传递参数。
    - `bind()`：返回一个绑定了特定 `this` 值的新函数。
 
-   - *`call()`、`apply()`这些方法一般不直接作用在构造函数上，因为它们的本意是执行一个函数，而构造函数的场景需要结合 `new` 操作符使用。如果直接对构造函数使用 `call()` 或 `apply()`，可能会导致一些问题，例如 `this` 指向问题，或者实例无法继承构造函数的原型方法。`bind()` 在构造函数上的使用也比较少*
+   - _`call()`、`apply()`这些方法一般不直接作用在构造函数上，因为它们的本意是执行一个函数，而构造函数的场景需要结合 `new` 操作符使用。如果直接对构造函数使用 `call()` 或 `apply()`，可能会导致一些问题，例如 `this` 指向问题，或者实例无法继承构造函数的原型方法。`bind()` 在构造函数上的使用也比较少_
 
 **代码示例**
 
@@ -2673,7 +2672,7 @@ showPrimes(10);
        console.log("Draw a circle");
      };
    }
-   
+
    console.log(Circle.name); // 输出: "Circle"
    console.log(Circle.length); // 输出: 1 (参数个数)
    console.log(Circle.constructor); // 输出: [Function: Function]
@@ -2691,30 +2690,30 @@ showPrimes(10);
      };
    `
    );
-   
+
    const circle = new Circle(5);
    circle.draw(); // 输出: "Draw a circle"
    ```
 
-3.  `call` 、 `apply` 和  `bind` 方法
+3. `call` 、 `apply` 和 `bind` 方法
 
-   ```js
-   function greet(greeting, punctuation) {
-     console.log(`${greeting}, ${this.name}${punctuation}`);
-   }
-   
-   const person = { name: "John" };
-   
-   // 使用 call
-   greet.call(person, "Hello", "!"); // 输出: "Hello, John!"
-   
-   // 使用 apply
-   greet.apply(person, ["Hi", "."]); // 输出: "Hi, John."
-   
-   // 使用 bind
-   const sayHi = greet.bind(person, "Hello", "!");
-   sayHi(); // 输出: "Hello, John!"
-   ```
+```js
+function greet(greeting, punctuation) {
+  console.log(`${greeting}, ${this.name}${punctuation}`);
+}
+
+const person = { name: "John" };
+
+// 使用 call
+greet.call(person, "Hello", "!"); // 输出: "Hello, John!"
+
+// 使用 apply
+greet.apply(person, ["Hi", "."]); // 输出: "Hi, John."
+
+// 使用 bind
+const sayHi = greet.bind(person, "Hello", "!");
+sayHi(); // 输出: "Hello, John!"
+```
 
 4. 补充作用于构造函数的情况
 
@@ -2772,9 +2771,9 @@ showPrimes(10);
    ```js
    let x = 10;
    let y = x; // 值拷贝
-   
+
    y = 20;
-   
+
    console.log(x); // 输出: 10
    console.log(y); // 输出: 20
    ```
@@ -2784,9 +2783,9 @@ showPrimes(10);
    ```js
    let x = { value: 10 };
    let y = x; // 引用拷贝
-   
+
    y.value = 20;
-   
+
    console.log(x.value); // 输出: 20
    console.log(y.value); // 输出: 20
    ```
@@ -2797,10 +2796,10 @@ showPrimes(10);
    function increase(number) {
      number++;
    }
-   
+
    let num = 10;
    increase(num);
-   
+
    console.log(num); // 输出: 10
    ```
 
@@ -2846,10 +2845,10 @@ showPrimes(10);
    let circle = {
      radius: 10,
      draw() {
-       console.log('Drawing a circle');
-     }
+       console.log("Drawing a circle");
+     },
    };
-   
+
    // 遍历对象的属性
    for (let key in circle) {
      console.log(key); // 输出: radius, draw
@@ -2863,10 +2862,10 @@ showPrimes(10);
    let circle = {
      radius: 10,
      draw() {
-       console.log('Drawing a circle');
-     }
+       console.log("Drawing a circle");
+     },
    };
-   
+
    // 使用 Object.keys() 获取所有键并与 for...of 循环结合
    for (let key of Object.keys(circle)) {
      console.log(key); // 输出: radius, draw
@@ -2879,10 +2878,10 @@ showPrimes(10);
    let circle = {
      radius: 10,
      draw() {
-       console.log('Drawing a circle');
-     }
+       console.log("Drawing a circle");
+     },
    };
-   
+
    // 使用 Object.entries() 获取所有键值对并遍历
    for (let [key, value] of Object.entries(circle)) {
      console.log(key, value); // 输出: radius 10, draw function draw()
@@ -2895,12 +2894,12 @@ showPrimes(10);
    let circle = {
      radius: 10,
      draw() {
-       console.log('Drawing a circle');
-     }
+       console.log("Drawing a circle");
+     },
    };
    
-   console.log('radius' in circle); // 输出: true
-   console.log('color' in circle);  // 输出: false
+   console.log("radius" in circle); // 输出: true
+   console.log("color" in circle); // 输出: false
    ```
 
 ## 克隆和合并对象
@@ -2928,16 +2927,16 @@ showPrimes(10);
    let circle = {
      radius: 10,
      draw() {
-       console.log('Drawing a circle');
-     }
+       console.log("Drawing a circle");
+     },
    };
-   
+
    // 使用 for...in 循环复制对象属性
    let another = {};
    for (let key in circle) {
      another[key] = circle[key];
    }
-   
+
    console.log(another); // 输出: { radius: 10, draw: function }
    ```
 
@@ -2947,13 +2946,13 @@ showPrimes(10);
    let circle = {
      radius: 10,
      draw() {
-       console.log('Drawing a circle');
-     }
+       console.log("Drawing a circle");
+     },
    };
-   
+
    // 使用 Object.assign() 克隆对象
    let another = Object.assign({}, circle);
-   
+
    console.log(another); // 输出: { radius: 10, draw: function }
    ```
 
@@ -2963,13 +2962,13 @@ showPrimes(10);
    let circle = {
      radius: 10,
      draw() {
-       console.log('Drawing a circle');
-     }
+       console.log("Drawing a circle");
+     },
    };
-   
+
    // 使用扩展运算符（Spread Operator）克隆对象
    let another = { ...circle };
-   
+
    console.log(another); // 输出: { radius: 10, draw: function }
    ```
 
@@ -2979,12 +2978,12 @@ showPrimes(10);
    let circle = {
      radius: 10,
      draw() {
-       console.log('Drawing a circle');
-     }
+       console.log("Drawing a circle");
+     },
    };
    
    let color = {
-     color: 'yellow'
+     color: "yellow",
    };
    
    // 使用 Object.assign() 合并对象
@@ -3058,7 +3057,7 @@ showPrimes(10);
 1. 生成随机数
 
    ```js
-   console.log(Math.random());  // 生成一个 0 到 1 之间的随机数
+   console.log(Math.random()); // 生成一个 0 到 1 之间的随机数
    ```
 
    - `Math.random()` 返回一个 0 到 1 之间的随机小数，每次调用时返回的值不同。
@@ -3069,7 +3068,7 @@ showPrimes(10);
    function getRandomInt(min, max) {
      return Math.floor(Math.random() * (max - min + 1)) + min;
    }
-   console.log(getRandomInt(1, 100));  // 生成一个 1 到 100 之间的随机整数
+   console.log(getRandomInt(1, 100)); // 生成一个 1 到 100 之间的随机整数
    ```
 
    - `Math.random()` 生成 0 到 1 之间的数，再通过 `Math.floor()` 使其变成整数，并缩放到你所需的区间。
@@ -3078,8 +3077,8 @@ showPrimes(10);
 
    ```js
    let numbers = [10, 5, 100, 25];
-   console.log(Math.max(...numbers));  // 100
-   console.log(Math.min(...numbers));  // 5
+   console.log(Math.max(...numbers)); // 100
+   console.log(Math.min(...numbers)); // 5
    ```
 
    - `Math.max()` 和 `Math.min()` 可以接受多个参数，返回最大或最小的值。通过展开运算符 `...` 可以直接传递数组中的多个元素。
@@ -3116,7 +3115,7 @@ showPrimes(10);
 
    ```js
    const message = "Hello, World!";
-   console.log(message.length);  // 输出 13
+   console.log(message.length); // 输出 13
    ```
 
    - `length` 返回字符串的字符数。
@@ -3125,8 +3124,8 @@ showPrimes(10);
 
    ```js
    const message = "This is my first message.";
-   console.log(message.includes("my"));  // true
-   console.log(message.includes("hello"));  // false
+   console.log(message.includes("my")); // true
+   console.log(message.includes("hello")); // false
    ```
 
    - `includes()` 检查字符串中是否包含某个子字符串，返回布尔值。
@@ -3135,8 +3134,8 @@ showPrimes(10);
 
    ```js
    const message = "Hello, World!";
-   console.log(message.startsWith("Hello"));  // true
-   console.log(message.endsWith("!"));  // true
+   console.log(message.startsWith("Hello")); // true
+   console.log(message.endsWith("!")); // true
    ```
 
    - `startsWith()` 检查字符串是否以指定子字符串开始，`endsWith()` 检查是否以指定子字符串结束。
@@ -3145,7 +3144,7 @@ showPrimes(10);
 
    ```js
    const message = "This is my first message.";
-   console.log(message.indexOf("my"));  // 输出 8
+   console.log(message.indexOf("my")); // 输出 8
    ```
 
    - `indexOf()` 返回子字符串第一次出现的位置，如果没有找到则返回 `-1`。
@@ -3155,7 +3154,7 @@ showPrimes(10);
    ```js
    const message = "This is my first message.";
    const newMessage = message.replace("first", "second");
-   console.log(newMessage);  // "This is my second message."
+   console.log(newMessage); // "This is my second message."
    ```
 
    - `replace()` 用于替换字符串中的内容。注意，它返回的是新字符串，不会修改原字符串。
@@ -3164,8 +3163,8 @@ showPrimes(10);
 
    ```js
    const message = "This is my first message.";
-   console.log(message.toUpperCase());  // "THIS IS MY FIRST MESSAGE."
-   console.log(message.toLowerCase());  // "this is my first message."
+   console.log(message.toUpperCase()); // "THIS IS MY FIRST MESSAGE."
+   console.log(message.toLowerCase()); // "this is my first message."
    ```
 
    - `toUpperCase()` 和 `toLowerCase()` 将字符串转换为大写或小写。
@@ -3174,7 +3173,7 @@ showPrimes(10);
 
    ```js
    const message = "  Hello, World!  ";
-   console.log(message.trim());  // "Hello, World!"
+   console.log(message.trim()); // "Hello, World!"
    ```
 
    - `trim()` 移除字符串两端的空格，`trimLeft()` 和 `trimRight()` 分别移除左侧和右侧的空格。
@@ -3184,7 +3183,7 @@ showPrimes(10);
    ```js
    const message = "This is my first message.";
    const words = message.split(" ");
-   console.log(words);  // ["This", "is", "my", "first", "message."]
+   console.log(words); // ["This", "is", "my", "first", "message."]
    ```
 
    - `split()` 根据指定的分隔符将字符串拆分成数组。
@@ -3192,8 +3191,8 @@ showPrimes(10);
 9. 转义字符
 
    ```js
-   const message = "It\'s a great day!";
-   console.log(message);  // "It's a great day!"
+   const message = "It's a great day!";
+   console.log(message); // "It's a great day!"
    ```
 
    - 使用 `\'` 作为转义字符来插入引号，`\n` 插入换行符等。
@@ -3203,7 +3202,7 @@ showPrimes(10);
     ```js
     const name = "John";
     const greeting = `Hello, ${name}!`;
-    console.log(greeting);  // "Hello, John!"
+    console.log(greeting); // "Hello, John!"
     ```
 
     - 使用反引号创建字符串，允许嵌入变量或表达式。
@@ -3224,7 +3223,7 @@ showPrimes(10);
    - 通过模板字面量，可以避免传统字符串拼接时使用 `+` 符号，使得代码更清晰易读。
    - 也不需要像传统字符串那样手动处理换行符或特殊字符。
 4. 应用场景
-   - 模板字面量非常适用于动态生成内容，如发送邮件、构建复杂的HTML或生成用户友好的消息。
+   - 模板字面量非常适用于动态生成内容，如发送邮件、构建复杂的 HTML 或生成用户友好的消息。
 
 **代码示例**
 
@@ -3246,7 +3245,7 @@ showPrimes(10);
    ```js
    const name = "John";
    const message = `Hi, ${name}!`;
-   console.log(message);  // 输出 "Hi, John!"
+   console.log(message); // 输出 "Hi, John!"
    ```
 
    - `${}` 用于插入变量或表达式，允许动态替换字符串中的部分内容。
@@ -3256,8 +3255,10 @@ showPrimes(10);
    ```js
    const num1 = 5;
    const num2 = 10;
-   const message = `The sum of ${num1} and ${num2} is ${num1 + num2}.`;
-   console.log(message);  // 输出：The sum of 5 and 10 is 15.
+   const message = `The sum of ${num1} and ${num2} is ${
+     num1 + num2
+   }.`;
+   console.log(message); // 输出：The sum of 5 and 10 is 15.
    ```
 
    - 在 `${}` 内可以直接嵌入表达式，支持数学运算、函数调用等。
@@ -3268,7 +3269,7 @@ showPrimes(10);
    function getGreeting(name) {
      return `你好, ${name}!`;
    }
-   
+
    const message = `问候消息是: ${getGreeting("Alice")}`;
    console.log(message); // 输出: 问候消息是: 你好, Alice!
    ```
@@ -3279,7 +3280,7 @@ showPrimes(10);
 
    ```js
    const message = `It's a great day!`;
-   console.log(message);  // 输出：It's a great day!
+   console.log(message); // 输出：It's a great day!
    ```
 
    - 使用模板字面量时，直接书写字符串中的特殊字符（如单引号或双引号），不需要使用 `\` 转义。
@@ -3324,47 +3325,47 @@ showPrimes(10);
    ```js
    // 当前时间
    const now = new Date();
-   console.log("当前时间:", now);  // 输出当前的日期和时间
-   
+   console.log("当前时间:", now); // 输出当前的日期和时间
+
    // 字符串格式日期
    const dateString = new Date("2023-12-31T23:59:59");
-   console.log("字符串格式日期:", dateString);  // 输出: Sun Dec 31 2023 23:59:59 GMT+0000 (Coordinated Universal Time)
-   
+   console.log("字符串格式日期:", dateString); // 输出: Sun Dec 31 2023 23:59:59 GMT+0000 (Coordinated Universal Time)
+
    // 时间戳
-   const timestampDate = new Date(1672531199000);  // 时间戳（毫秒）
-   console.log("时间戳日期:", timestampDate);  // 输出: Sat Dec 31 2022 23:59:59 GMT+0000 (Coordinated Universal Time)
-   
+   const timestampDate = new Date(1672531199000); // 时间戳（毫秒）
+   console.log("时间戳日期:", timestampDate); // 输出: Sat Dec 31 2022 23:59:59 GMT+0000 (Coordinated Universal Time)
+
    // 传递年、月、日等数字
-   const specificDate = new Date(2023, 0, 1);  // 2023 年 1 月 1 日
-   console.log("年、月、日指定日期:", specificDate);  // 输出: Sun Jan 01 2023 00:00:00 GMT+0000 (Coordinated Universal Time)
+   const specificDate = new Date(2023, 0, 1); // 2023 年 1 月 1 日
+   console.log("年、月、日指定日期:", specificDate); // 输出: Sun Jan 01 2023 00:00:00 GMT+0000 (Coordinated Universal Time)
    ```
 
 2. 获取和设置日期的方法
 
    ```js
    // 获取年份、月份、日期
-   console.log("当前年份:", now.getFullYear());  // 获取当前年份，例如 2023
-   console.log("当前月份:", now.getMonth());     // 获取当前月份（从 0 开始的数字）
-   console.log("当前日期:", now.getDate());      // 获取当前日期（1-31）
-   
+   console.log("当前年份:", now.getFullYear()); // 获取当前年份，例如 2023
+   console.log("当前月份:", now.getMonth()); // 获取当前月份（从 0 开始的数字）
+   console.log("当前日期:", now.getDate()); // 获取当前日期（1-31）
+
    // 设置日期
    now.setFullYear(2025);
-   now.setMonth(6);  // 设置为 7 月（注意月份从 0 开始）
-   now.setDate(15);  // 设置为 15 日
-   console.log("修改后的日期:", now);  // 输出修改后的日期
+   now.setMonth(6); // 设置为 7 月（注意月份从 0 开始）
+   now.setDate(15); // 设置为 15 日
+   console.log("修改后的日期:", now); // 输出修改后的日期
    ```
 
 3. 日期格式化方法
 
    ```js
    // `toDateString()` 返回日期部分的字符串
-   console.log("日期字符串:", now.toDateString());  // 输出例如: Thu Jan 01 2025
+   console.log("日期字符串:", now.toDateString()); // 输出例如: Thu Jan 01 2025
    
    // `toTimeString()` 返回时间部分的字符串
-   console.log("时间字符串:", now.toTimeString());  // 输出例如: 00:00:00 GMT+0000 (Coordinated Universal Time)
+   console.log("时间字符串:", now.toTimeString()); // 输出例如: 00:00:00 GMT+0000 (Coordinated Universal Time)
    
    // `toISOString()` 返回符合 ISO 8601 标准的日期时间字符串
-   console.log("ISO 格式日期:", now.toISOString());  // 输出例如: 2025-01-01T00:00:00.000Z
+   console.log("ISO 格式日期:", now.toISOString()); // 输出例如: 2025-01-01T00:00:00.000Z
    ```
 
 ## Ex1: 显示地址对象的属性
@@ -3381,9 +3382,9 @@ showPrimes(10);
 ```js
 // Step1: 创建地址对象
 const address = {
-  street: '123 Main St',
-  city: 'New York',
-  zipCode: '10001'
+  street: "123 Main St",
+  city: "New York",
+  zipCode: "10001",
 };
 
 // Step2: 创建函数，显示地址信息
@@ -3414,12 +3415,16 @@ function createAddress(street, city, zipCode) {
   return {
     street: street,
     city: city,
-    zipCode: zipCode
+    zipCode: zipCode,
   };
 }
 
 // 使用工厂函数创建一个地址对象
-const address1 = createAddress('123 Main St', 'New York', '10001');
+const address1 = createAddress(
+  "123 Main St",
+  "New York",
+  "10001"
+);
 console.log(address1);
 
 // Step2: 使用构造函数创建地址对象
@@ -3430,7 +3435,7 @@ function Address(street, city, zipCode) {
 }
 
 // 使用构造函数创建一个地址对象
-const address2 = new Address('123 Main St', 'New York', '10001');
+const address2 = new Address("123 Main St", "New York", "10001");
 console.log(address2);
 ```
 
@@ -3455,8 +3460,8 @@ function Address(street, city, zipCode) {
 }
 
 // 创建两个地址对象
-const address1 = new Address('123 Main St', 'New York', '10001');
-const address2 = new Address('123 Main St', 'New York', '10001');
+const address1 = new Address("123 Main St", "New York", "10001");
+const address2 = new Address("123 Main St", "New York", "10001");
 
 // 检查两个对象是否引用同一内存位置
 function areSame(address1, address2) {
@@ -3465,14 +3470,16 @@ function areSame(address1, address2) {
 
 // 检查两个对象的属性是否相等
 function areEqual(address1, address2) {
-  return address1.street === address2.street &&
-         address1.city === address2.city &&
-         address1.zipCode === address2.zipCode;
+  return (
+    address1.street === address2.street &&
+    address1.city === address2.city &&
+    address1.zipCode === address2.zipCode
+  );
 }
 
 // 测试 areSame 函数
-console.log(areSame(address1, address2));  // false，因为它们是不同的对象
-console.log(areSame(address1, address1));  // true，因为它们是同一个对象
+console.log(areSame(address1, address2)); // false，因为它们是不同的对象
+console.log(areSame(address1, address1)); // true，因为它们是同一个对象
 
 // 测试 areEqual 函数
 console.log(areEqual(address1, address2)); // true，因为它们的属性相同
@@ -3498,9 +3505,12 @@ const post = {
   views: 1500,
   comments: [
     { author: "Alice", body: "Great post, really helpful!" },
-    { author: "Bob", body: "Thanks for the explanation, very clear." }
+    {
+      author: "Bob",
+      body: "Thanks for the explanation, very clear.",
+    },
   ],
-  isLive: true
+  isLive: true,
 };
 
 // 输出博客帖子对象
@@ -3531,13 +3541,15 @@ function Post(title, body, author) {
 }
 
 // 使用构造函数创建一个新帖子
-const post1 = new Post("JavaScript Basics", "This post covers the basics of JavaScript.", "John Doe");
+const post1 = new Post(
+  "JavaScript Basics",
+  "This post covers the basics of JavaScript.",
+  "John Doe"
+);
 
 // 输出博客帖子对象
 console.log(post1);
 ```
-
-
 
 ```js
 // 定义 Post 构造函数
@@ -3607,911 +3619,1448 @@ const restaurants = [
 
 ## 概念
 
-> 数组（Array）是用于存储一组有序数据的集合。在 JavaScript 中，数组是对象类型，因此它们具有多种内建方法来处理元素。我们一般使用 `const` 来声明数组，这意味着数组的引用不可重新赋值，但数组的内容是可以修改的。
+> 简述：数组是存储有序数据的集合，在 JavaScript 中是对象类型，提供了丰富的内置方法来操作数据。尽管数组常用 `const` 声明，其内容依然可以修改。
 
-```js
-const numbers = [3, 4];
-numbers = []; // Uncaught TypeError: Assignment to constant variable.
-```
+**知识树**
+
+1. 数组的声明与初始化
+   - 使用数组字面量：`[]`
+   - 使用 `Array` 构造函数：`new Array()`
+2. 数组的操作方法
+   - 添加和删除元素：`push`、`pop`、`shift`、`unshift`
+   - 查找元素：`indexOf`、`includes`、`find`、`findIndex`
+   - 过滤、映射与迭代：`filter`、`map`、`forEach`
+   - 数组排序与反转：`sort`、`reverse`
+3. 数组的特性
+   - 动态大小：数组可以动态扩展或缩减。
+   - 混合类型：数组可以存储任意类型的数据。
+4. 数组与引用
+   - 数组是引用类型，直接赋值会共享内存地址。
+   - 可以使用扩展运算符或其他方法创建数组副本。
 
 ## 添加元素
 
-> 向数组中添加元素有多种方式，可以在数组的**最前面**、**中间**或**末尾**添加元素。
+> **简述**：数组元素的添加可以在**开头**、**中间**或**末尾**进行操作，JavaScript 提供了不同的方法来满足多种需求。
 
-```js
-const numbers = [3, 4];
+**知识树**
 
-// End
-numbers.push(5, 6); // 向数组末尾添加 5 和 6
+1. 在数组末尾添加元素
+   - 使用 `push()` 方法。
+   - 返回数组的新长度。
+2. 在数组开头添加元素
+   - 使用 `unshift()` 方法。
+   - 返回数组的新长度。
+3. 在数组中间添加元素
+   - 使用 `splice()` 方法。
+   - 语法：`splice(startIndex, deleteCount, item1, item2, ...)`。
+     - `startIndex`：开始操作的索引。
+     - `deleteCount`：要删除的元素数量，若为 `0` 则仅插入。
+     - `item1, item2, ...`：要插入的元素。
 
-// Beginning
-numbers.unshift(1, 2); // 向数组开头添加 1 和 2
+**代码示例**
 
-// Middle
-numbers.splice(2, 0, "a", "b"); // 从索引 2 开始，不删除任何元素，插入 'a' 和 'b'
+1. 在数组末尾添加元素
 
-console.log(numbers);
-```
+   ```js
+   const numbers = [3, 4];
+   numbers.push(5, 6); // 添加 5 和 6 到数组末尾
+   console.log(numbers); // 输出: [3, 4, 5, 6]
+   ```
 
-- `push()` 方法用于向数组的末尾添加一个或多个元素，并返回数组的新长度。
-- `unshift()` 方法用于将一个或多个元素添加到数组的开头，并返回数组的新长度。
-- **`splice()`** 方法可以在数组的任何位置进行添加、删除或替换元素。其基本语法为：`splice(startIndex, deleteCount, item1, item2, ...)`。
-  - `startIndex`：指定开始操作的位置。
-  - `deleteCount`：指定要删除的元素数量。
-  - `item1, item2, ...`：指定要插入的元素。
+2. 在数组开头添加元素
 
-## 查找原始元素
+   ```js
+   const numbers = [3, 4];
+   numbers.unshift(1, 2); // 添加 1 和 2 到数组开头
+   console.log(numbers); // 输出: [1, 2, 3, 4]
+   ```
 
-> 查找数组中的原始元素有多种方式，可以查找元素是否存在、元素的位置，或者从某个特定位置开始查找。
+3. 在数组中间添加元素
 
-```js
-const numbers = [1, 2, 3, 1, 4];
+   ```js
+   const numbers = [1, 2, 5, 6];
+   numbers.splice(2, 0, "a", "b"); // 在索引 2 处插入 'a' 和 'b'
+   console.log(numbers); // 输出: [1, 2, 'a', 'b', 5, 6]
+   ```
 
-console.log(numbers.indexOf("a")); // -1
-console.log(numbers.indexOf("1")); // -1
-console.log(numbers.indexOf(1)); // 0
-console.log(numbers.indexOf(1, 1)); // 3, 从索引1开始扫描
+## 查找元素
 
-console.log(numbers.lastIndexOf(1)); // 3
+> 简述：数组元素查找包括对**原始类型**和**对象类型**的查找，常用方法有 `indexOf()`、`includes()`、`find()` 和 `findIndex()` 等。对于引用类型的对象，需要基于回调函数进行条件匹配。
 
-console.log(numbers.indexOf(1) !== -1); // true，表示1存在于数组
-console.log(numbers.includes(1)); // true，表示1存在于数组
-```
+**知识树**
 
-- `indexOf()` 方法返回数组中第一个匹配元素的索引。如果元素不存在，返回 `-1`。它还允许你指定一个起始位置，从指定的位置开始查找。
-- `lastIndexOf()` 方法返回数组中最后一个匹配元素的索引。如果元素不存在，返回 `-1`。
-- `includes()` 方法返回一个布尔值，表示数组是否包含某个元素。与 `indexOf()` 类似，但它返回 `true` 或 `false`，而不是索引值。
+1. 查找原始类型元素
+   - `indexOf()`：返回第一个匹配元素的索引，若不存在返回 `-1`。
+   - `lastIndexOf()`：返回最后一个匹配元素的索引。
+   - `includes()`：返回布尔值，表示数组中是否包含某元素。
+2. 查找对象类型元素
+   - 使用 `find()` 查找符合条件的第一个元素。
+   - 使用 `findIndex()` 查找符合条件的元素索引。
+   - 对象类型查找需基于回调函数进行逻辑定义。
 
-## 查找对象元素
+**代码示例**
 
-> 在数组中查找对象元素时，方法与查找原始类型元素不同，因为对象是引用类型（比如 `Object`、`Array` 等）时，`indexOf()`、`includes()` 等方法会基于引用进行比较，因此即使对象的内容相同，它们也会被认为是不同的对象。为了查找对象元素，我们可以使用 `find()` 或 `findIndex()` 等方法。具体查看[文档](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find)
->
-> Google: javascript array find
+1. 查找原始类型元素
 
-```JS
-const courses = [
-  { id: 1, name: "a" },
-  { id: 2, name: "b" },
-];
+   ```js
+   const numbers = [1, 2, 3, 1, 4, 1];
+   
+   console.log(numbers.indexOf(1)); // 0
+   console.log(numbers.indexOf(1, 1)); // 3，从索引 1 开始查找
+   console.log(numbers.lastIndexOf(1)); // 5
+   console.log(numbers.includes(1)); // true，数组包含 1
+   console.log(numbers.indexOf("1")); // -1，类型不匹配
+   ```
 
-console.log(courses.includes({ id: 1, name: "a" })); // false
+2. 查找对象类型元素
 
-const course = courses.find(function (course) {
-  return course.name === "a";
-});
+   ```js
+   const courses = [
+     { id: 1, name: "a" },
+     { id: 2, name: "b" },
+   ];
+   
+   console.log(courses.includes({ id: 1, name: "a" })); // false，引用类型不同
+   
+   const course = courses.find(function (course) {
+     return course.name === "a";
+   });
+   console.log(course); // { id: 1, name: "a" }
+   
+   const courseIndex = courses.findIndex(function (course) {
+     return course.name === "b";
+   });
+   console.log(courseIndex); // 1
+   ```
 
-console.log(course);
-```
-
-- `find()` 方法返回数组中第一个符合条件的元素。如果没有找到符合条件的元素，则返回 `undefined`。通过回调函数来定义查找条件。
-- `findIndex()` 方法返回数组中第一个符合条件的元素的索引。如果没有找到符合条件的元素，则返回 `-1`。同样，通过回调函数来定义查找条件。
-- 回调函数在下一节有介绍
+   - `includes()` 对对象无效，因其基于引用比较。
+   - `find()` 和 `findIndex()` 可通过回调函数匹配特定条件。
 
 ## 箭头函数
 
-> **箭头函数**（Arrow Function）是 JavaScript 中一种简洁的函数定义方式，它使用 `=>` 语法来定义函数。箭头函数的主要特点是语法更简洁，并且它在处理 `this` 关键字时与传统的函数表达式有所不同。
->
-> - 箭头函数的语法比传统的函数表达式更简洁。尤其是当需要传递一个简单的回调函数时，箭头函数非常方便。
->
-> - 箭头函数还有其他的特点以及对应的限制
->   - 箭头函数没有自己的 `this`，它会从外部作用域继承 `this`。
->   - 箭头函数无法作为构造函数，不能使用 `new` 关键字。
->   - 箭头函数也没有 `arguments` 对象，但可以使用剩余参数 `...args`。
+> **简述**：箭头函数（Arrow Function）是 JavaScript 中一种简洁的函数定义方式，使用 `=>` 语法，具有更直观的语法和特性，尤其在处理回调函数和 `this` 绑定时更为便利。
 
-**回调函数（callback）**：一个函数，应该返回 `true` 或 `false`。如果返回 `true`，该元素将包含，如果返回 `false`，该元素会被过滤掉。
+**知识树**
 
-```js
-callback(element, index);
-```
+1. 语法简洁性
+   - 可以省略大括号 `{}` 和 `return`，直接返回结果。
+   - 单参数时可以省略圆括号 `()`；无参数时必须加圆括号。
+2. 特点
+   - 继承外部作用域的 `this`，没有自己的 `this`，适用于保持 `this` 的一致性。
+   - 没有 `arguments` 对象，可用剩余参数 `...args` 替代。（见函数章节arguments）
+   - 无法作为构造函数，不能用 `new` 调用。
+3. 应用
+   - 常用于回调函数的简化，提高代码可读性。
 
-- element：当前处理的元素。
-- index（可选）：当前元素的索引。
+**代码示例**
 
-**基本语法**
+1. 基本语法
 
-```js
-const functionName = (param1, param2) => {
-  // 函数体
-};
-```
+   ```js
+   // 多参数
+   const add = (a, b) => a + b;
+   console.log(add(3, 4)); // 输出: 7
 
-- 如果函数体只有一行，_可以省略大括号 `{}` 和 `return` 关键字_，直接返回计算结果。
-- 如果只有一个参数，圆括号 `()` 可以省略。
-- 没有参数时，圆括号必须存在
+   // 单参数（省略括号）
+   const square = x => x * x;
+   console.log(square(5)); // 输出: 25
 
-**基本用法**
+   // 无参数
+   const greet = () => console.log("Hello!");
+   greet(); // 输出: Hello!
+   ```
 
-```js
-const add = (a, b) => {
-  return a + b;
-};
+2. 继承 `this` 的特性
 
-console.log(add(3, 4)); // 输出: 7
-```
+   ```js
+   function Person() {
+     this.age = 0;
+   
+     // 每秒自动执行一次
+     setInterval(() => {
+       this.age++; // `this` 继承自 Person
+       console.log(this.age);
+     }, 1000);
+   }
+   
+   const p = new Person();
+   ```
 
-**示例**
+3. 在回调函数中的应用
 
-```js
-const course = courses.find(function (course) {
-  return course.name === "a";
-});
-
-// 等价于
-const course = courses.find((course) => course.name === "a");
-```
+   ```js
+   const courses = [
+     { id: 1, name: "a" },
+     { id: 2, name: "b" },
+   ];
+   
+   // 使用传统函数
+   const course1 = courses.find(function (course) {
+     return course.name === "a";
+   });
+   
+   // 使用箭头函数
+   const course2 = courses.find(course => course.name === "a");
+   
+   console.log(course1); // { id: 1, name: "a" }
+   console.log(course2); // { id: 1, name: "a" }
+   ```
 
 ## 删除元素
 
-> 向数组中删除元素有多种方式，可以在数组的**最前面**、**中间**或**末尾**删除元素。
+> **简述**：JavaScript 提供多种方法删除数组中的元素，可从数组的**末尾**、**开头**或**中间**删除指定数量的元素。这些方法会直接修改原数组。
 
-```JS
-const numbers = [1, 2, 3, 4, 5];
+**知识树**
 
-// End
-// const last = numbers.pop();
-// console.log(numbers);
-// console.log(last);
+1. 从末尾删除
+   - 使用 `pop()` 方法，删除并返回数组的最后一个元素。
+   - 数组长度减少 1。
+2. 从开头删除
+   - 使用 `shift()` 方法，删除并返回数组的第一个元素。
+   - 数组长度减少 1。
+3. 从中间删除
+   - 使用 `splice()` 方法，在数组的任意位置删除元素。
+   - 语法：`splice(startIndex, deleteCount, item1, item2, ...)`。
+     - `startIndex`：开始删除的位置。
+     - `deleteCount`：要删除的元素数量。
+     - `item1, item2, ...`：（可选）要插入的元素。
 
-// Beginning
-// const first = numbers.shift();
-// console.log(numbers);
-// console.log(first);
+**代码示例**
 
-// Middle
-numbers.splice(2, 2);
-console.log(numbers);
-```
+1. 从数组末尾删除元素
 
-- `pop()`：删除数组末尾的元素并返回该元素。该方法会修改原数组，数组的长度减少 1。
-- `shift()`：删除数组开头的元素并返回该元素。与 `pop()` 相似，`shift()` 会修改原数组，数组长度减少 1。
-- **`splice()`** 方法可以在数组的任何位置进行添加、删除或替换元素。其基本语法为：`splice(startIndex, deleteCount, item1, item2, ...)`。
-  - `startIndex`：指定开始操作的位置。
-  - `deleteCount`：指定要删除的元素数量。
-  - `item1, item2, ...`：指定要插入的元素。
+   ```js
+   const numbers = [1, 2, 3, 4, 5];
+   const last = numbers.pop();
+   console.log(numbers); // 输出: [1, 2, 3, 4]
+   console.log(last); // 输出: 5
+   ```
+
+2. 从数组开头删除元素
+
+   ```js
+   const numbers = [1, 2, 3, 4, 5];
+   const first = numbers.shift();
+   console.log(numbers); // 输出: [2, 3, 4, 5]
+   console.log(first); // 输出: 1
+   ```
+
+3. 从数组中间删除元素
+
+   ```js
+   const numbers = [1, 2, 3, 4, 5];
+   const removed = numbers.splice(2, 2); // 从索引 2 开始，删除 2 个元素
+   console.log(numbers); // 输出: [1, 2, 5]
+   console.log(removed); // 输出: [3, 4]
+   ```
+
+   - `splice()` 也可用于同时删除和插入元素。
 
 ## 清空数组
 
-> 清空数组的方法有多种，以下是几种常见的方式。在实际开发中，我们通常选择性能最优且易于理解的方法。
+> 简述：清空数组有多种方法，适用于不同的场景和需求。在实际开发中，选择性能最佳且易读的方法尤为重要。
 
-```js
-let numbers = [1, 2, 3, 4, 5];
-let another = numbers;
+**知识树**
 
-// Solution 1
-// 直接赋值一个空数组
-// numbers = []; //
+1. 直接赋值空数组
+   - 创建一个新数组并替换旧数组引用。
+   - 注意：如果有其他变量引用了原数组，这些变量的内容不会被清空。
+2. 修改数组长度
+   - 设置 `length = 0` 清空原数组。
+   - 推荐：简单高效，适用于需清空原数组的场景。
+3. 使用 `splice()`
+   - 删除所有元素。
+   - 适用于保留原数组引用的场景。
+4. 循环删除元素
+   - 使用 `while` 循环逐一删除。
+   - 不推荐：性能较差，代码冗长。
 
-// Solution 2 (推荐)
-// 修改数组的长度为 0
-numbers.length = 0;
+**代码示例**
 
-// Solution 3
-// 删除所有元素
-// numbers.splice(0, numbers.length);
+1. 直接赋值空数组
 
-// Solution 4 (性能较差，不推荐)
-// 循环删除每个元素
-// while (numbers.length > 0) numbers.pop();
-```
+   ```js
+   let numbers = [1, 2, 3, 4, 5];
+   numbers = [];
+   console.log(numbers); // 输出: []
+   ```
 
-- 直接赋值一个空数组：这种方式会创建一个新的数组，简洁，会使原数组引用丢失 ,在数组没有其他引用时可以使用。
-- 修改数组的长度为：这会修改原数组并清空所有元素。
-- 使用 splice 方法删除所有元素：从索引 0 开始删除所有元素，代码有点杂乱。
-- 循环删除每个元素：使用 while 循环删除每个元素。性能较差，且不如前两种方法简洁。
+   - 此方法创建了一个新数组，但如果有其他变量引用旧数组，旧数组的内容仍然存在。
+
+2. 修改数组长度
+
+   ```js
+   let numbers = [1, 2, 3, 4, 5];
+   numbers.length = 0;
+   console.log(numbers); // 输出: []
+   ```
+
+   - 此方法直接清空原数组，其他引用也会同步更新为空。
+
+3. 使用 `splice()`
+
+   ```js
+   let numbers = [1, 2, 3, 4, 5];
+   numbers.splice(0, numbers.length);
+   console.log(numbers); // 输出: []
+   ```
+
+   - 通过 `splice()` 删除所有元素，保留原数组引用。
+
+4. 循环删除元素
+
+   ```js
+   let numbers = [1, 2, 3, 4, 5];
+   while (numbers.length > 0) {
+     numbers.pop();
+   }
+   console.log(numbers); // 输出: []
+   ```
+
+   - 此方法逐一删除元素，但效率较低，代码也不简洁。
 
 ## 组合和切割
 
-> 在 JavaScript 中，可以使用数组的 `concat()` 方法将多个数组合并成一个数组，或者使用 `slice()` 方法对数组进行切割。
+> 简述：在 JavaScript 中，数组的组合和切割操作常用 `concat()` 和 `slice()` 方法，前者用于合并多个数组或值，后者用于截取数组的指定部分。
 
-```js
-const first = [1, 2, 3];
-const second = [4, 5, 6];
-const objArr = [{ id: 1 }];
+**知识树**
 
-const combined = first.concat(second);
+1. 组合数组
+   - 使用 `concat()` 合并多个数组或值。
+   - 不会修改原数组，返回一个新数组。
+   - 可合并普通数组或对象数组。
+2. 切割数组
+   - 使用 `slice(start, end)` 从数组中截取指定部分。
+   - 返回一个新数组，原数组不受影响。
+   - 省略参数时，默认从头或直到末尾切割（相当于拷贝）。
+3. 对象数组的引用
+   - `concat()` 合并对象数组时，会按引用传递对象。
+   - 修改合并后的对象引用，会影响原对象（即 浅拷贝）。
 
-const slice = combined.slice(2, 4);
-const copy = combined.slice(); // 视为拷贝
+**代码示例**
 
-console.log(slice);
-console.log(combined);
+1. 组合数组
 
-const combineObj = combined.concat(objArr);
-objArr[0].id = 10;
-console.log(combineObj);
-```
+   ```js
+   const first = [1, 2, 3];
+   const second = [4, 5, 6];
 
-- `concat()` 方法用于合并多个数组或值，并返回一个新数组。原数组不会被修改。
+   const combined = first.concat(second);
+   console.log(combined); // 输出: [1, 2, 3, 4, 5, 6]
+   ```
 
-- `slice(start, end)` 方法用于从数组中返回指定位置的元素，并返回一个新数组。原数组不会被修改。方法从 `start` 索引开始（包含），到 `end` 索引结束（不包括）。
+   - `concat()` 合并 `first` 和 `second` 数组，生成一个新数组。
 
-- 对象数组合并：
-  - `concat()` 方法不仅可以用于合并普通数组，还可以用于合并对象数组。
-  - 在合并后的数组中，我们看到 `objArr[0].id` 被修改成了 10，因为对象是按引用传递的，合并时我们实际上只是将 `objArr` 的引用添加到了 `combined` 中，而并没有复制该对象。（在 对象 克隆对象 一节中有讲到 浅拷贝）
+2. 切割数组
+
+   ```js
+   const combined = [1, 2, 3, 4, 5, 6];
+   const slice = combined.slice(2, 4);
+   console.log(slice); // 输出: [3, 4]
+   ```
+
+   - `slice(start, end)` 截取从索引 `2` 开始（包含）到索引 `4` 结束（不包含）的部分。
+   
+3. 对象数组的合并和引用
+
+   ```js
+   const objArr = [{ id: 1 }];
+   const combined = [1, 2, 3].concat(objArr);
+   
+   objArr[0].id = 10;
+   console.log(combined); // 输出: [1, 2, 3, { id: 10 }]
+   ```
+
+   - 合并对象数组时，`concat()` 仅复制对象的引用，因此修改 `objArr` 的内容会影响合并后的数组。
 
 ## 拓展运算符（`...`）
 
-> 扩展运算符（`...`）提供了一个非常简洁的方式来复制数组或对象。这是目前最推荐的方式之一，因为它代码简洁且易读。它不仅可以用于数组合并、拷贝，还可以用于对象的拷贝和合并。
+> 简述：扩展运算符（`...`）是一种简洁且强大的语法，用于快速复制、合并数组或对象。它使代码更具可读性，是现代 JavaScript 推荐的最佳实践之一。
 >
 > _在 对象 克隆对象 一节中有讲到拓展运算符_
 
-```JS
-const first = [1, 2, 3];
-const second = [4, 5, 6];
+**知识树**
 
-// 合并数组和元素
-const combined = [...first, "a", ...second, "b"];
+1. 数组合并
+   - 使用 `...` 将多个数组或单个元素合并到一个新数组中。
+   - 不会修改原数组，返回新的数组。
+2. 数组复制
+   - 使用 `...` 创建数组的浅拷贝。
+   - 适用于简单的数组结构。
+3. 对象操作
+   - 拓展运算符同样适用于对象，用于对象的合并或浅拷贝。
 
-// 拷贝
-// const copy = combined.slice();
-const copy = [...combined];
+**代码示例**
 
-console.log(combined);
-console.log(copy);
-```
+1. 数组合并
 
+   ```js
+   const first = [1, 2, 3];
+   const second = [4, 5, 6];
+
+   const combined = [...first, "a", ...second, "b"];
+   console.log(combined); // 输出: [1, 2, 3, "a", 4, 5, 6, "b"]
+   ```
+
+   - `...` 将 `first` 和 `second` 展开，与单个元素 `"a"` 和 `"b"` 一起合并到新数组中。
+
+2. 数组复制
+
+   ```js
+   const combined = [1, 2, 3, 4, 5];
+   const copy = [...combined];
+
+   console.log(copy); // 输出: [1, 2, 3, 4, 5]
+   ```
+
+   - 使用 `...` 快速生成 `combined` 数组的浅拷贝。
+
+3. 对象合并
+
+   ```js
+   const obj1 = { a: 1, b: 2 };
+   const obj2 = { b: 3, c: 4 };
+   
+   const merged = { ...obj1, ...obj2 };
+   console.log(merged); // 输出: { a: 1, b: 3, c: 4 }
+   ```
+
+   - 对象的拓展运算符会按照顺序覆盖同名属性，`obj2` 的 `b` 覆盖了 `obj1` 的 `b`。
+
+(开始)
 ## 遍历数组
 
-> 在 JavaScript 中，遍历数组是处理数组数据的常见操作。我们可以使用 `for` 循环、`for...of` 循环和 `forEach()` 方法来遍历数组。下面是一些常见的数组遍历方法：
+> 简述：JavaScript 提供了多种遍历数组的方法，包括 `for` 循环、`for...of` 循环和 `forEach()` 方法。这些方法各有特点，适用于不同场景。
 
-```js
-const numbers = [1, 2, 3];
+**知识树**
 
-// 使用 for...of 循环遍历数组
-for (let number of numbers) {
-  console.log(number);
-}
+1. `for` 循环
+   - 经典遍历方式，支持索引操作。
+   - 灵活，但需要手动管理索引。
+2. `for...of` 循环
+   - 简洁，直接返回数组中的每个元素。
+   - 不适用于索引相关操作。
+3. `forEach()` 方法
+   - 内建方法，用于对数组元素执行回调函数。
+   - 支持访问索引，适合简洁遍历。
 
-// 使用 forEach 方法遍历数组
-numbers.forEach(function (number) {
-  console.log(number);
-});
+**代码示例**
 
-// 使用箭头函数的 forEach 方法，并获取索引
-numbers.forEach((number, index) => console.log(index, number));
-```
+1. `for` 循环
 
-- `for...of` 循环：是一种简洁的遍历数组的方式，它直接返回数组中的元素，不需要显式使用索引。
+   ```js
+   const numbers = [1, 2, 3];
+   for (let i = 0; i < numbers.length; i++) {
+     console.log(i, numbers[i]);
+   }
+   ```
+   - 说明：手动管理索引，可访问数组的索引和值。
 
-- `forEach()` 是数组的一个内建方法，用于遍历数组并对每个元素执行一个回调函数。支持箭头函数，使代码更简洁。
+2. `for...of` 循环
 
-## `join()` 和 `split()`
+   ```js
+   const numbers = [1, 2, 3];
+   for (let number of numbers) {
+     console.log(number);
+   }
+   ```
+   - 说明：直接遍历数组元素，代码更简洁。
 
-> `join()` 方法将数组中的所有元素连接成一个字符串，并返回该字符串。可以指定一个分隔符（默认为逗号），如果不指定分隔符，默认使用逗号分隔数组元素。
->
-> `split()` 是字符串的方法，用于将一个字符串分割成一个数组。它根据传入的分隔符将字符串分割成多个部分，返回一个新数组。
+3. `forEach()` 方法
 
-```js
-const numbers = [1, 2, 3];
-const result = numbers.join();
-console.log(result);
+   ```js
+   const numbers = [1, 2, 3];
+   
+   // 使用普通函数
+   numbers.forEach(function (number) {
+     console.log(number);
+   });
+   
+   // 使用箭头函数
+   numbers.forEach((number, index) => console.log(index, number));
+   ```
+   - 说明：`forEach()` 方法自动迭代数组，并对每个元素执行回调函数。支持访问索引，代码更简洁。
 
-let message = "This is my first message";
+## 数组&字符串转换
 
-// 使用空格分割字符串
-const parts = message.split(" ");
-console.log(parts);
+> 简述：`join()` 用于将数组元素连接成字符串，`split()` 用于将字符串拆分成数组。两者经常配合使用，例如将字符串转换为数组并重新组合。
 
-const conbined = parts.join("-");
-console.log(conbined);
-```
+**知识树**
 
-- `join()` 方法返回一个字符串，数组元素以指定的分隔符连接起来。分隔符是可选的，若不传入，默认用逗号 `,` 作为分隔符。不会改变原始数组。
-- `split()` 方法将字符串分割成数组，并返回这个数组。传入的分隔符是必须的，可以是任意字符或正则表达式。
+1. `join()` 方法
+   - 将数组转换为字符串。
+   - 可选参数：指定分隔符（默认为逗号 `,`）。
+   - 不会改变原数组。
+2. `split()` 方法
+   - 将字符串拆分为数组。
+   - 必须指定分隔符，可以是字符串或正则表达式。
+   - 返回一个新数组。
+3. 最佳实践
+   - 构建URL
 
-**用途：构建 URL Slug**
+**代码示例**
 
-在构建 URL 时，空格不能出现在 URL 中。因此，需要将标题（如文章标题）中的空格替换为连字符（`-`）。这常见于创建网站的 URL Slug。
+1. `join()` 用法
 
-```js
-// 假设有一个文章标题
-let articleTitle = "Creating arrays in JavaScript";
+   ```js
+   const numbers = [1, 2, 3];
+   const result = numbers.join(); // "1,2,3"
+   console.log(result);
+   
+   const joinedWithDash = numbers.join("-"); // "1-2-3"
+   console.log(joinedWithDash);
+   ```
+   - `join()` 将数组元素连接为一个字符串，默认用逗号分隔。
 
-// 通过 split 和 join 创建 URL Slug
-const slug = articleTitle.split(" ").join("-");
-console.log(slug);
-```
+2. `split()` 用法
+
+   ```js
+   let message = "This is my first message";
+   
+   // 使用空格分割字符串
+   const parts = message.split(" "); // ["This", "is", "my", "first", "message"]
+   console.log(parts);
+   
+   // 将数组重新组合成字符串
+   const combined = parts.join("-");
+   console.log(combined); // "This-is-my-first-message"
+   ```
+   - `split()` 根据指定分隔符将字符串拆分为数组。
+   - 配合 `join()` 可以对字符串进行重新组合。
+
+3. 构建URL
+
+   ```js
+   // 假设有一个文章标题
+   let articleTitle = "Creating arrays in JavaScript";
+   
+   // 通过 split 和 join 创建 URL Slug
+   const slug = articleTitle.split(" ").join("-");
+   console.log(slug);
+   ```
+
+   - 在构建 URL 时，空格不能出现在 URL 中。因此，需要将标题（如文章标题）中的空格替换为连字符（`-`）。这常见于创建网站的 URL Slug。
 
 ## 排序数组
 
-> 在 JavaScript 中，数组的排序和反转非常常见，提供了两个内建方法：`sort()` 和 `reverse()`。
+> 简述：JavaScript 提供 `sort()` 和 `reverse()` 方法用于排序和反转数组。`sort()` 默认按字符串编码顺序排序，对数值排序需提供比较函数。`reverse()` 则直接反转数组顺序。
 
-**排序原始元素**
+**知识树**
 
-```js
-const numbers = [2, 3, 1];
+1. `sort()` 方法
+   - 默认按字符串编码顺序排序。
+   - 对数值或对象排序需提供自定义比较函数。
+   - 会修改原数组。
+2. `reverse()` 方法
+   - 直接反转数组顺序。
+   - 修改原数组。
+3. 自定义排序规则
+   - 对数值排序：提供比较函数 `(a, b) => a - b`。
+   - 对对象排序：通过比较对象的特定属性。
+4. 大小写问题
+   - 字符串排序默认区分大小写，需通过 `toUpperCase()` 或 `toLowerCase()` 统一处理。
 
-// 排序数组
-numbers.sort();
-console.log(numbers);
+**代码示例**
 
-// 反转数组
-numbers.reverse();
-console.log(numbers);
-```
+1. 排序原始元素
 
-- `sort()` 方法会将数组中的元素转换成字符串进行排序，因此它适用于数字和字符串的排序。但对于数字数组，它可能并不按数值排序，因为它默认是按字符串的字符编码顺序排序。
+   ```js
+   const numbers1 = [2, 3, 1];
+   const numbers2 = [10, 2, 5];
+   const arr = ["c", "a", "b"];
+   
+   // 按默认顺序排序
+   console.log(numbers1.sort()); // 输出 [1, 2, 3]
+   console.log(numbers2.sort()); // 输出 [10, 2, 5]
+   console.log(arr.sort()); // 输出 ["a", "b", "c"];
+   
+   // 自定义数值排序
+   numbers2.sort((a, b) => a - b);
+   console.log(numbers2); // 输出 [2, 5, 10]
+   
+   // 反转数组
+   numbers2.reverse();
+   console.log(numbers2); // 输出 [10, 5, 2]
+   ```
 
-- `reverse()` 方法会反转数组的顺序，修改原数组。
+   - *不同 JavaScript 引擎对 `sort` 的底层实现可能不同，但大多数现代引擎（如 V8、SpiderMonkey）使用的是优化过的 快速排序（QuickSort），代码是表现，实现在底层。*
 
-**排序对象元素**
+2. 排序对象元素
 
-当数组元素是对象时，`sort()` 方法默认无法直接按照对象的某个属性进行排序。需要传入一个比较函数来自定义排序规则。
+   ```js
+   const courses = [
+     { id: 1, name: "JavaScript" },
+     { id: 2, name: "Python" },
+     { id: 3, name: "HTML" },
+   ];
+   
+   // 按 name 属性排序（不区分大小写）
+   courses.sort((a, b) => {
+     const nameA = a.name.toUpperCase();
+     const nameB = b.name.toUpperCase();
+     if (nameA < nameB) return -1;
+     if (nameA > nameB) return 1;
+     return 0;
+   });
+   
+   console.log(courses);
+   ```
 
-```js
-const courses = [
-  { id: 1, name: "node.js" },
-  { id: 2, name: "javaScript" },
-  { id: 3, name: "Python" },
-  { id: 4, name: "HTML" },
-  { id: 5, name: "css" },
-];
+   - 在 `sort()` 方法中，我们传递一个比较函数，它接受两个元素 `a` 和 `b`，然后根据它们的属性（如 `name`）进行排序。
+   - 比较函数的返回值决定了排序顺序：`-1`（负数） 表示 `a` 排在 `b` 前面，`1` （正数）表示 `b` 排在 `a` 前面，`0` 表示 `a` 和 `b` 顺序不变。
+   - _底层一般使用的是 JavaScript 的快速排序，快速排序通过选择一个“基准”元素，并将数组分割成两部分，左边部分包含所有小于基准的元素，右边部分包含所有大于基准的元素。然后对这两个部分递归地进行排序。当前不必深究。_
 
-courses.sort(function (a, b) {
-  // let nameA = a.name;
-  // let nameB = b.name;
+3. 大小写处理
 
-  // 使用 toUpperCase() 排除大小写敏感
-  let nameA = a.name.toUpperCase();
-  let nameB = b.name.toUpperCase();
-
-  if (nameA < nameB) return -1;
-  if (nameA > nameB) return 1;
-  return 0;
-});
-
-console.log(courses);
-```
-
-- 在 `sort()` 方法中，我们传递一个比较函数，它接受两个元素 `a` 和 `b`，然后根据它们的属性（如 `name`）进行排序。
-- 比较函数的返回值决定了排序顺序：`-1` 表示 `a` 排在 `b` 前面，`1` 表示 `b` 排在 `a` 前面，`0` 表示 `a` 和 `b` 顺序不变。
-- _底层一般使用的是 JavaScript 的快速排序，快速排序通过选择一个“基准”元素，并将数组分割成两部分，左边部分包含所有小于基准的元素，右边部分包含所有大于基准的元素。然后对这两个部分递归地进行排序。当前不必深究。_
-
-**解决大小写排序问题**
-
-JavaScript 的字符串排序是区分大小写的，通常大写字母排在小写字母前面。如果需要不区分大小写地排序字符串，可以使用 `toUpperCase()` 或 `toLowerCase()` 方法来统一大小写。
+   ```js
+   const courses = [
+     { id: 1, name: "node.js" },
+     { id: 2, name: "javaScript" },
+     { id: 3, name: "Python" },
+     { id: 4, name: "HTML" },
+     { id: 5, name: "css" },
+   ];
+   
+   courses.sort(function (a, b) {
+     // 使用 toUpperCase() 排除大小写敏感
+     let nameA = a.name.toUpperCase();
+     let nameB = b.name.toUpperCase();
+   
+     if (nameA < nameB) return -1;
+     if (nameA > nameB) return 1;
+     return 0;
+   });
+   
+   console.log(courses);
+   ```
 
 ## 测试数组
 
-> 在 JavaScript 中，`every()` 和 `some()` 是两个非常有用的数组方法，用于检查数组中的元素是否满足某种条件。它们都接受一个回调函数作为参数，并返回布尔值。
+> 简述：`every()` 和 `some()` 是 JavaScript 中用于测试数组元素是否满足特定条件的方法。它们接受一个回调函数并返回布尔值，分别检查**所有元素**或**至少一个元素**是否满足条件。
 
-```js
-const numbers = [1, -1, 2, 3];
+**知识树**
 
-//evey()、some() are new method, some old browers may not support
+1. `every()` 方法
+   - 用于测试数组中**所有元素**是否满足条件。
+   - 如果所有元素满足条件，返回 `true`；否则返回 `false`。
+   - 遇到不满足条件的元素时会立即终止检查。
+2. `some()` 方法
+   - 用于测试数组中是否**至少有一个元素**满足条件。
+   - 如果存在满足条件的元素，返回 `true`；否则返回 `false`。
+   - 遇到满足条件的元素时会立即终止检查。
+3. 回调函数
+   - `callback(element, index, array)`：
+     - `element`：当前被检查的元素。
+     - `index`：当前元素的索引（可选）。
+     - `array`：被测试的数组（可选）。
+   - 回调函数应返回布尔值。
 
-const allPositive = numbers.every(function (value) {
-  return value >= 0;
-});
+**代码示例**
 
-console.log(allPositive);
+1. 检查所有元素是否为正数
 
-const atLeastOnepositive = numbers.some(function (value) {
-  return value >= 0;
-});
+   ```js
+   const numbers = [1, -1, 2, 3];
 
-console.log(atLeastOnepositive);
-```
+   const allPositive = numbers.every(function (value) {
+     return value >= 0;
+   });
 
-- `every()` 方法检查数组中的每个元素是否都满足指定的条件。如果数组中的所有元素都满足条件，返回 `true`；否则，返回 `false`。
-- `some()` 方法检查数组中是否至少有一个元素满足指定的条件。如果数组中至少有一个元素满足条件，返回 `true`；否则，返回 `false`。
+   console.log(allPositive); // 输出: false
+   ```
+
+   - `every()` 方法会遍历数组并检查是否所有元素都为正数。因为数组中包含 `-1`，所以返回 `false`。
+
+2. 检查是否至少有一个正数
+
+   ```js
+   const numbers = [1, -1, 2, 3];
+
+   const atLeastOnePositive = numbers.some(function (value) {
+     return value >= 0;
+   });
+
+   console.log(atLeastOnePositive); // 输出: true
+   ```
+
+   - `some()` 方法会检查数组中是否至少有一个元素为正数。由于存在多个正数（如 `1` 和 `2`），因此返回 `true`。
+
+3. 使用箭头函数简化
+
+   ```js
+   const numbers = [1, -1, 2, 3];
+
+   console.log(numbers.every(value => value >= 0)); // false
+   console.log(numbers.some(value => value >= 0)); // true
+   ```
+
 
 ## 过滤数组
 
-> `filter()` 方法用于创建一个新数组，其中包含所有通过指定测试条件的元素。它接受一个回调函数，回调函数会被应用到数组的每个元素。如果元素满足条件，则该元素将被包含在返回的新数组中。
+> 简述：`filter()` 方法用于根据指定条件筛选数组中的元素，返回一个包含满足条件元素的新数组，而不修改原数组。
 
-```js
-const numbers = [1, -1, 2, 3];
+**知识树**
 
-// const filtered = numbers.filter(function (value) {
-//   return value >= 0;
-// });
-const filtered = numbers.filter((n) => n >= 0);
+1. `filter()` 方法
+   - 用于筛选数组中的元素。
+   - 返回一个新数组，其中包含所有满足条件的元素。
+   - 不会修改原数组。
+2. 回调函数
+   - `callback(element, index, array)`：
+     - `element`：当前处理的数组元素。
+     - `index`（可选）：当前元素的索引。
+     - `array`（可选）：调用 `filter()` 的数组。
+   - 回调函数应返回布尔值，`true` 表示保留元素，`false` 表示过滤掉。
+3. 常见用法
+   - 过滤正数、负数、特定条件的元素。
+   - 结合箭头函数简化代码。
 
-console.log(filtered);
-```
+**代码示例**
 
-- `filter()` 方法是用于从数组中筛选出满足某一条件的元素，返回一个新数组。原数组不受影响。
-- `array.filter(callback(element, index, array), thisArg)`
-  - `callback`：一个函数，测试数组的每个元素，应该返回 `true` 或 `false`。如果返回 `true`，该元素将包含在新数组中；如果返回 `false`，该元素会被过滤掉。
-  - `element`：当前处理的数组元素。
-  - `index`（可选）：当前元素的索引。
-  - `array`（可选）：调用 `filter()` 的数组。
-  - `thisArg`（可选）：指定回调函数中的 `this` 值。
+1. 基本用法：筛选正数
+
+   ```js
+   const numbers = [1, -1, 2, 3];
+
+   // 使用传统函数
+   const filtered = numbers.filter(function (value) {
+     return value >= 0;
+   });
+
+   console.log(filtered); // 输出: [1, 2, 3]
+   ```
+
+2. 使用箭头函数简化
+
+   ```js
+   const numbers = [1, -1, 2, 3];
+
+   // 使用箭头函数
+   const filtered = numbers.filter(n => n >= 0);
+
+   console.log(filtered); // 输出: [1, 2, 3]
+   ```
+
+3. 复杂条件筛选
+
+   ```js
+   const people = [
+     { name: "John", age: 25 },
+     { name: "Jane", age: 18 },
+     { name: "Jack", age: 30 },
+   ];
+   
+   // 筛选年龄大于 20 的人
+   const adults = people.filter(person => person.age > 20);
+   
+   console.log(adults);
+   // 输出: [{ name: "John", age: 25 }, { name: "Jack", age: 30 }]
+   ```
 
 ## `map()` 方法
 
 > `map()` 方法用于遍历数组并对数组中的每个元素应用回调函数，返回一个新的数组，其中每个元素是原数组元素应用回调函数后的结果。
 
-**基本用法示例**
+**知识树**
 
-```js
-const numbers = [1, -1, 2, 3];
+1. `map()` 方法
+   - 遍历数组并对每个元素应用回调函数。
+   - 返回一个新的数组，新数组中的每个元素为回调函数的返回值。
+   - 不会修改原数组。
+2. 回调函数
+   - 接受三个参数：
+     - `element`：当前元素。
+     - `index`（可选）：当前元素的索引。
+     - `array`（可选）：调用 `map()` 的数组。
+   - 返回值用于生成新数组的元素。
+3. 常见用法
+   - 将数组元素转换为不同格式（如字符串、对象等）。
+4. 注意事项
+   - 当回调函数返回对象字面量时，需要用括号包裹对象，以避免语法解析错误。
 
-const filtered = numbers.filter((n) => n >= 0);
+**代码示例**
 
-const items = filtered.map((n) => "<li>" + n + "<li>");
-const html = "<ul>" + items.join("") + "<ul>";
-console.log(html); // <ul><li>1<li><li>2<li><li>3<li><ul>
-```
+1. 基本用法：生成 HTML 列表
 
-**生成对象数组**
+   ```js
+   const numbers = [1, -1, 2, 3];
+   
+   const filtered = numbers.filter((n) => n >= 0);
+   
+   const items = filtered.map((n) => `<li>${n}</li>`);
+   const html = `<ul>${items.join("")}</ul>`;
+   console.log(html);
+   // 输出: <ul><li>1</li><li>2</li><li>3</li></ul>
+   ```
 
-```js
-const numbers = [1, -1, 2, 3];
+2. 生成对象数组
 
-const filtered = numbers.filter((n) => n >= 0);
+   ```js
+   const numbers = [1, -1, 2, 3];
+   
+   const filtered = numbers.filter((n) => n >= 0);
+   
+   const items = filtered.map((n) => ({ value: n }));
+   console.log(items);
+   // 输出: [{ value: 1 }, { value: 2 }, { value: 3 }]
+   
+   //如果省略括号：
+   const items = numbers.map((n) => { value: n }); // 错误，返回 undefined
+   ```
 
-// const items = filtered.map((n) => {
-//   const obj = { value: n };
-//   return obj;
-// });
-const items = filtered.map((n) => ({ value: n }));
+## 链式语法
 
-console.log(items);
-```
+> 简述：链式语法允许对数组进行多步操作，将多个数组方法（如 `filter()`、`map()` 等）组合在一起，从而以简洁、可读性高的方式实现复杂的数据处理逻辑。
 
-- `map()` 可以将数组的每个元素转换为任何你想要的格式（如字符串、对象等）。
-- 当箭头函数的函数体 是一个对象字面量 时（比如 `{ value: n }`），JavaScript 会将 `{}` 解析为块语法的开始，而不是对象字面量。如果使用`(n) => { value: n }`，函数实际上没有返回一个对象，而是返回了 `undefined`。这是因为 `{ value: n }` 被当做一个块语法来处理，`return` 被隐式地忽略了。需要用`()`包裹返回的对象，这样 JavaScript 会正确地将其解析为一个对象字面量，而不是块语法。
+**知识树**
 
-**拓展：链式语法**
+1. 链式调用的定义
+   - 将多个数组方法串联使用，每个方法的返回值作为下一个方法的输入。
+   - 避免中间变量，代码更加简洁。
+2. 常见数组方法
+   - `filter()`：筛选数组元素。
+   - `map()`：对数组元素进行映射转换。
+   - `reduce()`：对数组元素进行累积操作。
+3. 优点
+   - 简化代码结构，减少中间变量。
+   - 提高代码可读性和可维护性。
 
-```js
-const numbers = [1, -1, 2, 3];
+**代码示例**
 
-// const filtered = numbers.filter((n) => n >= 0);
-// const items = filtered.map((n) => ({ value: n }));
+1. 基本用法：链式调用
 
-// 链式调用：先过滤、再映射，再过滤，再取出值
-const items = numbers
-  .filter((n) => n >= 0) // 过滤出大于等于 0 的数字
-  .map((n) => ({ value: n })) // 将每个数字映射为对象 { value: n }
-  .filter((obj) => obj.value > 1) // 过滤出 value 大于 1 的对象
-  .map((obj) => obj.value); // 将对象的 value 属性提取为数组
+   ```js
+   const numbers = [1, -1, 2, 3];
+   
+   const items = numbers
+     .filter((n) => n >= 0) // 过滤出大于等于 0 的数字
+     .map((n) => ({ value: n })) // 将每个数字映射为对象 { value: n }
+     .filter((obj) => obj.value > 1) // 筛选 value 大于 1 的对象
+     .map((obj) => obj.value); // 提取对象的 value 属性，生成新数组
+   
+   console.log(items); // 输出: [2, 3]
+   ```
 
-console.log(items);
-```
-
-- 步骤：
-  1. 先过滤出大于等于 0 的数字。
-  2. 使用 `map()` 将数字转为包含 `value` 属性的对象。
-  3. 过滤掉 `value` 小于等于 1 的对象。
-  4. 最后提取出 `value` 属性，生成一个新数组。
+   - 步骤解析：
+     1. `filter((n) => n >= 0)`：筛选出大于等于 0 的数字。
+     2. `map((n) => ({ value: n }))`：将数字转换为对象形式 `{ value: n }`。
+     3. `filter((obj) => obj.value > 1)`：筛选出 `value` 大于 1 的对象。
+     4. `map((obj) => obj.value)`：提取 `value` 属性，生成新数组。
 
 ## `reduce()` 方法
 
-> `reduce()` 方法是数组的一个强大工具，它通过逐步应用回调函数，将数组中的所有元素“归约”成一个单一的值。在计算总和、求最小值、最大值等场景中，`reduce()` 显得尤为简洁和高效。
+> 简述：`reduce()` 方法通过迭代数组，将数组中的元素累积为一个单一的值（例如总和、乘积或对象）。适用于计算总和、统计数据、转换数据结构等场景。
 
-```js
-const numbers = [1, -1, 2, 3];
+**知识树**
 
-// old way of writting code
-let sum = 0;
-for (let n of numbers) sum += n;
-console.log(sum);
+1. 基本概念
+   - `reduce(callback, initialValue)` 方法接收一个回调函数和一个可选的初始值。
+   - 回调函数逐步处理数组元素，将结果累积到 `accumulator` 中。
+2. 回调函数参数
+   - `accumulator`：累积计算的结果。
+   - `currentValue`：当前迭代的数组元素。
+   - `currentIndex`（可选）：当前元素的索引。
+   - `array`（可选）：调用 `reduce()` 的数组。
+3. 初始值
+   - 如果提供了初始值，第一次迭代时，`accumulator` 的值为初始值。
+   - 如果未提供初始值，数组的第一个元素将作为初始值，迭代从第二个元素开始。
+4. 常见用途
+   - 数组求和、计算乘积。
+   - 查找最大值或最小值。
+   - 将数组转换为对象或其他结构。
 
-// reduce() method
-// const sum2 = numbers.reduce((accumulator, currentValue) => {
-//   return accumulator + currentValue;
-// }, 0);
-//简化后
-const sum2 = numbers.reduce((a, c) => a + c);
+**代码示例**
 
-console.log(sum2);
-```
+1. 数组求和
 
-- `reduce()` 方法接受两个参数：
-  1. 回调函数：回调函数有两个参数，`accumulator`（累加器）和 `currentValue`（当前值）。回调函数会在数组的每个元素上依次执行。
-  2. 初始值：`reduce()` 的第二个参数。如果我们不提供初始值，`reduce()` 将使用数组的第一个元素作为累加器的初始值。这样会导致第一次执行时，`currentValue` 是数组的第二个元素。
-  3. `reduce()` 会返回最终的累加值。
-- 每次迭代时，`accumulator` 会累积当前的总和，`currentValue` 是当前正在处理的元素。
+   ```js
+   const numbers = [1, -1, 2, 3];
 
-## Ex1
+   // 使用 for 循环
+   let sum = 0;
+   for (let n of numbers) {
+     sum += n;
+   }
+   console.log(sum); // 输出: 5
 
-> 编写一个函数 `arrayFromRange(min, max)`，该函数接受两个参数 `min` 和 `max`，返回一个数组，数组包含从 `min` 到 `max` 之间的所有整数。若 `max` 小于 `min`，则返回一个空数组。
->
-> **实现思路**
->
-> 1. 创建空数组：首先创建一个空数组 `output`，用来存储结果。
-> 2. 遍历生成范围内的数字：使用 `for` 循环从 `min` 到 `max` 遍历。
-> 3. 将数字加入数组：在每次循环中，将当前的 `i` 值加入到 `output` 数组中。
-> 4. 返回结果：循环结束后，返回 `output` 数组。
+   // 使用 reduce()
+   const sumWithReduce = numbers.reduce((accumulator, currentValue) => {
+     return accumulator + currentValue;
+   }, 0); // 初始值为 0
+   console.log(sumWithReduce); // 输出: 5
+   ```
+
+2. 简化版求和
+
+   ```js
+   const numbers = [1, -1, 2, 3];
+   const sum = numbers.reduce((a, c) => a + c); // 不提供初始值，默认使用第一个元素作为初始值
+   console.log(sum); // 输出: 5
+   ```
+
+3. 计算数组乘积
+
+   ```js
+   const numbers = [1, 2, 3, 4];
+   const product = numbers.reduce((acc, curr) => acc * curr, 1); // 初始值为 1
+   console.log(product); // 输出: 24
+   ```
+
+4. 转换数组为对象
+
+   ```js
+   const people = [
+     { id: 1, name: "Alice" },
+     { id: 2, name: "Bob" },
+     { id: 3, name: "Charlie" },
+   ];
+   
+   const peopleById = people.reduce((acc, person) => {
+     acc[person.id] = person.name;
+     return acc;
+   }, {});
+   
+   console.log(peopleById);
+   // 输出: { 1: "Alice", 2: "Bob", 3: "Charlie" }
+   ```
+
+## Ex1: 生成数组
+
+> **要求**：编写一个函数 `arrayFromRange`，接收两个参数 `min` 和 `max`，返回一个从 `min` 到 `max` 的所有整数组成的数组。如果 `max < min`，返回空数组。
+
+**解法**：
+
+1. Step1：创建一个空数组 `output` 用于存储结果。
+2. Step2：使用 `for` 循环从 `min` 遍历到 `max`，将每个数字添加到 `output` 中。
+3. Step3：返回 `output`。
 
 ```js
 function arrayFromRange(min, max) {
-  const output = [];
+  const output = []; // 初始化空数组
 
-  for (let i = min; i <= max; i++) output.push(i);
-  return output;
+  // 遍历 min 到 max 的范围
+  for (let i = min; i <= max; i++) {
+    output.push(i); // 将当前数字添加到数组中
+  }
+
+  return output; // 返回结果数组
 }
 
-console.log(arrayFromRange(-10, 5));
+// 测试函数
+console.log(arrayFromRange(1, 5)); // 输出: [1, 2, 3, 4, 5]
+console.log(arrayFromRange(-3, 3)); // 输出: [-3, -2, -1, 0, 1, 2, 3]
+console.log(arrayFromRange(5, 1)); // 输出: []
 ```
 
-## Ex2
+## Ex2: 实现 `includes` 方法 
 
-> 编写一个函数 `includes(array, searchElement)`，该函数模拟 `Array.prototype.includes()` 方法的功能，检查指定的元素是否存在于数组中。如果存在，返回 `true`，否则返回 `false`。
->
-> **实现思路**
->
-> 1. 遍历数组：使用 `for...of` 循环遍历数组中的每个元素。
-> 2. 条件判断：如果当前元素与 `searchElement` 相等，立即返回 `true`。
-> 3. 返回 `false`：如果遍历完所有元素后没有找到匹配的元素，返回 `false`。
+> **要求**：编写一个函数 `includes(array, searchElement)`，该函数模拟 `Array.prototype.includes()` 方法的功能，接收一个数组和一个待搜索的元素。如果数组中包含该元素，则返回 `true`；否则返回 `false`。
+
+**解法**：
+
+1. Step1：遍历数组中的每个元素。
+2. Step2：比较当前元素是否等于目标搜索元素，如果找到则立即返回 `true`。
+3. Step3：遍历结束后仍未找到，返回 `false`。
+
+**代码**
 
 ```js
 function includes(array, searchElement) {
-  for (let element of array)
-    if (element === searchElement) return true;
-  return false;
+  for (let element of array) {
+    if (element === searchElement) {
+      return true; // 找到元素，立即返回 true
+    }
+  }
+  return false; // 遍历完成，未找到元素
 }
 
+// 测试函数
 const numbers = [1, 2, 3, 4];
 
-console.log(includes(numbers, 6)); // 输出: false
+console.log(includes(numbers, 2)); // 输出: true
+console.log(includes(numbers, 5)); // 输出: false
 ```
 
-## Ex3
+## Ex3: 数组排除特定元素
 
-> 编写一个函数 `except(array, excludeArray)`，该函数接受两个数组作为参数：第一个数组 `array` 是原始数组，第二个数组 `excludeArray` 是一个包含需要排除的元素的数组。该函数返回一个新数组，包含原始数组中除去排除元素后的所有元素。
->
-> **实现思路**
->
-> 1. 初始化输出数组：首先创建一个空数组 `output`，用来存储结果。
-> 2. 遍历原始数组：使用 `for...of` 循环遍历原始数组中的每个元素。
-> 3. 检查排除元素：检查当前元素是否在排除数组 `excludeArray` 中。如果不在排除数组中，则将该元素添加到 `output` 数组。
-> 4. 返回结果：循环结束后，返回 `output` 数组。
+> **要求**：实现一个函数 `except`，接收一个数组和一个要排除的值数组。返回一个新数组，其中不包含需要排除的值。
+
+**解法**：
+
+1. Step1：创建一个空数组 `output`，用于存储过滤后的元素。
+2. Step2：遍历原数组，检查当前元素是否存在于排除数组中。如果不存在，则将其添加到 `output` 中。
+
+**代码**
 
 ```js
-function except(array, excludeArray) {
-  let output = [];
+function except(array, excluded) {
+  const output = []; // 用于存储过滤后的结果
 
-  for (let element of array)
-    if (!excludeArray.includes(element)) output.push(element);
-  return output;
+  for (let element of array) {
+    // 如果元素不在排除数组中，则添加到结果数组
+    if (!excluded.includes(element)) {
+      output.push(element);
+    }
+  }
+
+  return output; // 返回结果数组
 }
 
-// 测试
-const numbers = [1, 2, 3, 4, 1, 1];
-const exclude = [1, 2];
+// 测试代码
+const numbers = [1, 2, 3, 4];
+const excluded = [1, 2];
 
-console.log(except(numbers, exclude)); // 输出: [1, 3, 5]
+const result = except(numbers, excluded);
+console.log(result); // 输出: [3, 4]
 ```
 
-## Ex4
+## Ex4: 移动数组元素
 
-> 编写一个函数 `move(array, index, offset)`，该函数接受一个数组 `array`，一个要移动元素的索引 `index`，以及一个偏移量 `offset`，返回一个新数组，表示在偏移后移动的结果。如果偏移量不合法（如超出数组范围），则输出错误信息。
->
-> **实现思路**
->
-> 1. 初始化数组副本：首先，我们需要确保不修改原始数组，因此使用扩展运算符（`...`）创建原始数组的副本。
-> 2. 使用 `splice` 删除元素：使用 `splice` 方法从数组中删除指定索引的元素，并返回被删除的元素。
-> 3. 计算目标位置：根据 `index` 和 `offset` 计算目标位置 `position`，并进行基本验证，确保目标位置合法。
-> 4. 使用 `splice` 插入元素：将删除的元素通过 `splice` 插入到新数组的计算位置。
-> 5. 验证偏移量合法性：确保偏移量不超出数组的边界，如果非法，输出错误信息并返回原数组。
+> **要求**：实现一个函数 `move`，用于在数组中移动指定索引的元素到指定的偏移位置。偏移值可以是正数或负数。若偏移超出数组范围，应返回错误。
+
+**解法**：
+
+1. 克隆数组：使用扩展运算符创建原数组的副本，避免修改原数组。
+2. 移除元素：通过 `splice` 方法移除目标元素，并存储以便后续插入。
+3. 插入元素：在新的位置将元素插回数组。
+4. 验证偏移：在操作前检查目标位置是否有效，若无效则输出错误信息并终止。
+
+**代码**
 
 ```js
 function move(array, index, offset) {
   const position = index + offset;
+
+  // 偏移范围验证
   if (position < 0 || position >= array.length) {
     console.error("Invalid offset");
     return;
   }
-  const output = [...array];
-  const item = output.splice(index, 1)[0];
 
-  //[item]是 数组解构 语法，它从 splice() 返回的数组中提取出第一个元素，并将其赋值给 item。
-  // const [item] = output.splice(index, 1);
-  output.splice(position, 0, item);
+  // 克隆数组
+  const output = [...array];
+
+  // 移除元素
+  const [element] = output.splice(index, 1);
+
+  // 插入元素到新位置
+  output.splice(position, 0, element);
+
   return output;
 }
 
-// 测试
+// 测试代码
 const numbers = [1, 2, 3, 4];
 
-console.log(move(numbers, 1, -1)); // 输出: [2, 3, 1, 4]
+console.log(move(numbers, 0, 1)); // 输出: [2, 1, 3, 4]
+console.log(move(numbers, 3, -2)); // 输出: [1, 4, 2, 3]
+console.log(move(numbers, 1, 4)); // 输出: Invalid offset
+console.log(numbers); // 原数组未修改: [1, 2, 3, 4]
 ```
 
-## Ex5
+## Ex5 统计某元素出现次数
 
-> 编写一个函数 `countOccurrences(array, searchElement)`，该函数接受一个数组和一个搜索元素，返回该元素在数组中出现的次数。实现此功能的一个简单方式是使用循环，另一种方式是使用 `reduce` 方法。
->
-> **实现思路**
->
-> 1. **使用循环实现**：
->    - 遍历数组，检查每个元素是否等于搜索元素。
->    - 如果相等，增加计数器。
->    - 返回计数器的最终值。
-> 2. **使用 `reduce` 实现**：
->    - `reduce` 方法将数组中的所有元素“减少”到一个单一的值，这里我们将其减少到搜索元素出现的次数。
->    - `reduce` 的回调函数有两个参数：累加器 `accumulator` 和当前元素 `currentValue`。
->    - 每次回调时，检查当前元素是否与搜索元素相等，如果相等，则累加器加 1。
+> **要求**：实现一个函数 `countOccurrences`，用于统计数组中某个特定元素出现的次数。使用基础循环和 `reduce` 方法实现。
 
-**使用循环的基本实现**
+**解法**：
+
+1. 基础实现：
+   - 遍历数组，检查每个元素是否等于目标元素。
+   - 如果相等，计数器加一。
+2. `reduce` 实现：
+   - 使用 `reduce` 遍历数组，将累加器用于记录目标元素的出现次数。
+   - 在每次回调中，检查当前值是否等于目标元素，更新累加器。
+
+**代码**
 
 ```js
+// 基础实现
 function countOccurrences(array, searchElement) {
   let count = 0;
-  for (let element of array)
+  for (let element of array) {
     if (element === searchElement) count++;
+  }
   return count;
 }
 
-const numbers = [1, 2, 3, 4, 2, 2, 5];
-console.log(countOccurrences(numbers, 2)); // 输出: 3
-```
-
-**使用 `reduce` 的实现**
-
-```js
-function countOccurrences(array, searchElement) {
-  return array.reduce((acc, cur) => {
-    cur === searchElement ? acc + 1 : acc;
+// 使用 reduce 实现
+function countOccurrencesReduce(array, searchElement) {
+  return array.reduce((accumulator, current) => {
+    return current === searchElement ? accumulator + 1 : accumulator;
   }, 0);
 }
 
-// 测试
-const numbers = [1, 2, 3, 4, 2, 2, 5];
-console.log(countOccurrences(numbers, 2)); // 输出: 3
+// 测试代码
+const numbers = [1, 2, 3, 4, 1, 1, 5];
+
+console.log(countOccurrences(numbers, 1)); // 输出: 3
+console.log(countOccurrencesReduce(numbers, 1)); // 输出: 3
 ```
 
-## Ex6
+## Ex6: 获取最大值
 
-> 编写一个函数 `getMax(array)`，该函数接受一个数组并返回该数组中的最大值。如果数组为空，则返回 `undefined`。
->
-> **实现思路**
->
-> 1. **使用基本的循环实现**：
->    - 首先检查数组是否为空。如果为空，返回 `undefined`。
->    - 初始化 `max` 为数组的第一个元素。
->    - 使用循环遍历数组中的元素，比较每个元素与 `max` 的大小。如果当前元素比 `max` 大，就更新 `max`。
->    - 返回最终的 `max` 值。
-> 2. **使用 `reduce` 实现**：
->    - 使用 `reduce` 方法来将数组“缩减”成一个单一的最大值。
->    - `reduce` 方法的回调函数有两个参数：累加器（`accumulator`）和当前元素（`current`）。
->    - 每次回调时，比较 `accumulator` 和 `current` 的大小，返回较大的那个作为新的累加器。
+> **要求**：实现一个函数 `getMax`，接收一个数组，返回数组中的最大值。如果数组为空，则返回 `undefined`。
 
-**使用循环的基本实现**
+**解法**：
+
+1. 基础实现：
+   - 检查数组是否为空。如果是，返回 `undefined`。
+   - 假设第一个元素是最大值，用 `for` 循环遍历数组，如果发现更大的值则更新最大值。
+2. 使用 `reduce` 方法：
+   - 用 `reduce` 遍历数组，将累加器维护为当前的最大值。
+   - 在每次回调中，比较当前值和累加器，返回较大的值作为新的累加器。
+
+**代码**
 
 ```js
+// 基础实现
 function getMax(array) {
   if (array.length === 0) return undefined;
 
   let max = array[0];
-  for (let i = 1; i < array.length; i++)
+  for (let i = 1; i < array.length; i++) {
     if (array[i] > max) max = array[i];
+  }
   return max;
 }
-const numbers = [1, 3, 2, 5, 4];
 
-console.log(getMax(numbers)); // 输出: 5
-```
-
-**使用 `reduce` 的实现**
-
-```js
-function getMax(array) {
+// 使用 reduce 实现
+function getMaxReduce(array) {
   if (array.length === 0) return undefined;
 
-  return array.reduce((acc, cur) => (acc > cur ? acc : cur)); // 返回较大的值
+  return array.reduce((a, b) => (a > b ? a : b));
 }
 
-console.log(getMax([1, 3, 2, 5, 4])); // 输出: 5
+// 测试代码
+const numbers = [1, 5, 3, 9, 2];
+
+console.log(getMax(numbers)); // 输出: 9
+console.log(getMax([]));      // 输出: undefined
+
+console.log(getMaxReduce(numbers)); // 输出: 9
+console.log(getMaxReduce([]));      // 输出: undefined
 ```
 
-## Ex7
+## Ex7: 按条件筛选
 
-> 编写一个函数，处理一个电影数组，筛选出 2018 年，评分不低于 4 分的电影
->
-> **实现思路**
->
-> 1. 筛选电影：使用 `filter()` 方法来筛选
-> 2. 排序电影：使用 `sort()` 方法对电影数组按评分进行排序。为了确保按降序排列，需要使用自定义的比较函数。
-> 3. 提取电影标题：使用 `map()` 方法提取每部电影的 `title`。
-> 4. 返回排序后的电影标题：将排序后的电影标题存储在一个新的数组中，并将其打印出来。
+> **要求**：编写代码从电影数组中筛选出特定条件的电影，按评分降序排列，并只输出它们的标题。
+
+**解法**：
+
+1. 过滤电影：
+   - 使用 `filter` 筛选出电影的 `year` 为 2021 或更晚，且 `rating` 大于 4。
+2. 排序电影：
+   - 使用 `sort` 方法按评分降序排列。
+3. 提取标题：
+   - 使用 `map` 提取每部电影的 `title` 属性。
+
+**代码**
 
 ```js
+// 定义电影数组
 const movies = [
-  { title: "a", year: 2018, rating: 4.5 },
-  { title: "b", year: 2018, rating: 4.7 },
-  { title: "c", year: 2018, rating: 3 },
-  { title: "d", year: 2017, rating: 4.5 },
+  { title: "a", year: 2021, rating: 4.5 },
+  { title: "b", year: 2022, rating: 5 },
+  { title: "c", year: 2020, rating: 4.7 },
+  { title: "d", year: 2021, rating: 3 },
 ];
 
+// 筛选、排序并提取标题
 const titles = movies
-  .filter((m) => m.year === 2018 && m.rating >= 4) // 过滤
-  .sort((a, b) => b.rating - a.rating) // 排序
-  .map((m) => m.title); // 提取电影标题
+  .filter(m => m.year >= 2021 && m.rating > 4) // Step 1: 筛选
+  .sort((a, b) => b.rating - a.rating)         // Step 2: 按评分降序排列
+  .map(m => m.title);                          // Step 3: 提取标题
 
-console.log(titles);
+console.log(titles); // 输出: ["b", "a"]
 ```
 
 # 函数
 
 ## 函数定义方式
 
-> 在 JavaScript 中，有两种常用的方式来定义函数：**函数声明**（Function Declaration）和**函数表达式**（Function Expression）。这两者之间的主要区别在于它们的语法结构、如何被调用以及它们的作用域行为。让我们深入了解这两种方式。
+> 简述：JavaScript 提供两种主要的函数定义方式：**函数声明**和**函数表达式**。它们的语法结构、提升行为和适用场景各有不同。
 
-```js
-// Function Declaration
-function walk() {
-  console.log("walk");
-}
-walk();
+**知识树**
 
-// Anonymous Function Expression
-let a = function () {
-  console.log("run");
-};
+1. 函数声明（Function Declaration）
+   - 通过 `function` 关键字定义，带有函数名称。
+   - 支持提升（Hoisting）：函数可以在声明之前调用。
+   - 适合定义全局或模块级别的函数。
+2. 函数表达式（Function Expression）
+   - 将函数赋值给变量或常量，分为匿名函数和命名函数。
+   - 不支持提升：必须在定义后调用。
+   - 命名函数表达式支持递归调用。
+3. 匿名函数表达式
+   - 没有函数名称，适合简单的回调函数。
+4. 命名函数表达式
+   - 包含函数名称，便于递归或调试。
+   - 错误发生时，堆栈追踪显示为 `命名函数名称`，使得开发者能够更快定位到是哪个函数出了问题。
+5. 动态类型
+   - 函数可以接受任意数量的参数，并且可以在函数执行时动态地访问这些参数。
 
-// Named Function Expression
-let b = function c() {
-  console.log("run");
-};
+**代码示例**
 
-a();
-let d = a;
-d();
-```
+1. 函数声明
 
-**函数声明（Function Declaration）**
+   ```js
+   // 定义一个函数
+   function walk() {
+     console.log("walk");
+   }
 
-函数声明是最常见的函数定义方式，通常直接定义一个带有名字的函数。
+   // 提升行为
+   walk(); // 输出: walk
+   ```
 
-- 语法：使用 `function` 关键字定义一个有名字的函数。
+2. 匿名函数表达式
 
-- 提升（Hoisting）：_函数声明会被提升_。这意味着函数可以在声明之前被调用。
+   ```js
+   // 将匿名函数赋值给变量
+   let run = function () {
+     console.log("run");
+   };
 
-  ```JS
-  walk(); // 正常执行
-  function walk() {
-    console.log("walk");
-  }
-  ```
+   run(); // 输出: run
+   ```
 
-- 特点：语法简洁，且在作用域中有效，通常用来定义全局或模块级别的函数。
+3. 命名函数表达式
 
-**函数表达式（Function Expression）**
+   ```js
+   // 将命名函数赋值给变量
+   let sprint = function fastRun() {
+     console.log("sprint");
+   };
 
-函数表达式是通过将一个函数赋值给变量或常量来定义的函数。函数表达式可以是匿名函数（没有名字）或具名函数（有名字）。
+   sprint(); // 输出: sprint
+   // fastRun(); // 报错：fastRun 在函数外不可用
+   ```
 
-- 匿名函数表达式：这种写法适用于不需要在函数内部递归调用的场景。
+4. 提升对比
 
-- 命名函数表达式：具有一个局部名称，这种写法的优势是可以在函数内部使用 `c()` 进行递归调用，也能在调试时提供更好的信息。
+   ```js
+   // 函数声明的提升
+   walk(); // 输出: walk
+   function walk() {
+     console.log("walk");
+   }
 
-- 无提升（No Hoisting）：必须在定义之后调用
+   // 函数表达式的无提升
+   // run(); // 报错：run is not defined
+   let run = function () {
+     console.log("run");
+   };
+   ```
 
-  ```js
-  a(); // 报错
-  let a = function () {
-    console.log("run");
-  };
-  ```
+5. 引用共享
 
-- 函数表达式的引用
+   ```js
+   let a = function () {
+     console.log("shared function");
+   };
+   
+   let b = a;
+   b(); // 输出: shared function
+   a(); // 输出: shared function
+   ```
 
-  通过多个变量引用同一个函数。所有引用的变量指向同一个内存中的函数对象。
+6. 动态接收参数
 
-## 动态类型（2）
-
-> JavaScript 是一种动态语言，函数可以接受任意数量的参数，并且可以在函数执行时动态地访问这些参数。
-
-```js
-function sum(a, b) {
-  return a + b;
-}
-
-console.log(sum(1, 2)); // 3
-console.log(sum(1)); // NaN，第二个参数为undefined，1 + undefined 得到 NaN
-console.log(sum(1, 2, 3, 4, 5)); //3，多个参数，只读取对应参数位置的参数
-```
+   ```js
+   function sum(a, b) {
+     return a + b;
+   }
+   
+   console.log(sum(1, 2)); // 3
+   console.log(sum(1)); // NaN，第二个参数为undefined，1 + undefined 得到 NaN
+   console.log(sum(1, 2, 3, 4, 5)); //3，多个参数，只读取对应参数位置的参数
+   ```
 
 ## 参数对象 (`arguments`)
 
-> 在 JavaScript 中，`arguments` 是一个特殊的对象，它包含了传递给函数的所有参数。虽然它看起来像一个数组，但它实际上并不是一个数组，而是一个类数组对象。它可以通过 `arguments` 来访问所有传递给函数的参数，并且可以用于处理可变数量的参数。
+> 简述：`arguments` 是 JavaScript 中一个类数组对象，它包含了传递给函数的所有参数。尽管其外表像数组，但它并不是一个数组，且没有数组的一些方法。可以用于处理可变数量的参数，通常用在没有明确参数个数的函数中。
 
-```js
-function sum() {
-  let total = 0;
-  console.log(arguments);
-  for (let value of arguments) {
-    total += value;
-    console.log(value);
-  }
-  return total;
-}
+**知识树**
 
-console.log(sum(1, 2, 3, 4, 5));
-```
+1. `arguments` 对象
+   - 类数组对象，包含函数参数。
+   - 不具备数组的方法（如 `forEach`、`map`）。
+   - 可以用 `for...of` 循环或 `Array.from()` 转换为数组。
+2. 箭头函数与 `arguments`
+   - 箭头函数没有自己的 `arguments` 对象。
+   - 使用箭头函数时，`arguments` 会从外部作用域继承。
+3. `rest` 参数（`...args`）
+   - 现代语法，替代 `arguments`，提供更灵活的参数处理。
+   - 直接在函数定义时收集所有剩余的参数。
 
-- `arguments` 是一个**类数组**对象，包含了传递给函数的所有参数。它没有数组的一些方法（例如 `forEach`、`map` 等）。通过 `for...of` 循环，我们可以遍历 `arguments` 对象并对每个值进行求和。
-- 在 **箭头函数** 中，不能使用 `arguments` 对象。箭头函数没有自己的 `arguments`，它会继承外部作用域的 `arguments`。
-- **`rest` 参数**（`...args`）是更现代的替代方案
+**代码示例**
+
+1. `arguments` 使用示例
+
+   ```js
+   function sum() {
+     let total = 0;
+     console.log(arguments); // 打印 arguments 对象
+     for (let value of arguments) {
+       total += value;
+       console.log(value); // 打印每个参数
+     }
+     return total;
+   }
+   
+   console.log(sum(1, 2, 3, 4, 5)); // 输出: 15
+   ```
+
+   - `arguments` 在函数内部包含传入的所有参数。
+   - 不能直接使用数组的方法，如 `forEach`，但是可以通过 `for...of` 循环来遍历。
+   
+2. 箭头函数中的 `arguments`
+
+   ```js
+   const arrowFunc = () => {
+     console.log(arguments); // 错误：箭头函数没有自己的 arguments
+   };
+
+   function regularFunc() {
+     console.log(arguments); // 正常工作
+   }
+
+   regularFunc(1, 2, 3); // 输出: { '0': 1, '1': 2, '2': 3 }
+   arrowFunc(1, 2, 3); // 报错：arguments is not defined
+   ```
+
+   - 在箭头函数中，`arguments` 会抛出错误，因为它不会有自己的 `arguments` 对象，而是继承外部作用域的 `arguments`。
+
+3. `rest` 参数替代 `arguments`
+
+   ```js
+   function sum(...args) {
+     return args.reduce((total, value) => total + value, 0);
+   }
+   
+   console.log(sum(1, 2, 3, 4, 5)); // 输出: 15
+   ```
+
+   - 使用 `...args` 来捕获函数的所有参数，返回一个实际的数组，避免了 `arguments` 的局限性。
+   - 通过 `args` 可以直接使用数组的方法，如 `reduce`，更加直观和灵活。
 
 ## 剩余参数(`...`)
 
-> 剩余参数是 ES6 引入的一项功能，它允许你将一个函数的多余参数收集成一个数组。与传统的 `arguments` 对象不同，`rest` 参数是一个真正的数组，可以直接使用数组方法（如 `reduce`、`map` 等）。
+> 简述：剩余参数（Rest Parameters）是 ES6 引入的功能，它允许函数接收任意数量的参数，并将这些参数收集到一个真正的数组中。与传统的 `arguments` 对象不同，剩余参数是一个数组，因此可以直接使用数组的方法进行操作（如 `reduce`、`map` 等）。
 
-**基本用法**
+**知识树**
 
-```js
-function sum(...args) {
-  return args.reduce((a, b) => a + b, 0); // 使用 reduce 求和
-}
+1. 剩余参数定义
+   - 使用 `...` 语法收集多余的参数。
+   - 收集的参数是一个数组，可以直接使用数组的方法。
+2. 应用场景
+   - 计算和汇总参数值（如求和、计算总价等）。
+   - 使函数可以接收动态数量的参数。
+3. 限制
+   - 剩余参数必须放在函数参数列表的最后，不能放在其他参数后面。
+4. `arguments` 与剩余参数的对比
+   - `arguments` 是类数组对象，`rest` 是实际的数组。
+   - `arguments` 没有数组的方法，而 `rest` 可以直接使用数组方法。
 
-console.log(sum(1, 2, 3, 4, 5)); // 输出 15
-```
+**代码示例**
 
-- 在这个例子中，`...args` 是一个剩余参数，它将所有传递给 `sum` 函数的参数收集到一个名为 `args` 的数组中。然后，我们使用 `reduce` 方法来对所有数字进行求和。
+1. 基本用法：求和
 
-**应用：计算总价和折扣**
+   ```js
+   function sum(...args) {
+     return args.reduce((a, b) => a + b, 0); // 使用 reduce 求和
+   }
 
-```js
-function countMoney(discount, ...prices) {
-  const total = prices.reduce((a, b) => a + b, 0); // 计算商品价格总和
-  return total * (1 - discount); // 应用折扣并返回最终价格
-}
+   console.log(sum(1, 2, 3, 4, 5)); // 输出: 15
+   ```
 
-console.log(countMoney(0.1, 20, 30)); // 输出 45
-```
+   - 在这个例子中，`...args` 将所有传递给 `sum` 函数的参数收集到一个数组 `args` 中。使用 `reduce` 方法对所有参数进行求和。
 
-- `discount` 是第一个参数，用来表示折扣。
-- `...prices` 是剩余参数，它收集所有传入的价格信息并将其存储在数组中。
-- 使用 `reduce` 方法计算价格总和，并根据折扣计算最终价格。
+2. 应用场景：计算总价和折扣
 
-**限制：剩余参数必须是最后一个参数**
+   ```js
+   function countMoney(discount, ...prices) {
+     const total = prices.reduce((a, b) => a + b, 0); // 计算商品价格总和
+     return total * (1 - discount); // 应用折扣并返回最终价格
+   }
 
-`rest` 参数必须位于函数的参数列表的最后，否则会抛出语法错误。这是因为它会收集所有剩余的参数，如果你在它之后再添加其他参数，会导致语法上的混乱。
+   console.log(countMoney(0.1, 20, 30)); // 输出: 45
+   ```
 
-```js
-// 错误示范：`...prices` 必须是最后一个参数
-// Uncaught SyntaxError: Rest parameter must be last formal parameter
-function test(discount, ...prices, p) {
-  return null;
-}
-```
+   - `discount` 是第一个参数，表示折扣。
+   - `...prices` 是剩余参数，收集所有传入的价格。
+   - 使用 `reduce` 方法计算总和，并应用折扣后返回最终价格。
 
-- 在这个错误的示例中，`p` 参数位于剩余参数 `...prices` 后面，导致出现语法错误。为了避免这种错误，应该确保 `rest` 参数始终在函数参数列表的最后。
+3. 限制：剩余参数必须是最后一个参数
+
+   ```js
+   // 错误示范：`...prices` 必须是最后一个参数
+   function test(discount, ...prices, p) {
+     return null;
+   }
+   // Uncaught SyntaxError: Rest parameter must be last formal parameter
+   ```
+
+   - 这里 `p` 参数位于剩余参数 `...prices` 后面，会抛出语法错误。
+   - 为了避免此错误，确保 `rest` 参数始终位于参数列表的最后。
+
+4. `arguments` 与剩余参数对比
+
+   ```js
+   function example() {
+     console.log(arguments); // { '0': 1, '1': 2, '2': 3 }
+     console.log([...arguments]); // [1, 2, 3]
+   }
+   
+   example(1, 2, 3);
+   ```
+
+   - `arguments` 是类数组对象，不具备数组方法。
+   - 使用扩展运算符 `[...arguments]` 可以将 `arguments` 转换为数组，方便使用数组的方法。
 
 ## 默认值
 
-> 默认值是为函数的参数提供初始值的机制。这样，当调用函数时，如果没有传递某个参数或传递的参数是 `undefined`，则该参数将使用默认值。
+> 简述：默认值是在函数的参数中为某些未传递的值提供预设的初始值。这避免了函数在调用时遇到 `undefined` 并且仍然能够正确执行。与使用逻辑运算符（如 `||`）的方式相比，默认值的语法更加简洁和明确。
 
-**基本用法**
+**知识树**
 
-在函数定义中，我们可以为某些参数设置默认值，防止它们为 `undefined`。这种方式比使用逻辑运算符（如 `||`）要更加简洁明了。
+1. 基本用法
+   - 为函数参数设置默认值。
+   - 如果未传递参数或参数为 `undefined`，则使用默认值。
+2. 传递 `undefined` 的行为
+   - 如果传递 `undefined` 作为参数，默认值仍会生效。
+3. 最佳实践
+   - 将带默认值的参数放在参数列表的最后，避免逻辑上的混乱。
+4. 设置默认值时的潜在问题
+   - 参数顺序不当可能会导致无法正确使用默认值。
 
-```js
-function interest(principal, rate = 3.5, year = 5) {
-  // rate = rate || 3.5;
-  // year = year || 5;
+**代码示例**
 
-  return ((principal * rate) / 100) * year;
-}
+1. 基本用法：使用默认值
 
-console.log(interest(10000)); // 使用默认值：rate = 3.5, year = 5
-console.log(interest(10000, undefined, 5)); // 使用默认值：rate = 3.5, year = 5
-```
+   ```js
+   function interest(principal, rate = 3.5, year = 5) {
+     return ((principal * rate) / 100) * year;
+   }
+   
+   console.log(interest(10000)); // 使用默认值: rate = 3.5, year = 5
+   console.log(interest(10000, undefined, 5)); // 使用默认值: rate = 3.5, year = 5
+   ```
 
-- 在上面的例子中，`rate` 和 `year` 都有默认值
-- 如果在调用函数时传递了 `undefined` 作为某个参数的值，那么该参数会使用默认值。如果没有传递该参数，JavaScript 也会使用默认值。
+   - `rate = 3.5` 和 `year = 5` 是默认值。如果函数调用时未传递这些参数或传递 `undefined`，则会使用默认值。
+   
+2. 注意事项：参数顺序和默认值
 
-**设置默认值时的注意事项**
+   ```js
+   function test(principal, rate = 3.5, year) {
+     return ((principal * rate) / 100) * year;
+   }
+   
+   console.log(test(10000, 5)); // NaN
+   console.log(test(10000, undefined, 5)); // 1750
+   ```
 
-最佳实践：当为参数设置默认值时，默认值应当放在参数列表的最后。这样，如果某个参数的默认值被触发，后面的参数也能正确使用默认值。如果将默认值放在中间，可能会导致某些参数不按预期工作。
-
-```js
-function test(principal, rate = 3.5, year) {
-  return ((principal * rate) / 100) * year;
-}
-
-console.log(test(10000, 5)); // NaN
-console.log(test(10000, undefined, 5)); // Is ugly
-// 应将所有的default vule放在最后
-```
-
-- 在上面的 `test` 函数中，`year` 参数没有默认值。如果你调用 `test(10000, 5)`，结果是 `NaN`，因为 `year` 被当作 `undefined`，但它没有默认值。
-
-- 为了提高代码可读性，最好将带有默认值的参数放在最后，或者为所有默认值参数设置默认值。
+   - 在 `test` 函数中，`year` 没有默认值。当 `rate` 被传递为 `5` 时，`year` 会被视为 `undefined`，导致函数返回 `NaN`。
+   - 为了避免这种情况，默认值应放在参数列表的末尾。
 
 ## `Getter`&`Setter`
 
