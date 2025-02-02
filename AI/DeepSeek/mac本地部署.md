@@ -17,3 +17,5 @@ ollama run llama3.2
 5. 使用 Chatbox
 
 - 选择 `Use My Own API Key/Local Model`
+- 选择 `Ollama API`
+- Save
