@@ -19,3 +19,12 @@ ollama run llama3.2
 - 选择 `Use My Own API Key/Local Model`
 - 选择 `Ollama API`
 - Save
+
+6. 常用指令
+   ollama run deepseek-r1:7b
+   ollama run deepseek-r1:14b
+   ollama run deepseek-r1:32b
+   ollama run deepseek-r1:70b
+
+7. 文件路径
+   /Users/quartz/.ollama
