@@ -1,3 +1,5 @@
+总结：不如花钱用 API
+
 1. downdoad app
    go https://ollama.com/download
 
