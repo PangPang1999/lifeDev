@@ -10,11 +10,10 @@
 
    ```
    	"Log to console": {
-   		"prefix": "lll", // 输入 'lll' 后会触发代码片段
+   		"prefix": "lll",
    		"body": [
-   			// "console.log($1);"
-   			"console.log('${1:field}:', $1);"
+   			"console.log('${1:field} (', typeof ${1},'): ', ${1});"
    		],
-   		"description": "Log to console"
+   		"description": "Log field name, type and value to console"
    	}
    ```
