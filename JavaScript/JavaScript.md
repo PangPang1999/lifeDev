@@ -2364,6 +2364,7 @@ showPrimes(10);
    - 对象字面量（Object Literal）：最常见的方式，适用于简单的对象。
    - 工厂函数（Factory Function）：通过函数创建对象，以实现复用。
    - 构造函数（Constructor Function）：使用 `new` 操作符创建对象，适用于更复杂的对象。
+   - **类Class（Es6引入）**：使用 `class` 关键字创建对象和类，提供更清晰的语法和继承机制。
 3. 对象的使用
    - 使用点语法（`.`）或方括号语法（`[]`）访问对象的属性和方法。
    - 对象的方法操作其属性，实现行为和状态的结合。
@@ -5685,36 +5686,142 @@ try {
 
 ## 面向对象编程
 
-> 简述：面向对象编程（OOP）是一种以**对象**为核心的编程范式，与以函数为中心的编程方式相对。它通过对象和类来组织代码结构，广泛应用于许多主流编程语言和框架。
+> **简述**：面向对象编程是一种以对象为中心的编程范式。它通过封装、抽象、继承和多态等概念，帮助程序员更加高效地组织代码，并使代码更具可维护性。
 
 **知识树**
 
-1. 定义与概念
-   - 面向对象编程是以对象为核心的编程风格。
-   - 对象是数据和方法的集合，代表现实世界中的实体。
-   - OOP 提供了更清晰的代码组织方式，有助于提高可读性和可维护性。
-2. 与编程语言的关系
-   - 多种语言支持 OOP，例如 C#、Java、Ruby、Python 和 JavaScript 等。
-   - JavaScript 虽然支持 OOP，但其实现与传统的 OOP 语言（如 Java）有所不同。
+1. 面向对象编程概述
+   - 面向对象编程是一种编程范式，围绕“对象”而不是函数进行编程。
+   - 支持OOP的编程语言有：C#、Java、Ruby、Python、JavaScript等。
+   - 面向对象编程不仅是编程语言或工具，而是一种编程思想，帮助解决程序复杂性问题。
+2. OOP的核心概念
+   - 封装：将相关的变量和函数组合成一个“对象”，隐藏对象内部的实现细节，提供简单易用的接口。
+   - 抽象：隐藏复杂的实现，暴露必要的功能，简化使用者的操作。
+   - 继承：允许新对象继承已有对象的属性和方法，减少代码冗余。
+   - 多态：允许不同类型的对象以相同的方式调用相同的方法，减少重复的条件判断。
+3. OOP的优势
+   - 通过封装，代码模块化，提高代码的复用性。
+   - 通过抽象，减少代码复杂度，提高可维护性。
+   - 通过继承，减少冗余代码，增强可扩展性。
+   - 通过多态，简化代码，减少繁琐的条件判断。
 
-## 面向对象编程核心概念
+**代码示例**
 
-> 简述：面向对象编程（OOP）通过对象将相关的变量（属性）和函数（方法）组织到一起，并通过**封装**、**抽象**、**继承**和**多态**四大核心概念解决代码复用性差、可读性低的问题。
+1. **封装**
 
-**知识树**
+   封装将数据和操作这些数据的函数（方法）放在同一个对象中，从而避免了数据和函数之间的混乱。
 
-1. 封装（Encapsulation）
-   - 将相关的变量和函数封装在一个对象中，形成一个独立的单元。
-   - 减少函数参数，提高代码可读性和可维护性。
-2. 抽象（Abstraction）
-   - 隐藏对象的复杂实现细节，仅向外界暴露必要的信息。
-   - 简化对象接口，减少代码复杂度，并降低修改内部实现的影响。
-3. 继承（Inheritance）
-   - 通过子类继承父类的属性和方法，减少重复代码。
-   - 提供代码重用性，简化对象间的关系。
-4. 多态（Polymorphism）
-   - 允许不同的对象使用相同的接口，但实现方式各不相同。
-   - 消除繁杂的条件语句，使代码更清晰、更易扩展。
+   ```js
+   // 字面量创建
+   let employee = {
+     baseSalary: 3_000,
+     overtime: 10,
+     rate: 20,
+     getWage: function () {
+       return this.baseSalary + this.overtime * this.rate;
+     },
+   };
+   console.log("employee.getWage() : ", employee.getWage());
+   
+   //ES6引入：class
+   class Employee {
+     constructor(baseSalary, overtime, rate) {
+       this.baseSalary = baseSalary;
+       this.overtime = overtime;
+       this.rate = rate;
+     }
+   
+     getWage() {
+       return this.baseSalary + this.overtime * this.rate;
+     }
+   }
+   
+   const emp = new Employee(3000, 10, 20);
+   console.log("emp.getWage() : ", emp.getWage());
+   ```
+
+   - 通过封装，`baseSalary`、`overtime` 和 `rate` 成为 `Employee` 对象的属性，而 `getWage` 成为其方法。这样，函数不需要参数，因为数据已经封装在对象内部。
+
+2. **抽象**
+
+   抽象通过隐藏复杂的实现，只暴露出简单的接口，让使用者无需关心内部实现细节。
+
+   ```js
+   class DVDPlayer {
+     play() {
+       // ...复杂逻辑
+       console.log("DVD is playing");
+     }
+   }
+   
+   const player = new DVDPlayer();
+   player.play();  // 简单调用，内部的实现细节被隐藏
+   ```
+
+   - 在使用 `DVDPlayer` 时，用户只需关心如何调用 `play` 方法，而不必了解播放器内部的复杂操作。
+
+3. **继承**
+
+   继承允许子类从父类继承属性和方法，从而避免重复定义相似的代码。
+
+   ```js
+   class HTMLElement {
+     constructor(hidden, innerHTML) {
+       this.hidden = hidden;
+       this.innerHTML = innerHTML;
+     }
+   
+     click() {
+       console.log("Element clicked");
+     }
+   }
+   
+   class TextBox extends HTMLElement {
+     constructor(hidden, innerHTML, placeholder) {
+       super(hidden, innerHTML);
+       this.placeholder = placeholder;
+     }
+   }
+   
+   const textbox = new TextBox(false, "Hello", "Enter text...");
+   textbox.click();  // 继承父类方法
+   console.log(textbox.placeholder);  // 访问子类属性
+   ```
+
+   - `TextBox` 类继承了 `HTMLElement` 类的属性和方法，避免了重复代码。
+
+   **多态**
+
+   多态让不同的对象可以调用相同的方法，但每个对象的方法行为不同，简化了代码。
+
+   ```js
+   class Circle {
+     render() {
+       console.log("Rendering a circle");
+     }
+   }
+   
+   class Square {
+     render() {
+       console.log("Rendering a square");
+     }
+   }
+   
+   function renderShape(shape) {
+     shape.render();  // 无需关心对象的具体类型
+   }
+   
+   const circle = new Circle();
+   const square = new Square();
+   renderShape(circle);  // Rendering a circle
+   renderShape(square);  // Rendering a square
+   ```
+
+   - `renderShape` 方法不需要关心传入对象的类型，只需调用 `render` 方法，具体实现由对象自身定义。
+
+
+
+
 
 # 技巧
 
