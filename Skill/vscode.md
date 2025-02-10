@@ -10,7 +10,21 @@
 
    ```
    	"Log to console": {
+   		"prefix": "ll",
+   		"body": [
+   			"console.log('${1}');"
+   		],
+   		"description": "Log field name, type and value to console"
+   	},
+   	"Log to console with name": {
    		"prefix": "lll",
+   		"body": [
+   			"console.log('${1:field} : ', ${1});"
+   		],
+   		"description": "Log field name, type and value to console"
+   	},
+   	"Log to console with type": {
+   		"prefix": "lllp",
    		"body": [
    			"console.log('${1:field} (', typeof ${1},'): ', ${1});"
    		],
