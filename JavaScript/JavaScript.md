@@ -2364,7 +2364,7 @@ showPrimes(10);
    - 对象字面量（Object Literal）：最常见的方式，适用于简单的对象。
    - 工厂函数（Factory Function）：通过函数创建对象，以实现复用。
    - 构造函数（Constructor Function）：使用 `new` 操作符创建对象，适用于更复杂的对象。
-   - **类Class（Es6引入）**：使用 `class` 关键字创建对象和类，提供更清晰的语法和继承机制。
+   - **类 Class（Es6 引入）**：使用 `class` 关键字创建对象和类，提供更清晰的语法和继承机制。（将在后续ES6章节学习）
 3. 对象的使用
    - 使用点语法（`.`）或方括号语法（`[]`）访问对象的属性和方法。
    - 对象的方法操作其属性，实现行为和状态的结合。
@@ -3705,7 +3705,7 @@ const restaurants = [
 
    ```js
    const numbers = [1, 2, 3, 1, 4, 1];
-   
+
    console.log(numbers.indexOf(1)); // 0
    console.log(numbers.indexOf(1, 1)); // 3，从索引 1 开始查找
    console.log(numbers.lastIndexOf(1)); // 5
@@ -3748,7 +3748,7 @@ const restaurants = [
    - 单参数时可以省略圆括号 `()`；无参数时必须加圆括号。
 2. 特点
    - 继承外部作用域的 `this`，没有自己的 `this`，适用于保持 `this` 的一致性。
-   - 没有 `arguments` 对象，可用剩余参数 `...args` 替代。（见函数章节arguments）
+   - 没有 `arguments` 对象，可用剩余参数 `...args` 替代。（见函数章节 arguments）
    - 无法作为构造函数，不能用 `new` 调用。
 3. 应用
    - 常用于回调函数的简化，提高代码可读性。
@@ -3763,7 +3763,7 @@ const restaurants = [
    console.log(add(3, 4)); // 输出: 7
 
    // 单参数（省略括号）
-   const square = x => x * x;
+   const square = (x) => x * x;
    console.log(square(5)); // 输出: 25
 
    // 无参数
@@ -3776,14 +3776,14 @@ const restaurants = [
    ```js
    function Person() {
      this.age = 0;
-   
+
      // 每秒自动执行一次
      setInterval(() => {
        this.age++; // `this` 继承自 Person
        console.log(this.age);
      }, 1000);
    }
-   
+
    const p = new Person();
    ```
 
@@ -3801,7 +3801,7 @@ const restaurants = [
    });
    
    // 使用箭头函数
-   const course2 = courses.find(course => course.name === "a");
+   const course2 = courses.find((course) => course.name === "a");
    
    console.log(course1); // { id: 1, name: "a" }
    console.log(course2); // { id: 1, name: "a" }
@@ -3961,7 +3961,7 @@ const restaurants = [
    ```
 
    - `slice(start, end)` 截取从索引 `2` 开始（包含）到索引 `4` 结束（不包含）的部分。
-   
+
 3. 对象数组的合并和引用
 
    ```js
@@ -4029,6 +4029,7 @@ const restaurants = [
    - 对象的拓展运算符会按照顺序覆盖同名属性，`obj2` 的 `b` 覆盖了 `obj1` 的 `b`。
 
 (开始)
+
 ## 遍历数组
 
 > 简述：JavaScript 提供了多种遍历数组的方法，包括 `for` 循环、`for...of` 循环和 `forEach()` 方法。这些方法各有特点，适用于不同场景。
@@ -4055,6 +4056,7 @@ const restaurants = [
      console.log(i, numbers[i]);
    }
    ```
+
    - 说明：手动管理索引，可访问数组的索引和值。
 
 2. `for...of` 循环
@@ -4065,6 +4067,7 @@ const restaurants = [
      console.log(number);
    }
    ```
+
    - 说明：直接遍历数组元素，代码更简洁。
 
 3. `forEach()` 方法
@@ -4080,6 +4083,7 @@ const restaurants = [
    // 使用箭头函数
    numbers.forEach((number, index) => console.log(index, number));
    ```
+
    - 说明：`forEach()` 方法自动迭代数组，并对每个元素执行回调函数。支持访问索引，代码更简洁。
 
 ## 数组&字符串转换
@@ -4097,7 +4101,7 @@ const restaurants = [
    - 必须指定分隔符，可以是字符串或正则表达式。
    - 返回一个新数组。
 3. 最佳实践
-   - 构建URL
+   - 构建 URL
 
 **代码示例**
 
@@ -4107,29 +4111,31 @@ const restaurants = [
    const numbers = [1, 2, 3];
    const result = numbers.join(); // "1,2,3"
    console.log(result);
-   
+
    const joinedWithDash = numbers.join("-"); // "1-2-3"
    console.log(joinedWithDash);
    ```
+
    - `join()` 将数组元素连接为一个字符串，默认用逗号分隔。
 
 2. `split()` 用法
 
    ```js
    let message = "This is my first message";
-   
+
    // 使用空格分割字符串
    const parts = message.split(" "); // ["This", "is", "my", "first", "message"]
    console.log(parts);
-   
+
    // 将数组重新组合成字符串
    const combined = parts.join("-");
    console.log(combined); // "This-is-my-first-message"
    ```
+
    - `split()` 根据指定分隔符将字符串拆分为数组。
    - 配合 `join()` 可以对字符串进行重新组合。
 
-3. 构建URL
+3. 构建 URL
 
    ```js
    // 假设有一个文章标题
@@ -4169,22 +4175,22 @@ const restaurants = [
    const numbers1 = [2, 3, 1];
    const numbers2 = [10, 2, 5];
    const arr = ["c", "a", "b"];
-   
+
    // 按默认顺序排序
    console.log(numbers1.sort()); // 输出 [1, 2, 3]
    console.log(numbers2.sort()); // 输出 [10, 2, 5]
    console.log(arr.sort()); // 输出 ["a", "b", "c"];
-   
+
    // 自定义数值排序
    numbers2.sort((a, b) => a - b);
    console.log(numbers2); // 输出 [2, 5, 10]
-   
+
    // 反转数组
    numbers2.reverse();
    console.log(numbers2); // 输出 [10, 5, 2]
    ```
 
-   - *不同 JavaScript 引擎对 `sort` 的底层实现可能不同，但大多数现代引擎（如 V8、SpiderMonkey）使用的是优化过的 快速排序（QuickSort），代码是表现，实现在底层。*
+   - _不同 JavaScript 引擎对 `sort` 的底层实现可能不同，但大多数现代引擎（如 V8、SpiderMonkey）使用的是优化过的 快速排序（QuickSort），代码是表现，实现在底层。_
 
 2. 排序对象元素
 
@@ -4194,7 +4200,7 @@ const restaurants = [
      { id: 2, name: "Python" },
      { id: 3, name: "HTML" },
    ];
-   
+
    // 按 name 属性排序（不区分大小写）
    courses.sort((a, b) => {
      const nameA = a.name.toUpperCase();
@@ -4203,7 +4209,7 @@ const restaurants = [
      if (nameA > nameB) return 1;
      return 0;
    });
-   
+
    console.log(courses);
    ```
 
@@ -4291,10 +4297,9 @@ const restaurants = [
    ```js
    const numbers = [1, -1, 2, 3];
    
-   console.log(numbers.every(value => value >= 0)); // false
-   console.log(numbers.some(value => value >= 0)); // true
+   console.log(numbers.every((value) => value >= 0)); // false
+   console.log(numbers.some((value) => value >= 0)); // true
    ```
-
 
 ## 过滤数组
 
@@ -4337,7 +4342,7 @@ const restaurants = [
    const numbers = [1, -1, 2, 3];
 
    // 使用箭头函数
-   const filtered = numbers.filter(n => n >= 0);
+   const filtered = numbers.filter((n) => n >= 0);
 
    console.log(filtered); // 输出: [1, 2, 3]
    ```
@@ -4352,7 +4357,7 @@ const restaurants = [
    ];
    
    // 筛选年龄大于 20 的人
-   const adults = people.filter(person => person.age > 20);
+   const adults = people.filter((person) => person.age > 20);
    
    console.log(adults);
    // 输出: [{ name: "John", age: 25 }, { name: "Jack", age: 30 }]
@@ -4385,9 +4390,9 @@ const restaurants = [
 
    ```js
    const numbers = [1, -1, 2, 3];
-   
+
    const filtered = numbers.filter((n) => n >= 0);
-   
+
    const items = filtered.map((n) => `<li>${n}</li>`);
    const html = `<ul>${items.join("")}</ul>`;
    console.log(html);
@@ -4406,7 +4411,9 @@ const restaurants = [
    // 输出: [{ value: 1 }, { value: 2 }, { value: 3 }]
    
    //如果省略括号：
-   const items = numbers.map((n) => { value: n }); // 错误，返回 undefined
+   const items = numbers.map((n) => {
+     value: n;
+   }); // 错误，返回 undefined
    ```
 
 ## 链式语法
@@ -4485,9 +4492,12 @@ const restaurants = [
    console.log(sum); // 输出: 5
 
    // 使用 reduce()
-   const sumWithReduce = numbers.reduce((accumulator, currentValue) => {
-     return accumulator + currentValue;
-   }, 0); // 初始值为 0
+   const sumWithReduce = numbers.reduce(
+     (accumulator, currentValue) => {
+       return accumulator + currentValue;
+     },
+     0
+   ); // 初始值为 0
    console.log(sumWithReduce); // 输出: 5
    ```
 
@@ -4553,7 +4563,7 @@ console.log(arrayFromRange(-3, 3)); // 输出: [-3, -2, -1, 0, 1, 2, 3]
 console.log(arrayFromRange(5, 1)); // 输出: []
 ```
 
-## Ex2: 实现 `includes` 方法 
+## Ex2: 实现 `includes` 方法
 
 > **要求**：编写一个函数 `includes(array, searchElement)`，该函数模拟 `Array.prototype.includes()` 方法的功能，接收一个数组和一个待搜索的元素。如果数组中包含该元素，则返回 `true`；否则返回 `false`。
 
@@ -4687,7 +4697,9 @@ function countOccurrences(array, searchElement) {
 // 使用 reduce 实现
 function countOccurrencesReduce(array, searchElement) {
   return array.reduce((accumulator, current) => {
-    return current === searchElement ? accumulator + 1 : accumulator;
+    return current === searchElement
+      ? accumulator + 1
+      : accumulator;
   }, 0);
 }
 
@@ -4736,10 +4748,10 @@ function getMaxReduce(array) {
 const numbers = [1, 5, 3, 9, 2];
 
 console.log(getMax(numbers)); // 输出: 9
-console.log(getMax([]));      // 输出: undefined
+console.log(getMax([])); // 输出: undefined
 
 console.log(getMaxReduce(numbers)); // 输出: 9
-console.log(getMaxReduce([]));      // 输出: undefined
+console.log(getMaxReduce([])); // 输出: undefined
 ```
 
 ## Ex7: 按条件筛选
@@ -4768,9 +4780,9 @@ const movies = [
 
 // 筛选、排序并提取标题
 const titles = movies
-  .filter(m => m.year >= 2021 && m.rating > 4) // Step 1: 筛选
-  .sort((a, b) => b.rating - a.rating)         // Step 2: 按评分降序排列
-  .map(m => m.title);                          // Step 3: 提取标题
+  .filter((m) => m.year >= 2021 && m.rating > 4) // Step 1: 筛选
+  .sort((a, b) => b.rating - a.rating) // Step 2: 按评分降序排列
+  .map((m) => m.title); // Step 3: 提取标题
 
 console.log(titles); // 输出: ["b", "a"]
 ```
@@ -4858,7 +4870,7 @@ console.log(titles); // 输出: ["b", "a"]
    let a = function () {
      console.log("shared function");
    };
-   
+
    let b = a;
    b(); // 输出: shared function
    a(); // 输出: shared function
@@ -4907,13 +4919,13 @@ console.log(titles); // 输出: ["b", "a"]
      }
      return total;
    }
-   
+
    console.log(sum(1, 2, 3, 4, 5)); // 输出: 15
    ```
 
    - `arguments` 在函数内部包含传入的所有参数。
    - 不能直接使用数组的方法，如 `forEach`，但是可以通过 `for...of` 循环来遍历。
-   
+
 2. 箭头函数中的 `arguments`
 
    ```js
@@ -5042,13 +5054,13 @@ console.log(titles); // 输出: ["b", "a"]
    function interest(principal, rate = 3.5, year = 5) {
      return ((principal * rate) / 100) * year;
    }
-   
+
    console.log(interest(10000)); // 使用默认值: rate = 3.5, year = 5
    console.log(interest(10000, undefined, 5)); // 使用默认值: rate = 3.5, year = 5
    ```
 
    - `rate = 3.5` 和 `year = 5` 是默认值。如果函数调用时未传递这些参数或传递 `undefined`，则会使用默认值。
-   
+
 2. 注意事项：参数顺序和默认值
 
    ```js
@@ -5692,14 +5704,14 @@ try {
 
 1. 面向对象编程概述
    - 面向对象编程是一种编程范式，围绕“对象”而不是函数进行编程。
-   - 支持OOP的编程语言有：C#、Java、Ruby、Python、JavaScript等。
+   - 支持 OOP 的编程语言有：C#、Java、Ruby、Python、JavaScript 等。
    - 面向对象编程不仅是编程语言或工具，而是一种编程思想，帮助解决程序复杂性问题。
-2. OOP的核心概念
+2. OOP 的核心概念
    - 封装：将相关的变量和函数组合成一个“对象”，隐藏对象内部的实现细节，提供简单易用的接口。
    - 抽象：隐藏复杂的实现，暴露必要的功能，简化使用者的操作。
    - 继承：允许新对象继承已有对象的属性和方法，减少代码冗余。
    - 多态：允许不同类型的对象以相同的方式调用相同的方法，减少重复的条件判断。
-3. OOP的优势
+3. OOP 的优势
    - 通过封装，代码模块化，提高代码的复用性。
    - 通过抽象，减少代码复杂度，提高可维护性。
    - 通过继承，减少冗余代码，增强可扩展性。
@@ -5755,7 +5767,7 @@ try {
    }
    
    const player = new DVDPlayer();
-   player.play();  // 简单调用，内部的实现细节被隐藏
+   player.play(); // 简单调用，内部的实现细节被隐藏
    ```
 
    - 在使用 `DVDPlayer` 时，用户只需关心如何调用 `play` 方法，而不必了解播放器内部的复杂操作。
@@ -5784,13 +5796,13 @@ try {
    }
    
    const textbox = new TextBox(false, "Hello", "Enter text...");
-   textbox.click();  // 继承父类方法
-   console.log(textbox.placeholder);  // 访问子类属性
+   textbox.click(); // 继承父类方法
+   console.log(textbox.placeholder); // 访问子类属性
    ```
 
    - `TextBox` 类继承了 `HTMLElement` 类的属性和方法，避免了重复代码。
 
-   **多态**
+4. **多态**
 
    多态让不同的对象可以调用相同的方法，但每个对象的方法行为不同，简化了代码。
 
@@ -5808,18 +5820,129 @@ try {
    }
    
    function renderShape(shape) {
-     shape.render();  // 无需关心对象的具体类型
+     shape.render(); // 无需关心对象的具体类型
    }
    
    const circle = new Circle();
    const square = new Square();
-   renderShape(circle);  // Rendering a circle
-   renderShape(square);  // Rendering a square
+   renderShape(circle); // Rendering a circle
+   renderShape(square); // Rendering a square
    ```
 
    - `renderShape` 方法不需要关心传入对象的类型，只需调用 `render` 方法，具体实现由对象自身定义。
 
+## 创建对象
 
+> **简述**：在JavaScript中，创建对象有不同的方式，包括使用对象字面量、工厂函数、构造函数，以及ES6引入的`class`。每种方法都有其特点，适用于不同的情况。掌握这些方法对编写高效、可维护的代码至关重要。
+
+**知识树**
+
+1. 对象字面量（Object Literal）
+   - 用 `{}` 定义对象。
+   - 对象包含属性和值，可以是基本数据类型或方法（函数）。
+2. 工厂函数（Factory Function）
+   - 定义一个普通函数，返回一个新对象。
+   - 适用于需要重复创建多个相似对象的场景。
+3. 构造函数（Constructor Function）
+   - 使用 `this` 关键字创建对象，并通过 `new` 关键字调用。
+   - 与类（class）类似，构造函数是创建实例的传统方法。
+4. 工厂函数与构造函数的对比
+   - 两者都可以用来创建对象，但语法和行为有所不同。
+   - 工厂函数通过返回对象创建新实例；构造函数通过 `new` 关键字实例化对象。
+5. 类（class）
+   - 引入于ES6，`class` 是一种更简洁的语法糖，用来创建构造函数。
+   - `class` 提供了清晰的结构，使代码更具可读性，同时也支持继承和其他面向对象编程的特性。
+6. class 与构造函数的对比
+   - `class` 提供了更清晰的对象结构，使得代码更加简洁和易读。与传统的构造函数不同，`class` 语法支持更多面向对象的特性，如继承（`extends`）、静态方法（`static`）等。
+   - 构造函数依旧在某些项目中使用，但 `class` 是推荐的现代方式，尤其是在ES6及以上的JavaScript版本中。
+
+**代码示例**
+
+1. 对象字面量
+
+   使用对象字面量语法创建对象，适合对象属性和方法简单的场景。
+
+   ```js
+   const circle = {
+     radius: 5,
+     location: { x: 0, y: 0 },
+     draw: function() {
+       console.log("Drawing a circle");
+     }
+   };
+   
+   circle.draw();  // 输出 "Drawing a circle"
+   ```
+
+   - 对象字面量是最简单的创建对象的方式，其中 `radius` 和 `location` 是属性，`draw` 是方法。
+
+2. 工厂函数
+
+   使用工厂函数创建对象，适合需要根据不同参数生成多个相似对象的情况。
+
+   ```js
+   function createCircle(radius) {
+     return {
+       radius: radius,
+       draw: function() {
+         console.log("Drawing a circle");
+       }
+     };
+   }
+   
+   const circle1 = createCircle(5);
+   const circle2 = createCircle(10);
+   circle1.draw();  // 输出 "Drawing a circle"
+   circle2.draw();  // 输出 "Drawing a circle"
+   ```
+
+   - `createCircle` 是一个工厂函数，它返回一个包含属性和方法的对象。
+   - 每次调用 `createCircle` 都能创建一个新的圆对象。
+
+3. 构造函数
+
+   使用构造函数和 `new` 关键字创建对象，适用于需要创建具有相同结构但不同属性的多个实例。
+
+   ```js
+   function Circle(radius) {
+     this.radius = radius;
+     this.draw = function() {
+       console.log("Drawing a circle");
+     };
+   }
+   
+   const circle1 = new Circle(5);
+   const circle2 = new Circle(10);
+   circle1.draw();  // 输出 "Drawing a circle"
+   circle2.draw();  // 输出 "Drawing a circle"
+   ```
+
+   - `Circle` 是一个构造函数，`this` 关键字将其绑定到新创建的对象上。
+   - 使用 `new` 关键字时，JavaScript 会自动创建一个空对象，并将 `this` 绑定到该对象上，返回该对象。
+
+4. class（类）
+
+   `class` 提供了一个更现代、简洁的方式来创建对象。它是 ES6 引入的一个语法糖，使得构造函数更具可读性，并支持继承和其他面向对象的特性。
+
+   ```js
+   class Circle {
+     constructor(radius) {
+       this.radius = radius;
+     }
+     
+     draw() {
+       console.log("Drawing a circle");
+     }
+   }
+   
+   const circle1 = new Circle(5);
+   const circle2 = new Circle(10);
+   circle1.draw();  // 输出 "Drawing a circle"
+   circle2.draw();  // 输出 "Drawing a circle"
+   ```
+
+   - 使用 `class`，可以定义构造函数 `constructor` 和实例方法 `draw`。
+   - `new Circle(5)` 创建了一个新的 `Circle` 实例，且通过 `this.radius` 绑定了对象的属性。
 
 
 
