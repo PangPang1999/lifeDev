@@ -12,7 +12,7 @@
    	"Log to console": {
    		"prefix": "ll",
    		"body": [
-   			"console.log('${1}');"
+   			"console.log(${1});"
    		],
    		"description": "Log field name, type and value to console"
    	},
