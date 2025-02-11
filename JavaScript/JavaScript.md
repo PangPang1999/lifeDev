@@ -454,7 +454,7 @@ console.log(typeof userName); // "number"
      console.log("Hello " + name);
    }
    greetWithName("John"); // 输出: Hello John
-   
+
    function greetWithFullName(firstName, lastName) {
      console.log("Hello " + firstName + " " + lastName);
    }
@@ -1126,7 +1126,7 @@ console.log(typeof userName); // "number"
    a = a ^ b; // a = 3
    b = a ^ b; // b = 1
    a = a ^ b; // a = 2
-   
+
    console.log(a); // 输出：2
    console.log(b); // 输出：1
    ```
@@ -1310,7 +1310,7 @@ console.log(typeof userName); // "number"
 
    ```js
    let role = "guest";
-   
+
    if (role === "guest") console.log("Guest user");
    else if (role === "moderator") console.log("Moderator user");
    else if (role === "admin") console.log("Admin user");
@@ -1689,7 +1689,7 @@ do {
    ```js
    let arr = [10, 20, 30];
    arr.customProperty = "Custom Value";
-   
+
    for (let index in arr) {
      console.log(index, arr[index]); // 会输出索引和自定义属性
    }
@@ -1767,7 +1767,7 @@ do {
 
    ```js
    let person = { name: "Alice", age: 30 };
-   
+
    // 错误示例
    for (let prop of person) {
      console.log(prop);
@@ -2364,7 +2364,7 @@ showPrimes(10);
    - 对象字面量（Object Literal）：最常见的方式，适用于简单的对象。
    - 工厂函数（Factory Function）：通过函数创建对象，以实现复用。
    - 构造函数（Constructor Function）：使用 `new` 操作符创建对象，适用于更复杂的对象。
-   - **类 Class（Es6 引入）**：使用 `class` 关键字创建对象和类，提供更清晰的语法和继承机制。（将在后续ES6章节学习）
+   - **类 Class（Es6 引入）**：使用 `class` 关键字创建对象和类，提供更清晰的语法和继承机制。（将在后续 ES6 章节学习）
 3. 对象的使用
    - 使用点语法（`.`）或方括号语法（`[]`）访问对象的属性和方法。
    - 对象的方法操作其属性，实现行为和状态的结合。
@@ -2389,7 +2389,7 @@ showPrimes(10);
        console.log("draw");
      },
    };
-   
+
    // 访问属性和方法
    console.log(circle.radius); // 输出: 1
    console.log(circle.location.x); // 输出: 1
@@ -2428,11 +2428,11 @@ showPrimes(10);
        },
      };
    }
-   
+
    // 创建对象
    const circle1 = createCircle(1);
    const circle2 = createCircle(2);
-   
+
    // 访问属性和方法
    console.log(circle1.radius); // 输出: 1
    circle1.draw(); // 输出: draw
@@ -2476,17 +2476,17 @@ showPrimes(10);
    function Circle(radius) {
      // 使用 `this` 初始化属性
      this.radius = radius;
-   
+
      // 添加方法
      this.draw = function () {
        console.log("draw");
      };
    }
-   
+
    // 使用 `new` 创建对象
    const circle1 = new Circle(1);
    const circle2 = new Circle(2);
-   
+
    // 访问属性和方法
    console.log(circle1.radius); // 输出: 1
    circle1.draw(); // 输出: draw
@@ -2621,14 +2621,14 @@ console.log(circle.radius); // 输出：10
    // 数组
    const arrLiteral = [];
    const arrConstructor = new Array();
-   
+
    console.log(arrLiteral.constructor); // 输出: [Function: Array]
    console.log(arrConstructor.constructor); // 输出: [Function: Array]
-   
+
    // 数字
    const numLiteral = 42;
    const numConstructor = new Number(42);
-   
+
    console.log(numLiteral.constructor); // 输出: [Function: Number]
    console.log(numConstructor.constructor); // 输出: [Function: Number]
    ```
@@ -2656,7 +2656,7 @@ console.log(circle.radius); // 输出：10
 
 4. 函数的方法（后续函数章节详细说明）
 
-   - `call()`：调用函数，并明确指定 `this` 和参数。
+   - `call()`：调用函数，第一个参数明确指定 `this` 和参数，后续参数传入`this`。
    - `apply()`：与 `call()` 类似，但以数组形式传递参数。
    - `bind()`：返回一个绑定了特定 `this` 值的新函数。
 
@@ -2698,23 +2698,23 @@ console.log(circle.radius); // 输出：10
 
 3. `call` 、 `apply` 和 `bind` 方法
 
-```js
-function greet(greeting, punctuation) {
-  console.log(`${greeting}, ${this.name}${punctuation}`);
-}
+   ```js
+   function greet(greeting, punctuation) {
+     console.log(`${greeting}, ${this.name}${punctuation}`);
+   }
 
-const person = { name: "John" };
+   const person = { name: "John" };
 
-// 使用 call
-greet.call(person, "Hello", "!"); // 输出: "Hello, John!"
+   // 使用 call
+   greet.call(person, "Hello", "!"); // 输出: "Hello, John!"
 
-// 使用 apply
-greet.apply(person, ["Hi", "."]); // 输出: "Hi, John."
+   // 使用 apply
+   greet.apply(person, ["Hi", "."]); // 输出: "Hi, John."
 
-// 使用 bind
-const sayHi = greet.bind(person, "Hello", "!");
-sayHi(); // 输出: "Hello, John!"
-```
+   // 使用 bind
+   const sayHi = greet.bind(person, "Hello", "!");
+   sayHi(); // 输出: "Hello, John!"
+   ```
 
 4. 补充作用于构造函数的情况
 
@@ -2730,7 +2730,7 @@ sayHi(); // 输出: "Hello, John!"
    console.log("circle1:", circle1); // 输出 circle1: {radius: 1, draw: ƒ}
    const circle2 = Circle.apply({}, [1]);
    console.log("circle2:", circle2); // 输出 circle1: {radius: 1, draw: ƒ}
-   
+
    const circle3 = Circle.bind({}, 1);
    console.log("circle3:", circle3);
    // 输出
@@ -2810,10 +2810,10 @@ sayHi(); // 输出: "Hello, John!"
    function increase(obj) {
      obj.value++;
    }
-   
+
    let obj = { value: 10 };
    increase(obj);
-   
+
    console.log(obj.value); // 输出: 11
    ```
 
@@ -2898,7 +2898,7 @@ sayHi(); // 输出: "Hello, John!"
        console.log("Drawing a circle");
      },
    };
-   
+
    console.log("radius" in circle); // 输出: true
    console.log("color" in circle); // 输出: false
    ```
@@ -2982,15 +2982,15 @@ sayHi(); // 输出: "Hello, John!"
        console.log("Drawing a circle");
      },
    };
-   
+
    let color = {
      color: "yellow",
    };
-   
+
    // 使用 Object.assign() 合并对象
    let merged1 = Object.assign({}, circle, color);
    console.log(merged1); // 输出: { radius: 10, draw: function, color: 'yellow' }
-   
+
    // 使用扩展运算符合并对象
    let merged2 = { ...circle, ...color };
    console.log(merged2); // 输出: { radius: 10, draw: function, color: 'yellow' }
@@ -3361,10 +3361,10 @@ sayHi(); // 输出: "Hello, John!"
    ```js
    // `toDateString()` 返回日期部分的字符串
    console.log("日期字符串:", now.toDateString()); // 输出例如: Thu Jan 01 2025
-   
+
    // `toTimeString()` 返回时间部分的字符串
    console.log("时间字符串:", now.toTimeString()); // 输出例如: 00:00:00 GMT+0000 (Coordinated Universal Time)
-   
+
    // `toISOString()` 返回符合 ISO 8601 标准的日期时间字符串
    console.log("ISO 格式日期:", now.toISOString()); // 输出例如: 2025-01-01T00:00:00.000Z
    ```
@@ -3720,14 +3720,14 @@ const restaurants = [
      { id: 1, name: "a" },
      { id: 2, name: "b" },
    ];
-   
+
    console.log(courses.includes({ id: 1, name: "a" })); // false，引用类型不同
-   
+
    const course = courses.find(function (course) {
      return course.name === "a";
    });
    console.log(course); // { id: 1, name: "a" }
-   
+
    const courseIndex = courses.findIndex(function (course) {
      return course.name === "b";
    });
@@ -3794,15 +3794,15 @@ const restaurants = [
      { id: 1, name: "a" },
      { id: 2, name: "b" },
    ];
-   
+
    // 使用传统函数
    const course1 = courses.find(function (course) {
      return course.name === "a";
    });
-   
+
    // 使用箭头函数
    const course2 = courses.find((course) => course.name === "a");
-   
+
    console.log(course1); // { id: 1, name: "a" }
    console.log(course2); // { id: 1, name: "a" }
    ```
@@ -3967,7 +3967,7 @@ const restaurants = [
    ```js
    const objArr = [{ id: 1 }];
    const combined = [1, 2, 3].concat(objArr);
-   
+
    objArr[0].id = 10;
    console.log(combined); // 输出: [1, 2, 3, { id: 10 }]
    ```
@@ -4021,7 +4021,7 @@ const restaurants = [
    ```js
    const obj1 = { a: 1, b: 2 };
    const obj2 = { b: 3, c: 4 };
-   
+
    const merged = { ...obj1, ...obj2 };
    console.log(merged); // 输出: { a: 1, b: 3, c: 4 }
    ```
@@ -4074,12 +4074,12 @@ const restaurants = [
 
    ```js
    const numbers = [1, 2, 3];
-   
+
    // 使用普通函数
    numbers.forEach(function (number) {
      console.log(number);
    });
-   
+
    // 使用箭头函数
    numbers.forEach((number, index) => console.log(index, number));
    ```
@@ -4140,7 +4140,7 @@ const restaurants = [
    ```js
    // 假设有一个文章标题
    let articleTitle = "Creating arrays in JavaScript";
-   
+
    // 通过 split 和 join 创建 URL Slug
    const slug = articleTitle.split(" ").join("-");
    console.log(slug);
@@ -4227,17 +4227,17 @@ const restaurants = [
      { id: 4, name: "HTML" },
      { id: 5, name: "css" },
    ];
-   
+
    courses.sort(function (a, b) {
      // 使用 toUpperCase() 排除大小写敏感
      let nameA = a.name.toUpperCase();
      let nameB = b.name.toUpperCase();
-   
+
      if (nameA < nameB) return -1;
      if (nameA > nameB) return 1;
      return 0;
    });
-   
+
    console.log(courses);
    ```
 
@@ -4296,7 +4296,7 @@ const restaurants = [
 
    ```js
    const numbers = [1, -1, 2, 3];
-   
+
    console.log(numbers.every((value) => value >= 0)); // false
    console.log(numbers.some((value) => value >= 0)); // true
    ```
@@ -4355,10 +4355,10 @@ const restaurants = [
      { name: "Jane", age: 18 },
      { name: "Jack", age: 30 },
    ];
-   
+
    // 筛选年龄大于 20 的人
    const adults = people.filter((person) => person.age > 20);
-   
+
    console.log(adults);
    // 输出: [{ name: "John", age: 25 }, { name: "Jack", age: 30 }]
    ```
@@ -4403,13 +4403,13 @@ const restaurants = [
 
    ```js
    const numbers = [1, -1, 2, 3];
-   
+
    const filtered = numbers.filter((n) => n >= 0);
-   
+
    const items = filtered.map((n) => ({ value: n }));
    console.log(items);
    // 输出: [{ value: 1 }, { value: 2 }, { value: 3 }]
-   
+
    //如果省略括号：
    const items = numbers.map((n) => {
      value: n;
@@ -4439,13 +4439,13 @@ const restaurants = [
 
    ```js
    const numbers = [1, -1, 2, 3];
-   
+
    const items = numbers
      .filter((n) => n >= 0) // 过滤出大于等于 0 的数字
      .map((n) => ({ value: n })) // 将每个数字映射为对象 { value: n }
      .filter((obj) => obj.value > 1) // 筛选 value 大于 1 的对象
      .map((obj) => obj.value); // 提取对象的 value 属性，生成新数组
-   
+
    console.log(items); // 输出: [2, 3]
    ```
 
@@ -4525,12 +4525,12 @@ const restaurants = [
      { id: 2, name: "Bob" },
      { id: 3, name: "Charlie" },
    ];
-   
+
    const peopleById = people.reduce((acc, person) => {
      acc[person.id] = person.name;
      return acc;
    }, {});
-   
+
    console.log(peopleById);
    // 输出: { 1: "Alice", 2: "Bob", 3: "Charlie" }
    ```
@@ -4882,7 +4882,7 @@ console.log(titles); // 输出: ["b", "a"]
    function sum(a, b) {
      return a + b;
    }
-   
+
    console.log(sum(1, 2)); // 3
    console.log(sum(1)); // NaN，第二个参数为undefined，1 + undefined 得到 NaN
    console.log(sum(1, 2, 3, 4, 5)); //3，多个参数，只读取对应参数位置的参数
@@ -4949,7 +4949,7 @@ console.log(titles); // 输出: ["b", "a"]
    function sum(...args) {
      return args.reduce((total, value) => total + value, 0);
    }
-   
+
    console.log(sum(1, 2, 3, 4, 5)); // 输出: 15
    ```
 
@@ -5023,7 +5023,7 @@ console.log(titles); // 输出: ["b", "a"]
      console.log(arguments); // { '0': 1, '1': 2, '2': 3 }
      console.log([...arguments]); // [1, 2, 3]
    }
-   
+
    example(1, 2, 3);
    ```
 
@@ -5067,7 +5067,7 @@ console.log(titles); // 输出: ["b", "a"]
    function test(principal, rate = 3.5, year) {
      return ((principal * rate) / 100) * year;
    }
-   
+
    console.log(test(10000, 5)); // NaN
    console.log(test(10000, undefined, 5)); // 1750
    ```
@@ -5371,7 +5371,7 @@ console.log(person); // 输出对象，检查是否修改成功
    ```js
    console.log(x); // 输出：undefined（声明提升，但未初始化）
    var x = 10;
-   
+
    console.log(y); // 报错：y is not defined
    let y = 20;
    ```
@@ -5471,7 +5471,7 @@ console.log(person); // 输出对象，检查是否修改成功
        });
      },
    };
-   
+
    video.showTags(); // 正常输出标题和标签
    ```
 
@@ -5562,7 +5562,7 @@ console.log(person); // 输出对象，检查是否修改成功
        });
      },
    };
-   
+
    video.showTags(); // 正常输出标题和标签
    ```
 
@@ -5574,7 +5574,7 @@ console.log(person); // 输出对象，检查是否修改成功
    function sayHi() {
      console.log("hi");
    }
-   
+
    console.log(window.sayHi); // 输出：函数本身
    ```
 
@@ -5719,7 +5719,7 @@ try {
 
 **代码示例**
 
-1. **封装**
+1. 封装
 
    封装将数据和操作这些数据的函数（方法）放在同一个对象中，从而避免了数据和函数之间的混乱。
 
@@ -5734,7 +5734,7 @@ try {
      },
    };
    console.log("employee.getWage() : ", employee.getWage());
-   
+
    //ES6引入：class
    class Employee {
      constructor(baseSalary, overtime, rate) {
@@ -5742,19 +5742,19 @@ try {
        this.overtime = overtime;
        this.rate = rate;
      }
-   
+
      getWage() {
        return this.baseSalary + this.overtime * this.rate;
      }
    }
-   
+
    const emp = new Employee(3000, 10, 20);
    console.log("emp.getWage() : ", emp.getWage());
    ```
 
    - 通过封装，`baseSalary`、`overtime` 和 `rate` 成为 `Employee` 对象的属性，而 `getWage` 成为其方法。这样，函数不需要参数，因为数据已经封装在对象内部。
 
-2. **抽象**
+2. 抽象
 
    抽象通过隐藏复杂的实现，只暴露出简单的接口，让使用者无需关心内部实现细节。
 
@@ -5765,14 +5765,14 @@ try {
        console.log("DVD is playing");
      }
    }
-   
+
    const player = new DVDPlayer();
    player.play(); // 简单调用，内部的实现细节被隐藏
    ```
 
    - 在使用 `DVDPlayer` 时，用户只需关心如何调用 `play` 方法，而不必了解播放器内部的复杂操作。
 
-3. **继承**
+3. 继承
 
    继承允许子类从父类继承属性和方法，从而避免重复定义相似的代码。
 
@@ -5782,19 +5782,19 @@ try {
        this.hidden = hidden;
        this.innerHTML = innerHTML;
      }
-   
+
      click() {
        console.log("Element clicked");
      }
    }
-   
+
    class TextBox extends HTMLElement {
      constructor(hidden, innerHTML, placeholder) {
        super(hidden, innerHTML);
        this.placeholder = placeholder;
      }
    }
-   
+
    const textbox = new TextBox(false, "Hello", "Enter text...");
    textbox.click(); // 继承父类方法
    console.log(textbox.placeholder); // 访问子类属性
@@ -5802,7 +5802,7 @@ try {
 
    - `TextBox` 类继承了 `HTMLElement` 类的属性和方法，避免了重复代码。
 
-4. **多态**
+4. 多态
 
    多态让不同的对象可以调用相同的方法，但每个对象的方法行为不同，简化了代码。
 
@@ -5812,17 +5812,17 @@ try {
        console.log("Rendering a circle");
      }
    }
-   
+
    class Square {
      render() {
        console.log("Rendering a square");
      }
    }
-   
+
    function renderShape(shape) {
      shape.render(); // 无需关心对象的具体类型
    }
-   
+
    const circle = new Circle();
    const square = new Square();
    renderShape(circle); // Rendering a circle
@@ -5833,7 +5833,7 @@ try {
 
 ## 创建对象
 
-> **简述**：在JavaScript中，创建对象有不同的方式，包括使用对象字面量、工厂函数、构造函数，以及ES6引入的`class`。每种方法都有其特点，适用于不同的情况。掌握这些方法对编写高效、可维护的代码至关重要。
+> **简述**：在 JavaScript 中，创建对象有不同的方式，包括使用对象字面量、工厂函数、构造函数，以及 ES6 引入的`class`。每种方法都有其特点，适用于不同的情况。掌握这些方法对编写高效、可维护的代码至关重要。
 
 **知识树**
 
@@ -5850,11 +5850,11 @@ try {
    - 两者都可以用来创建对象，但语法和行为有所不同。
    - 工厂函数通过返回对象创建新实例；构造函数通过 `new` 关键字实例化对象。
 5. 类（class）
-   - 引入于ES6，`class` 是一种更简洁的语法糖，用来创建构造函数。
+   - 引入于 ES6，`class` 是一种更简洁的语法糖，用来创建构造函数。
    - `class` 提供了清晰的结构，使代码更具可读性，同时也支持继承和其他面向对象编程的特性。
 6. class 与构造函数的对比
    - `class` 提供了更清晰的对象结构，使得代码更加简洁和易读。与传统的构造函数不同，`class` 语法支持更多面向对象的特性，如继承（`extends`）、静态方法（`static`）等。
-   - 构造函数依旧在某些项目中使用，但 `class` 是推荐的现代方式，尤其是在ES6及以上的JavaScript版本中。
+   - 构造函数依旧在某些项目中使用，但 `class` 是推荐的现代方式，尤其是在 ES6 及以上的 JavaScript 版本中。
 
 **代码示例**
 
@@ -5866,12 +5866,12 @@ try {
    const circle = {
      radius: 5,
      location: { x: 0, y: 0 },
-     draw: function() {
+     draw: function () {
        console.log("Drawing a circle");
-     }
+     },
    };
-   
-   circle.draw();  // 输出 "Drawing a circle"
+
+   circle.draw(); // 输出 "Drawing a circle"
    ```
 
    - 对象字面量是最简单的创建对象的方式，其中 `radius` 和 `location` 是属性，`draw` 是方法。
@@ -5884,16 +5884,16 @@ try {
    function createCircle(radius) {
      return {
        radius: radius,
-       draw: function() {
+       draw: function () {
          console.log("Drawing a circle");
-       }
+       },
      };
    }
-   
+
    const circle1 = createCircle(5);
    const circle2 = createCircle(10);
-   circle1.draw();  // 输出 "Drawing a circle"
-   circle2.draw();  // 输出 "Drawing a circle"
+   circle1.draw(); // 输出 "Drawing a circle"
+   circle2.draw(); // 输出 "Drawing a circle"
    ```
 
    - `createCircle` 是一个工厂函数，它返回一个包含属性和方法的对象。
@@ -5906,15 +5906,15 @@ try {
    ```js
    function Circle(radius) {
      this.radius = radius;
-     this.draw = function() {
+     this.draw = function () {
        console.log("Drawing a circle");
      };
    }
-   
+
    const circle1 = new Circle(5);
    const circle2 = new Circle(10);
-   circle1.draw();  // 输出 "Drawing a circle"
-   circle2.draw();  // 输出 "Drawing a circle"
+   circle1.draw(); // 输出 "Drawing a circle"
+   circle2.draw(); // 输出 "Drawing a circle"
    ```
 
    - `Circle` 是一个构造函数，`this` 关键字将其绑定到新创建的对象上。
@@ -5929,22 +5929,251 @@ try {
      constructor(radius) {
        this.radius = radius;
      }
-     
+
      draw() {
        console.log("Drawing a circle");
      }
    }
-   
+
    const circle1 = new Circle(5);
    const circle2 = new Circle(10);
-   circle1.draw();  // 输出 "Drawing a circle"
-   circle2.draw();  // 输出 "Drawing a circle"
+   circle1.draw(); // 输出 "Drawing a circle"
+   circle2.draw(); // 输出 "Drawing a circle"
    ```
 
    - 使用 `class`，可以定义构造函数 `constructor` 和实例方法 `draw`。
    - `new Circle(5)` 创建了一个新的 `Circle` 实例，且通过 `this.radius` 绑定了对象的属性。
 
+## Constructor
 
+> 简述：在 JavaScript 中，每个对象都有一个称为 `constructor` 的属性，这个属性引用了用于创建该对象的构造函数。通过了解构造函数的工作原理，可以更好地理解对象是如何在 JavaScript 中被实例化的。
+
+**知识树**
+
+1. constructor 属性
+   - 每个对象都有一个 `constructor` 属性。
+   - `constructor` 引用的是用于创建该对象的构造函数。
+2. 构造函数的作用
+   - 构造函数是用来创建对象的函数。
+   - 使用构造函数时，JavaScript 引擎会创建并返回一个新对象。
+3. 内置构造函数
+   - `Object`：用于创建普通对象。
+   - `String`：用于创建字符串对象。
+   - `Boolean`：用于创建布尔对象。
+   - `Number`：用于创建数字对象。
+4. 字面量与构造函数的差异
+   - 字面量语法（如 `[]`, `{}`, `""`, `true`, `42`）通常比使用构造函数更简洁。
+   - 构造函数语法（如 `new Object()`, `new Boolean()`）在实际编码中不常用。
+
+**代码示例**
+
+1. 构造函数的基本概念
+
+   ```js
+   function Circle(radius) {
+     this.radius = radius;
+     this.draw = function () {
+       console.log("Drawing a circle");
+     };
+   }
+
+   let circle = new Circle(5);
+   console.log(circle.constructor); // Circle
+   ```
+
+   - `circle.constructor` 返回的是 `Circle` 函数，说明该对象是通过 `Circle` 构造函数创建的。
+
+2. 对象字面量与构造函数
+
+   ```js
+   let obj = {};
+   console.log(obj.constructor); // Object
+   ```
+
+   - 在使用对象字面量时，内部实际上是通过 `new Object()` 创建的。
+
+3. 内置构造函数
+
+   ```js
+   let str = new String("Hello");
+   console.log(str.constructor); // String
+   ```
+
+   - `new String()` 是通过构造函数创建一个字符串对象，`constructor` 返回 `String`。
+
+4. 使用字面量的简洁性
+
+   ```js
+   let bool = true;
+   console.log(bool.constructor); // Boolean
+   ```
+
+   - 使用字面量（如 `true`）更加简洁，而无需使用 `new Boolean()`。
+
+## 函数是对象
+
+> **简述**：在 JavaScript 中，函数不仅仅是用来执行任务的代码块，它们本质上也是对象。这意味着函数不仅可以有执行代码，还可以拥有属性和方法。
+
+**知识树**
+
+1. 函数是对象
+   - 函数本身是 JavaScript 中的对象，可以拥有属性和方法。
+2. 函数的成员
+   - 每个函数都有一些默认的属性和方法，例如 `name`、`length`、`call`、`bind` 和 `apply`。
+3. 函数的构造器
+   - 函数的构造器是 `Function`，它用于在 JavaScript 内部创建函数对象。
+4. 函数的方法
+   - `call()`：调用函数，第一个参数明确指定 `this`，后续参数传入该函数。
+   - `apply()`：与 `call()` 类似，但以数组形式传递参数。
+   - `bind()`：返回一个绑定了特定 `this` 值的新函数，常用于函数柯里化和绑定事件处理程序。
+
+**代码示例**
+
+1. 函数是对象
+
+   JavaScript 中的函数实际上是对象，可以拥有属性和方法。
+
+   ```js
+   function Circle(radius) {
+     this.radius = radius;
+     this.draw = function () {
+       console.log("Drawing a circle");
+     };
+   }
+
+   const circle = new Circle(5);
+
+   console.log(Circle.name); // 输出 "Circle"，函数的名称
+   console.log(Circle.length); // 输出 1，函数的参数个数
+   console.log(Circle.constructor); // 输出 Function，指向 Function 构造器
+   ```
+
+   - `Circle` 是一个函数对象，`name` 和 `length` 是它的属性，`constructor` 属性指向创建该函数的构造器 `Function`。
+
+2. 使用 `Function` 构造函数
+
+   可以使用 `Function` 构造函数动态创建函数对象。
+
+   ```js
+   const Circle = new Function(
+     "radius",
+     `
+     this.radius = radius;
+     this.draw = function () {
+       console.log("Drawing a circle");
+     };
+   `
+   );
+
+   const circle = new Circle(5);
+   circle.draw(); // 输出: "Drawing a circle"
+   ```
+
+   - 通过 `Function` 构造函数动态创建的 `Circle` 函数，可以像普通函数一样使用 `new` 关键字来创建对象。
+
+3. `call` 、`apply` 和 `bind` 方法
+
+   `call`、`apply` 和 `bind` 都是 JavaScript 中的函数方法，它们用于修改函数的 `this` 上下文。
+
+   ```js
+   function greet(greeting, punctuation) {
+     console.log(`${greeting}, ${this.name}${punctuation}`);
+   }
+
+   const person = { name: "John" };
+
+   // 使用 call：直接传递参数
+   greet.call(person, "Hello", "!"); // 输出: "Hello, John!"
+
+   // 使用 apply：以数组的形式传递参数
+   greet.apply(person, ["Hi", "."]); // 输出: "Hi, John."
+
+   // 使用 bind：返回一个新函数，绑定了指定的 this 和参数
+   const sayHi = greet.bind(person, "Hello", "!");
+   sayHi(); // 输出: "Hello, John!"
+   ```
+
+   - `call()`：直接调用函数，参数依次传入。
+   - `apply()`：与 `call()` 类似，区别在于参数传递形式为数组。
+   - `bind()`：不会立即执行函数，而是返回一个绑定了特定 `this` 的新函数，常用于事件处理。
+
+## 值类型与引用类型
+
+> **简述**：在 JavaScript 中，所有数据类型可以分为两大类：值类型（又称基本类型）和引用类型。理解这两类数据的行为差异是掌握 JavaScript 内存管理、函数调用以及对象操作的基础。值类型的数据直接存储在变量中，而引用类型的数据则存储的是指向数据的引用。
+
+**知识树**
+
+1. 值类型（基本类型）
+   - 包括：`number`、`string`、`boolean`、`symbol`、`null`、`undefined`。
+   - 值类型的数据是直接存储在变量中的。当复制一个值类型的变量时，实际是将它的值复制到另一个变量中，两个变量之间相互独立。
+2. 引用类型（对象类型）
+   - 包括：`object`、`array`、`function`。
+   - 引用类型的数据存储的是数据在内存中的地址。当复制一个引用类型的变量时，复制的是该对象的内存地址，而不是对象的副本。多个变量会指向同一个对象，修改其中一个变量的内容会影响到其他变量。
+3. 值类型与引用类型的行为差异
+   - 值类型：复制时复制的是值，两个变量互不影响。
+   - 引用类型：复制时复制的是地址（引用），多个变量指向同一个对象，修改其中一个变量会影响到其他变量。
+
+**代码示例**
+
+1. 值类型的行为
+
+   在值类型中，变量存储的是数据的值。复制一个值类型的变量时，两个变量会互不影响。
+
+   ```js
+   let x = 10;
+   let y = x; // 复制 x 的值到 y
+   y = 20; // 修改 y 的值
+   console.log(x); // 输出 10，x 不受 y 的影响
+   console.log(y); // 输出 20，y 的值已被修改
+   ```
+
+   - 在这个例子中，`x` 和 `y` 存储的是值。赋值操作只是复制了值，因此 `x` 和 `y` 是独立的，修改一个不会影响另一个。
+
+2. 引用类型的行为
+
+   在引用类型中，变量存储的是数据的内存地址。复制一个引用类型的变量时，复制的是该对象的内存地址，两个变量指向同一个对象。
+
+   ```js
+   let obj1 = { value: 10 };
+   let obj2 = obj1; // 复制 obj1 的引用
+   obj2.value = 20; // 修改 obj2 的属性
+   console.log(obj1.value); // 输出 20，obj1 和 obj2 指向同一个对象
+   console.log(obj2.value); // 输出 20，obj2 修改了共享的对象
+   ```
+
+   - 在这个例子中，`obj1` 和 `obj2` 指向同一个对象。修改 `obj2` 的属性会影响到 `obj1`，因为它们共享同一个内存地址。
+
+3. 函数中的值类型与引用类型行为
+
+   函数参数的传递也受到值类型与引用类型的影响。值类型的参数在函数内部是独立的，而引用类型的参数则会直接影响外部对象。
+
+   - 值类型参数：
+
+     ```js
+     function increase(number) {
+       number += 1;
+     }
+
+     let num = 10;
+     increase(num);
+     console.log(num); // 输出 10，num 没有被修改
+     ```
+
+     - 在这里，`num` 是一个基本类型（值类型），当它传递给函数时，函数内部的 `number` 是一个独立的副本，修改 `number` 不会影响到外部的 `num`。
+
+   - 引用类型参数：
+
+     ```js
+     function increaseObject(obj) {
+       obj.value += 1;
+     }
+
+     let myObject = { value: 10 };
+     increaseObject(myObject);
+     console.log(myObject.value); // 输出 11，myObject 的值被修改
+     ```
+
+     - 在这个例子中，`myObject` 是引用类型（对象）。传递给函数时，实际上是传递了对象的引用，因此在函数内部修改 `obj` 会直接影响到外部的 `myObject`。
 
 # 技巧
 
