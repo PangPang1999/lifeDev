@@ -1698,6 +1698,177 @@ export default App;
 
 
 
+## 第三章练习
+
+>  本节课的目标是通过一个简单的示例，帮助大家理解如何在 React 中使用状态管理、事件处理以及如何控制组件的可见性。我们将通过实现一个可以显示和关闭的 Bootstrap 样式的警告框（alert）组件，来练习这些核心概念。
+
+#### 步骤 1：创建基础 alert 组件
+
+1. **添加 Alert 组件** 在 `App.tsx` 中，首先添加一个基本的 alert 组件。此时，alert 只是静态显示在页面上，不涉及任何交互。
+
+   ```tsx
+   <div className="alert alert-primary" role="alert">
+       My alert
+   </div>
+   ```
+
+2. **显示与隐藏控制** 初始状态下，我们希望 alert 是隐藏的，只有点击按钮时才显示。为了实现这一点，我们需要在 `App.tsx` 中使用 React 的 `useState` 钩子来控制 alert 的可见性。
+
+   ```tsx
+   const [alertVisible, setAlertVisibility] = useState(false);
+   ```
+
+3. **条件渲染 Alert** 使用 `alertVisible` 状态来控制 alert 组件的显示和隐藏。当 `alertVisible` 为 `true` 时，alert 会显示；否则，它会被隐藏。
+
+   ```tsx
+   {alertVisible && (
+       <div className="alert alert-primary" role="alert">
+           My alert
+       </div>
+   )}
+   ```
+
+#### 步骤 2：实现按钮触发 alert 显示
+
+1. **点击按钮显示 alert** 创建一个按钮，当按钮被点击时，调用 `setAlertVisibility(true)` 来显示 alert。
+
+   ```tsx
+   <button onClick={() => setAlertVisibility(true)}>显示警告</button>
+   ```
+
+   这样，点击按钮时，alert 会显示出来，React 会重新渲染组件来反映状态变化。
+
+#### 步骤 3：添加关闭按钮
+
+1. **添加关闭按钮** 按照 Bootstrap 的要求，警告框组件需要一个关闭按钮。我们可以将其嵌入到 `alert` 组件中，并使用相应的 Bootstrap 类来进行样式设置。使用 `alert-dismissible` 类和关闭按钮的样式。
+
+   ```tsx
+   <div className="alert alert-primary alert-dismissible" role="alert">
+       My alert
+       <button type="button" className="btn-close" aria-label="Close"></button>
+   </div>
+   ```
+
+2. **将类名更改为 `className`** 由于 JSX 语法要求使用 `className` 来设置类名，而不是 `class`，需要进行相应的更改。
+
+   ```tsx
+   <button type="button" className="btn-close" aria-label="Close" onClick={onClose}></button>
+   ```
+
+#### 步骤 4：处理关闭事件
+
+1. **传递关闭事件** 我们需要在 `Alert` 组件中为关闭按钮添加 `onClose` prop。父组件会通过这个 prop 将关闭的逻辑传递给子组件。
+
+   ```tsx
+   interface AlertProps {
+       onClose: () => void;
+   }
+   
+   const Alert: React.FC<AlertProps> = ({ onClose }) => {
+       return (
+           <div className="alert alert-primary alert-dismissible" role="alert">
+               My alert
+               <button type="button" className="btn-close" aria-label="Close" onClick={onClose}></button>
+           </div>
+       );
+   };
+   ```
+
+2. **在父组件中处理关闭事件** 在 `App.tsx` 中，父组件传递一个处理关闭事件的函数。在点击关闭按钮时，这个函数会被调用，进而设置 `alertVisible` 为 `false`，使警告框隐藏。
+
+   ```tsx
+   const handleClose = () => {
+       setAlertVisibility(false);
+   };
+   
+   <Alert onClose={handleClose} />
+   ```
+
+3. **完整实现** 现在，点击按钮时显示 alert，点击关闭按钮时隐藏 alert，完成了这个交互。
+
+   ```tsx
+   const App = () => {
+       const [alertVisible, setAlertVisibility] = useState(false);
+   
+       const handleClick = () => {
+           setAlertVisibility(true);
+       };
+   
+       const handleClose = () => {
+           setAlertVisibility(false);
+       };
+   
+       return (
+           <div>
+               <button onClick={handleClick}>显示警告</button>
+               {alertVisible && <Alert onClose={handleClose} />}
+           </div>
+       );
+   };
+   ```
+
+#### 总结
+
+- 本节课通过实现一个简单的可关闭的警告框，帮助我们掌握了如何在 React 中管理状态（`useState`）、如何处理用户事件（如按钮点击），以及如何通过传递 props 实现组件之间的交互。
+- 通过这个练习，我们进一步理解了 React 的渲染机制和状态更新的过程，以及如何将状态变化传递到子组件中进行处理。
+
+#### 延伸思考
+
+- **优化与扩展**：在实际开发中，我们可以通过使用 `useReducer` 来管理更复杂的状态，特别是当组件的状态变得复杂时。
+- **UI 组件复用**：我们可以将 `Alert` 组件提取到单独的文件中，并根据需要在其他地方复用，同时允许不同的 alert 类型和颜色（通过传递不同的 props 来实现）。
+
+通过这次练习，不仅学会了如何在 React 中管理状态、处理事件，还通过实际的代码实现深刻理解了 React 的组件化开发思想。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
