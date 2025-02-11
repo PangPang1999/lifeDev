@@ -1,11 +1,10 @@
-function greet() {
-  console.log("Hello, " + this.name);
+function Circle(radius) {
+  this.radius = radius;
 }
+const circle = new Circle(5);
+circle.location = { x: 1, y: 1 }; // 动态添加 location 属性
+console.log(circle); // 输出：Circle { radius: 5, location: { x: 1, y: 1 } }
 
-const person = { name: "John" };
-
-greet.call(person); // 输出 "Hello, John"
-
-const args = [];
-args.push(person);
-greet.apply(...args); // 输出 "Hello, John"
+console.log(circle.location); // 输出：{ x: 1, y: 1 }
+circle["center-location"] = { x: 0, y: 0 };
+console.log(circle["center-location"]); // 输出：{ x: 0, y: 0 }
