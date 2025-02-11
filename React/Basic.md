@@ -1805,7 +1805,28 @@ export default App;
            </div>
        );
    };
+   
    ```
+
+   Button.tsx
+
+   ```tsx
+   interface Props {
+     onBtnClick: () => void;
+   }
+   function button({ onBtnClick }: Props) {
+     return (
+       <>
+         <button type="button" className="btn btn-primary" onClick={onBtnClick}>
+           Show live alert
+         </button>
+       </>
+     );
+   }
+   export default button;
+   ```
+
+   
 
 #### 总结
 
@@ -1823,15 +1844,250 @@ export default App;
 
 
 
+# 第四章
+
+
+
+## 第2节-原生CSS
+
+> 简述：在这一节中，我们探讨了如何使用原生CSS来为React组件添加样式。尽管有许多优秀的CSS框架（如Bootstrap或Material UI）可供使用，本节介绍了手动编写CSS的方式，帮助你理解如何通过原生CSS对组件进行样式化。
+
+**知识树**
+
+1. **原生CSS的使用**
+   - 在项目中直接使用CSS文件。
+   - 如何在React组件中导入和使用CSS。
+2. **CSS文件组织结构**
+   - 将CSS文件与组件文件放在同一目录下，便于组件的复用。
+   - 如何通过创建`index.ts`文件优化文件引用结构。
+3. **样式化React组件**
+   - 使用简单的CSS规则来移除默认样式并添加自定义样式。
+   - 使用类选择器为组件应用样式。
+4. **提升项目结构**
+   - 在项目中使用结构化的方式组织组件和样式文件。
+
+**代码示例**
+
+1. 创建CSS文件并导入到组件中
+
+```css
+/* listgroup.css */
+.list-group {
+  list-style: none;
+  padding: 0;
+}
+```
+
+1. 在组件中使用CSS文件
+
+```tsx
+// listgroup.tsx
+import React from 'react';
+import './listgroup.css';
+
+const ListGroup: React.FC = () => {
+  return (
+    <ul className="list-group">
+      <li>Item 1</li>
+      <li>Item 2</li>
+      <li>Item 3</li>
+    </ul>
+  );
+}
+
+export default ListGroup;
+```
+
+1. 优化文件结构与引用
+
+```tsx
+// index.ts
+import ListGroup from './listgroup';
+export default ListGroup;
+```
+
+1. 更新App组件
+
+```tsx
+// App.tsx
+import React from 'react';
+import ListGroup from './components/listgroup';
+
+const App: React.FC = () => {
+  return (
+    <div>
+      <ListGroup />
+    </div>
+  );
+}
+
+export default App;
+```
+
+**关键概念总结**
+
+- **原生CSS的应用**：在React中使用纯CSS进行样式设置。尽管有许多CSS框架，我们仍可以通过手动编写CSS来完全控制组件的样式。
+- **文件组织**：我们将组件的样式文件与组件本身放在一起，这有助于组件的重用性和项目的模块化。如果不希望文件耦合过紧密，也可以将样式文件放入专门的`styles`目录中。
+- **优化组件结构**：通过在组件文件夹中添加`index.ts`，可以简化导入路径，使得在项目中引用组件时更加简洁。
+- **简单的样式设置**：通过简单的CSS规则，可以快速去除默认样式并添加个性化的设计。
 
 
 
 
 
+## 第3节：解决CSS冲突的CSS模块
 
+（CSS Modules）
 
+> 简述：在这一节中，我们讨论了使用CSS模块来避免CSS类名冲突的问题。通过将CSS样式局部化，我们可以在不同的文件中使用相同的类名，而不必担心它们相互冲突。CSS模块使得样式的作用域仅限于组件，增加了代码的可维护性和模块化。
 
+**知识树**
 
+1. CSS类名冲突问题
+   - 当多个CSS文件中有相同的类名时，可能会出现样式冲突，导致UI异常。
+2. CSS模块的工作原理
+   - CSS模块通过将类名局部化，确保每个类名在组件中唯一。
+   - 通过文件重命名 `.module.css` 来启用CSS模块功能。
+3. 如何在React组件中使用CSS模块
+   - 将CSS模块文件导入为JavaScript对象。
+   - 使用对象的属性来访问类名，避免传统CSS中的全局作用域问题。
+4. 自动生成唯一的CSS类名
+   - 工具（如Vite）会自动为每个CSS类名添加唯一的标识符，避免类名冲突。
+
+**代码示例**
+
+1. 创建CSS模块文件
+
+   > **CSS 模块的工作原理**
+   > 为了解决样式冲突，将 `listgroup.css` 文件重命名为 `listgroup.module.css`，以便启用 CSS 模块的功能。当使用 CSS 模块时，Vite 等打包工具会为每个类名生成唯一的标识符，避免了样式冲突。通过这个方式，不同组件中的同名类不会相互干扰。
+   >
+   >  CSS 类名中包含连字符（例如 `list-group`）时，className的写法为`<ul className={styles['list-group']}>`
+
+```css
+/* listgroup.module.css */
+.listGroup {
+  list-style: none;
+  padding: 0;
+}
+/* ------------------- */
+.list-group {
+    list-style: none;
+    padding: 0;
+}
+<ul className={styles['list-group']}>
+```
+
+2. 在React组件中使用CSS模块
+
+> 在 TypeScript 文件中，我们不再直接导入 CSS 类，而是将其作为一个 JavaScript 对象导入。每个类名将作为对象的一个属性。
+
+```tsx
+// listgroup.tsx
+import React from 'react';
+import styles from './listgroup.module.css';
+
+const ListGroup: React.FC = () => {
+  return (
+    <ul className={styles.listGroup}>
+      <li>Item 1</li>
+      <li>Item 2</li>
+      <li>Item 3</li>
+    </ul>
+  );
+}
+
+export default ListGroup;
+```
+
+3. 处理多个CSS类
+
+```tsx
+// listgroup.tsx
+const ListItem: React.FC = () => {
+  return (
+    <li className={[styles.listGroup, styles.container].join(' ')}>
+      Item 1
+    </li>
+  );
+}
+```
+
+**关键概念总结**
+
+- **CSS模块的优势**：通过将每个CSS类局部化，避免了类名冲突，增强了代码的可维护性。
+- **局部化类名**：通过使用对象的属性引用CSS类名，并通过文件扩展名 `.module.css` 启用模块化。
+- **自动生成唯一类名**：使用工具（如Vite）自动处理类名冲突问题，确保每个类名在整个项目中唯一。
+
+------
+
+## 第4节：将样式与组件逻辑融合
+
+CSS in JS 
+
+> 简述：在这一节中，我们介绍了CSS in JS的概念，这种方式允许我们将样式与组件逻辑放在同一个文件中。这种方法带来了样式的局部作用域、更加便捷的代码维护和基于props或state动态更新样式的能力。
+
+**知识树**
+
+1. **CSS in JS的概念**
+   - 通过将CSS写入JavaScript文件中，样式和组件逻辑可以紧密结合。
+   - 样式与组件一起打包，减少了样式外部依赖。
+2. **CSS in JS的优点**
+   - 样式局部化，避免冲突。
+   - 组件逻辑与样式紧密耦合，增强了组件的可重用性。
+   - 基于组件的props和state动态修改样式。
+3. **Styled Components的使用**
+   - 使用`styled-components`库可以在JavaScript文件中创建样式化的React组件。
+   - 样式通过模板字符串进行定义，并且可以根据组件的props动态应用不同样式。
+4. **类型安全和props管理**
+   - 使用TypeScript对组件的props进行类型定义，确保动态样式的正确性。
+
+**代码示例**
+
+1. 安装`styled-components`库
+
+```bash
+npm install styled-components
+npm install @types/styled-components
+```
+
+1. 在组件中使用`styled-components`
+
+```tsx
+// listgroup.tsx
+import styled from 'styled-components';
+
+const List = styled.ul`
+  list-style: none;
+  padding: 0;
+`;
+
+const ListItem = styled.li<{ active: boolean }>`
+  padding: 5px;
+  background-color: ${props => (props.active ? 'blue' : 'none')};
+`;
+
+const ListGroup: React.FC = () => {
+  const selectedIndex = 1; // 示例：假设第二项被选中
+
+  return (
+    <List>
+      <ListItem active={selectedIndex === 1}>Item 1</ListItem>
+      <ListItem active={selectedIndex === 2}>Item 2</ListItem>
+      <ListItem active={selectedIndex === 3}>Item 3</ListItem>
+    </List>
+  );
+}
+
+export default ListGroup;
+```
+
+**关键概念总结**
+
+- **CSS in JS的优势**：将样式与组件逻辑放在同一个文件中，便于维护和复用。
+- **动态样式**：可以通过组件的props来动态控制样式，使得样式更加灵活。
+- **类型安全**：使用TypeScript对props进行类型定义，确保组件的样式和行为符合预期。
+
+通过这两种方式（CSS模块和CSS in JS），我们可以更加灵活、模块化地为React组件添加样式，避免了全局样式冲突和冗余的样式管理。
 
 
 
