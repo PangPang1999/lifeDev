@@ -2249,7 +2249,175 @@ export default ListGroup;
 
 
 
+## 第5-9节
 
+#### **第1节：关注点分离原则（Separation of Concerns）**
+
+##### **概述**
+
+关注点分离（SoC）是软件工程中的一个重要设计原则，建议我们将程序分为不同的模块，每个模块处理特定的功能，而不是将所有内容都放在一起。这样可以使程序更具模块化，便于理解、维护和修改。
+
+##### **模块化的优势**
+
+- **独立构建与测试**：模块化程序允许我们独立地构建和测试各个模块，也能方便地将模块重用到其他程序中。
+- **单一责任**：每个模块只关注一个功能。比如，在餐馆里，厨师负责做饭，服务员负责点单。模块化程序也遵循这个逻辑，每个模块承担特定的职责。
+- **简化复杂性**：模块内部的实现细节通常是隐藏的，暴露给外部的是一个清晰的接口。类似于电视遥控器，虽然遥控器本身有很多复杂的操作，但用户只需要按按钮，接口简单易用。
+
+##### **关于 CSS-in-JS 和关注点分离**
+
+一些人认为将 CSS 和 JavaScript 混合在一起违反了关注点分离原则，因为我们将所有内容放在同一个文件中。然而，关注点分离的核心并不是文件是否合并，而是模块化：每个模块应该处理特定的功能，并通过清晰的接口与外界交互。在 React 中，CSS-in-JS 的实现方式仍然遵循了这一原则，因为它把样式的复杂性隐藏在了组件的接口后面。
+
+#### **第2节：内联样式和推荐的样式方法**
+
+##### **内联样式**
+
+- 内联样式的使用：在 React 中，我们可以直接在 HTML 元素中使用 `style`属性设置样式。例如：
+
+  ```tsx
+  <div style={{ backgroundColor: 'yellow' }}></div>
+  ```
+
+  这种方式不推荐广泛使用，因为它使代码难以阅读和维护。它更适合非常特定的样式应用。
+
+##### **CSS 库**
+
+目前有许多 UI 库可以帮助我们快速构建美观且现代化的应用。比如：
+
+- **Bootstrap**：提供了大量现成的组件，易于使用，快速构建应用。
+- **Material UI**：一个实现了 Google Material Design 的开源 React 组件库。
+- **Tailwind CSS**：一个实用优先的 CSS 库，提供了大量小的 utility 类来样式化我们的组件，而不是完整的组件。
+- **Daisy UI**：基于 Tailwind CSS，提供了完整的组件而不是小的 utility 类。
+- **Chakra UI**：构建于 Tailwind 基础上的一个 React 组件库，易于学习，适合快速构建应用。
+
+这些库帮助我们避免手动编写样式，提高开发效率，减少重复劳动。
+
+#### **第3节：使用 React Icons 添加图标**
+
+##### **React Icons 简介**
+
+React Icons 是一个流行的图标库，包含了多个图标库，如 Ant Design Icons、Bootstrap Icons、Box Icons 等。我们可以通过 React 组件的形式使用这些图标，并且支持自定义大小、颜色等属性。
+
+##### **使用方法**
+
+1. **安装 React Icons** 在项目中安装 `react-icons` 包：
+
+   ```bash
+   npm install react-icons
+   ```
+
+2. **使用图标** 搜索并选择想要的图标，例如日历图标（Calendar）：
+
+   - 进入 React Icons 官网，选择一个图标。
+
+   - 使用对应的库前缀和图标名称导入：
+
+     ```tsx
+     import { AiOutlineCalendar } from 'react-icons/ai';
+     
+     const MyComponent = () => {
+         return <AiOutlineCalendar />;
+     };
+     ```
+
+3. **自定义图标** 我们可以通过 props 自定义图标的颜色、大小等：
+
+   ```tsx
+   <AiOutlineCalendar color="red" size={30} />
+   ```
+
+#### **第4节：按钮组件练习**
+
+##### **任务**：使用 CSS 模块样式化按钮组件
+
+1. **创建样式文件**：为按钮组件创建一个 `button.module.css` 文件，其中包含基本按钮样式和不同颜色的按钮样式。
+
+   ```css
+   /* button.module.css */
+   .btn {
+       padding: 10px 20px;
+       border-radius: 5px;
+       cursor: pointer;
+   }
+   
+   .btn-primary {
+       background-color: blue;
+       color: white;
+   }
+   
+   .btn-secondary {
+       background-color: gray;
+       color: white;
+   }
+   ```
+
+2. **导入样式**：在按钮组件的 TypeScript 文件中导入 CSS 模块并应用样式。
+
+   > <button className={`btn btn-${color}`} onClick={onClick}>
+   >
+   > classname有多个时的两种写法：
+   >
+   > ```tsx
+   > className={`${styles.btn} ${styles[`btn-${color}`]}`}
+   > 
+   > className={[styles.btn, styles["btn-" + color]].join(" ")}
+   > ```
+   >
+   > 
+
+   ```tsx
+   import styles from './button.module.css';
+   
+   const Button = ({ color = 'primary', onClick, children }) => {
+       return (
+           <button
+               className={`${styles.btn} ${styles[`btn-${color}`]}`}
+               onClick={onClick}
+           >
+               {children}
+           </button>
+       );
+   };
+   ```
+
+##### **任务 2：实现 Like 组件**
+
+1. **创建 Like 组件**：实现一个可点击的心形图标，点击时图标会改变状态（从空心变为实心）。
+
+   ```tsx
+   import { AiOutlineHeart, AiFillHeart } from 'react-icons/ai';
+   import { useState } from 'react';
+   
+   const Like = ({ onClick }) => {
+       const [status, setStatus] = useState(false);
+   
+       const toggleStatus = () => {
+           setStatus(!status);
+           onClick();  // 通知父组件
+       };
+   
+       return (
+           <div onClick={toggleStatus}>
+               {status ? <AiFillHeart color="red" /> : <AiOutlineHeart />}
+           </div>
+       );
+   };
+   ```
+
+2. **父组件使用**：
+
+   ```tsx
+   const App = () => {
+       const handleLikeClick = () => {
+           console.log('Like button clicked!');
+       };
+   
+       return <Like onClick={handleLikeClick} />;
+   };
+   ```
+
+##### **总结**
+
+通过这些练习，我们学会了如何使用不同的样式技术（如 CSS 模块、React Icons）以及如何构建可复用的组件。这些技术和工具的使用将大大提升开发效率，帮助我们构建更加模块化和可维护的应用程序。
 
 
 
