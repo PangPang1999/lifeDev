@@ -5698,7 +5698,7 @@ try {
 
 ## 面向对象编程
 
-> **简述**：面向对象编程是一种以对象为中心的编程范式。它通过封装、抽象、继承和多态等概念，帮助程序员更加高效地组织代码，并使代码更具可维护性。
+> **简述**：面向对象编程是一种以对象为中心的编程范式。它通过封装 (Encapsulation)、抽象 (Abstraction)、继承(Inheritance)和多态(Polymorphism)等概念，帮助程序员更加高效地组织代码，并使代码更具可维护性。
 
 **知识树**
 
@@ -6229,9 +6229,180 @@ try {
 
    当属性名包含特殊字符（如连字符）时，点表示法就不能使用了，这时只能使用括号表示法。
 
+## 遍历对象属性
 
+> **简述**：在 JavaScript 中，遍历对象的属性和方法是常见的操作。我们可以使用不同的方式来访问、过滤和验证对象的属性。常见的方式包括 `for...in` 循环、`Object.keys()` 方法以及 `in` 操作符。理解这些工具如何工作，能帮助我们更灵活地操作对象，特别是在处理动态数据时。
 
+**知识树**
 
+1. `for...in` 循环
+   - 用于遍历对象的所有可枚举属性（包括方法）。
+   - 循环时返回的是对象的 键（key）。
+2. `for...of` 循环
+   - 仅用于遍历 可迭代对象（如数组、字符串、Map 等），不能直接用于对象。
+   - 结合 `Object.keys()` 或 `Object.entries()` 可用于对象。
+3. `Object.keys()` 方法
+   - 返回对象的所有键，以字符串数组的形式。
+   - 可以与 `for...of` 循环结合使用。
+4. `Object.entries()` 方法
+   - 返回对象的所有属性的 键值对，每对以数组形式存储。
+   - 结合 `for...of` 循环，可以遍历对象的键值对。
+5. `in` 操作符
+   - 检查对象是否具有某个属性或方法。
+
+**代码示例**
+
+1. 使用 `for...in` 遍历对象的属性
+
+   ```js
+   let circle = {
+     radius: 10,
+     draw() {
+       console.log("Drawing a circle");
+     },
+   };
+
+   // 遍历对象的属性
+   for (let key in circle) {
+     console.log(key, circle[key]); // 输出: 10, function draw()
+   }
+
+   // 遍历对象的非方法属性
+   for (let key in circle) {
+     if (typeof circle[key] !== "function")
+       console.log(key, circle[key]); // 输出: 10, function draw()
+   }
+   ```
+
+2. 使用 `for...of` 与 `Object.keys()` 结合
+
+   ```js
+   let circle = {
+     radius: 10,
+     draw() {
+       console.log("Drawing a circle");
+     },
+   };
+
+   // 使用 Object.keys() 获取所有键并与 for...of 循环结合
+   for (let key of Object.keys(circle)) {
+     console.log(key); // 输出: radius, draw
+   }
+   ```
+
+3. 使用 `Object.entries()` 遍历对象的键值对
+
+   ```js
+   let circle = {
+     radius: 10,
+     draw() {
+       console.log("Drawing a circle");
+     },
+   };
+
+   // 使用 Object.entries() 获取所有键值对并遍历
+   for (let [key, value] of Object.entries(circle)) {
+     console.log(key, value); // 输出: radius 10, draw function draw()
+   }
+   ```
+
+4. 使用 `in` 操作符检查属性是否存在
+
+   ```js
+   let circle = {
+     radius: 10,
+     draw() {
+       console.log("Drawing a circle");
+     },
+   };
+   
+   console.log("radius" in circle); // 输出: true
+   console.log("color" in circle); // 输出: false
+   ```
+
+## 抽象和封装
+
+> **简述**：在面向对象编程中，抽象和封装是非常重要的概念。抽象是指将复杂的实现细节隐藏起来，仅暴露出核心的、简单的接口。而封装则是将数据和操作数据的行为（方法）绑定在一起，避免外部直接修改对象的状态。它们共同提高了代码的安全性、可维护性和可扩展性。
+
+**知识树**
+
+1. 抽象
+   - 将复杂的实现细节隐藏，仅暴露出对象的核心功能。
+   - 外部与对象的交互仅通过简洁的接口，而不需要了解内部的实现。
+2. 封装
+   - 将数据和操作数据的行为组合在一起，避免外部代码直接访问对象的内部状态。
+   - 通过访问控制（如私有属性和方法），保护对象的状态不被随意修改。
+3. 抽象和封装的优势
+   - 在实际应用中，封装和抽象通常是一起使用的。封装确保对象内部的安全性，抽象确保外部代码能够简洁、高效地与对象交互。
+4. 抽象和封装的实现
+   - 封装：通过函数、对象的方法和闭包将内部状态隐藏，提供公共接口进行访问。
+   - 抽象：通过简化的接口与隐藏复杂业务逻辑，将外部与对象复杂内部实现隔离。
+
+**代码示例**
+
+1. 封装和抽象：简化对象的交互
+
+   在这个例子中，我们将 `Circle` 对象的 `defaultLocation` 属性和 `computeOptimalLocation` 方法封装在对象内部，只暴露 `draw` 方法供外部使用。
+
+   ```js
+   function Circle(radius) {
+     this.radius = radius;
+
+     // 私有属性，不应该被外部直接修改
+     let defaultLocation = { x: 0, y: 0 }; // 通过闭包封装，外部无法直接访问
+
+     // 公共方法，外部可以通过该方法与对象交互
+     this.draw = function () {
+       console.log(
+         `Drawing a circle at location: x = ${defaultLocation.x}, y = ${defaultLocation.y}`
+       );
+       this.computeOptimalLocation(); // 内部调用，避免外部直接访问
+     };
+
+     // 私有方法，外部无法访问，只供内部使用
+     function computeOptimalLocation() {
+       console.log("Computing optimal location...");
+     }
+
+     // 提供公共接口访问半径
+     this.getRadius = function () {
+       return this.radius;
+     };
+   }
+
+   const circle = new Circle(5);
+   console.log(circle.getRadius()); // 输出 5
+   circle.draw(); // 输出：Drawing a circle at location: x = 0, y = 0 和 Computing optimal location...
+   ```
+
+   - 在这个代码中，`defaultLocation` 和 `computeOptimalLocation` 被封装在 `Circle` 对象内部，外部无法直接修改它们。外部只能通过 `draw` 方法与对象交互。
+
+2. 通过封装保护数据
+
+   如果没有封装，外部代码可能修改对象的属性，导致对象状态不一致。例如，修改 `defaultLocation` 会导致不可预测的行为。
+
+   ```js
+   circle.defaultLocation = false; // 修改了内部的 defaultLocation 属性
+   console.log(circle.defaultLocation); // 输出 false，可能导致不一致的行为
+   ```
+
+3. 抽象：隐藏复杂性
+
+   假设 `computeOptimalLocation` 方法现在需要一个参数 `factor`。如果我们将其暴露给外部，所有调用该方法的地方都需要传递新的参数，这增加了外部代码的复杂度。
+
+   ```js
+   circle.computeOptimalLocation(5); // 需要传递新的参数
+   ```
+
+   但如果 `computeOptimalLocation` 被封装为私有方法，外部无需关心其内部的实现，只需要调用公开接口 `draw` 即可。
+
+   ```js
+   this.draw = function () {
+     console.log(`Drawing a circle with radius ${this.radius}`);
+     // 内部处理：外部无需更改调用代码
+     this.computeOptimalLocation(5); // 内部逻辑可以随时调整
+   };
+   ```
 
 # 技巧
 
