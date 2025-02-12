@@ -454,7 +454,6 @@ console.log(typeof userName); // "number"
      console.log("Hello " + name);
    }
    greetWithName("John"); // 输出: Hello John
-   
    function greetWithFullName(firstName, lastName) {
      console.log("Hello " + firstName + " " + lastName);
    }
@@ -1126,7 +1125,6 @@ console.log(typeof userName); // "number"
    a = a ^ b; // a = 3
    b = a ^ b; // b = 1
    a = a ^ b; // a = 2
-   
    console.log(a); // 输出：2
    console.log(b); // 输出：1
    ```
@@ -1310,7 +1308,6 @@ console.log(typeof userName); // "number"
 
    ```js
    let role = "guest";
-   
    if (role === "guest") console.log("Guest user");
    else if (role === "moderator") console.log("Moderator user");
    else if (role === "admin") console.log("Admin user");
@@ -1689,7 +1686,6 @@ do {
    ```js
    let arr = [10, 20, 30];
    arr.customProperty = "Custom Value";
-   
    for (let index in arr) {
      console.log(index, arr[index]); // 会输出索引和自定义属性
    }
@@ -1767,7 +1763,6 @@ do {
 
    ```js
    let person = { name: "Alice", age: 30 };
-   
    // 错误示例
    for (let prop of person) {
      console.log(prop);
@@ -2389,7 +2384,6 @@ showPrimes(10);
        console.log("draw");
      },
    };
-   
    // 访问属性和方法
    console.log(circle.radius); // 输出: 1
    console.log(circle.location.x); // 输出: 1
@@ -2428,11 +2422,9 @@ showPrimes(10);
        },
      };
    }
-   
    // 创建对象
    const circle1 = createCircle(1);
    const circle2 = createCircle(2);
-   
    // 访问属性和方法
    console.log(circle1.radius); // 输出: 1
    circle1.draw(); // 输出: draw
@@ -2476,17 +2468,14 @@ showPrimes(10);
    function Circle(radius) {
      // 使用 `this` 初始化属性
      this.radius = radius;
-   
      // 添加方法
      this.draw = function () {
        console.log("draw");
      };
    }
-   
    // 使用 `new` 创建对象
    const circle1 = new Circle(1);
    const circle2 = new Circle(2);
-   
    // 访问属性和方法
    console.log(circle1.radius); // 输出: 1
    circle1.draw(); // 输出: draw
@@ -2621,14 +2610,11 @@ console.log(circle.radius); // 输出：10
    // 数组
    const arrLiteral = [];
    const arrConstructor = new Array();
-   
    console.log(arrLiteral.constructor); // 输出: [Function: Array]
    console.log(arrConstructor.constructor); // 输出: [Function: Array]
-   
    // 数字
    const numLiteral = 42;
    const numConstructor = new Number(42);
-   
    console.log(numLiteral.constructor); // 输出: [Function: Number]
    console.log(numConstructor.constructor); // 输出: [Function: Number]
    ```
@@ -2730,7 +2716,6 @@ console.log(circle.radius); // 输出：10
    console.log("circle1:", circle1); // 输出 circle1: {radius: 1, draw: ƒ}
    const circle2 = Circle.apply({}, [1]);
    console.log("circle2:", circle2); // 输出 circle1: {radius: 1, draw: ƒ}
-   
    const circle3 = Circle.bind({}, 1);
    console.log("circle3:", circle3);
    // 输出
@@ -2810,10 +2795,8 @@ console.log(circle.radius); // 输出：10
    function increase(obj) {
      obj.value++;
    }
-   
    let obj = { value: 10 };
    increase(obj);
-   
    console.log(obj.value); // 输出: 11
    ```
 
@@ -2898,7 +2881,6 @@ console.log(circle.radius); // 输出：10
        console.log("Drawing a circle");
      },
    };
-   
    console.log("radius" in circle); // 输出: true
    console.log("color" in circle); // 输出: false
    ```
@@ -2982,15 +2964,12 @@ console.log(circle.radius); // 输出：10
        console.log("Drawing a circle");
      },
    };
-   
    let color = {
      color: "yellow",
    };
-   
    // 使用 Object.assign() 合并对象
    let merged1 = Object.assign({}, circle, color);
    console.log(merged1); // 输出: { radius: 10, draw: function, color: 'yellow' }
-   
    // 使用扩展运算符合并对象
    let merged2 = { ...circle, ...color };
    console.log(merged2); // 输出: { radius: 10, draw: function, color: 'yellow' }
@@ -3361,10 +3340,8 @@ console.log(circle.radius); // 输出：10
    ```js
    // `toDateString()` 返回日期部分的字符串
    console.log("日期字符串:", now.toDateString()); // 输出例如: Thu Jan 01 2025
-   
    // `toTimeString()` 返回时间部分的字符串
    console.log("时间字符串:", now.toTimeString()); // 输出例如: 00:00:00 GMT+0000 (Coordinated Universal Time)
-   
    // `toISOString()` 返回符合 ISO 8601 标准的日期时间字符串
    console.log("ISO 格式日期:", now.toISOString()); // 输出例如: 2025-01-01T00:00:00.000Z
    ```
@@ -3720,14 +3697,11 @@ const restaurants = [
      { id: 1, name: "a" },
      { id: 2, name: "b" },
    ];
-   
    console.log(courses.includes({ id: 1, name: "a" })); // false，引用类型不同
-   
    const course = courses.find(function (course) {
      return course.name === "a";
    });
    console.log(course); // { id: 1, name: "a" }
-   
    const courseIndex = courses.findIndex(function (course) {
      return course.name === "b";
    });
@@ -3794,15 +3768,12 @@ const restaurants = [
      { id: 1, name: "a" },
      { id: 2, name: "b" },
    ];
-   
    // 使用传统函数
    const course1 = courses.find(function (course) {
      return course.name === "a";
    });
-   
    // 使用箭头函数
    const course2 = courses.find((course) => course.name === "a");
-   
    console.log(course1); // { id: 1, name: "a" }
    console.log(course2); // { id: 1, name: "a" }
    ```
@@ -3967,7 +3938,6 @@ const restaurants = [
    ```js
    const objArr = [{ id: 1 }];
    const combined = [1, 2, 3].concat(objArr);
-   
    objArr[0].id = 10;
    console.log(combined); // 输出: [1, 2, 3, { id: 10 }]
    ```
@@ -4021,7 +3991,6 @@ const restaurants = [
    ```js
    const obj1 = { a: 1, b: 2 };
    const obj2 = { b: 3, c: 4 };
-   
    const merged = { ...obj1, ...obj2 };
    console.log(merged); // 输出: { a: 1, b: 3, c: 4 }
    ```
@@ -4074,12 +4043,10 @@ const restaurants = [
 
    ```js
    const numbers = [1, 2, 3];
-   
    // 使用普通函数
    numbers.forEach(function (number) {
      console.log(number);
    });
-   
    // 使用箭头函数
    numbers.forEach((number, index) => console.log(index, number));
    ```
@@ -4140,7 +4107,6 @@ const restaurants = [
    ```js
    // 假设有一个文章标题
    let articleTitle = "Creating arrays in JavaScript";
-   
    // 通过 split 和 join 创建 URL Slug
    const slug = articleTitle.split(" ").join("-");
    console.log(slug);
@@ -4227,17 +4193,14 @@ const restaurants = [
      { id: 4, name: "HTML" },
      { id: 5, name: "css" },
    ];
-   
    courses.sort(function (a, b) {
      // 使用 toUpperCase() 排除大小写敏感
      let nameA = a.name.toUpperCase();
      let nameB = b.name.toUpperCase();
-   
      if (nameA < nameB) return -1;
      if (nameA > nameB) return 1;
      return 0;
    });
-   
    console.log(courses);
    ```
 
@@ -4296,7 +4259,6 @@ const restaurants = [
 
    ```js
    const numbers = [1, -1, 2, 3];
-   
    console.log(numbers.every((value) => value >= 0)); // false
    console.log(numbers.some((value) => value >= 0)); // true
    ```
@@ -4355,10 +4317,8 @@ const restaurants = [
      { name: "Jane", age: 18 },
      { name: "Jack", age: 30 },
    ];
-   
    // 筛选年龄大于 20 的人
    const adults = people.filter((person) => person.age > 20);
-   
    console.log(adults);
    // 输出: [{ name: "John", age: 25 }, { name: "Jack", age: 30 }]
    ```
@@ -4403,13 +4363,10 @@ const restaurants = [
 
    ```js
    const numbers = [1, -1, 2, 3];
-   
    const filtered = numbers.filter((n) => n >= 0);
-   
    const items = filtered.map((n) => ({ value: n }));
    console.log(items);
    // 输出: [{ value: 1 }, { value: 2 }, { value: 3 }]
-   
    //如果省略括号：
    const items = numbers.map((n) => {
      value: n;
@@ -4439,13 +4396,11 @@ const restaurants = [
 
    ```js
    const numbers = [1, -1, 2, 3];
-   
    const items = numbers
      .filter((n) => n >= 0) // 过滤出大于等于 0 的数字
      .map((n) => ({ value: n })) // 将每个数字映射为对象 { value: n }
      .filter((obj) => obj.value > 1) // 筛选 value 大于 1 的对象
      .map((obj) => obj.value); // 提取对象的 value 属性，生成新数组
-   
    console.log(items); // 输出: [2, 3]
    ```
 
@@ -4525,12 +4480,10 @@ const restaurants = [
      { id: 2, name: "Bob" },
      { id: 3, name: "Charlie" },
    ];
-   
    const peopleById = people.reduce((acc, person) => {
      acc[person.id] = person.name;
      return acc;
    }, {});
-   
    console.log(peopleById);
    // 输出: { 1: "Alice", 2: "Bob", 3: "Charlie" }
    ```
@@ -4882,7 +4835,6 @@ console.log(titles); // 输出: ["b", "a"]
    function sum(a, b) {
      return a + b;
    }
-   
    console.log(sum(1, 2)); // 3
    console.log(sum(1)); // NaN，第二个参数为undefined，1 + undefined 得到 NaN
    console.log(sum(1, 2, 3, 4, 5)); //3，多个参数，只读取对应参数位置的参数
@@ -4949,7 +4901,6 @@ console.log(titles); // 输出: ["b", "a"]
    function sum(...args) {
      return args.reduce((total, value) => total + value, 0);
    }
-   
    console.log(sum(1, 2, 3, 4, 5)); // 输出: 15
    ```
 
@@ -5023,7 +4974,6 @@ console.log(titles); // 输出: ["b", "a"]
      console.log(arguments); // { '0': 1, '1': 2, '2': 3 }
      console.log([...arguments]); // [1, 2, 3]
    }
-   
    example(1, 2, 3);
    ```
 
@@ -5067,7 +5017,6 @@ console.log(titles); // 输出: ["b", "a"]
    function test(principal, rate = 3.5, year) {
      return ((principal * rate) / 100) * year;
    }
-   
    console.log(test(10000, 5)); // NaN
    console.log(test(10000, undefined, 5)); // 1750
    ```
@@ -5371,7 +5320,6 @@ console.log(person); // 输出对象，检查是否修改成功
    ```js
    console.log(x); // 输出：undefined（声明提升，但未初始化）
    var x = 10;
-   
    console.log(y); // 报错：y is not defined
    let y = 20;
    ```
@@ -5471,7 +5419,6 @@ console.log(person); // 输出对象，检查是否修改成功
        });
      },
    };
-   
    video.showTags(); // 正常输出标题和标签
    ```
 
@@ -5562,7 +5509,6 @@ console.log(person); // 输出对象，检查是否修改成功
        });
      },
    };
-   
    video.showTags(); // 正常输出标题和标签
    ```
 
@@ -5574,7 +5520,6 @@ console.log(person); // 输出对象，检查是否修改成功
    function sayHi() {
      console.log("hi");
    }
-   
    console.log(window.sayHi); // 输出：函数本身
    ```
 
@@ -5812,17 +5757,14 @@ try {
        console.log("Rendering a circle");
      }
    }
-   
    class Square {
      render() {
        console.log("Rendering a square");
      }
    }
-   
    function renderShape(shape) {
      shape.render(); // 无需关心对象的具体类型
    }
-   
    const circle = new Circle();
    const square = new Square();
    renderShape(circle); // Rendering a circle
@@ -5929,12 +5871,10 @@ try {
      constructor(radius) {
        this.radius = radius;
      }
-   
      draw() {
        console.log("Drawing a circle");
      }
    }
-   
    const circle1 = new Circle(5);
    const circle2 = new Circle(10);
    circle1.draw(); // 输出 "Drawing a circle"
@@ -5944,7 +5884,7 @@ try {
    - 使用 `class`，可以定义构造函数 `constructor` 和实例方法 `draw`。
    - `new Circle(5)` 创建了一个新的 `Circle` 实例，且通过 `this.radius` 绑定了对象的属性。
 
-## Constructor
+## `Constructor`
 
 > 简述：在 JavaScript 中，每个对象都有一个称为 `constructor` 的属性，这个属性引用了用于创建该对象的构造函数。通过了解构造函数的工作原理，可以更好地理解对象是如何在 JavaScript 中被实例化的。
 
@@ -6079,15 +6019,11 @@ try {
    function greet(greeting, punctuation) {
      console.log(`${greeting}, ${this.name}${punctuation}`);
    }
-   
    const person = { name: "John" };
-   
    // 使用 call：直接传递参数
    greet.call(person, "Hello", "!"); // 输出: "Hello, John!"
-   
    // 使用 apply：以数组的形式传递参数
    greet.apply(person, ["Hi", "."]); // 输出: "Hi, John."
-   
    // 使用 bind：返回一个新函数，绑定了指定的 this 和参数
    const sayHi = greet.bind(person, "Hello", "!");
    sayHi(); // 输出: "Hello, John!"
@@ -6404,7 +6340,108 @@ try {
    };
    ```
 
+## `Getter`&`Setter`
+
+> **简述**：在 JavaScript 中，`Object.defineProperty` 方法允许我们动态地为对象添加属性，并定义该属性的行为。通过使用 getter 和 setter，我们可以控制属性的访问和修改，同时进行数据验证，确保对象始终处于有效的状态。getter 用于读取属性值，而 setter 用于修改属性值，并可以在修改时加入额外的验证逻辑。
+
+**知识树**
+
+1. `Object.defineProperty` 方法
+   - 用于在对象上定义新属性，或者修改现有属性的行为。
+   - 可以使用 getter 和 setter 来定义属性的读写行为。
+2. getter 和 setter
+   - getter：用于获取属性的值，能够控制如何返回该属性值。
+   - setter：用于设置属性的值，可以在设置时进行验证或转换。
+3. 只读属性
+   - 通过只定义 getter，可以创建只能读取而无法修改的属性。
+4. 带验证的 setter
+   - 使用 setter 时，可以加入验证逻辑，在设置属性值之前检查数据是否有效。
+
+**代码示例**
+
+1. 只读属性：使用 `Object.defineProperty` 定义 getter
+
+   假设我们希望将 `defaultLocation` 设置为只读，不能直接修改其值。我们只定义 getter，而不定义 setter。
+
+   ```js
+   "use strict";
+
+   function Circle(radius) {
+     this.radius = radius;
+
+     let defaultLocation = { x: 0, y: 0 };
+
+     Object.defineProperty(this, "defaultLocation", {
+       get: function () {
+         return defaultLocation;
+       },
+     });
+   }
+
+   const circle = new Circle(5);
+   console.log(circle.defaultLocation); // 输出：{ x: 0, y: 0 }
+
+   // 尝试修改 defaultLocation 会导致错误
+   try {
+     circle.defaultLocation = { x: 100, y: 100 }; // TypeError: Cannot set property defaultLocation of #<Circle> which has only a getter
+   } catch (e) {
+     console.log(e.message); // 输出："Cannot set property defaultLocation of #<Circle> which has only a getter"
+   }
+   ```
+
+2. 使用 `Object.defineProperty` 定义 getter 和 setter
+
+   假设我们希望提供一个 `defaultLocation` 属性，同时在尝试修改时加入验证逻辑。
+
+   ```js
+   "use strict";
+   
+   function Circle(radius) {
+     this.radius = radius;
+   
+     // 私有变量，不能直接被外部访问
+     let defaultLocation = { x: 0, y: 0 };
+   
+     // 使用 Object.defineProperty 定义 getter 和 setter
+     Object.defineProperty(this, "defaultLocation", {
+       // getter: 只允许读取 defaultLocation
+       get: function () {
+         return defaultLocation;
+       },
+       // setter: 在设置 defaultLocation 时进行验证
+       set: function (value) {
+         if (!value.x || !value.y) {
+           throw new Error("Invalid location");
+         }
+         defaultLocation = value;
+       },
+     });
+   }
+   
+   const circle = new Circle(10);
+   console.log(circle.defaultLocation); // 输出：{ x: 0, y: 0 }
+   
+   // 尝试修改 defaultLocation，若传入无效值则抛出错误
+   try {
+     circle.defaultLocation = { x: null, y: 5 }; // 抛出错误
+   } catch (e) {
+     console.log(e.message); // 输出："Invalid location"
+   }
+   
+   // 正确修改 defaultLocation
+   circle.defaultLocation = { x: 10, y: 10 };
+   console.log(circle.defaultLocation); // 输出：{ x: 10, y: 10 }
+   ```
+
 # 技巧
+
+> 高级
+
+- 严格模式
+  在代码顶部输入`"use strict";`可以开启严格模式，这是一种好的编程习惯
+  ```js
+  "use strict";
+  ```
 
 > 中级
 
