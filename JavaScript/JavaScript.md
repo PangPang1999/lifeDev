@@ -6433,6 +6433,81 @@ try {
    console.log(circle.defaultLocation); // 输出：{ x: 10, y: 10 }
    ```
 
+## Ex: Stopwatch Object
+
+> **要求**：设计一个可以模拟时钟功能的 `stopwatch` 对象。该对象应包含以下功能：
+>
+> 1. `start`：开始计时。
+> 2. `stop`：停止计时。
+> 3. `reset`：重置计时器。
+> 4. `duration`：读取计时器的时长，只有在停止计时后才能访问。
+
+**解法**：
+
+1. 使用构造函数创建一个 `Stopwatch` 对象。
+2. 定义私有变量 `startTime`、`endTime`、`running` 和 `duration`，用于存储时钟的状态和持续时间。
+3. 提供公共方法：
+   - `start`：开始计时，且确保不能重复启动。
+   - `stop`：停止计时，且确保只能在计时已开始时停止。
+   - `reset`：重置计时器状态。
+4. 使用 getter 提供只读属性 `duration`，用于访问已记录的计时时长。
+
+**代码**
+
+```js
+function Stopwatch() {
+  let startTime = 0;  // 记录开始时间
+  let endTime = 0;    // 记录结束时间
+  let running = false; // 是否正在计时
+  let duration = 0;   // 记录持续时间
+
+  // 获取当前计时器的持续时间
+  Object.defineProperty(this, 'duration', {
+    get: function() {
+      return duration;  // 返回时长
+    }
+  });
+
+  // 启动计时器
+  this.start = function() {
+    if (running) {
+      throw new Error('Stopwatch has already started');  // 如果已经启动，则抛出错误
+    }
+    running = true;
+    startTime = new Date();  // 设置开始时间为当前时间
+  };
+
+  // 停止计时器
+  this.stop = function() {
+    if (!running) {
+      throw new Error('Stopwatch has not started yet');  // 如果未启动，则抛出错误
+    }
+    running = false;
+    endTime = new Date();  // 设置结束时间为当前时间
+    duration = (endTime - startTime) / 1000;  // 计算持续时间，单位为秒
+  };
+
+  // 重置计时器
+  this.reset = function() {
+    startTime = 0;
+    endTime = 0;
+    running = false;
+    duration = 0;  // 重置时长
+  };
+}
+
+const stopwatch = new Stopwatch();
+
+stopwatch.start();  // 启动计时器
+setTimeout(() => {
+  stopwatch.stop();  // 停止计时器
+  console.log(stopwatch.duration);  // 输出计时器时长，例如 2 秒
+  stopwatch.reset();  // 重置计时器
+}, 2000);
+```
+
+(结束)
+
 # 技巧
 
 > 高级
