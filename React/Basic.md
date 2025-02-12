@@ -2097,7 +2097,153 @@ export default ListGroup;
 
 
 
+------
 
+## 第4节：CSS in JS - 将样式与组件逻辑融合
+
+> 简述：在这一节中，我们介绍了CSS in JS的概念，这种方式允许我们将样式与组件逻辑放在同一个文件中。这种方法带来了样式的局部作用域、更加便捷的代码维护和基于props或state动态更新样式的能力。
+
+**知识树**
+
+1. **CSS in JS的概念**
+   - 通过将CSS写入JavaScript文件中，样式和组件逻辑可以紧密结合。
+   - 样式与组件一起打包，减少了样式外部依赖。
+2. **CSS in JS的优点**
+   - 样式局部化，避免冲突。
+   - 组件逻辑与样式紧密耦合，增强了组件的可重用性。
+   - 基于组件的props和state动态修改样式。
+3. **Styled Components的使用**
+   - 使用`styled-components`库可以在JavaScript文件中创建样式化的React组件。
+   - 样式通过模板字符串进行定义，并且可以根据组件的props动态应用不同样式。
+4. **类型安全和props管理**
+   - 使用TypeScript对组件的props进行类型定义，确保动态样式的正确性。
+
+代码示例
+
+##### **步骤 1：安装和使用 styled-components**
+
+1. **安装 styled-components**
+    在项目中使用 `styled-components` 库来实现 CSS-in-JS。首先，我们需要安装 `styled-components` 库及其类型定义。
+
+   ```bash
+   npm install styled-components
+   npm install @types/styled-components
+   ```
+
+2. **创建样式化组件**
+    使用 `styled-components` 来创建具有样式的 React 组件。我们可以直接在 JavaScript 或 TypeScript 文件中定义样式。
+
+   ```tsx
+   import styled from 'styled-components';
+   
+   const ListGroup = styled.ul`
+       list-style: none;
+       padding: 0;
+   `;
+   
+   const ListItem = styled.li`
+       padding: 8px;
+   `;
+   ```
+
+3. **使用样式化组件**
+    在 JSX 中直接使用这些样式化组件，而不再使用传统的 `className`。
+
+   ```tsx
+   <ListGroup>
+       <ListItem>Item 1</ListItem>
+       <ListItem>Item 2</ListItem>
+   </ListGroup>
+   ```
+
+##### **步骤 2：根据组件的状态或属性动态应用样式**
+
+1. **动态样式**
+    可以根据组件的状态或 props 动态地改变样式。例如，我们可以根据选中的列表项动态应用背景色。
+
+   ```tsx
+   const ListItem = styled.li`
+       padding: 8px;
+       background: ${props => props.active ? 'blue' : 'none'};
+   `;
+   ```
+
+2. **定义 props 类型**
+    使用 TypeScript 定义组件的 props 类型，以便更好地支持类型检查和自动补全。
+
+   ```tsx
+   interface ListItemProps {
+       active: boolean;
+   }
+   
+   const ListItem = styled.li<ListItemProps>`
+       padding: 8px;
+       background: ${props => props.active ? 'blue' : 'none'};
+   `;
+   ```
+
+完整代码：
+
+```tsx
+import { useState } from "react";
+import styled from "styled-components";
+
+const List = styled.ul`
+  list-style: none;
+  padding: 0;
+`;
+interface ListItemProps {
+  active: boolean;
+}
+const ListItem = styled.li<ListItemProps>`
+  padding: 8px;
+  background-color: ${(props) => (props.active ? "blue" : "none")};
+`;
+interface Props {
+  items: string[];
+  heading: string;
+  onSelectedIndex: (item: string) => void;
+}
+function ListGroup({ items, heading, onSelectedIndex }: Props) {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const getMessage = () => {
+    return items.length === 0 ? <p>No item found</p> : null;
+  };
+  return (
+    <>
+      <h1>{heading}</h1>
+
+      {getMessage()}
+      <List>
+        {items.map((item, index) => (
+          <ListItem
+            active={index === selectedIndex}
+            key={item}
+            onClick={() => {
+              setSelectedIndex(index);
+              onSelectedIndex(item);
+            }}
+          >
+            {item}
+          </ListItem>
+        ))}
+      </List>
+    </>
+  );
+}
+export default ListGroup;
+
+```
+
+
+
+关键概念总结**
+
+- **CSS in JS的优势**：将样式与组件逻辑放在同一个文件中，便于维护和复用。
+- **动态样式**：可以通过组件的props来动态控制样式，使得样式更加灵活。
+- **类型安全**：使用TypeScript对props进行类型定义，确保组件的样式和行为符合预期。
+
+通过这两种方式（CSS模块和CSS in JS），我们可以更加灵活、模块化地为React组件添加样式，避免了全局样式冲突和冗余的样式管理。
 
 
 
