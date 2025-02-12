@@ -6103,7 +6103,6 @@ try {
      function increaseObject(obj) {
        obj.value += 1;
      }
-     
      let myObject = { value: 10 };
      increaseObject(myObject);
      console.log(myObject.value); // 输出 11，myObject 的值被修改
@@ -6251,7 +6250,6 @@ try {
        console.log("Drawing a circle");
      },
    };
-   
    console.log("radius" in circle); // 输出: true
    console.log("color" in circle); // 输出: false
    ```
@@ -6395,13 +6393,10 @@ try {
 
    ```js
    "use strict";
-   
    function Circle(radius) {
      this.radius = radius;
-   
      // 私有变量，不能直接被外部访问
      let defaultLocation = { x: 0, y: 0 };
-   
      // 使用 Object.defineProperty 定义 getter 和 setter
      Object.defineProperty(this, "defaultLocation", {
        // getter: 只允许读取 defaultLocation
@@ -6417,17 +6412,14 @@ try {
        },
      });
    }
-   
    const circle = new Circle(10);
    console.log(circle.defaultLocation); // 输出：{ x: 0, y: 0 }
-   
    // 尝试修改 defaultLocation，若传入无效值则抛出错误
    try {
      circle.defaultLocation = { x: null, y: 5 }; // 抛出错误
    } catch (e) {
      console.log(e.message); // 输出："Invalid location"
    }
-   
    // 正确修改 defaultLocation
    circle.defaultLocation = { x: 10, y: 10 };
    console.log(circle.defaultLocation); // 输出：{ x: 10, y: 10 }
@@ -6456,53 +6448,53 @@ try {
 
 ```js
 function Stopwatch() {
-  let startTime = 0;  // 记录开始时间
-  let endTime = 0;    // 记录结束时间
+  let startTime = 0; // 记录开始时间
+  let endTime = 0; // 记录结束时间
   let running = false; // 是否正在计时
-  let duration = 0;   // 记录持续时间
+  let duration = 0; // 记录持续时间
 
   // 获取当前计时器的持续时间
-  Object.defineProperty(this, 'duration', {
-    get: function() {
-      return duration;  // 返回时长
-    }
+  Object.defineProperty(this, "duration", {
+    get: function () {
+      return duration; // 返回时长
+    },
   });
 
   // 启动计时器
-  this.start = function() {
+  this.start = function () {
     if (running) {
-      throw new Error('Stopwatch has already started');  // 如果已经启动，则抛出错误
+      throw new Error("Stopwatch has already started"); // 如果已经启动，则抛出错误
     }
     running = true;
-    startTime = new Date();  // 设置开始时间为当前时间
+    startTime = new Date(); // 设置开始时间为当前时间
   };
 
   // 停止计时器
-  this.stop = function() {
+  this.stop = function () {
     if (!running) {
-      throw new Error('Stopwatch has not started yet');  // 如果未启动，则抛出错误
+      throw new Error("Stopwatch has not started yet"); // 如果未启动，则抛出错误
     }
     running = false;
-    endTime = new Date();  // 设置结束时间为当前时间
-    duration = (endTime - startTime) / 1000;  // 计算持续时间，单位为秒
+    endTime = new Date(); // 设置结束时间为当前时间
+    duration = (endTime - startTime) / 1000; // 计算持续时间，单位为秒
   };
 
   // 重置计时器
-  this.reset = function() {
+  this.reset = function () {
     startTime = 0;
     endTime = 0;
     running = false;
-    duration = 0;  // 重置时长
+    duration = 0; // 重置时长
   };
 }
 
 const stopwatch = new Stopwatch();
 
-stopwatch.start();  // 启动计时器
+stopwatch.start(); // 启动计时器
 setTimeout(() => {
-  stopwatch.stop();  // 停止计时器
-  console.log(stopwatch.duration);  // 输出计时器时长，例如 2 秒
-  stopwatch.reset();  // 重置计时器
+  stopwatch.stop(); // 停止计时器
+  console.log(stopwatch.duration); // 输出计时器时长，例如 2 秒
+  stopwatch.reset(); // 重置计时器
 }, 2000);
 ```
 
