@@ -2425,11 +2425,164 @@ React Icons 是一个流行的图标库，包含了多个图标库，如 Ant Des
 
 
 
+# 第5章
 
+## 状态的最佳实践
 
+#### **1. React 状态更新是异步的**
 
+- **异步更新**：React 的 `useState` 钩子用于管理组件状态，但状态更新是 **异步的**，并不会立即生效。
+- **为什么异步**：当事件处理函数中有多个状态更新时，React 会批量处理这些更新，以避免频繁的重新渲染，提高性能。例如，当点击按钮更新多个状态变量时，React 会将这些更新合并，并在事件处理器完成后一起应用，而不是立即更新状态。
 
+**示例：**
 
+```tsx
+const [isVisible, setIsVisible] = useState(false);
+
+const handleClick = () => {
+    setIsVisible(true);
+    console.log(isVisible);  // 在状态更新后立即打印会看到旧值，仍为 false
+};
+```
+
+- **性能优化**：批量更新状态并减少不必要的重渲染。
+
+#### **2. 状态存储在组件外部**
+
+- React 将状态变量存储在 **组件外部**，它会保留这些状态，直到组件不再显示时，React 会自动清理这些状态。
+- 状态的更新不会丢失，因为状态是存在内存中的，而不是存储在函数的作用域内。
+
+**示例：**
+
+```tsx
+const [isLoading, setIsLoading] = useState(false);
+```
+
+#### **3. Hooks 使用规则：只能在组件的顶层使用**
+
+- React 的 Hook（包括 `useState`）要求我们在 **组件的顶层** 使用它们，不能在条件语句、循环或嵌套函数中使用，因为这些结构会影响状态钩子调用的顺序，而 React 依赖于这些钩子的调用顺序来正确地映射状态变量。。
+- 这样做的目的是确保每次组件渲染时，React 能够按顺序正确地应用所有的 Hook。
+
+**错误示例：**
+
+```tsx
+if (someCondition) {
+  const [state, setState] = useState(false);  // 错误：不应在条件语句中调用 Hook
+}
+```
+
+**正确示例：**
+
+```tsx
+const [state, setState] = useState(false);  // 正确：在顶层调用
+```
+
+#### **4. 状态结构最佳实践**
+
+- **避免冗余状态**：对于像全名这样的变量，可以直接通过现有的 `firstName` 和 `lastName` 来计算，而不必单独使用 `fullName` 状态。
+
+  ```tsx
+  // 不需要 `fullName` 状态
+  <p>{firstName} {lastName}</p>
+  ```
+
+- **将相关状态组合在对象中**：如果状态变量是相关的，可以将它们组合在一个对象中。例如，`firstName` 和 `lastName` 可以存储在一个 `person` 对象中。
+
+  ```tsx
+  const [person, setPerson] = useState({ firstName: '', lastName: '' });
+  ```
+
+- **避免深度嵌套的状态结构**：深度嵌套的结构会导致状态更新时的复杂性增加，建议使用扁平化的结构。
+
+  ```tsx
+  // 避免深度嵌套，如 `address.street.city.zip`
+  // 使用扁平化结构来简化状态更新
+  ```
+
+#### **5. 纯函数和 React 组件的纯度**
+
+- **纯函数**：一个纯函数在相同的输入下，总是返回相同的输出。React 期望组件是纯函数。
+- **React 组件的纯度**：当组件接收到相同的 props 时，它应该始终返回相同的 JSX 输出。React 通过跳过未改变的组件的重新渲染来提高性能。
+
+**如何保持组件纯净**：
+
+- 不要在渲染阶段改变状态或副作用。比如，避免在渲染过程中修改变量。
+
+**不纯组件示例：**
+
+```tsx
+let count = 0;
+const Message = () => {
+  count++;  // 不推荐在渲染阶段修改 count
+  return <div>Message {count}</div>;
+};
+```
+
+**纯组件示例：**
+
+```tsx
+const Message = () => {
+  const count = 0;  // 在渲染阶段定义变量
+  return <div>Message {count}</div>;
+};
+```
+
+#### **6. React 严格模式 (Strict Mode)**
+
+- **严格模式**：React 的严格模式会在开发环境下每个组件渲染两次，用于检测潜在问题，如不纯的组件。严格模式只在开发模式下启用，生产模式下不会影响。
+
+**示例：**
+
+- 在开发模式下，React 会重新渲染组件以检查潜在的副作用问题。
+
+```tsx
+<React.StrictMode>
+  <App />
+</React.StrictMode>
+```
+
+#### **7. 状态对象的不可变性**
+
+- **对象和数组的不可变性**：在 React 中，应该将对象和数组视为不可变的，这意味着我们不能直接修改它们，而是需要创建一个新的对象或数组。
+
+**示例：**
+
+```tsx
+const [drink, setDrink] = useState({ title: 'Coke', price: 5 });
+
+// 错误：直接修改状态对象
+drink.price = 6;
+setDrink(drink);
+
+// 正确：创建新的对象
+setDrink({ ...drink, price: 6 });
+```
+
+- **数组的不可变性**：对于数组，使用类似 `push`、`filter` 或 `map` 的方法时，应该创建新的数组，而不是直接修改原数组。
+
+**示例：**
+
+```tsx
+const [tags, setTags] = useState(['happy', 'exciting']);
+
+// 错误：直接修改数组
+tags.push('new tag');
+setTags(tags);
+
+// 正确：创建新的数组
+setTags([...tags, 'new tag']);
+```
+
+#### **总结：**
+
+1. React 状态更新是异步的，并且是批量处理的，以优化性能。
+2. 状态应该存储在组件外部，并且仅能在顶层使用 `useState`。
+3. 使用状态时，避免冗余变量和深度嵌套的结构，最好使用扁平化的结构。
+4. 保持组件的纯度，避免在渲染阶段修改状态。
+5. 严格模式用于开发环境，帮助发现不纯的组件。
+6. 对象和数组应该视为不可变的，修改时需要创建新对象。
+
+通过这些最佳实践，我们能够更好地组织和管理 React 中的状态，使代码更加清晰、易于维护。
 
 
 
