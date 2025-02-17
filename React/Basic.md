@@ -2555,6 +2555,14 @@ drink.price = 6;
 setDrink(drink);
 
 // 正确：创建新的对象
+const handleClick = () =>{
+  const newDrink = {
+    title:drink.title,
+    price:6
+  }
+  setDrink(newDrink)
+}
+// 更好：正确：创建新的对象
 setDrink({ ...drink, price: 6 });
 ```
 
@@ -2573,7 +2581,7 @@ setTags(tags);
 setTags([...tags, 'new tag']);
 ```
 
-#### **总结：**
+**总结：**
 
 1. React 状态更新是异步的，并且是批量处理的，以优化性能。
 2. 状态应该存储在组件外部，并且仅能在顶层使用 `useState`。
@@ -2592,7 +2600,108 @@ setTags([...tags, 'new tag']);
 
 
 
+#### **8.更新嵌套对象中的属性**
 
+> 在这个更复杂的示例中，我们使用 `useState` 钩子来管理一个 `customer` 对象。这个对象有两个属性：`name` 和 `address`。`address` 是一个嵌套对象，包含 `city`（城市）和 `zipCode`（邮政编码）属性。
+>
+> 假设我们想通过点击事件更新 `zipCode`。在这个过程中，我们将面临更新嵌套对象状态的挑战，尤其是如何确保我们不直接修改原始状态，而是创建新的独立副本。
+
+#### **问题：浅拷贝的局限性**
+
+在 JavaScript 中，使用扩展运算符（spread operator）对对象进行拷贝时，是 **浅拷贝**。这意味着，如果对象中包含嵌套的对象，那么嵌套对象的引用将被共享。举例来说，假如我们有一个 `customer` 对象，包含一个 `address` 对象，拷贝 `customer` 对象时，`address` 仍然指向同一个内存地址。这样，修改 `address` 时会影响所有通过扩展运算符创建的 `customer` 对象。
+
+**示例：**
+
+```javascript
+const customer = {
+    name: "John Doe",
+    address: {
+        city: "New York",
+        zipCode: "10001"
+    }
+};
+
+// 使用扩展运算符创建新的 customer 对象
+const newCustomer = { ...customer };
+```
+
+此时，`newCustomer.address` 和 `customer.address` 指向的是同一个内存地址。
+
+#### **解决方法：创建独立副本**
+
+为了避免共享引用导致的问题，我们需要确保更新后的对象与原对象完全独立。这就要求我们在更新嵌套对象时，不仅要拷贝外层对象，还要为嵌套的对象创建新的副本。
+
+##### **步骤：**
+
+1. **拷贝 `customer` 对象**：首先，我们使用扩展运算符创建 `customer` 的副本。
+2. **为 `address` 创建新对象**：我们为 `customer.address` 创建一个新的对象，这样就避免了共享引用的问题。
+3. **更新 `zipCode`**：在新的 `address` 对象中，修改 `zipCode`。
+
+**示例：**
+
+```tsx
+const [customer, setCustomer] = useState({
+    name: "John Doe",
+    address: {
+        city: "New York",
+        zipCode: "10001"
+    }
+});
+
+const handleUpdateZipCode = () => {
+    setCustomer(prevCustomer => ({
+        ...prevCustomer,  // 创建新的 customer 对象
+        address: {        // 为 address 创建新的对象
+            ...prevCustomer.address,  // 拷贝原 address 对象
+            zipCode: "10002"  // 更新 zipCode
+        }
+    }));
+};
+```
+
+- **`...prevCustomer`**：拷贝 `customer` 对象的属性（如 `name`）。
+- **`...prevCustomer.address`**：拷贝 `address` 对象的属性。
+- **`zipCode: "10002"`**：修改 `zipCode` 的值。
+
+#### **避免深层嵌套结构**
+
+我们在处理复杂的状态对象时，应该尽量避免深层嵌套结构，因为深度嵌套会导致更新逻辑变得更加复杂。如果对象的嵌套层级过深，每次更新时都需要层层复制，增加了开发和维护的难度。
+
+##### **推荐做法：使用扁平化结构**
+
+将相关的属性组合到更平坦的结构中，以简化更新逻辑。相比深度嵌套的对象，扁平化结构在更新时更为直观和简便。
+
+**不推荐的深层嵌套结构：**
+
+```tsx
+const [customer, setCustomer] = useState({
+    name: "John",
+    contact: {
+        address: {
+            city: "New York",
+            zipCode: "10001"
+        }
+    }
+});
+```
+
+**推荐的扁平化结构：**
+
+```tsx
+const [customer, setCustomer] = useState({
+    name: "John",
+    city: "New York",
+    zipCode: "10001"
+});
+```
+
+#### **总结**
+
+1. **浅拷贝的局限性**：扩展运算符做的是浅拷贝，嵌套对象会共享引用，导致潜在问题。
+2. **创建新对象**：为了避免状态更新中的副作用，我们需要确保嵌套对象的每一层都是新的对象。
+3. **避免深层嵌套结构**：深度嵌套的结构会导致状态更新逻辑复杂，建议使用扁平化结构来简化更新过程。
+
+通过这些方法，您可以更有效地管理 React 中的状态，确保数据的独立性与可维护性，同时避免常见的错误。
 
 
 
