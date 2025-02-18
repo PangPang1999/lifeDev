@@ -1,57 +1,35 @@
 "use strict";
 
-const x = {}; // 创建一个空对象
-console.log(Object.getPrototypeOf(x)); // 输出 Object.prototype
-console.log(Object.prototype); // 和上一行输出一致
-console.log(Object.getPrototypeOf(x) === Object.prototype); // true
-
-// 一般不直接在代码中使用__proto__，这里使用是为了帮助理解
-console.log(Object.getPrototypeOf(x) === x.__proto__); // true
-// 父对象相同时，使用该函数获取prototype，得到的值完全一致
-const y = {}; // 创建一个空对象
+const myArray = [];
+console.log("myArray : ", myArray); // 最后一行 [[Prototype]]: Array(0)
+// 相当于 console.log(myArray.__proto__);
 console.log(
-  Object.getPrototypeOf(x) === Object.getPrototypeOf(y)
+  "Object.getPrototypeOf(myArray) : ",
+  Object.getPrototypeOf(myArray)
+); // 最后一行 [[Prototype]]: Object
+// 相当于 console.log(myArray.__proto__.__proto__);
+
+// 以下代码帮助理解
+console.log(
+  "Object.getPrototypeOf(myArray) === Array.prototype : ",
+  Object.getPrototypeOf(myArray) === Array.prototype
+); //true
+console.log(
+  "Object.getPrototypeOf(Object.getPrototypeOf(myArray)) : ",
+  Object.getPrototypeOf(Object.getPrototypeOf(myArray))
+); // 得到了Object.prototype
+console.log(
+  "Object.getPrototypeOf(Object.getPrototypeOf(myArray)) === Object.prototype : ",
+  Object.getPrototypeOf(Object.getPrototypeOf(myArray)) ===
+    Object.prototype
 ); // true
-
-// {}
-// [[Prototype]]: Object
-
-// > constructor: f Object()
-// > hasOwnProperty: f hasOwnProperty()
-// > isPrototypeOf: f isPrototypeOf()
-// > propertyIsEnumerable: f propertyIsEnumerable()
-// > toLocaleString: f toLocaleString()
-// > toString: f toString()
-// > valueOf: f valueOf()
-// > __defineGetter__: f __defineGetter__()
-// > __defineSetter__: f __defineSetter__()
-// > __lookupGetter__: f __lookupGetter__()
-// > __lookupSetter__: f __lookupSetter__()
-// > __proto__: Object
-
-//   > constructor: f Object()
-//   > hasOwnProperty: f hasOwnProperty()
-//   > isPrototypeOf: f isPrototypeOf()
-//   > propertyIsEnumerable: f propertyIsEnumerable()
-//   > toLocaleString: f toLocaleString()
-//   > toString: f toString()
-//   > valueOf: f valueOf()
-//   > __defineGetter__: f __defineGetter__()
-//   > __defineSetter__: f __defineSetter__()
-//   > __lookupGetter__: f __lookupGetter__()
-//   > __lookupSetter__: f __lookupSetter__()
-//     __proto__: null
-
-// > get __proto__: f __proto__()
-// > set __proto__: f __proto__()
-// > get __proto__: f __proto__()
-// > set __proto__: f __proto__()
-
-// console.log(x.toString());
 
 function Circle(radius) {
   this.radius = radius;
 }
-const c = new Circle(1);
-console.log(c);
-console.log(Object.getPrototypeOf(Object.getPrototypeOf(c)));
+
+const circle = new Circle(5);
+
+console.log(circle); // 输出 circle 对象，包含属性 radius
+console.log(Object.getPrototypeOf(circle)); // 查看 Circle 构造函数的原型：Circle.prototype
+console.log(Object.getPrototypeOf(Object.getPrototypeOf(circle))); // 查看 Circle.prototype 的原型：Object.prototype

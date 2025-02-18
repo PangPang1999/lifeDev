@@ -6500,7 +6500,7 @@ setTimeout(() => {
 
 # 原型
 
-> 原型和原型继承章节，moth讲的一般，我要重新梳理
+> 原型和原型继承章节，moth 讲的一般，我要重新梳理
 >
 > 首先是讲清楚继承的概念
 >
@@ -6508,9 +6508,9 @@ setTimeout(() => {
 > 2. 原型是什么
 > 3. 多级继承的概念
 > 4. 自定义/描述符
-> 5. 构造器的prototype属性，等于创建对象的`__proto__`属性
-> 6. 通过构造器的prototype属性，创建成员变量，先通过临时变量引入，并且添加的位置没有影响
-> 7. 遍历属性，`Object.keys`只能遍历instance属性，`in`方法可以遍历所有属性，JS中一般将instance属性，称之为own属性，有方法hasOwnProperty来判断是否是own属性
+> 5. 构造器的 prototype 属性，等于创建对象的`__proto__`属性
+> 6. 通过构造器的 prototype 属性，创建成员变量，先通过临时变量引入，并且添加的位置没有影响
+> 7. 遍历属性，`Object.keys`只能遍历 instance 属性，`in`方法可以遍历所有属性，JS 中一般将 instance 属性，称之为 own 属性，有方法 hasOwnProperty 来判断是否是 own 属性
 > 8. 避免修改内置的对象
 > 9. 继承，具体操作
 
@@ -6518,11 +6518,7 @@ setTimeout(() => {
 
 > **简述**：继承是面向对象编程（OOP）中的核心概念，它使得一个对象能够继承另一个对象的属性和方法，从而实现代码复用。
 >
-> 
->
-> *尽管 JavaScript 在 ES6 中引入了类的概念，但 JavaScript 本质上是基于原型继承的，类的概念只是对原型继承的一种语法糖。*
->
-> 
+> _尽管 JavaScript 在 ES6 中引入了类的概念，但 JavaScript 本质上是基于原型继承的，类的概念只是对原型继承的一种语法糖。_
 >
 > 这节将重点讨论原型继承，类的概念将在后续讲解中详细介绍。
 
@@ -6545,16 +6541,19 @@ setTimeout(() => {
 1. 原型（Prototype）
 
    - 每个对象都有一个原型（parent），它是该对象的父对象，包含对象继承的属性和方法。
+
 2. 原型继承（Prototypal Inheritance）
 
    - 当对象访问某个属性或方法时，JavaScript 引擎首先在该对象自身查找，如果找不到，则查找对象的原型，直到找到或到达 `Object` 根对象。
    - 这种机制使得多个对象可以共享相同的方法和属性，而不需要复制。
+
 3. 原型链（Prototype Chain）
    - 通过原型连接的对象链。当访问对象的属性时，JavaScript 会沿着原型链查找，直到找到为止。
 4. JavaScript 根对象（ObjectBase）
 
    - 所有对象的原型链最终都会指向一个共同的祖先对象 `Object`，称为 `ObjectBase`，它是所有对象的根对象。
    - `Object` 没有原型，它是原型链的终点。
+
 5. 获取原型
    - 使用 `Object.getPrototypeOf` 来获取对象的原型。`__proto__` 也可以用于查看和修改对象的原型，但它是过时的属性。
 6. 小结
@@ -6567,11 +6566,11 @@ setTimeout(() => {
    每个 JavaScript 对象都有一个原型。
 
    ```js
-   const x = {};  // 创建一个空对象
+   const x = {}; // 创建一个空对象
    console.log(x);
    // {}
    // [[Prototype]]: Object
-   
+
    // > constructor: f Object()
    // > hasOwnProperty: f hasOwnProperty()
    // > isPrototypeOf: f isPrototypeOf()
@@ -6584,7 +6583,7 @@ setTimeout(() => {
    // > __lookupGetter__: f __lookupGetter__()
    // > __lookupSetter__: f __lookupSetter__()
    // > __proto__: Object
-   
+
    //   > constructor: f Object()
    //   > hasOwnProperty: f hasOwnProperty()
    //   > isPrototypeOf: f isPrototypeOf()
@@ -6597,7 +6596,7 @@ setTimeout(() => {
    //   > __lookupGetter__: f __lookupGetter__()
    //   > __lookupSetter__: f __lookupSetter__()
    //     __proto__: null
-   
+
    // > get __proto__: f __proto__()
    // > set __proto__: f __proto__()
    // > get __proto__: f __proto__()
@@ -6616,8 +6615,8 @@ setTimeout(() => {
    当我们在对象上查找属性或方法时，如果该对象本身没有，就会查找它的原型。
 
    ```js
-   const x = {};  // 创建一个空对象
-   console.log(x.toString);  // 访问继承自 Object.prototype 的 toString 方法
+   const x = {}; // 创建一个空对象
+   console.log(x.toString); // 访问继承自 Object.prototype 的 toString 方法
    ```
 
 3. 使用 `Object.getPrototypeOf` 获取原型
@@ -6650,6 +6649,75 @@ setTimeout(() => {
    - `x` 和 `y` 都继承自 `Object.prototype`，它们共享相同的原型。
 
 ## 多级继承
+
+> **简述**：在 JavaScript 中，原型继承不仅可以实现简单的继承关系，还支持多层级继承。通过原型链，JavaScript 对象可以继承多层父对象的属性和方法。这种多层级继承机制允许对象不仅继承自其直接父类，还可以进一步继承从根对象（`Object.prototype`）传下来的方法和属性。理解多层级原型继承能够帮助我们深入理解 JavaScript 中的继承模型。
+
+**知识树**
+
+1. 多层级原型继承
+   - JavaScript 中的对象继承是基于原型链的，可以形成多层级的继承关系。对象可以继承多个父对象的属性和方法。
+2. 原型链的结构
+   - 每个对象的原型指向其父对象，而父对象的原型又指向其父对象，直到最终指向 `Object.prototype`，即原型链的根对象。
+3. 自定义构造函数的原型继承
+   - 使用自定义构造函数创建的对象，也具有原型继承关系。对象的原型指向构造函数的原型，进一步继承自 `Object.prototype`。
+4. 对象继承层级的可视化
+   - 可以通过开发者工具的 `prototype` 属性查看对象的继承关系，理解对象在内存中的原型链结构。
+
+**代码示例**
+
+1. 原型链：数组的原型继承
+
+   JavaScript 中的数组（`Array`）也具有原型继承。通过访问数组对象的原型，您可以看到它继承自 `Array.prototype`，而 `Array.prototype` 又继承自 `Object.prototype`。
+
+   ```js
+   const myArray = [];
+
+   console.log("myArray : ", myArray); // 最后一行 [[Prototype]]: Array(0)
+   // 相当于 console.log(myArray.__proto__);
+   console.log(
+     "Object.getPrototypeOf(myArray) : ",
+     Object.getPrototypeOf(myArray)
+   ); // 最后一行 [[Prototype]]: Object
+   // 相当于 console.log(myArray.__proto__.__proto__);
+
+   // 以下代码帮助理解
+   console.log(
+     "Object.getPrototypeOf(myArray) === Array.prototype : ",
+     Object.getPrototypeOf(myArray) === Array.prototype
+   ); //true
+   console.log(
+     "Object.getPrototypeOf(Object.getPrototypeOf(myArray)) : ",
+     Object.getPrototypeOf(Object.getPrototypeOf(myArray))
+   ); // 得到了Object.prototype
+   console.log(
+     "Object.getPrototypeOf(Object.getPrototypeOf(myArray)) === Object.prototype : ",
+     Object.getPrototypeOf(Object.getPrototypeOf(myArray)) ===
+       Object.prototype
+   ); // true
+   ```
+
+   - `myArray` 对象继承自 `Array.prototype`，后者又继承自 `Object.prototype`。因此，数组不仅具有数组特有的方法（如 `push` 和 `indexOf`），还可以访问 `Object` 原型中的方法（如 `toString`）。
+   - `myAr`对象继承自`arrayBase`，`arrayBase`继承自`objectBase`
+
+2. 自定义构造函数的原型继承
+
+   使用自定义构造函数创建的对象也遵循原型继承。例如，我们创建一个 `Circle` 构造函数，并查看新创建对象的原型链。
+
+   ```js
+   function Circle(radius) {
+     this.radius = radius;
+   }
+
+   const circle = new Circle(5);
+
+   console.log(circle); // 输出 circle 对象，包含属性 radius
+   console.log(Object.getPrototypeOf(circle)); // 查看 Circle 构造函数的原型：Circle.prototype
+   console.log(
+     Object.getPrototypeOf(Object.getPrototypeOf(circle))
+   ); // 查看 Circle.prototype 的原型：Object.prototype
+   ```
+
+   - `circle`对象继承自`circleBase`，`circleBase`继承自`objectBase`
 
 ## 属性描述符
 
