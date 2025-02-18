@@ -6498,7 +6498,162 @@ setTimeout(() => {
 }, 2000);
 ```
 
-(结束)
+# 原型
+
+> 原型和原型继承章节，moth讲的一般，我要重新梳理
+>
+> 首先是讲清楚继承的概念
+>
+> 1. 继承的概念
+> 2. 原型是什么
+> 3. 多级继承的概念
+> 4. 自定义/描述符
+> 5. 构造器的prototype属性，等于创建对象的`__proto__`属性
+> 6. 通过构造器的prototype属性，创建成员变量，先通过临时变量引入，并且添加的位置没有影响
+> 7. 遍历属性，`Object.keys`只能遍历instance属性，`in`方法可以遍历所有属性，JS中一般将instance属性，称之为own属性，有方法hasOwnProperty来判断是否是own属性
+> 8. 避免修改内置的对象
+> 9. 继承，具体操作
+
+## 继承
+
+> **简述**：继承是面向对象编程（OOP）中的核心概念，它使得一个对象能够继承另一个对象的属性和方法，从而实现代码复用。
+>
+> 
+>
+> *尽管 JavaScript 在 ES6 中引入了类的概念，但 JavaScript 本质上是基于原型继承的，类的概念只是对原型继承的一种语法糖。*
+>
+> 
+>
+> 这节将重点讨论原型继承，类的概念将在后续讲解中详细介绍。
+
+**知识树**
+
+1. 继承的概念
+   - 继承是子类从父类获取属性和方法的一种机制，将公共属性和方法放入父类中，避免了重复的代码实现。
+   - 继承的关系通过子类继承父类来实现，子类是父类的一种特殊类型。例如，`Circle IS-A Shape`，表示圆形是形状的一种类型。
+   - 父类被称为基类或父类（`Base`/`Super`/`Parent`）
+   - 子类为派生类或子类（`Derived`/`Sub`/`Child`）
+
+## 原型和原型继承
+
+> **简述**：在 JavaScript 中，我们没有传统的类（class）机制，而是通过对象和原型（prototype）来实现继承。每个对象都与另一个对象（它的原型）相关联，继承其属性和方法。这种机制被称为原型继承，它允许对象共享属性和方法，而不需要直接复制数据。理解原型和原型继承是掌握 JavaScript 面向对象编程的关键。
+>
+> **这一节注意代码示例**
+
+**知识树**
+
+1. 原型（Prototype）
+
+   - 每个对象都有一个原型（parent），它是该对象的父对象，包含对象继承的属性和方法。
+2. 原型继承（Prototypal Inheritance）
+
+   - 当对象访问某个属性或方法时，JavaScript 引擎首先在该对象自身查找，如果找不到，则查找对象的原型，直到找到或到达 `Object` 根对象。
+   - 这种机制使得多个对象可以共享相同的方法和属性，而不需要复制。
+3. 原型链（Prototype Chain）
+   - 通过原型连接的对象链。当访问对象的属性时，JavaScript 会沿着原型链查找，直到找到为止。
+4. JavaScript 根对象（ObjectBase）
+
+   - 所有对象的原型链最终都会指向一个共同的祖先对象 `Object`，称为 `ObjectBase`，它是所有对象的根对象。
+   - `Object` 没有原型，它是原型链的终点。
+5. 获取原型
+   - 使用 `Object.getPrototypeOf` 来获取对象的原型。`__proto__` 也可以用于查看和修改对象的原型，但它是过时的属性。
+6. 小结
+   - 通俗来说，原型就是一个普通的对象
+
+**代码示例**
+
+1. 基本的原型概念：对象和原型
+
+   每个 JavaScript 对象都有一个原型。
+
+   ```js
+   const x = {};  // 创建一个空对象
+   console.log(x);
+   // {}
+   // [[Prototype]]: Object
+   
+   // > constructor: f Object()
+   // > hasOwnProperty: f hasOwnProperty()
+   // > isPrototypeOf: f isPrototypeOf()
+   // > propertyIsEnumerable: f propertyIsEnumerable()
+   // > toLocaleString: f toLocaleString()
+   // > toString: f toString()
+   // > valueOf: f valueOf()
+   // > __defineGetter__: f __defineGetter__()
+   // > __defineSetter__: f __defineSetter__()
+   // > __lookupGetter__: f __lookupGetter__()
+   // > __lookupSetter__: f __lookupSetter__()
+   // > __proto__: Object
+   
+   //   > constructor: f Object()
+   //   > hasOwnProperty: f hasOwnProperty()
+   //   > isPrototypeOf: f isPrototypeOf()
+   //   > propertyIsEnumerable: f propertyIsEnumerable()
+   //   > toLocaleString: f toLocaleString()
+   //   > toString: f toString()
+   //   > valueOf: f valueOf()
+   //   > __defineGetter__: f __defineGetter__()
+   //   > __defineSetter__: f __defineSetter__()
+   //   > __lookupGetter__: f __lookupGetter__()
+   //   > __lookupSetter__: f __lookupSetter__()
+   //     __proto__: null
+   
+   // > get __proto__: f __proto__()
+   // > set __proto__: f __proto__()
+   // > get __proto__: f __proto__()
+   // > set __proto__: f __proto__()
+   ```
+
+   - `[[Prototype]]` 是一个内部属性：
+     - `[[Prototype]]` 是 JavaScript 引擎内部使用的一个隐式属性，它并不直接暴露给开发者。这是 JavaScript 引擎用来实现原型链的机制。它指向该对象的原型对象（通常是 `Object.prototype`，除非修改了原型）。
+     - 在这里，`[[Prototype]]` 指向了 `Object`，意味着对象 `x` 从内置的 `Object` 原型继承属性和方法。`Object` 原型包括像 `hasOwnProperty`、`toString` 和 `toLocaleString` 这样的方法。
+   - `__proto__` 是外部可访问的属性：
+     - `__proto__` 是 JavaScript 对象暴露给开发者的一个标准属性。虽然它提供了对 `[[Prototype]]` 的访问，但它是一个显式的、用于操作对象原型链的接口。你可以通过 `obj.__proto__` 来查看或修改对象的原型。
+     - 当你看到 `__proto__: Object` 时，这意味着 `x` 的原型是 `Object` 原型，这与 `[[Prototype]]: Object` 的意思是一样的。不过，`__proto__` 还可以用于修改原型链，比如通过给它赋值一个新的对象。
+
+2. 基本的原型概念：对象和原型
+
+   当我们在对象上查找属性或方法时，如果该对象本身没有，就会查找它的原型。
+
+   ```js
+   const x = {};  // 创建一个空对象
+   console.log(x.toString);  // 访问继承自 Object.prototype 的 toString 方法
+   ```
+
+3. 使用 `Object.getPrototypeOf` 获取原型
+
+   使用 `Object.getPrototypeOf` 方法，我们可以安全地获取对象的原型，而不是直接访问过时的 `__proto__`。
+
+   ```js
+   const x = {}; // 创建一个空对象
+   console.log(Object.getPrototypeOf(x)); // 输出 Object.prototype
+   console.log(Object.prototype); // 和上一行输出一致
+   console.log(Object.getPrototypeOf(x) === Object.prototype); // true
+   // 一般不直接在代码中使用__proto__，这里使用是为了帮助理解
+   console.log(Object.getPrototypeOf(x) === x.__proto__); // true
+   // 父对象相同时，使用该函数获取prototype，得到的值完全一致
+   const y = {}; // 创建一个空对象
+   ```
+
+4. 原型链：多个对象共享原型
+
+   每个对象的原型都指向另一个对象，直到原型链的顶端（`Object.prototype`）。多个对象可以共享相同的原型，从而实现继承。
+
+   ```js
+   const x = {};
+   const y = {};
+   console.log(
+     Object.getPrototypeOf(x) === Object.getPrototypeOf(y)
+   ); // true
+   ```
+
+   - `x` 和 `y` 都继承自 `Object.prototype`，它们共享相同的原型。
+
+## 多级继承
+
+## 属性描述符
+
+## 相同
 
 # 技巧
 
