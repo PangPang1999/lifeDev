@@ -1,11 +1,16 @@
 function Circle(radius) {
   this.radius = radius;
 }
-const circle = new Circle(5);
-console.log(circle);
-console.log(Object.getPrototypeOf(circle));
-console.log(Circle.prototype);
-console.log(Object.getPrototypeOf(circle) === Circle.prototype); //true
 
-const x = {};
-console.log(Object.getPrototypeOf(x) === Object.prototype); //true
+const circle1 = new Circle(5);
+// 原始的 toString 方法输出
+console.log(circle1.toString()); // 输出：[object Object]
+// [object Object]，这是表示该对象的默认字符串表示形式。
+
+// 修改原型中的 toString 方法
+Circle.prototype.toString = function () {
+  return "Circle with radius " + this.radius;
+};
+
+const circle2 = new Circle(10);
+console.log(circle2.toString()); // 输出：Circle with radius 10

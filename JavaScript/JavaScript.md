@@ -6731,9 +6731,7 @@ setTimeout(() => {
    function Circle(radius) {
      this.radius = radius;
    }
-
    const circle = new Circle(5);
-
    console.log(circle); // 输出 circle 对象，包含属性 radius
    console.log(Object.getPrototypeOf(circle)); // 查看 Circle 构造函数的原型：Circle.prototype
    console.log(
@@ -6879,7 +6877,146 @@ setTimeout(() => {
 
    - `toString` 是继承自 `Object.prototype` 的方法，但它不会显示在 `Object.keys()` 或 `for...in` 中，因为 `enumerable` 属性默认是 `false`。
 
-## 相同
+## 实例成员与原型成员
+
+> **简述**：在 JavaScript 中，每个对象可以有实例成员（instance members）和原型成员（prototype members）。实例成员是直接在对象上定义的，而原型成员则定义在对象的原型上。原型继承使得多个对象可以共享相同的行为和方法，从而节省内存并提高性能。理解实例成员与原型成员的区别是构建高效、可维护 JavaScript 应用程序的关键。
+
+**知识树**
+
+1. 实例成员与原型成员的区别
+   - 实例成员（Instance Members）：直接在对象上定义的属性和方法，每个对象都会有自己的副本，这可能导致资源浪费。
+   - 原型成员（Prototype Members）：定义在对象原型上的属性和方法，所有通过该构造函数创建的对象共享同一副本。
+2. 原型继承
+   - 当访问一个对象的属性或方法时，JavaScript 会先查找该对象本身的属性，如果找不到，就会查找它的原型。
+   - 通过将方法移到原型上，多个对象可以共享这些方法，从而节省内存。
+3. `constructor.prototype` 和 `__proto__`
+   - 每个构造函数都有一个 `prototype` 属性，指向该构造函数实例对象的原型。
+   - `__proto__` 是对象的原型属性，指向对象实例的原型。
+4. 通过 `.prototype` 添加方法
+   - 可以通过修改构造函数的 `prototype` 属性，向所有实例添加共享方法，从而减少内存消耗。
+   - **影响新创建的实例**：修改原型方法后，新创建的对象实例会使用更新后的原型方法，而已创建的对象实例仍会使用原来的原型方法。
+5. 原型方法与实例方法的互相调用
+   - 实例方法可以调用原型方法，反之亦然。这提供了强大的灵活性，能够通过实例和原型的结合来创建更复杂的行为。
+
+**代码示例**
+
+1. 实例方法与资源浪费
+
+   假设我们定义一个 `Circle` 构造函数，它包含 `radius` 属性和 `draw` 方法。如果每个实例都将自己的 `draw` 方法保存在内存中，内存将被浪费：
+
+   ```js
+   function Circle(radius) {
+     this.radius = radius;
+     this.draw = function () {
+       console.log("Drawing a circle with radius " + this.radius);
+     };
+   }
+   const circle1 = new Circle(5);
+   const circle2 = new Circle(10);
+
+   // 每个实例都有自己的 draw 方法
+   console.log(circle1);
+   console.log(circle2);
+   ```
+
+   - `circle1` 和 `circle2` 各自有独立的 `draw` 方法，这会导致内存的浪费，因为方法功能是相同的。
+
+2. 实例方法与原型方法的区分
+
+   我们可以将 `draw` 方法移动到 `Circle.prototype`，使得所有通过 `Circle` 构造函数创建的实例共享这个方法，从而节省内存：
+
+   ```js
+   function Circle(radius) {
+     this.radius = radius;
+   }
+
+   Circle.prototype.draw = function () {
+     console.log("Drawing a circle with radius " + this.radius);
+   };
+
+   const circle1 = new Circle(5);
+   const circle2 = new Circle(10);
+
+   // 调用实例方法
+   circle1.draw(); // 输出：Drawing a circle with radius 5
+   circle2.draw(); // 输出：Drawing a circle with radius 10
+   ```
+
+   - `draw` 方法已经移到 `Circle.prototype` 上，所有 `Circle` 实例共享这一个方法，从而节省了内存。
+   - 这里 `radius` 是实例成员，`draw` 方法是原型成员。
+
+3. 通过原型实现方法共享
+
+   通过将方法定义在原型上，所有实例都共享该方法，避免了重复存储相同的方法：
+
+   ```js
+   Circle.prototype.draw = function () {
+     console.log("Drawing a circle with radius " + this.radius);
+   };
+
+   // circle1 和 circle2 都继承自 Circle.prototype，因此它们共享 draw 方法
+   ```
+
+4. 重写 `toString` 方法
+
+   我们可以通过修改 `Circle.prototype` 上的 `toString` 方法来改变 `Circle` 对象的字符串表示。这影响新创建的实例（`circle2`），而不改变已创建实例（`circle1`）的行为：
+
+   ```js
+   function Circle(radius) {
+     this.radius = radius;
+   }
+
+   const circle1 = new Circle(5);
+   // 原始的 toString 方法输出
+   console.log(circle1.toString()); // 输出：[object Object]
+   // [object Object]，这是表示该对象的默认字符串表示形式。
+
+   // 修改原型中的 toString 方法
+   Circle.prototype.toString = function () {
+     return "Circle with radius " + this.radius;
+   };
+
+   const circle2 = new Circle(10);
+   console.log(circle2.toString()); // 输出：Circle with radius 10
+   ```
+
+5. 实例方法调用原型方法
+
+   可以在实例方法中调用原型方法。例如，在 `draw` 方法中调用原型中的 `move` 方法：
+
+   ```js
+   Circle.prototype.move = function () {
+     console.log("Moving the circle");
+   };
+
+   Circle.prototype.draw = function () {
+     this.move(); // 调用原型中的 move 方法
+     console.log("Drawing a circle with radius " + this.radius);
+   };
+
+   const circle = new Circle(5);
+   circle.draw(); // 输出：Moving the circle
+   // 输出：Drawing a circle with radius 5
+   ```
+
+   - 在这个例子中，`draw` 方法是实例方法，它调用了原型中的 `move` 方法。
+
+6. 原型方法调用实例方法
+
+   反之，原型方法也可以调用实例方法。例如，`move` 方法中调用实例方法 `draw`：
+
+   ```js
+   Circle.prototype.move = function () {
+     console.log("Moving the circle");
+     this.draw(); // 调用实例方法
+   };
+
+   const circle = new Circle(5);
+   circle.move(); // 输出：Moving the circle
+   // 输出：Drawing a circle with radius 5
+   ```
+
+   - 在这个例子中，`move` 方法是定义在原型中的，它调用了实例方法 `draw`。
 
 # 技巧
 
