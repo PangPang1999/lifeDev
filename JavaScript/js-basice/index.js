@@ -1,35 +1,43 @@
-"use strict";
+// "use strict";
 
-const myArray = [];
-console.log("myArray : ", myArray); // 最后一行 [[Prototype]]: Array(0)
-// 相当于 console.log(myArray.__proto__);
-console.log(
-  "Object.getPrototypeOf(myArray) : ",
-  Object.getPrototypeOf(myArray)
-); // 最后一行 [[Prototype]]: Object
-// 相当于 console.log(myArray.__proto__.__proto__);
+const person = { name: "Mosh" };
+const objectBase = Object.getPrototypeOf(person);
+const descriptor = Object.getOwnPropertyDescriptor(
+  objectBase,
+  "toString"
+);
+console.log(descriptor);
+// {writable: true, enumerable: false, configurable: true, value: f}
 
-// 以下代码帮助理解
-console.log(
-  "Object.getPrototypeOf(myArray) === Array.prototype : ",
-  Object.getPrototypeOf(myArray) === Array.prototype
-); //true
-console.log(
-  "Object.getPrototypeOf(Object.getPrototypeOf(myArray)) : ",
-  Object.getPrototypeOf(Object.getPrototypeOf(myArray))
-); // 得到了Object.prototype
-console.log(
-  "Object.getPrototypeOf(Object.getPrototypeOf(myArray)) === Object.prototype : ",
-  Object.getPrototypeOf(Object.getPrototypeOf(myArray)) ===
-    Object.prototype
-); // true
+// 修改 'name' 属性的描述符
+Object.defineProperty(person, "name", {
+  writable: false, // 使 'name' 属性只读
+  enumerable: false, // 使 'name' 不可枚举
+  configurable: false, // 使 'name' 不能被删除
+});
 
-function Circle(radius) {
-  this.radius = radius;
-}
+// 尝试修改 'name' 属性
+person.name = "John"; // 无效，'name' 属性是只读的，严格模式报错
+console.log(person.name); // 非严格模式 输出 'Mosh'
 
-const circle = new Circle(5);
+// 查看属性描述符
+const descriptorName = Object.getOwnPropertyDescriptor(
+  person,
+  "name"
+);
+console.log(descriptorName); // 输出 { writable: false, enumerable: false, configurable: false, value: 'Mosh' }
 
-console.log(circle); // 输出 circle 对象，包含属性 radius
-console.log(Object.getPrototypeOf(circle)); // 查看 Circle 构造函数的原型：Circle.prototype
-console.log(Object.getPrototypeOf(Object.getPrototypeOf(circle))); // 查看 Circle.prototype 的原型：Object.prototype
+// 修改 'name' 属性，使其不可枚举
+Object.defineProperty(person, "name", {
+  enumerable: false,
+});
+
+// 查看属性描述符
+console.log(Object.keys(person)); // 输出空数组 []
+
+// 将 'name' 设置为可枚举
+Object.defineProperty(person, "name", {
+  enumerable: true,
+});
+
+console.log(Object.keys(person)); // 输出 ['name']

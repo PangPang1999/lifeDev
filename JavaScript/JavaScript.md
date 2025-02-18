@@ -6617,6 +6617,7 @@ setTimeout(() => {
    ```js
    const x = {}; // 创建一个空对象
    console.log(x.toString); // 访问继承自 Object.prototype 的 toString 方法
+   // 返回一个字符串 "[object Object]"，这是表示该对象的默认字符串表示形式。
    ```
 
 3. 使用 `Object.getPrototypeOf` 获取原型
@@ -6720,6 +6721,140 @@ setTimeout(() => {
    - `circle`对象继承自`circleBase`，`circleBase`继承自`objectBase`
 
 ## 属性描述符
+
+> **简述**：在 JavaScript 中，每个对象的属性不仅包含值，还包括一些属性描述符，这些描述符控制属性的行为。主要有三个属性描述符：`writable`、`enumerable` 和 `configurable`。它们分别控制属性是否可以修改、是否可以枚举（是否出现在 `for...in` 或 `Object.keys()` 中）、以及是否可以删除。理解这些描述符对于更精确地控制对象行为非常重要。
+
+**知识树**
+
+1. 属性描述符（Property Descriptor）
+   - 每个对象的属性都有一个描述符，描述符控制着属性的行为。最常见的三个描述符是：`writable`（可写性）、`enumerable`（可枚举性）和 `configurable`（可配置性）。
+2. `writable` 属性
+   - 制属性值是否可以修改。如果设置为 `false`，属性值将变为只读。
+3. `enumerable` 属性
+   - 控制属性是否可以被枚举。如果设置为 `false`，该属性不会出现在 `for...in` 循环或者 `Object.keys()` 方法返回的数组中。
+4. `configurable` 属性
+   - 控制属性是否可以被删除或重新定义。如果设置为 `false`，该属性不能被删除，**且不能重新定义它的描述符。**
+5. `Object.getOwnPropertyDescriptor` 和 `Object.defineProperty`
+   - 使用 `Object.getOwnPropertyDescriptor` 可以查看对象属性的描述符。
+   - 使用 `Object.defineProperty` 可以自定义属性的行为，修改属性的描述符。
+
+**代码示例**
+
+1. 默认属性描述符
+
+   创建一个简单的对象并检查它的属性描述符：
+
+   ```js
+   const person = { name: "Mosh" };
+
+   // 获取 person 对象的原型（即 Object.prototype）
+   const objectBase = Object.getPrototypeOf(person);
+
+   // 获取 toString 方法的属性描述符
+   const descriptor = Object.getOwnPropertyDescriptor(
+     objectBase,
+     "toString"
+   );
+
+   console.log(descriptor);
+   // {writable: true, enumerable: false, configurable: true, value: f}
+   ```
+
+   - 解释：
+     - `writable: true`：说明 `toString` 方法是可以修改的。
+     - `enumerable: false`：说明 `toString` 方法不可枚举，即它不会出现在 `for...in` 或 `Object.keys()` 中。
+     - `configurable: true`：说明 `toString` 方法是可以删除的，并且可以重新定义它的描述符。
+     - `value: f`：`toString` 方法的实际值是一个函数（`f` 表示函数）。
+
+2. 通过 `Object.defineProperty` 修改属性描述符
+
+   我们可以使用 `Object.defineProperty` 来修改对象属性的描述符。例如，修改 `name` 属性，使其不可修改并不可枚举：
+
+   ```js
+   // "use strict";
+
+   const person = { name: "Mosh" };
+   // 修改 'name' 属性的描述符
+   Object.defineProperty(person, "name", {
+     writable: false, // 使 'name' 属性只读
+     enumerable: false, // 使 'name' 不可枚举
+     configurable: false, // 使 'name' 不能被删除
+   });
+
+   // 尝试修改 'name' 属性
+   person.name = "John"; // 无效，'name' 属性是只读的，严格模式报错
+   console.log(person.name); // 非严格模式 输出 'Mosh'
+
+   // 查看属性描述符
+   const descriptorName = Object.getOwnPropertyDescriptor(
+     person,
+     "name"
+   );
+   console.log(descriptorName); // 输出 { writable: false, enumerable: false, configurable: false, value: 'Mosh' }
+   ```
+
+   - 在这个例子中，我们通过 `Object.defineProperty` 修改了 `name` 属性的描述符，使其成为只读、不可以枚举且不可删除的属性。
+
+3. 控制属性是否可以枚举
+
+   使用 `enumerable` 属性控制属性是否可枚举。如果我们将 `name` 属性设置为不可枚举，它将不会出现在 `Object.keys()` 中。
+
+   ```js
+   const person = { name: "Mosh" };
+
+   // 修改 'name' 属性，使其不可枚举
+   Object.defineProperty(person, "name", {
+     enumerable: false,
+   });
+
+   // 查看属性描述符
+   console.log(Object.keys(person)); // 输出空数组 []
+
+   // 将 'name' 设置为可枚举
+   Object.defineProperty(person, "name", {
+     enumerable: true,
+   });
+
+   console.log(Object.keys(person)); // 输出 ['name']
+   ```
+
+   - 通过设置 `enumerable: false`，`name` 属性不会出现在 `Object.keys(person)` 中，即使它仍然存在于对象中。
+
+4. 使用 `configurable` 控制属性是否可以删除
+
+   设置 `configurable: false` 后，属性将无法被删除。
+
+   ```js
+   const person = { name: "Mosh" };
+
+   // 修改 'name' 属性，使其不可删除
+   Object.defineProperty(person, "name", {
+     configurable: false,
+   });
+
+   // 尝试删除 'name' 属性
+   delete person.name; // 无效，'name' 无法被删除
+
+   console.log(person.name); // 输出 'Mosh'
+   ```
+
+   - 当 `configurable` 为 `false` 时，即使使用 `delete` 语句，也无法删除 `name` 属性。
+
+5. 查看继承自原型的属性
+
+   当我们创建一个对象并继承自 `Object.prototype`，我们无法通过迭代看到继承自原型的属性和方法。只有对象自身定义的属性才会被枚举。
+
+   ```js
+   const person = { name: "Mosh" };
+   console.log(Object.keys(person)); // 输出 ['name']
+
+   // 使用 `for...in` 迭代属性时，不会列出继承自原型的属性
+   for (let key in person) {
+     console.log(key); // 只输出 'name'
+   }
+   ```
+
+   - `toString` 是继承自 `Object.prototype` 的方法，但它不会显示在 `Object.keys()` 或 `for...in` 中，因为 `enumerable` 属性默认是 `false`。
 
 ## 相同
 
