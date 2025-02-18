@@ -6556,8 +6556,11 @@ setTimeout(() => {
 
 5. 获取原型
    - 使用 `Object.getPrototypeOf` 来获取对象的原型。`__proto__` 也可以用于查看和修改对象的原型，但它是过时的属性。
-6. 小结
-   - 通俗来说，原型就是一个普通的对象
+6. prototype 属性
+   - 每个构造函数（Function）都有一个 `prototype` 属性，它指向一个对象。这个对象包含所有通过该构造函数创建的实例共享的方法和属性。
+   - `prototype` 属性是实现原型继承的关键，通过它，构造函数创建的对象实例会继承 `prototype` 中定义的成员。
+   - `Object`、`Array`等，以及自定义的构造函数，都是构造函数
+   - 通过 `prototype` 属性，可以让多个实例共享相同的方法，从而实现方法的继承（后面章节）。
 
 **代码示例**
 
@@ -6607,7 +6610,7 @@ setTimeout(() => {
      - `[[Prototype]]` 是 JavaScript 引擎内部使用的一个隐式属性，它并不直接暴露给开发者。这是 JavaScript 引擎用来实现原型链的机制。它指向该对象的原型对象（通常是 `Object.prototype`，除非修改了原型）。
      - 在这里，`[[Prototype]]` 指向了 `Object`，意味着对象 `x` 从内置的 `Object` 原型继承属性和方法。`Object` 原型包括像 `hasOwnProperty`、`toString` 和 `toLocaleString` 这样的方法。
    - `__proto__` 是外部可访问的属性：
-     - `__proto__` 是 JavaScript 对象暴露给开发者的一个标准属性。虽然它提供了对 `[[Prototype]]` 的访问，但它是一个显式的、用于操作对象原型链的接口。你可以通过 `obj.__proto__` 来查看或修改对象的原型。
+     - `__proto__` 是 JavaScript 对象暴露给开发者的一个标准属性。虽然它提供了对 `[[Prototype]]` 的访问，但它是一个显式的、用于操作对象原型链的接口。你可以通过 `obj.__proto__` 来查看或修改对象的原型（已过时）。
      - 当你看到 `__proto__: Object` 时，这意味着 `x` 的原型是 `Object` 原型，这与 `[[Prototype]]: Object` 的意思是一样的。不过，`__proto__` 还可以用于修改原型链，比如通过给它赋值一个新的对象。
 
 2. 基本的原型概念：对象和原型
@@ -6648,6 +6651,26 @@ setTimeout(() => {
    ```
 
    - `x` 和 `y` 都继承自 `Object.prototype`，它们共享相同的原型。
+
+5. `prototype` 属性
+
+   每个构造函数都有一个 `prototype` 属性。这个属性是一个对象，包含构造函数所创建的所有实例共享的属性和方法。
+
+   ```js
+   function Circle(radius) {
+     this.radius = radius;
+   }
+   const circle = new Circle(5);
+   console.log(circle);
+   console.log(Object.getPrototypeOf(circle));
+   console.log(Circle.prototype);
+   console.log(
+     Object.getPrototypeOf(circle) === Circle.prototype
+   ); //true
+
+   const x = {};
+   console.log(Object.getPrototypeOf(x) === Object.prototype); //true
+   ```
 
 ## 多级继承
 
