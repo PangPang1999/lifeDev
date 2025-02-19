@@ -1,25 +1,11 @@
-function Circle(radius) {
-  this.radius = radius; // 实例成员
-  this.move = function () {
-    // 实例成员
-    console.log("Moving the circle");
-  };
-}
-
-// 将 draw 方法添加到原型中
-Circle.prototype.draw = function () {
-  console.log("Drawing a circle with radius " + this.radius);
+// 添加一个 shuffle 方法到数组的原型
+Array.prototype.shuffle = function () {
+  for (let i = this.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [this[i], this[j]] = [this[j], this[i]];
+  }
 };
 
-const circle = new Circle(5);
-
-// Return instance members
-console.log(Object.keys(circle)); // 输出 ['radius', 'move']
-
-// Return all members (instance + prototype)
-for (let key in circle) {
-  console.log(key);
-}
-// radius
-// move
-// draw
+const arr = [1, 2, 3, 4, 5];
+arr.shuffle();
+console.log(arr); // 打乱后的数组

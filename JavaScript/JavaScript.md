@@ -6670,7 +6670,7 @@ setTimeout(() => {
    console.log(
      Object.getPrototypeOf(circle) === Circle.prototype
    ); //true
-
+   
    const x = {};
    console.log(Object.getPrototypeOf(x) === Object.prototype); //true
    ```
@@ -6871,7 +6871,7 @@ setTimeout(() => {
    ```js
    const person = { name: "Mosh" };
    console.log(Object.keys(person)); // 输出 ['name']
-
+   
    // 使用 `for...in` 迭代属性时，不会列出继承自原型的属性
    for (let key in person) {
      console.log(key); // 只输出 'name'
@@ -7021,12 +7021,12 @@ setTimeout(() => {
    function Circle(radius) {
      this.radius = radius;
    }
-
+   
    Circle.prototype.move = function () {
      console.log("Moving the circle");
      this.draw(); // 调用实例方法
    };
-
+   
    const circle = new Circle(5);
    circle.move(); // 输出：Moving the circle
    // 输出：Drawing a circle with radius 5
@@ -7098,6 +7098,80 @@ setTimeout(() => {
 
    - `circle.hasOwnProperty('radius')` 返回 `true`，因为 `radius` 是直接在 `circle` 对象上定义的自有成员。
    - `circle.hasOwnProperty('draw')` 返回 `false`，因为 `draw` 是从 `Circle.prototype` 继承来的原型成员。
+
+## 不要修改内置对象的原型
+
+> **简述**：JavaScript 是一种动态语言，允许开发者轻松地扩展对象的原型。然而，修改内置对象的原型，特别是像 `Array`、`Object`、`String` 等内置对象，是不推荐的做法。虽然它提供了方便性，但可能导致意想不到的错误和兼容性问题，特别是在使用第三方库时。如果多个地方修改了同一个内置对象的原型，可能会造成冲突，导致调试困难。
+
+**知识树**
+
+1. 修改内置对象的原型的风险
+   - 修改 JavaScript 内置对象（如 `Array`、`String`、`Object`）的原型可能导致意外冲突。
+   - 如果多个库或模块修改了相同的原型方法，会导致不兼容性和难以调试的错误。
+2. 原型污染（Prototype Pollution）
+   - 修改内置对象的原型可能导致“原型污染”，即外部修改了全局对象或内置对象的行为，影响到整个应用。
+3. 避免修改内置对象的建议
+   - 不要覆盖、添加或删除 JavaScript 内置对象的原型方法。
+   - 如果需要扩展功能，考虑创建自定义函数或使用类，而不是修改现有的内置对象。
+4. 可能的兼容性问题
+   - JavaScript 引擎或其他第三方库可能会在未来版本中修改或增强这些原型方法，导致不兼容的问题。
+
+**代码示例**
+
+1. 修改内置对象的原型：添加 `shuffle` 方法
+
+   假设你想向所有数组对象添加 `shuffle` 方法，用于打乱数组中的元素。虽然可以通过修改 `Array.prototype` 来实现，但这种做法不推荐。
+
+   ```js
+   // 添加一个 shuffle 方法到数组的原型
+   Array.prototype.shuffle = function() {
+     for (let i = this.length - 1; i > 0; i--) {
+       const j = Math.floor(Math.random() * (i + 1));
+       [this[i], this[j]] = [this[j], this[i]];
+     }
+   };
+   
+   const arr = [1, 2, 3, 4, 5];
+   arr.shuffle();
+   console.log(arr);  // 打乱后的数组
+   ```
+
+   - 虽然这段代码在当前环境下有效，但是这样做会导致潜在的风险：其他库也可能扩展 `Array.prototype`，而导致行为不一致，调试困难。
+
+2. 修改内置对象的原型可能带来的冲突
+
+   如果你和其他开发者或者使用的第三方库同时修改了 `Array.prototype`，可能会导致无法预见的冲突。
+
+   ```js
+   // 假设在另一个地方，另一个库也扩展了 Array.prototype
+   Array.prototype.shuffle = function() {
+     console.log('Shuffling...');
+   };
+   
+   const arr = [1, 2, 3, 4];
+   arr.shuffle();  // 不同的实现会导致不一致的行为
+   ```
+
+   - 在这个例子中，`shuffle` 方法的实现会因为覆盖而产生冲突。如果有其他库对 `shuffle` 方法做了修改，可能导致整个应用的异常行为。
+
+3. 避免修改内置对象的正确做法：使用独立函数
+
+   为避免对内置对象的修改，可以创建自己的函数或类，而不是直接修改原型。例如，你可以为数组创建一个单独的函数来打乱数组：
+
+   ```js
+   function shuffleArray(arr) {
+     for (let i = arr.length - 1; i > 0; i--) {
+       const j = Math.floor(Math.random() * (i + 1));
+       [arr[i], arr[j]] = [arr[j], arr[i]];
+     }
+   }
+   
+   const arr = [1, 2, 3, 4];
+   shuffleArray(arr);
+   console.log(arr);  // 打乱后的数组
+   ```
+
+   - 这样，你避免了修改原生数组对象的原型，确保了应用的兼容性和稳定性。
 
 # 技巧
 
