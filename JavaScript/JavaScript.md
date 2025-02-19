@@ -6549,14 +6549,17 @@ setTimeout(() => {
 
 3. 原型链（Prototype Chain）
    - 通过原型连接的对象链。当访问对象的属性时，JavaScript 会沿着原型链查找，直到找到为止。
-4. JavaScript 根对象（ObjectBase）
+4. 继承成员
+   - 继承成员（ Inherited Members）是指对象从其原型链上继承的属性和方法。继承成员包括原型对象本身的成员，也包括原型对象的父类或祖先对象上的成员。
+   - 简而言之，继承成员是指在对象的原型链中找到的所有属性和方法。
+5. JavaScript 根对象（ObjectBase）
 
    - 所有对象的原型链最终都会指向一个共同的祖先对象 `Object`，称为 `ObjectBase`，它是所有对象的根对象。
    - `Object` 没有原型，它是原型链的终点。
 
-5. 获取原型
+6. 获取原型
    - 使用 `Object.getPrototypeOf` 来获取对象的原型。`__proto__` 也可以用于查看和修改对象的原型，但它是过时的属性。
-6. prototype 属性
+7. prototype 属性
    - 每个构造函数（Function）都有一个 `prototype` 属性，它指向一个对象。这个对象包含所有通过该构造函数创建的实例共享的方法和属性。
    - `prototype` 属性是实现原型继承的关键，通过它，构造函数创建的对象实例会继承 `prototype` 中定义的成员。
    - `Object`、`Array`等，以及自定义的构造函数，都是构造函数
@@ -6886,16 +6889,21 @@ setTimeout(() => {
 1. 实例成员与原型成员的区别
    - 实例成员（Instance Members）：直接在对象上定义的属性和方法，每个对象都会有自己的副本，这可能导致资源浪费。
    - 原型成员（Prototype Members）：定义在对象原型上的属性和方法，所有通过该构造函数创建的对象共享同一副本。
-2. 原型继承
+2. 自有成员（补充）
+   - Instance Members（实例成员）和 Own Members（自有成员）在 JavaScript 中是两个相似但稍有不同的概念，通常可以在某些情况下是一样的，但在不同的上下文中可能有不同的含义。
+   - 实例成员强调的是与实例对象的关系，是构造函数中新创建的对象所独有的属性。
+   - 自有成员更强调的是对象是否直接拥有某个属性，而不考虑它是通过构造函数还是其他方式定义的。
+   - 实例成员也是自有成员
+3. 原型继承
    - 当访问一个对象的属性或方法时，JavaScript 会先查找该对象本身的属性，如果找不到，就会查找它的原型。
    - 通过将方法移到原型上，多个对象可以共享这些方法，从而节省内存。
-3. `constructor.prototype` 和 `__proto__`
+4. `constructor.prototype` 和 `__proto__`
    - 每个构造函数都有一个 `prototype` 属性，指向该构造函数实例对象的原型。
    - `__proto__` 是对象的原型属性，指向对象实例的原型。
-4. 通过 `.prototype` 添加方法
+5. 通过 `.prototype` 添加方法
    - 可以通过修改构造函数的 `prototype` 属性，向所有实例添加共享方法，从而减少内存消耗。
-   - **影响新创建的实例**：修改原型方法后，新创建的对象实例会使用更新后的原型方法，而已创建的对象实例仍会使用原来的原型方法。
-5. 原型方法与实例方法的互相调用
+   - 不管对象创建时是否已经创建，只要在调用方法之前通过 `prototype` 修改构造函数中的方法，对象中方法调用时都可以生效。
+6. 原型方法与实例方法的互相调用
    - 实例方法可以调用原型方法，反之亦然。这提供了强大的灵活性，能够通过实例和原型的结合来创建更复杂的行为。
 
 **代码示例**
@@ -6959,7 +6967,7 @@ setTimeout(() => {
 
 4. 重写 `toString` 方法
 
-   我们可以通过修改 `Circle.prototype` 上的 `toString` 方法来改变 `Circle` 对象的字符串表示。这影响新创建的实例（`circle2`），而不改变已创建实例（`circle1`）的行为：
+   JavaScript 对象默认的 `toString` 方法返回的是 `[object Object]`。我们可以通过修改 `Circle.prototype` 上的 `toString` 方法来改变 `Circle` 对象的字符串表示。
 
    ```js
    function Circle(radius) {
@@ -6985,6 +6993,10 @@ setTimeout(() => {
    可以在实例方法中调用原型方法。例如，在 `draw` 方法中调用原型中的 `move` 方法：
 
    ```js
+   function Circle(radius) {
+     this.radius = radius;
+   }
+
    Circle.prototype.move = function () {
      console.log("Moving the circle");
    };
@@ -7006,6 +7018,10 @@ setTimeout(() => {
    反之，原型方法也可以调用实例方法。例如，`move` 方法中调用实例方法 `draw`：
 
    ```js
+   function Circle(radius) {
+     this.radius = radius;
+   }
+
    Circle.prototype.move = function () {
      console.log("Moving the circle");
      this.draw(); // 调用实例方法
@@ -7017,6 +7033,71 @@ setTimeout(() => {
    ```
 
    - 在这个例子中，`move` 方法是定义在原型中的，它调用了实例方法 `draw`。
+
+## 实例成员与原型成员的迭代
+
+> **简述**：在 JavaScript 中，对象的属性可以分为实例成员和原型成员。通过 `Object.keys` 和 `for...in` 循环，我们可以访问这些成员，但需要了解它们各自的行为差异。
+
+**知识树**
+
+1. `Object.keys` 方法
+   - `Object.keys` 仅返回对象的实例成员（own properties），不包含从原型继承来的成员。
+2. `for...in` 循环
+   - `for...in` 循环会返回对象的所有可枚举属性，包括实例成员和原型成员。
+3. `hasOwnProperty` 方法
+   - `hasOwnProperty` 用来检查一个属性是否是对象的自有成员，而不是继承自原型的成员。
+
+**代码示例**
+
+1. `Object.keys` 只返回实例成员
+
+   使用 `Object.keys` 获取对象的所有键名时，它只返回实例成员，不包括原型成员。
+
+   ```js
+   function Circle(radius) {
+     this.radius = radius; // 实例成员
+     this.move = function () {
+       // 实例成员
+       console.log("Moving the circle");
+     };
+   }
+
+   // 将 draw 方法添加到原型中
+   Circle.prototype.draw = function () {
+     console.log("Drawing a circle with radius " + this.radius);
+   };
+
+   const circle = new Circle(5);
+
+   // Return instance members
+   console.log(Object.keys(circle)); // 输出 ['radius', 'move']
+   ```
+
+2. **`for...in` 循环返回实例和原型成员**
+
+   `for...in` 循环会遍历对象的所有可枚举属性，包括实例成员和原型成员。
+
+   ```js
+   // Return all members (instance + prototype)
+   for (let key in circle) {
+     console.log(key);
+   }
+   // radius
+   // move
+   // draw
+   ```
+
+3. `hasOwnProperty` 方法区分自有成员和原型成员
+
+   使用 `hasOwnProperty` 可以检查一个属性是否是对象的自有成员，而不是原型成员。
+
+   ```js
+   console.log(circle.hasOwnProperty("radius")); // 输出 true，radius 是自有成员
+   console.log(circle.hasOwnProperty("draw")); // 输出 false，draw 是原型成员
+   ```
+
+   - `circle.hasOwnProperty('radius')` 返回 `true`，因为 `radius` 是直接在 `circle` 对象上定义的自有成员。
+   - `circle.hasOwnProperty('draw')` 返回 `false`，因为 `draw` 是从 `Circle.prototype` 继承来的原型成员。
 
 # 技巧
 
