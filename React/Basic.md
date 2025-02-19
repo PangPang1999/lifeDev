@@ -2427,6 +2427,29 @@ React Icons 是一个流行的图标库，包含了多个图标库，如 Ant Des
 
 # 第5章-状态的最佳实践
 
+知识树
+
+1. **State更新的异步性**
+   - React更新State是异步的，不会立即更新。
+   - React将多个State更新合并，批量执行，以提高性能。
+2. **State存储位置**
+   - React的State存储在组件外部，在内存中保存，直到组件不再可见。
+   - State的生命周期与组件的渲染周期同步。
+3. **State Hook的使用约束**
+   - React的Hooks只能在组件的最顶层使用，不能在条件语句、循环或嵌套函数中调用。
+   - 这确保了Hooks调用的顺序一致性，避免了状态映射错误。
+4. **最佳实践：选择State结构**
+   - 避免使用冗余的State变量，例如计算属性（如full name）。
+   - 将相关的State变量放在一个对象中，以便于管理。
+   - 避免使用深层嵌套的结构，应尽量保持状态结构的扁平化，以简化更新逻辑。
+5. **State的不可变性**
+   - 使用React时，State对象应视为不可变的，避免直接修改对象的属性。
+   - 应通过创建新的对象来更新State，保持State的独立性和可预测性。
+6. **处理数组和对象的State更新**
+   - 对数组和对象的更新，避免直接修改它们，使用新的数组或对象来触发渲染。
+
+
+
 ### **1. React 状态更新是异步的**
 
 - **异步更新**：React 的 `useState` 钩子用于管理组件状态，但状态更新是 **异步的**，并不会立即生效。
@@ -2435,12 +2458,27 @@ React Icons 是一个流行的图标库，包含了多个图标库，如 Ant Des
 **示例：**
 
 ```tsx
-const [isVisible, setIsVisible] = useState(false);
+// App.tsx
+import React, { useState } from 'react';
 
-const handleClick = () => {
+const App: React.FC = () => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  const handleClick = () => {
     setIsVisible(true);
-    console.log(isVisible);  // 在状态更新后立即打印会看到旧值，仍为 false
+    console.log(isVisible);  // 输出的将是旧值，因更新是异步的
+  };
+
+  return (
+    <div>
+      <button onClick={handleClick}>Show</button>
+      <p>{isVisible ? 'Visible' : 'Hidden'}</p>
+    </div>
+  );
 };
+
+export default App;
+
 ```
 
 - **性能优化**：批量更新状态并减少不必要的重渲染。
@@ -2525,7 +2563,7 @@ const Message = () => {
 };
 ```
 
-#### **6. React 严格模式 (Strict Mode)**
+#### **6. 使用React的Strict Mode识别不纯函数**
 
 - **严格模式**：React 的严格模式会在开发环境下每个组件渲染两次，用于检测潜在问题，如不纯的组件。严格模式只在开发模式下启用，生产模式下不会影响。
 
@@ -2534,12 +2572,33 @@ const Message = () => {
 - 在开发模式下，React 会重新渲染组件以检查潜在的副作用问题。
 
 ```tsx
-<React.StrictMode>
-  <App />
-</React.StrictMode>
+// App.tsx
+import React from 'react';
+
+// 示例：每次渲染都会改变内容，导致不纯函数
+const Message: React.FC<{ count: number }> = ({ count }) => {
+  console.log('Message rendered'); // 每次渲染都会调用
+  return <p>Message {count}</p>;
+};
+
+const App: React.FC = () => {
+  return (
+    <div>
+      <Message count={1} />
+      <Message count={2} />
+    </div>
+  );
+};
+
+// 在开发模式下，React严格模式会多次渲染组件，以检查不纯组件。
+// 这里，Message组件会在每次渲染时输出"Message rendered"，
+// 因为我们没有正确地保持纯函数的特性。
+
+export default App;
+
 ```
 
-#### **7. 状态对象的不可变性**
+#### **7. 数组State的不可变性：添加、删除和更新元素**
 
 - **对象和数组的不可变性**：在 React 中，应该将对象和数组视为不可变的，这意味着我们不能直接修改它们，而是需要创建一个新的对象或数组。
 
@@ -2709,47 +2768,44 @@ const [customer, setCustomer] = useState({
 
 
 
-#### 8.**更新数组**
+#### 8.添加、删除和更新元素
 
-在 React 中处理数组时，我们同样不应该直接修改数组，而是应该创建一个新的数组并传递给 `setState`。这样做有助于保持数据的不可变性，并避免潜在的副作用。
+```tsx
+// App.tsx
+import React, { useState } from 'react';
 
-##### **如何更新数组**
+const App: React.FC = () => {
+  const [tags, setTags] = useState<string[]>(['happy', 'exciting']);
 
-1. **添加新项**：如果要在数组中添加一个新项，不能直接使用 `push` 方法修改原数组。相反，我们需要通过扩展运算符（spread operator）来复制数组，并将新项添加到复制的数组中。
+  const addTag = () => {
+    setTags(prevTags => [...prevTags, 'newTag']); // 添加新标签
+  };
 
-   **示例：**
+  const removeTag = () => {
+    setTags(prevTags => prevTags.filter(tag => tag !== 'happy')); // 删除标签
+  };
 
-   ```tsx
-   const [tags, setTags] = useState(["happy", "exciting"]);
-   
-   const handleAddTag = () => {
-       setTags([...tags, "new tag"]);
-   };
-   ```
+  const updateTag = () => {
+    setTags(prevTags =>
+      prevTags.map(tag => (tag === 'exciting' ? 'excited' : tag)) // 更新标签
+    );
+  };
 
-2. **删除项**：要删除数组中的某个项，通常使用 `filter` 方法创建一个新的数组，并过滤掉指定的项。
+  return (
+    <div>
+      <button onClick={addTag}>Add Tag</button>
+      <button onClick={removeTag}>Remove Tag</button>
+      <button onClick={updateTag}>Update Tag</button>
+      <p>Tags: {tags.join(', ')}</p>
+    </div>
+  );
+};
 
-   **示例：**
+export default App;
 
-   ```tsx
-   const handleRemoveTag = () => {
-       setTags(tags.filter(tag => tag !== "happy"));
-   };
-   ```
+```
 
-3. **更新数组中的对象**：如果数组中的每个项都是对象，并且我们需要更新某个对象的属性，可以使用 `map` 方法来遍历数组并创建一个新的数组。
 
-   **示例：**
-
-   ```tsx
-   const [tags, setTags] = useState([{ id: 1, tag: "happy" }, { id: 2, tag: "exciting" }]);
-   
-   const handleUpdateTag = () => {
-       setTags(tags.map(tag => 
-           tag.id === 1 ? { ...tag, tag: "joyful" } : tag
-       ));
-   };
-   ```
 
 #### **9. 更新对象数组**
 
@@ -2778,7 +2834,7 @@ const [customer, setCustomer] = useState({
 
 
 
-#### **10. 使用 Immer 简化更新逻辑**
+#### **10.使用Immer库简化不可变更新**
 
 > 简述：在这一节中，我们学习了如何使用Immer库来简化对数组和对象的不可变更新操作。通过Immer，我们可以在不直接修改原始数据的情况下，通过代理对象进行修改，这使得更新逻辑更加简洁和直观。
 
@@ -3087,6 +3143,62 @@ export default Cart;
 - **可扩展性**：当应用规模增大时，状态管理可能会变得复杂。此时，可能需要引入如`useReducer`或全局状态管理库（如Redux、Context API）来管理更复杂的状态或跨组件的状态共享。
 
 通过提升状态并使用`props`传递，我们能够高效地管理React应用中的组件间同步，确保UI与状态的一致性，并为组件的复用和可维护性提供坚实的基础。
+
+
+
+
+
+
+
+#### 13.Exercise
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
