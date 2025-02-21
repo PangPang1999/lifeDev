@@ -6900,7 +6900,7 @@ setTimeout(() => {
 4. `constructor.prototype` 和 `__proto__`
    - 每个构造函数都有一个 `prototype` 属性，指向该构造函数实例对象的原型。
    - `__proto__` 是对象的原型属性，指向对象实例的原型。
-5. 通过 `.prototype` 添加方法
+5. **通过 `.prototype` 添加方法**
    - 可以通过修改构造函数的 `prototype` 属性，向所有实例添加共享方法，从而减少内存消耗。
    - 不管对象创建时是否已经创建，只要在调用方法之前通过 `prototype` 修改构造函数中的方法，对象中方法调用时都可以生效。
 6. 原型方法与实例方法的互相调用
@@ -7123,8 +7123,8 @@ setTimeout(() => {
    假设你想向所有数组对象添加 `shuffle` 方法，用于打乱数组中的元素。虽然可以通过修改 `Array.prototype` 来实现，但这种做法不推荐。
 
    ```js
-   // 添加一个 shuffle 方法到数组的原型
-   Array.prototype.shuffle = function() {
+   // 添加一个 shuffle（洗牌） 方法到数组的原型
+   Array.prototype.shuffle = function () {
      for (let i = this.length - 1; i > 0; i--) {
        const j = Math.floor(Math.random() * (i + 1));
        [this[i], this[j]] = [this[j], this[i]];
@@ -7133,7 +7133,7 @@ setTimeout(() => {
    
    const arr = [1, 2, 3, 4, 5];
    arr.shuffle();
-   console.log(arr);  // 打乱后的数组
+   console.log(arr); // 打乱后的数组
    ```
 
    - 虽然这段代码在当前环境下有效，但是这样做会导致潜在的风险：其他库也可能扩展 `Array.prototype`，而导致行为不一致，调试困难。
@@ -7171,7 +7171,63 @@ setTimeout(() => {
    console.log(arr);  // 打乱后的数组
    ```
 
-   - 这样，你避免了修改原生数组对象的原型，确保了应用的兼容性和稳定性。
+   - 这样，避免了修改原生数组对象的原型，确保了应用的兼容性和稳定性。
+
+## Ex: Stopwatch Object
+
+> **要求**：设计一个可以模拟时钟功能的 `stopwatch` 对象（见对象章节练习）。
+>
+> 1. 将`start`、`stop`、`reset`和`duration`放入`prototype`中
+>
+> > 这是一个提前优化导致坏影响的示范
+
+**代码**
+
+```js
+function Stopwatch() {
+  this.startTime = 0; // 记录开始时间
+  this.endTime = 0; // 记录结束时间
+  this.running = false; // 是否正在计时
+  this.duration = 0; // 记录持续时间
+}
+
+Stopwatch.prototype.start = function () {
+  if (this.running) {
+    throw new Error("Stopwatch has already started"); // 如果已经启动，则抛出错误
+  }
+  this.running = true;
+  this.startTime = new Date(); // 设置开始时间为当前时间
+};
+
+Stopwatch.prototype.stop = function () {
+  if (!this.running) {
+    throw new Error("Stopwatch has not started yet"); // 如果未启动，则抛出错误
+  }
+  this.running = false;
+  this.endTime = new Date(); // 设置结束时间为当前时间
+  this.duration = (this.endTime - this.startTime) / 1000; // 计算持续时间，单位为秒
+};
+
+Stopwatch.prototype.reset = function () {
+  this.startTime = 0;
+  this.endTime = 0;
+  this.running = false;
+  this.duration = 0; // 重置时长
+};
+
+const stopwatch = new Stopwatch();
+
+stopwatch.start(); // 启动计时器
+setTimeout(() => {
+  stopwatch.stop(); // 停止计时器
+  console.log(stopwatch.duration); // 输出计时器时长，例如 2 秒
+  stopwatch.reset(); // 重置计时器
+}, 2000);
+```
+
+
+
+
 
 # 技巧
 
