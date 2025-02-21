@@ -1,0 +1,9 @@
+.btn {
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 5px;
+}
+.btn-primary {
+  background-color: #0d6efd;
+  color: white;
+}
