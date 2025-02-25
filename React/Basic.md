@@ -3927,22 +3927,50 @@ export default Form;
 
 ## 5.**表单数据验证**
 
+```tsx
+import React from "react";
+import { useState } from "react";
+import { FieldValues, useForm } from "react-hook-form";
+const Form = () => {
+  const { register, handleSubmit } = useForm();
+  const onSubmit = (data: FieldValues) => {
+    console.log(data);
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <div className="mb-3">
+        <label htmlFor="name" className="form-label">
+          Name
+        </label>
+        <input {...register("name")} type="text" className="form-control" />
+      </div>
+      <div className="mb-3">
+        <label>Age</label>
+        <input {...register("age")} type="number" className="form-control" />
+      </div>
+      <button type="submit" className="btn btn-primary">
+        Submit
+      </button>
+    </form>
+  );
+};
+
+export default Form;
+```
+
+
+
 #### 1. 使用 `react-hook-form` 简化表单管理
 
 - 在处理复杂表单时，使用 `useState` 钩子来管理每个输入字段的值可能会变得繁琐且容易出错，因为每个输入字段都需要设置 `onChange` 和 `value` 属性。为了减少代码量并简化表单管理，我们可以使用一个流行的库——**react-hook-form**。
 
 #### 2. 安装 `react-hook-form`
 
-- 首先，通过终端安装 
-
-  ```
-  react-hook-form
-  ```
-
-  ：
+- 首先，通过终端安装 react-hook-form：
 
   ```bash
-  npm install react-hook-form
+  npm install react-hook-form@7.43
   ```
 
 #### 3. 使用 `useForm` 钩子
@@ -4043,6 +4071,418 @@ export default Form;
 - **与其他库的集成：** `react-hook-form` 可以与第三方UI库（如 Material-UI、Ant Design）集成，进一步提高开发效率。
 
 通过本次课，我们掌握了如何使用 `react-hook-form` 来快速简化表单管理，并准备好进一步探索表单验证的内容。
+
+
+
+## 6.使用react-hook-form进行表单验证
+
+在本节课中，我们将进一步学习如何使用**react-hook-form**来为表单应用验证规则，确保用户在提交表单时填写有效数据。通过为输入字段注册验证规则，我们不仅可以减少重复代码，还能轻松地向用户展示错误信息，提升用户体验。
+
+------
+
+#### 1. 应用验证规则的背景
+
+- **需求**：确保用户在提交表单时填写了必填字段，并且输入满足一定的最小长度要求。
+- **好处**：只有当表单数据满足所有验证条件时，才会调用提交处理函数，从而避免错误数据的提交。
+
+------
+
+#### 2. 注册输入字段并添加验证规则
+
+- **注册方法**：在调用 `register` 方法时，可以传入第二个参数对象来指定验证规则。
+
+- **示例**：为 `name` 字段设置 `required: true` 和 `minLength` 验证规则。
+
+  ```tsx
+  <input 
+    {...register("name", { required: true, minLength: 3 })} 
+    type="text" 
+  />
+  ```
+
+- **效果**：
+
+  - 如果用户未输入任何内容，验证错误的类型将为 `required`；
+  - 如果输入字符少于3个，则错误类型将为 `minLength`。
+
+- **注意**：当验证不通过时，react-hook-form 将不会调用提交处理函数，这样我们可以通过错误信息告知用户需要修正数据。
+
+------
+
+#### 3. 获取和查看验证错误
+
+- **formState**：在使用 `useForm` 时，会返回一个对象，其中包含 `formState` 属性，它记录了验证状态、错误信息等。
+
+- **检查错误对象**：通过 `formState.errors` 可以看到当前表单中每个字段的错误信息。
+
+  ```tsx
+  const { register, handleSubmit, formState: { errors } } = useForm();
+  console.log(errors);
+  ```
+
+- **错误示例**：
+
+  - 如果没有填写 `name` 字段，`errors.name.type` 会是 `"required"`；
+  - 如果填写字符不足，则 `errors.name.type` 会是 `"minLength"`。
+
+------
+
+#### 4. 显示错误提示信息
+
+- **条件渲染错误信息**：在输入框下方使用条件表达式，根据 `errors` 对象的内容来显示相应的错误提示。
+
+- **使用可选链（optional chaining）**：防止因访问不存在的属性而报错。
+
+  **示例**：
+
+  ```tsx
+  {errors.name?.type === 'required' && (
+    <p className="text-danger">Name field is required.</p>
+  )}
+  {errors.name?.type === 'minLength' && (
+    <p className="text-danger">Name must be at least 3 characters.</p>
+  )}
+  ```
+
+- **样式设置**：使用Bootstrap的 `text-danger` 类，将错误文本渲染为红色，提升视觉效果。
+
+------
+
+#### 5. 使用TypeScript接口定义表单数据结构
+
+- **问题背景**：当前TypeScript无法自动识别表单中字段的名称，影响自动补全与类型安全。
+
+- **解决方案**：在组件外部定义一个接口，明确表单数据的结构。
+
+  **示例**：
+
+  ```tsx
+  interface FormData {
+    name: string;
+    age: number;
+  }
+  
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
+  ```
+
+- **好处**：
+
+  - 在使用 `errors` 或提交数据时，编辑器会提供自动补全；
+  - 能够在编译期间捕捉数据类型不匹配的错误，提高代码的健壮性。
+
+------
+
+#### 6. 综合示例代码
+
+下面是一个综合示例，展示如何用react-hook-form应用验证规则、显示错误信息以及确保类型安全：
+
+```tsx
+import React from 'react';
+import { useForm, FieldValues } from 'react-hook-form';
+
+interface FormData {
+  name: string;
+  age: number;
+}
+
+const MyForm: React.FC = () => {
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
+
+  const onSubmit = (data: FormData) => {
+    console.log("Submitted data:", data);
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      {/* Name输入框 */}
+      <div className="mb-3">
+        <label htmlFor="name" className="form-label">Name</label>
+        <input 
+          id="name" 
+          className="form-control"
+          type="text"
+          {...register("name", { required: true, minLength: 3 })}
+        />
+        {errors.name?.type === 'required' && (
+          <p className="text-danger">Name field is required.</p>
+        )}
+        {errors.name?.type === 'minLength' && (
+          <p className="text-danger">Name must be at least 3 characters.</p>
+        )}
+      </div>
+
+      {/* Age输入框 */}
+      <div className="mb-3">
+        <label htmlFor="age" className="form-label">Age</label>
+        <input 
+          id="age" 
+          className="form-control"
+          type="number"
+          {...register("age", { required: true })}
+        />
+        {errors.age?.type === 'required' && (
+          <p className="text-danger">Age field is required.</p>
+        )}
+      </div>
+
+      <button type="submit" className="btn btn-primary">Submit</button>
+    </form>
+  );
+};
+
+export default MyForm;
+```
+
+------
+
+#### 7. 总结与扩展思考
+
+- **验证规则的应用**：通过在 `register` 方法中传入验证规则，可以轻松地为每个输入字段设置必填、最小长度等规则，且仅当表单有效时才调用提交处理函数。
+- **错误信息处理**：利用 `formState.errors` 及条件渲染，可以直观地向用户展示各个输入字段的验证错误。使用可选链保证代码健壮性，同时配合Bootstrap类使错误信息更具可读性。
+- **类型安全**：使用TypeScript接口定义表单数据的结构，不仅改善了开发体验（自动补全），也提高了代码的可靠性。
+- **扩展应用**：后续可以结合更多的验证规则（例如正则表达式匹配、自定义验证器等），以及如何利用react-hook-form的其它API来实现更复杂的表单逻辑与错误处理。
+
+这节课展示了react-hook-form如何大幅简化表单验证与错误处理的工作，让我们能够更专注于业务逻辑，而不必为每个输入字段编写冗余代码。
+
+
+
+# 7.使用Zod与React Hook Form进行Schema验证
+
+随着表单的复杂度不断提升，将验证规则分散写在JSX中会变得冗长且难以维护。这时，我们可以采用**Schema-based Validation**（基于模式的验证）的方法，将所有的验证规则集中定义在一个Schema中。本文介绍了如何使用流行的验证库 **Zod** 与 **react-hook-form** 相结合，简化表单验证的流程。还有joi、yup验证库
+
+------
+
+#### 1. 为什么使用Schema验证？
+
+- **代码集中**：将所有验证规则统一写在一个Schema中，避免在各个输入字段中重复书写内联验证逻辑。
+- **易于维护**：当表单变得复杂时，所有验证规则集中管理，便于修改和扩展。
+- **类型推导**：Zod不仅定义验证规则，还可以推导出与之对应的TypeScript类型，消除手写接口时的冗余和错误。
+
+------
+
+#### 2. 使用Zod定义Schema
+
+```
+npm i zod@3.20.6
+```
+
+
+
+1. **导入Zod**：在文件顶部引入Zod库。
+
+   ```tsx
+   import { z } from 'zod';
+   ```
+
+2. **定义表单Schema**：使用 `z.object` 定义表单中各字段的验证规则。
+
+   - **name 字段**：必须为字符串且至少3个字符。
+   - **age 字段**：必须为数字，可以设定最小值（例如，必须大于0）。
+
+   **示例代码：**
+
+   ```tsx
+   const schema = z.object({
+     name: z.string().min(3, { message: "Name must be at least 3 characters." }),
+     age: z.number().min(18, { message: "Age must be at least 18." }),
+   });
+   ```
+
+3. **提取TypeScript类型**：利用 `z.infer` 从Schema中自动生成表单数据类型，避免手动编写接口。
+
+   ```tsx
+   type FormData = z.infer<typeof schema>;
+   ```
+
+------
+
+#### 3. 与React Hook Form集成
+
+1. 安装解析器：通过终端安装 `@hookform/resolvers`包，该包为各种Schema验证库（如Zod、Yup、Joi等）提供解析器支持。
+
+   ```bash
+   npm install @hookform/resolvers
+   ```
+
+2. 导入Zod解析器：在文件顶部引入Zod解析器。
+
+   ```tsx
+   import { zodResolver } from '@hookform/resolvers/zod';
+   ```
+
+3. 调用useForm：在调用 `useForm`时，将 `resolver`配置项设置`zodResolver(schema)`
+
+   ，这样`react-hook-form`会依据`Schema`自动进行验证。
+
+   ```tsx
+   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+     resolver: zodResolver(schema)
+   });
+   ```
+
+------
+
+#### 4. 调整输入字段注册与错误处理
+
+1. **移除内联验证规则**：由于所有验证规则都已在Schema中定义，注册时无需再传入验证对象。
+
+   ```tsx
+   <input {...register("name")} type="text" />
+   <input {...register("age", { valueAsNumber: true })} type="number" />
+   ```
+
+   - **valueAsNumber**：对于age输入，由于HTML输入框返回的总是字符串，传递 `{ valueAsNumber: true }` 让react-hook-form将其转换为数字。
+
+2. **显示错误信息**：利用 `formState.errors`，在对应输入字段下方显示验证错误。
+
+   - 通过 `errors.<field>?.message` 动态读取错误提示消息。
+   - 使用Bootstrap的 `text-danger` 类使错误信息以红色显示。
+
+   **示例代码：**
+
+   ```tsx
+   {errors.name && <p className="text-danger">{errors.name.message}</p>}
+   {errors.age && <p className="text-danger">{errors.age.message}</p>}
+   ```
+
+------
+
+#### 5. 综合示例
+
+下面是一个完整的示例，展示了如何将Zod与react-hook-form集成来进行Schema验证，同时自动生成错误提示：
+
+```tsx
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+// 定义表单Schema
+const schema = z.object({
+  name: z.string().min(3, { message: "Name must be at least 3 characters." }),
+  age: z.number().min(18, { message: "Age must be at least 18." }),
+});
+
+// 自动推导表单数据类型
+type FormData = z.infer<typeof schema>;
+
+const MyForm: React.FC = () => {
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(schema)
+  });
+
+  const onSubmit = (data: FormData) => {
+    console.log("Submitted data:", data);
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      {/* Name 输入框 */}
+      <div className="mb-3">
+        <label htmlFor="name" className="form-label">Name</label>
+        <input 
+          id="name" 
+          className="form-control"
+          type="text"
+          {...register("name")}
+        />
+        {errors.name && (
+          <p className="text-danger">{errors.name.message}</p>
+        )}
+      </div>
+      
+      {/* Age 输入框 */}
+      <div className="mb-3">
+        <label htmlFor="age" className="form-label">Age</label>
+        <input 
+          id="age" 
+          className="form-control"
+          type="number"
+          {...register("age", { valueAsNumber: true })}
+        />
+        {errors.age && (
+          <p className="text-danger">{errors.age.message}</p>
+        )}
+      </div>
+      
+      <button type="submit" className="btn btn-primary">Submit</button>
+    </form>
+  );
+};
+
+export default MyForm;
+```
+
+------
+
+#### 6. 总结与扩展
+
+- **集中式验证规则**：通过Schema（例如使用Zod）将所有验证规则集中管理，避免在JSX中散布大量内联验证代码。
+- **自动类型推导**：利用Zod的 `z.infer` 特性自动生成TypeScript类型，提升代码一致性和开发体验。
+- **集成解析器**：通过 `zodResolver` 与react-hook-form无缝集成，使得表单验证既高效又具备良好的性能。
+- **自定义错误信息**：可在Schema中定制错误提示信息，提升用户体验；对于数字字段，注意使用 `valueAsNumber` 来正确处理类型转换。
+
+**扩展阅读**：由于Zod功能丰富，上述内容只是基础应用。若需深入了解更多高级功能（如自定义验证规则、嵌套对象验证等），建议查阅 [Zod官方文档](https://zod.dev/)。
+
+通过本节课，我们学会了如何利用Zod和react-hook-form进行Schema-based验证，使得表单验证代码更简洁、集中且易于维护，同时还能获得良好的TypeScript类型支持。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

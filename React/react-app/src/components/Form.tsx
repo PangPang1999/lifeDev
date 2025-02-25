@@ -1,50 +1,42 @@
 import React from "react";
-import { useRef, useState } from "react";
+import { useState } from "react";
+import { FieldValues, useForm } from "react-hook-form";
+interface FormData {
+  name: string;
+  age: number;
+}
 const Form = () => {
-  //   const person = {
-  //     name: "",
-  //     age: 0,
-  //   };
-  const [person, setPerson] = useState({
-    name: "",
-    age: "",
-  });
-  //   const nameRef = useRef<HTMLInputElement>(null);
-  //   const ageRef = useRef<HTMLInputElement>(null);
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    // if (nameRef.current && ageRef.current) {
-    //   person.name = nameRef.current.value;
-    //   person.age = parseInt(ageRef.current.value, 10); // 使用parseInt将字符串转换为数字
-    console.log(person);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>();
+  const onSubmit = (data: FormData) => {
+    console.log(data, errors);
   };
+
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <div className="mb-3">
         <label htmlFor="name" className="form-label">
           Name
         </label>
-        {/* <input ref={nameRef} type="text" id="name" className="form-control" /> */}
         <input
-          onChange={(e) => {
-            setPerson({ ...person, name: e.target.value });
-          }}
-          type="text"
-          value={person.name}
+          id="name"
           className="form-control"
+          type="text"
+          {...register("name", { required: true, minLength: 3 })}
         />
+        {errors.name?.type === "required" && (
+          <p className="text-danger">Name field is required.</p>
+        )}
+        {errors.name?.type === "minLength" && (
+          <p className="text-danger">Name must be at least 3 characters.</p>
+        )}
       </div>
       <div className="mb-3">
         <label>Age</label>
-        {/* <input ref={ageRef} type="number" id="age" className="form-control" /> */}
-        <input
-          onChange={(e) => {
-            setPerson({ ...person, age: parseInt(e.target.value) });
-          }}
-          type="number"
-          value={person.age}
-          className="form-control"
-        />
+        <input {...register("age")} type="number" className="form-control" />
       </div>
       <button type="submit" className="btn btn-primary">
         Submit
