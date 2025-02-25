@@ -6670,7 +6670,7 @@ setTimeout(() => {
    console.log(
      Object.getPrototypeOf(circle) === Circle.prototype
    ); //true
-   
+
    const x = {};
    console.log(Object.getPrototypeOf(x) === Object.prototype); //true
    ```
@@ -6699,25 +6699,19 @@ setTimeout(() => {
    ```js
    const myArray = [];
 
-   console.log("myArray : ", myArray); // 最后一行 [[Prototype]]: Array(0)
+   console.log(myArray); // 最后一行 [[Prototype]]: Array(0)
    // 相当于 console.log(myArray.__proto__);
-   console.log(
-     "Object.getPrototypeOf(myArray) : ",
-     Object.getPrototypeOf(myArray)
-   ); // 最后一行 [[Prototype]]: Object
+   console.log(Object.getPrototypeOf(myArray)); // 最后一行 [[Prototype]]: Object
    // 相当于 console.log(myArray.__proto__.__proto__);
 
    // 以下代码帮助理解
    console.log(
-     "Object.getPrototypeOf(myArray) === Array.prototype : ",
      Object.getPrototypeOf(myArray) === Array.prototype
    ); //true
    console.log(
-     "Object.getPrototypeOf(Object.getPrototypeOf(myArray)) : ",
      Object.getPrototypeOf(Object.getPrototypeOf(myArray))
    ); // 得到了Object.prototype
    console.log(
-     "Object.getPrototypeOf(Object.getPrototypeOf(myArray)) === Object.prototype : ",
      Object.getPrototypeOf(Object.getPrototypeOf(myArray)) ===
        Object.prototype
    ); // true
@@ -6871,7 +6865,7 @@ setTimeout(() => {
    ```js
    const person = { name: "Mosh" };
    console.log(Object.keys(person)); // 输出 ['name']
-   
+
    // 使用 `for...in` 迭代属性时，不会列出继承自原型的属性
    for (let key in person) {
      console.log(key); // 只输出 'name'
@@ -7021,12 +7015,12 @@ setTimeout(() => {
    function Circle(radius) {
      this.radius = radius;
    }
-   
+
    Circle.prototype.move = function () {
      console.log("Moving the circle");
      this.draw(); // 调用实例方法
    };
-   
+
    const circle = new Circle(5);
    circle.move(); // 输出：Moving the circle
    // 输出：Drawing a circle with radius 5
@@ -7130,7 +7124,7 @@ setTimeout(() => {
        [this[i], this[j]] = [this[j], this[i]];
      }
    };
-   
+
    const arr = [1, 2, 3, 4, 5];
    arr.shuffle();
    console.log(arr); // 打乱后的数组
@@ -7144,12 +7138,12 @@ setTimeout(() => {
 
    ```js
    // 假设在另一个地方，另一个库也扩展了 Array.prototype
-   Array.prototype.shuffle = function() {
-     console.log('Shuffling...');
+   Array.prototype.shuffle = function () {
+     console.log("Shuffling...");
    };
-   
+
    const arr = [1, 2, 3, 4];
-   arr.shuffle();  // 不同的实现会导致不一致的行为
+   arr.shuffle(); // 不同的实现会导致不一致的行为
    ```
 
    - 在这个例子中，`shuffle` 方法的实现会因为覆盖而产生冲突。如果有其他库对 `shuffle` 方法做了修改，可能导致整个应用的异常行为。
@@ -7165,10 +7159,10 @@ setTimeout(() => {
        [arr[i], arr[j]] = [arr[j], arr[i]];
      }
    }
-   
+
    const arr = [1, 2, 3, 4];
    shuffleArray(arr);
-   console.log(arr);  // 打乱后的数组
+   console.log(arr); // 打乱后的数组
    ```
 
    - 这样，避免了修改原生数组对象的原型，确保了应用的兼容性和稳定性。
@@ -7225,9 +7219,59 @@ setTimeout(() => {
 }, 2000);
 ```
 
+# 原型继承
 
-
-
+> 理一理：
+>
+> ```JS
+> function Cat(name, age) {
+>   this.name = name;
+>   this.age = age;
+> }
+> const cat = new Cat("JOJO", 5);
+> console.log(cat); // 输出 Cat {name: 'JOJO', age: 5}
+> console.log(cat.constructor);
+> // 输出
+> // ƒ Cat(name, age) {
+> //   this.name = name;
+> //   this.age = age;
+> // }
+>
+> console.log(Cat.prototype); // 自行查看
+> console.log(Cat.prototype.constructor);
+> // 输出
+> // ƒ Cat(name, age) {
+> //   this.name = name;
+> //   this.age = age;
+> // }
+> ```
+>
+> 1. 当用 `new Cat()` 调用构造函数时，JavaScript 引擎会执行以下步骤：
+>
+>    - **创建一个新对象。**
+>      这个对象的内部原型（`[[Prototype]]` 或 `__proto__`）会自动指向 `Cat.prototype`。
+>
+>    - **绑定 this。**
+>      构造函数内部的 `this` 会指向新创建的对象。
+>
+>    - **执行构造函数代码。**
+>      对新对象添加属性和方法。
+>
+>    - **返回新对象。**
+>      如果构造函数没有显式返回其他对象，默认返回这个新对象。
+>
+>      ```js
+>      function Cat(name, age) {
+>        this.name = name;
+>        this.age = age;
+>        return {}; // 显式返回其他对象
+>      }
+>      const cat = new Cat("JOJO", 5);
+>      console.log(cat); // 输出 {}
+>      console.log(cat.constructor); // 输出 ƒ Object() { [native code] }
+>      ```
+>
+> 2. 每个函数在创建时，JavaScript 自动为其创建一个 `prototype` 对象。这个 `prototype` 对象上有一个默认的 `constructor` 属性，指向创建它的函数本身。
 
 # 技巧
 
