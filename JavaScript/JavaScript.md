@@ -6670,7 +6670,7 @@ setTimeout(() => {
    console.log(
      Object.getPrototypeOf(circle) === Circle.prototype
    ); //true
-
+   
    const x = {};
    console.log(Object.getPrototypeOf(x) === Object.prototype); //true
    ```
@@ -6865,7 +6865,7 @@ setTimeout(() => {
    ```js
    const person = { name: "Mosh" };
    console.log(Object.keys(person)); // 输出 ['name']
-
+   
    // 使用 `for...in` 迭代属性时，不会列出继承自原型的属性
    for (let key in person) {
      console.log(key); // 只输出 'name'
@@ -7015,12 +7015,12 @@ setTimeout(() => {
    function Circle(radius) {
      this.radius = radius;
    }
-
+   
    Circle.prototype.move = function () {
      console.log("Moving the circle");
      this.draw(); // 调用实例方法
    };
-
+   
    const circle = new Circle(5);
    circle.move(); // 输出：Moving the circle
    // 输出：Drawing a circle with radius 5
@@ -7159,7 +7159,7 @@ setTimeout(() => {
        [arr[i], arr[j]] = [arr[j], arr[i]];
      }
    }
-
+   
    const arr = [1, 2, 3, 4];
    shuffleArray(arr);
    console.log(arr); // 打乱后的数组
@@ -7272,6 +7272,144 @@ setTimeout(() => {
 >      ```
 >
 > 2. 每个函数在创建时，JavaScript 自动为其创建一个 `prototype` 对象。这个 `prototype` 对象上有一个默认的 `constructor` 属性，指向创建它的函数本身。
+
+## 原型继承与共享方法
+
+> **简述**：在 JavaScript 中，没有传统意义上的类，而是通过对象和原型链来实现继承与代码复用。利用原型继承，我们可以将多个构造函数中共有的方法抽取到一个父构造函数（比如 Shape）上，让不同的子构造函数（如 Circle 和 Square）共享同一份实现，从而避免重复定义，提高内存效率和代码的可维护性。
+
+**知识树**
+
+1. 继承需求
+
+   - 当多个构造函数（例如 Circle 和 Square）需要具备相同功能时，继承可以让它们共享同一个方法的实现，而不必在每个构造函数或其原型上重复定义。这种方式不仅提高了代码复用性，还使得修改和维护变得集中和容易。
+   - 如果相同的方法在每个实例中重复定义，会占用额外内存；如果在不同构造函数的原型上重复定义，则每个构造函数各自拥有一份该方法的拷贝，这在逻辑上虽然没问题，但会增加维护成本和内存消耗。
+   - 通过抽象出一个共同的父类（例如 Shape）并将通用方法定义在其原型上，然后让 Circle 和 Square 继承该父类，便能共享同一份方法实现，既减少了代码重复，又节省内存。
+
+2. 继承方法
+
+   - 使用 `Shape.call(this)` 在子构造函数中调用父构造函数，初始化父类的属性（如有需要）。
+   - 通过 `Object.create(Parent.prototype)` 重设子构造函数的原型，使其继承自父构造函数的原型。
+   - 修正子构造函数的 `constructor` 属性，确保其指向自身。
+   - 注意：在子类原型上添加方法前，需要先继承，否则子类的 `prototype` 被替换后，先前定义在原型上的方法会丢失。
+
+3. 关注点
+
+   - 直接写 `Circle.prototype = Shape.prototype;` 可以吗？不可以
+
+     - 共享同一个原型对象：
+
+       直接赋值后，`Circle.prototype` 和 `Shape.prototype` 指向同一个对象。这意味着对 `Circle.prototype` 的任何修改都会直接影响到 `Shape.prototype`，反之亦然。例如，如果你在 `Circle.prototype` 上添加或修改方法，同样会改变所有使用 `Shape.prototype` 的地方，这通常不是我们想要的。
+
+     - 破坏继承结构
+       正常的继承应当让 `Circle` 的实例继承自 `Shape.prototype` 的内容，但同时保持它们各自独立的原型对象。使用 `Circle.prototype = Object.create(Shape.prototype);` 可以创建一个新的对象，该对象继承了 `Shape.prototype`，但又与之分离，允许你在 `Circle.prototype` 上添加专属于 `Circle` 的方法而不会污染 `Shape.prototype`。
+
+     - 构造函数指向问题
+       直接赋值会导致 `Circle.prototype.constructor` 仍然指向 `Shape`（因为它们是同一个对象），这会使得实例的构造函数标识不正确，从而影响调试和类型判断。
+
+   - 为什么要套`Object.create()`，有什么影响？
+
+     - 使用 `Object.create(Shape.prototype)` 来创建一个独立但具有继承关系的原型对象
+     - 使用 `Object.create()`生成的对象没有 `constructor` 属性，生成对象查找  `constructor`  属性是通过原型链找到的。比如，`Object.create(Shape.prototype)` 创建的新对象本身没有定义自己的 `constructor` 属性，但它的内部原型（即 `__proto__`）正是 `Shape.prototype`，而 `Shape.prototype` 上有 `constructor` 属性。
+     - 所以，执行`Circle.prototype = Object.create(Shape.prototype);`后，``Circle.prototype`上丢失了 `constructor` 属性，Circle 生成的对象调用 `constructor` 属性时，会通过原型链查找，最终会指向 `Shape.prototype.constructor` ，即指向创建 Shape 的函数本身
+
+   - 等价
+
+     ```js
+     Circle.prototype = Object.create(Shape.prototype);
+     Circle.prototype.constructor = Circle;
+     // 等价于
+     Circle.prototype.__proto__ = Shape.prototype // 不推荐直接使用 __proto__
+     ```
+
+     - `__proto__` 是一个内部属性（通常称为“内部[[Prototype]]”），它指向当前对象的原型对象，也就是对象用于属性查找的链接。
+     - `Circle.prototype` 是一个对象，作为通过 `new Circle()` 创建的实例的原型对象。
+     - `Circle.prototype.__proto__` 就是指向 `Circle.prototype` 的原型对象，也就是它所继承的对象。
+     - 当我们通过 `Circle.prototype = Object.create(Shape.prototype);` 来设置继承关系时，`Circle.prototype.__proto__` 就指向 `Shape.prototype`。
+     - `__proto__` 在这里表示原型链中的链接，用于实现继承和属性查找。
+     - 下面的操作没有直接替换掉 `Circle` 的 `prototype` 属性
+
+**代码示例**
+
+1. 继承需求：两个构造函数在原型属性上定义了重复方法
+
+   假设我们有一个 Circle 构造函数，定义了 `radius` 属性，在原型上定义了 `draw()`方法和 `duplicate()`方法，一个 Shape 构造函数，定义了 `side` 属性，在原型上定义了 `draw()`方法和 `duplicate()`方法。 `duplicate()`方法是重复的。
+
+   ```js
+   // 定义 Circle 构造函数
+   function Circle(radius) {
+     this.radius = radius;
+   }
+   Circle.prototype.duplicate = function () {
+     console.log("Duplicating " + this.constructor.name);
+   };
+   Circle.prototype.draw = function () {
+     console.log("Drawing circle with radius " + this.radius);
+   };
+   
+   // 定义 Square 构造函数
+   function Square(side) {
+     this.side = side;
+   }
+   Square.prototype.duplicate = function () {
+     console.log("Duplicating " + this.constructor.name);
+   };
+   Square.prototype.draw = function () {
+     console.log("Drawing square with side " + this.side);
+   };
+   
+   const circle = new Circle(5);
+   const square = new Square(5);
+   
+   circle.duplicate(); // Duplicating Circle
+   circle.draw(); // Drawing circle with radius 5
+   square.duplicate(); // Duplicating Square
+   square.draw(); // Drawing square with radius 5
+   ```
+
+2. 继承方法
+
+   我们创建一个 Shape 构造函数，并将 duplicate 方法定义在其原型上。然后让 Circle 和 Square 继承自 Shape，从而共享 duplicate 方法而不需要重复定义。
+
+   ```js
+   function Shape() {}
+   Shape.prototype.duplicate = function () {
+     console.log("Duplicating " + this.constructor.name);
+   };
+   
+   // 定义 Circle 构造函数
+   function Circle(radius) {
+     Shape.call(this);
+     this.radius = radius;
+   }
+   
+   // 定义 Square 构造函数
+   function Square(side) {
+     Shape.call(this);
+     this.side = side;
+   }
+   
+   // 让 Circle 继承自 Shape
+   Circle.prototype = Object.create(Shape.prototype);
+   Circle.prototype.constructor = Circle;
+   Circle.prototype.draw = function () {
+     console.log("Drawing circle with radius " + this.radius);
+   };
+   
+   // 让 Square 继承自 Shape
+   Square.prototype = Object.create(Shape.prototype);
+   Square.prototype.constructor = Square;
+   Square.prototype.draw = function () {
+     console.log("Drawing square with side " + this.side);
+   };
+   
+   const circle = new Circle(5);
+   const square = new Square(5);
+   
+   circle.duplicate(); // Duplicating Circle
+   circle.draw(); // Drawing circle with radius 5
+   square.duplicate(); // Duplicating Square
+   square.draw(); // Drawing square with radius 5
+   ```
 
 # 技巧
 
