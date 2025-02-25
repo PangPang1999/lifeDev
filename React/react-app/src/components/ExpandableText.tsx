@@ -5,15 +5,19 @@ interface Props {
   handleClick: () => void;
 }
 const ExpandableText = ({ maxChars = 10, children, handleClick }: Props) => {
-  const [text1,setText] = useState(children);
+  const [expanded, setExpanded] = useState(false);
   // if (children.length <= maxChars) return <p>{children}</p>;
-  const text = children.substring(0, maxChars);
+  const text = expanded ? children.substring(0, maxChars) : children;
   return (
     <>
       <div>
         {text}...
-        <button onClick={()=>{children.length <= maxChars?setText(children):setText(text)}}>
-          {children.length <= maxChars ? "less" : "more"}
+        <button
+          onClick={() => {
+            setExpanded(!expanded);
+          }}
+        >
+          {expanded ? "less" : "more"}
         </button>
       </div>
     </>

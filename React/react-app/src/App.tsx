@@ -6,6 +6,7 @@ import ListGroup from "./components/ListGroup";
 import Button from "./components/Button";
 import Heart from "./components/Heart";
 import ExpandableText from "./components/ExpandableText";
+import Form from "./components/Form";
 function App() {
   // let items = ["London", "Tokyo", "New York"];
   // const handleSelectedIndex = (item: string) => {
@@ -78,7 +79,7 @@ function App() {
           </div>
         ))}
       </button>
-      */}
+      
 
       <ExpandableText maxChars={10} handleClick={handleClick}>
         Lorem ipsum dolor sit amet consectetur adipisicing eliquia, accusamus
@@ -89,6 +90,9 @@ function App() {
         nostrum ea explicabo ullam esandithis componentwillhsummarize thertext
         for usoNowtby ul
       </ExpandableText>
+      */}
+
+      <Form />
     </div>
   );
 }
