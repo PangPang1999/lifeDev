@@ -58,6 +58,7 @@
    Chrome Dev Tool 的 Console 可以用于调试，其中可以写一些简单 JavaScript 代码。
 
    ```javascript
+   // 试试一行一行的输入到浏览器控制台
    console.log("Hello");
    2 + 2;
    alert("yo");
@@ -6500,27 +6501,11 @@ setTimeout(() => {
 
 # 原型
 
-> 原型和原型继承章节，moth 讲的一般，我要重新梳理
->
-> 首先是讲清楚继承的概念
->
-> 1. 继承的概念
-> 2. 原型是什么
-> 3. 多级继承的概念
-> 4. 自定义/描述符
-> 5. 构造器的 prototype 属性，等于创建对象的`__proto__`属性
-> 6. 通过构造器的 prototype 属性，创建成员变量，先通过临时变量引入，并且添加的位置没有影响
-> 7. 遍历属性，`Object.keys`只能遍历 instance 属性，`in`方法可以遍历所有属性，JS 中一般将 instance 属性，称之为 own 属性，有方法 hasOwnProperty 来判断是否是 own 属性
-> 8. 避免修改内置的对象
-> 9. 继承，具体操作
-
 ## 继承
 
-> **简述**：继承是面向对象编程（OOP）中的核心概念，它使得一个对象能够继承另一个对象的属性和方法，从而实现代码复用。
+> **简述**：继承是面向对象编程（OOP）中的核心概念，它使得一个构造函数（类）能够继承另一个构造函数（类）的属性和方法，从而实现代码复用。
 >
-> _尽管 JavaScript 在 ES6 中引入了类的概念，但 JavaScript 本质上是基于原型继承的，类的概念只是对原型继承的一种语法糖。_
->
-> 这节将重点讨论原型继承，类的概念将在后续讲解中详细介绍。
+> 这里的类，即种类的意思，比如 Person 构造函数，创建了对象 John，Nancy，Steven，这些对象都是 Person 类型的（）
 
 **知识树**
 
@@ -6529,6 +6514,8 @@ setTimeout(() => {
    - 继承的关系通过子类继承父类来实现，子类是父类的一种特殊类型。例如，`Circle IS-A Shape`，表示圆形是形状的一种类型。
    - 父类被称为基类或父类（`Base`/`Super`/`Parent`）
    - 子类为派生类或子类（`Derived`/`Sub`/`Child`）
+2. ES6 引入`class`
+   - 尽管 JavaScript 在 ES6 中引入了类的概念，但 JavaScript 本质上是基于原型继承的，类的概念只是对原型继承的一种语法糖。类的概念将在后续讲解中详细介绍。
 
 ## 原型和原型继承
 
@@ -6670,7 +6657,7 @@ setTimeout(() => {
    console.log(
      Object.getPrototypeOf(circle) === Circle.prototype
    ); //true
-   
+
    const x = {};
    console.log(Object.getPrototypeOf(x) === Object.prototype); //true
    ```
@@ -6865,7 +6852,7 @@ setTimeout(() => {
    ```js
    const person = { name: "Mosh" };
    console.log(Object.keys(person)); // 输出 ['name']
-   
+
    // 使用 `for...in` 迭代属性时，不会列出继承自原型的属性
    for (let key in person) {
      console.log(key); // 只输出 'name'
@@ -7015,12 +7002,12 @@ setTimeout(() => {
    function Circle(radius) {
      this.radius = radius;
    }
-   
+
    Circle.prototype.move = function () {
      console.log("Moving the circle");
      this.draw(); // 调用实例方法
    };
-   
+
    const circle = new Circle(5);
    circle.move(); // 输出：Moving the circle
    // 输出：Drawing a circle with radius 5
@@ -7159,7 +7146,7 @@ setTimeout(() => {
        [arr[i], arr[j]] = [arr[j], arr[i]];
      }
    }
-   
+
    const arr = [1, 2, 3, 4];
    shuffleArray(arr);
    console.log(arr); // 打乱后的数组
@@ -7244,6 +7231,8 @@ setTimeout(() => {
 > //   this.name = name;
 > //   this.age = age;
 > // }
+> console.log(new Cat.prototype.constructor("JOJO", 5));
+> // 输出 Cat {name: 'JOJO', age: 5} 等价于 new Cat("JOJO", 5)
 > ```
 >
 > 1. 当用 `new Cat()` 调用构造函数时，JavaScript 引擎会执行以下步骤：
@@ -7309,7 +7298,7 @@ setTimeout(() => {
    - 为什么要套`Object.create()`，有什么影响？
 
      - 使用 `Object.create(Shape.prototype)` 来创建一个独立但具有继承关系的原型对象
-     - 使用 `Object.create()`生成的对象没有 `constructor` 属性，生成对象查找  `constructor`  属性是通过原型链找到的。比如，`Object.create(Shape.prototype)` 创建的新对象本身没有定义自己的 `constructor` 属性，但它的内部原型（即 `__proto__`）正是 `Shape.prototype`，而 `Shape.prototype` 上有 `constructor` 属性。
+     - 使用 `Object.create()`生成的对象没有 `constructor` 属性，生成对象查找 `constructor` 属性是通过原型链找到的。比如，`Object.create(Shape.prototype)` 创建的新对象本身没有定义自己的 `constructor` 属性，但它的内部原型（即 `__proto__`）正是 `Shape.prototype`，而 `Shape.prototype` 上有 `constructor` 属性。
      - 所以，执行`Circle.prototype = Object.create(Shape.prototype);`后，``Circle.prototype`上丢失了 `constructor` 属性，Circle 生成的对象调用 `constructor` 属性时，会通过原型链查找，最终会指向 `Shape.prototype.constructor` ，即指向创建 Shape 的函数本身
 
    - 等价
@@ -7318,7 +7307,7 @@ setTimeout(() => {
      Circle.prototype = Object.create(Shape.prototype);
      Circle.prototype.constructor = Circle;
      // 等价于
-     Circle.prototype.__proto__ = Shape.prototype // 不推荐直接使用 __proto__
+     Circle.prototype.__proto__ = Shape.prototype; // 不推荐直接使用 __proto__
      ```
 
      - `__proto__` 是一个内部属性（通常称为“内部[[Prototype]]”），它指向当前对象的原型对象，也就是对象用于属性查找的链接。
@@ -7326,7 +7315,11 @@ setTimeout(() => {
      - `Circle.prototype.__proto__` 就是指向 `Circle.prototype` 的原型对象，也就是它所继承的对象。
      - 当我们通过 `Circle.prototype = Object.create(Shape.prototype);` 来设置继承关系时，`Circle.prototype.__proto__` 就指向 `Shape.prototype`。
      - `__proto__` 在这里表示原型链中的链接，用于实现继承和属性查找。
-     - 下面的操作没有直接替换掉 `Circle` 的 `prototype` 属性
+     - 第二种操作没有直接替换掉 `Circle` 的 `prototype` 属性，但是不推荐直接使用过时的属性`__proto__`
+
+   - 属性为什么不能卸载 prototype 上
+
+     - 每个对象的属性值是独立的，放在 prototype 中，修改一个变量属性值，所有变量均改变
 
 **代码示例**
 
@@ -7345,7 +7338,7 @@ setTimeout(() => {
    Circle.prototype.draw = function () {
      console.log("Drawing circle with radius " + this.radius);
    };
-   
+
    // 定义 Square 构造函数
    function Square(side) {
      this.side = side;
@@ -7356,10 +7349,10 @@ setTimeout(() => {
    Square.prototype.draw = function () {
      console.log("Drawing square with side " + this.side);
    };
-   
+
    const circle = new Circle(5);
    const square = new Square(5);
-   
+
    circle.duplicate(); // Duplicating Circle
    circle.draw(); // Drawing circle with radius 5
    square.duplicate(); // Duplicating Square
@@ -7371,45 +7364,100 @@ setTimeout(() => {
    我们创建一个 Shape 构造函数，并将 duplicate 方法定义在其原型上。然后让 Circle 和 Square 继承自 Shape，从而共享 duplicate 方法而不需要重复定义。
 
    ```js
-   function Shape() {}
+   function Shape(color) {
+     this.color = color;
+   }
    Shape.prototype.duplicate = function () {
-     console.log("Duplicating " + this.constructor.name);
+     if (this.color)
+       console.log(
+         "Duplicating " +
+           this.constructor.name +
+           "with " +
+           this.color
+       );
+     else console.log("Duplicating " + this.constructor.name);
    };
-   
+
    // 定义 Circle 构造函数
-   function Circle(radius) {
-     Shape.call(this);
+   function Circle(radius, color) {
+     Shape.call(this, color);
      this.radius = radius;
    }
-   
+
    // 定义 Square 构造函数
-   function Square(side) {
-     Shape.call(this);
+   function Square(side, color) {
+     Shape.call(this, color);
      this.side = side;
    }
-   
+
    // 让 Circle 继承自 Shape
    Circle.prototype = Object.create(Shape.prototype);
    Circle.prototype.constructor = Circle;
    Circle.prototype.draw = function () {
      console.log("Drawing circle with radius " + this.radius);
    };
-   
+
    // 让 Square 继承自 Shape
    Square.prototype = Object.create(Shape.prototype);
    Square.prototype.constructor = Square;
    Square.prototype.draw = function () {
      console.log("Drawing square with side " + this.side);
    };
-   
+
    const circle = new Circle(5);
-   const square = new Square(5);
-   
+   const square = new Square(5, "red");
+
    circle.duplicate(); // Duplicating Circle
    circle.draw(); // Drawing circle with radius 5
    square.duplicate(); // Duplicating Square
    square.draw(); // Drawing square with radius 5
    ```
+
+## 使用父类属性
+
+（从上一节抽离）
+
+## 封装继承方法
+
+> 简述
+
+**知识点**
+
+**代码示例**
+
+```js
+
+```
+
+## 方法重写
+
+1，重写方法
+
+2、在重写过程中调用父类的方法
+
+3、提一下原型链方法调用顺序
+
+## Polymorphism
+
+Poly many, morph form
+
+多态
+
+## 什么时候使用继承
+
+不要为了用而用，特别是在小项目中
+
+继承不是复用代码的唯一方式，还有 composition
+
+继承的问题
+
+尽量避免使用继承，如果使用，尽量保证不要多级继承
+
+简要介绍 composition
+
+## Mixins
+
+实现 composition
 
 # 技巧
 
