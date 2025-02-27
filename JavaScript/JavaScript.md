@@ -252,58 +252,148 @@
    ```js
    const interestRate = 0.3;
    interestRate = 1;
-   console.log(interestRate);
    //index.js:2 Uncaught TypeError: Assignment to constant variable.
    ```
 
-## 原始数据类型
+## 原始数据类型（Primitive Types）
 
-> 简述：在 JavaScript 中，数据类型大致分为两类：
->
-> - **原始数据类型（Primitives）**，也称为值类型。包含字符串、数字、布尔值、未定义、空值。
-> - **引用数据类型（Reference Types）**，包含对象（Object）、数组（Array）、函数（Function），将在之后讲解。
+> **简述**：原始数据类型是 JavaScript 最基本的数据单位，存储的是值本身，而不是引用。JavaScript 提供了五种原始数据类型：字符串（String）、数字（Number）、布尔值（Boolean）、未定义（Undefined）和空值（Null）。这些类型用于表示文本、数值、逻辑状态及变量的特殊状态。
 
 **知识树**
 
-1. 字符串（String）：字符串是由一系列字符组成的文本数据。
-2. 数字（Number）：数字用于表示整数和浮动数。
-3. 布尔值（Boolean）：布尔值只有两种可能的值：`true` 或 `false`。布尔值常用于逻辑判断。
-4. 未定义（Undefined）：`undefined` 是 JavaScript 中的一个原始数据类型，它表示“未初始化”或“没有值”。这与变量声明时的状态相关。如果声明了一个变量但没有给它赋值，它的默认值就是 `undefined`。`undefined` 也可以显式地赋值给变量，但这种做法不常见。
-5. 空值（Null）：明 `null` 是一个表示“空对象引用”的特殊类型。它与 `undefined` 不同，`undefined` 是未定义的状态，而 `null` 是显式的空值。
-6. 历史遗留问题：使用 `typeof` 运算符检查 `null` 时，返回的类型是 `"object"`。这显然与 `null` 作为原始类型的身份不符，且这一行为至今未被修复，主要是出于向后兼容性考虑。
+1. 字符串（String）
+
+   - 由字符组成的文本数据，必须使用引号包裹
+   - 表示方式：
+     - 单引号（`'...'`）
+     - 双引号（`"..."`）
+     - 反引号（`` `...` ``，模板字符串，后续会单独讲解）
+
+2. 数字（Number）
+
+   - JavaScript 只有一种 `Number` 类型，表示整数和浮点数
+   - 特殊值：
+     - `Infinity`（正无穷大）、`-Infinity`（负无穷大）
+     - `NaN`（Not-a-Number，非法数学运算结果）
+
+3. 布尔值（Boolean）
+
+   - 只有两个值：`true` 和 `false`
+   - 逻辑判断时使用
+   - 隐式转换：
+     - 这些值会被转换为 `false`：`0`、`""`（空字符串）、`null`、`undefined`、`NaN`
+     - 其他值转换为 `true`
+
+4. 未定义（Undefined）
+
+   - 变量声明但未赋值时，默认值为 `undefined`
+   - 访问对象中不存在的属性时，也会返回 `undefined`
+   - `undefined` 也可以被显式赋值，但通常不推荐
+
+5. 空值（Null）
+
+   - 代表“空对象引用”
+   - `null` 和 `undefined` 的区别：
+     - `undefined`：变量存在但没有值
+     - `null`：变量有意设为空
+
+6. 历史遗留问题
+   - `typeof null === "object"`：JavaScript 早期实现的 bug，至今未修复，主要是为了向后兼容
 
 **代码示例**
 
-```js
-let userName = "Alice"; // 字符串字面量
-let userAge = 30; // 数字字面量
-let isUserApproved = true; // 布尔值字面量
-let userFirstName; // 默认是 undefined
-let userFavoriteColor = null; // 代表空值
+1. 字符串
 
-// 类型检查
-console.log(typeof userName); // "string"
-console.log(typeof userAge); // "number"
-console.log(typeof isUserApproved); // "boolean"
-console.log(typeof userFirstName); // "undefined"
-console.log(typeof userFavoriteColor); // "object"（注意：这是 JavaScript 的历史遗留问题）
-```
+   ```js
+   let userName = "Alice";
+   let greeting = `Hello, ${userName}!`; // 模板字符串，后续会单独讲解
+   ```
 
-## 动态类型
+   - 字符串可以用不同类型的引号表示，模板字符串支持变量插值
 
-> 简述：JavaScript 是一种 **动态类型（Dynamic Typing）语言**，这意味着变量在声明时不需要指定类型，变量的类型可以在运行时动态变化。
+2. 数字
+
+   ```js
+   let userAge = 30;
+   let pi = 3.14;
+   let infinityValue = Infinity;
+   let notANumber = NaN;
+   ```
+
+   - JavaScript 没有区分整数和浮点数，`NaN` 代表非法数值
+
+3. 布尔值
+
+   ```js
+   let isLoggedIn = true;
+   let hasPermission = false;
+   ```
+
+   - 用于逻辑判断，`true` 和 `false` 是唯一的可能值
+
+4. 未定义
+
+   ```js
+   let userFirstName;
+   console.log(userFirstName); // undefined
+   ```
+
+   - 变量未赋值时默认是 `undefined`
+
+5. 空值
+   ```js
+   let userFavoriteColor = null;
+   console.log(typeof userFavoriteColor); // "object"（历史遗留问题）
+   ```
+   - `null` 代表“空对象引用”，但 `typeof` 返回 `"object"` 是 JavaScript 的 bug
+     你的这节笔记已经很好地解释了**动态类型**的概念，并通过代码示例直观展示了 JavaScript 变量类型的动态变化。不过可以进行以下优化，使其更加完整和易读：
+
+## 动态类型（Dynamic Typing）
+
+> **简述**：JavaScript 是一种 **动态类型（Dynamic Typing）语言**，这意味着变量在声明时**不需要指定类型**，变量的类型**可以在运行时根据赋值动态变化**。
 >
-> - **静态语言**：在静态类型语言（如 Java、C++）中，变量的类型在编译时就已经固定，声明变量时必须指定类型，且在后续不能更改。
-> - **动态语言**：在动态类型语言（如 JavaScript）中，变量的类型是在运行时根据赋给它的值来决定的，且可以随时更改。
+> - **静态语言**（如 Java、C++）：变量的类型在**编译时**就已经固定，声明变量时必须指定类型，且后续不能更改。
+> - **动态语言**（如 JavaScript、Python）：变量的类型在**运行时**根据赋值决定，且可以随时更改。
+
+**知识树**
+
+1. 动态类型的特点
+
+   - 变量不需要指定类型，可随时更改类型。
+   - 赋值时，JavaScript 自动推断类型。
+   - `typeof` 操作符可用于检查变量的当前类型。
+
+2. 可能带来的问题
+   - 由于类型可以随意更改，可能会导致意外的类型错误。
+   - 运行时动态类型转换可能会导致隐式类型转换问题（如字符串拼接、数学运算）。
 
 **代码示例**
 
-```js
-let userName = "Alice"; // 字符串字面量
-console.log(typeof userName); // "string"
-userName = 6;
-console.log(typeof userName); // "number"
-```
+1. 变量类型的动态变化
+
+   ```js
+   let userName = "Alice"; // 初始类型为字符串
+   console.log(typeof userName); // "string"
+
+   userName = 6; // 重新赋值为数字
+   console.log(typeof userName); // "number"
+   ```
+
+   - JavaScript 会根据赋值自动更改变量类型，最初 `userName` 是 `string`，后来变成 `number`。
+
+2. 意外的类型转换
+
+   ```js
+   let value = "5" + 2; // 字符串拼接
+   console.log(value); // "52"
+   console.log(typeof value); // "string"
+
+   let result = "5" - 2; // 数字运算
+   console.log(result); // 3
+   console.log(typeof result); // "number"
+   ```
+
+   - `+` 号会触发字符串拼接，而 `-` 号会触发数学计算，这种隐式类型转换可能导致意外结果。
 
 ## 对象基础
 
