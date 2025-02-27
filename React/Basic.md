@@ -1844,7 +1844,7 @@ export default App;
 
 
 
-# 第四章
+# 第4章-css
 
 
 
@@ -3363,7 +3363,7 @@ export default App;
 
 
 
-# 第6章：构建表单
+# 第6章-构建表单
 
 - 重点总结：
 
@@ -4246,7 +4246,7 @@ export default MyForm;
 
 
 
-# 7.使用Zod与React Hook Form进行Schema验证
+# 第7章-使用Zod与React Hook Form进行Schema验证
 
 随着表单的复杂度不断提升，将验证规则分散写在JSX中会变得冗长且难以维护。这时，我们可以采用**Schema-based Validation**（基于模式的验证）的方法，将所有的验证规则集中定义在一个Schema中。本文介绍了如何使用流行的验证库 **Zod** 与 **react-hook-form** 相结合，简化表单验证的流程。还有joi、yup验证库
 
@@ -4434,32 +4434,30 @@ export default MyForm;
 
 
 
-## 项目：费用追踪器项目扩展与高级功能
+# 项目：费用追踪器项目扩展与高级功能
 
 
 
-在前面，我们已经完成了费用列表和基本的表单功能。接下来，我们将继续扩展功能，添加一些更复杂的功能，如数据过滤、状态管理、条件渲染以及使用 React Hook Form 进行更高级的表单操作。
+在本节中，我们将实现一个简单的“Expense List”（支出列表）组件。我们从创建基本的表格结构开始，然后逐步加入功能，如删除支出项和计算总支出。最后，我们将确保组件的可复用性，并通过父组件传递数据和事件。
 
+### **1. 组件结构与文件夹组织**
 
-
-**1. 费用列表组件 (ExpenseList)**
-
-
-
-费用列表组件的目标是渲染一张表格，显示用户的费用信息。在此组件中，我们接收一个包含费用数据的 expenses 数组并将其显示在表格中。
-
-
-
-**步骤**：
-
-​	•	创建一个表格，表格中包括 description（描述）、amount（金额）、category（类别）以及 delete（删除按钮）等列。
-
-​	•	使用 map 方法遍历 expenses 数组，动态生成表格的行。
-
-​	•	为每一行添加一个删除按钮，点击时调用父组件传递的 onDelete 回调函数。
++ **组织文件夹结构**：为整个项目创建一个模块化结构，将相关组件放置在同一文件夹内，便于管理和扩展。创建 expense tracker 文件夹，并在其中添加一个 components 子文件夹，里面存放所有与“支出跟踪”相关的组件。
 
 ```
-// ExpenseList.tsx
+src/
+└── expense-tracker/
+    └── components/
+        └── ExpenseList.tsx
+```
+
+### **2. 创建ExpenseList组件**
+
+**1. 定义组件基础结构**：在 ExpenseList.tsx 中，首先创建一个返回支出数据的表格结构。使用 Bootstrap 提供的表格样式 table 和 table-bordered 来创建一个有边框的表格。
+
+**代码示例**：
+
+```tsx
 import React from 'react';
 
 interface Expense {
@@ -4504,8 +4502,11 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) => {
       </tbody>
       <tfoot>
         <tr>
-          <td colSpan={3}>Total</td>
-          <td>{expenses.reduce((acc, expense) => acc + expense.amount, 0)}</td>
+          <td>Total</td>
+          <td>
+            ${expenses.reduce((acc, expense) => acc + expense.amount, 0).toFixed(2)}
+          </td>
+          <td colSpan={2}></td>
         </tr>
       </tfoot>
     </table>
@@ -4515,99 +4516,40 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) => {
 export default ExpenseList;
 ```
 
-**2. 费用过滤器 (ExpenseFilter)**
+**2. 解释**：
+   + **Expense接口**：定义了每个支出的结构，包括 id, description, amount, 和 category。
 
+   + **ExpenseListProps接口**：用于定义组件的 props，接收 expenses（支出数据）和 onDelete（删除事件回调）
 
+   + **onDelete回调**：当点击删除按钮时，我们通过 onDelete 回调向父组件传递当前支出的 id，以便父组件处理删除逻辑。
 
-为了方便用户按类别筛选费用，我们创建了一个费用过滤器组件。这个组件允许用户选择一个类别，表单根据选择的类别动态更新显示的费用项。
+  
 
+**3. 父组件：传递数据和事件**
 
+   1. **在App组件中管理状态**：父组件管理支出列表的状态，并传递到 ExpenseList 组件。
 
-**步骤**：
+**代码示例**：
 
-​	•	使用 select 元素显示所有的费用类别。
-
-​	•	当用户选择一个类别时，更新父组件中的 selectedCategory 状态。
-
-​	•	根据选中的类别动态过滤费用列表。
-
-```
-// ExpenseFilter.tsx
-import React from 'react';
-
-interface ExpenseFilterProps {
-  categories: string[];
-  onSelectCategory: (category: string) => void;
-}
-
-const ExpenseFilter: React.FC<ExpenseFilterProps> = ({ categories, onSelectCategory }) => {
-  return (
-    <select
-      className="form-select"
-      onChange={(e) => onSelectCategory(e.target.value)}
-    >
-      <option value="">All Categories</option>
-      {categories.map((category) => (
-        <option key={category} value={category}>
-          {category}
-        </option>
-      ))}
-    </select>
-  );
-};
-
-export default ExpenseFilter;
-```
-
-**3. 父组件中的状态管理与数据过滤**
-
-
-
-在父组件中，我们需要维护费用数据（expenses）和当前选择的类别（selectedCategory）。当用户选择类别时，我们根据选择的类别过滤费用列表。
-
-
-
-**步骤**：
-
-​	•	使用 useState 管理费用数据和选中的类别。
-
-​	•	根据 selectedCategory 对费用数据进行筛选，传递给 ExpenseList 组件。
-
-​	•	使用 onDelete 方法从费用列表中删除费用项。
-
-```
-// App.tsx
+```tsx
 import React, { useState } from 'react';
-import ExpenseList from './components/ExpenseList';
-import ExpenseFilter from './components/ExpenseFilter';
-
-const categories = ['groceries', 'utilities', 'entertainment'];
+import ExpenseList from './expense-tracker/components/ExpenseList';
 
 const App: React.FC = () => {
   const [expenses, setExpenses] = useState([
-    { id: 1, description: 'Groceries', amount: 50, category: 'groceries' },
-    { id: 2, description: 'Electric Bill', amount: 100, category: 'utilities' },
-    { id: 3, description: 'Cinema Ticket', amount: 20, category: 'entertainment' },
+    { id: 1, description: 'Groceries', amount: 50, category: 'Food' },
+    { id: 2, description: 'Electricity Bill', amount: 100, category: 'Utilities' },
+    { id: 3, description: 'Internet', amount: 30, category: 'Utilities' },
   ]);
-
-  const [selectedCategory, setSelectedCategory] = useState('');
 
   const handleDelete = (id: number) => {
     setExpenses(expenses.filter((expense) => expense.id !== id));
   };
 
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-  };
-
-  const filteredExpenses = selectedCategory
-    ? expenses.filter((expense) => expense.category === selectedCategory)
-    : expenses;
-
   return (
-    <div className="container mt-4">
-      <ExpenseFilter categories={categories} onSelectCategory={handleCategoryChange} />
-      <ExpenseList expenses={filteredExpenses} onDelete={handleDelete} />
+    <div>
+      <h1>Expense Tracker</h1>
+      <ExpenseList expenses={expenses} onDelete={handleDelete} />
     </div>
   );
 };
@@ -4615,74 +4557,272 @@ const App: React.FC = () => {
 export default App;
 ```
 
-**4. 动态更新表单与费用数据**
+   2. **解释**：
+   + 使用 useState 来管理支出数据，每个支出是一个包含 id, description, amount, 和 category 的对象。
+   + handleDelete 函数负责从支出列表中删除指定 id 的支出项。
+   + 将 expenses 和 handleDelete 作为 props 传递给 ExpenseList 组件。
 
 
 
-在表单组件中，用户可以添加新的费用项。当用户提交表单时，我们会创建一个新的费用项并将其添加到现有的费用列表中，同时重置表单。
+**4. 显示总支出**
+   + **计算总支出**：在表格的 tfoot 部分，我们使用 reduce 方法计算所有支出的总额。
+   + reduce 方法：对 expenses 数组进行累加，计算出所有支出的总额。
+   + toFixed(2)：将总额格式化为保留两位小数的字符串。
+
+**代码说明**：
+
+```tsx
+<tfoot>
+  <tr>
+    <td>Total</td>
+    <td>
+      ${expenses.reduce((acc, expense) => acc + expense.amount, 0).toFixed(2)}
+    </td>
+    <td colSpan={2}></td>
+  </tr>
+</tfoot>
+```
 
 
 
-**步骤**：
+**5.  删除功能**
+   1. **删除支出项**：通过 onDelete 回调，将 id 传递给父组件，父组件通过 setExpenses 更新状态，从而移除指定的支出项。
 
-​	•	创建一个费用表单（ExpenseForm）组件，接受 onSubmit 回调函数来添加新的费用项。
 
-​	•	在父组件中管理费用数据，并使用 onSubmit 更新费用列表。
+**代码示例**：
+
+```tsx
+const handleDelete = (id: number) => {
+  setExpenses(expenses.filter((expense) => expense.id !== id));
+};
+```
+
+   2. **删除后的效果**：当点击删除按钮时，支出项会从列表中移除，同时总支出会实时更新。
+
+
+
+**6.  优化：如果没有支出则不渲染表格**
+
+   1. **条件渲染表格**：当支出列表为空时，我们不需要渲染表格，可以返回 null。
+
+**代码示例**：
 
 ```
-// ExpenseForm.tsx
-import React, { useState } from 'react';
+if (expenses.length === 0) return null;
+```
+
+  2. **效果**：当所有支出项被删除后，表格会消失，保持界面的简洁。
+
+
+
+**7. 测试与总结**
+
+   1. **测试**：通过传递一些假数据到 App 组件，测试删除功能和总支出的计算。
+
+   2.  **总结**：
+
+		+ 我们成功创建了一个可复用的 ExpenseList 组件，能够显示支出数据、计算总支出并处理删除操作。
+		
+		+ ExpenseList 组件通过 props 接收数据和事件，保持了与父组件的解耦。
+		
+		+ 通过 reduce 计算总支出，并根据支出数量条件渲染表格，提升用户体验。
+
+
+
+下一步我们将继续实现更多功能，例如支出过滤等。
+
+
+
+### **3. Expense Filter 组件**
+
+**1. 目标与功能**
+
++ **目标**：实现一个下拉选择框，根据支出的类别进行过滤。
+
++ **功能**：
+  + 显示“所有类别”选项以及若干硬编码（后续可动态化）的分类选项（例如：groceries、utilities、entertainment）。
+
+  + 当用户选择某一类别时，通过 onSelectCategory 回调通知父组件，父组件据此更新展示的支出列表。
+
+
+
+
+**2. 组件结构与代码**
+
+
+
+**ExpenseFilter.tsx 示例代码：**
+
+```tsx
+import React from 'react';
+
+interface ExpenseFilterProps {
+  onSelectCategory: (category: string) => void;
+}
+
+const ExpenseFilter: React.FC<ExpenseFilterProps> = ({ onSelectCategory }) => {
+  return (
+    <select
+      className="form-select"
+      onChange={(e) => onSelectCategory(e.target.value)}
+    >
+      <option value="">All Categories</option>
+      <option value="groceries">Groceries</option>
+      <option value="utilities">Utilities</option>
+      <option value="entertainment">Entertainment</option>
+    </select>
+  );
+};
+
+export default ExpenseFilter;
+```
+
+**3. 父组件中的整合**
+
++ 在父组件中，我们使用 useState 保存当前选中的类别（例如：selectedCategory）。
+
++ 根据 selectedCategory 计算出 **visibleExpenses**：
+
++ 如果用户选择了一个具体的类别，则过滤出该类别的支出；
+
++ 如果未选或选空字符串，则显示所有支出。
+
+
+
+**示例逻辑：**
+
+```tsx
+const visibleExpenses = selectedCategory
+  ? expenses.filter(e => e.category === selectedCategory)
+  : expenses;
+```
+
+### **4. Expense Form 组件**
+
+
+
+**1. 目标与功能**
+
++ **目标**：构建一个用于添加新支出的表单组件。
++ **功能**：
+  + 表单包含三个字段：描述（description）、金额（amount）以及分类（category）。
+  + 分类选项从全局的 categories 模块中导入，保证不同组件间的一致性，避免硬编码重复。
+  + 使用 **react-hook-form** 处理表单状态，并结合 **Zod** 实现 Schema-Based 验证。
+  + 当表单验证通过后，通过回调（例如 onSubmit）将新支出数据传递给父组件，并在提交后重置表单。
+
+
+
+**2. 文件结构与全局数据**
+
++ **全局数据**：为避免组件间相互依赖的加载顺序问题，将所有类别数据放到一个单独的模块中（例如：categories.ts），然后在 Expense Filter 与 Expense Form 中导入使用。
+
+
+
+**categories.ts 示例：**
+
+```tsx
+const categories = ['groceries', 'utilities', 'entertainment'] as const;
+export default categories;
+```
+
+**3. 构建Expense Form组件**
+
+
+
+**3.1 表单基础结构**
+
++ 包含三个字段的表单：
+
+  + **描述**：文本输入，配有 label 与 Bootstrap 样式（form-control）。
+
+  + **金额**：数字输入，类型为 number；注意 HTML 输入返回字符串，需通过 react-hook-form 配置转换为数字。
+
+  + **分类**：下拉选择框，选项动态生成自 categories 模块。
+
+
+
+**3.2 使用 react-hook-form 与 Zod 实现验证**
+
+
+
+**验证规则使用 Zod 定义 Schema：**
+
++ **描述**：字符串，最小长度 3，错误信息可自定义。
+
++ **金额**：数字，设定最小值，且在注册时使用 { valueAsNumber: true } 确保转换。
+
++ **分类**：通过 z.enum 限定其值仅为 categories 数组中的一个。
+
+
+
+**ExpenseForm.tsx 示例代码：**
+
+```tsx
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import categories from '../categories';
+
+// 使用 Zod 定义表单 Schema
+const schema = z.object({
+  description: z.string().min(3, { message: "Description should be at least 3 characters." }),
+  amount: z.number({ invalid_type_error: "Amount is required" }).min(1, { message: "Amount must be at least 1." }),
+  category: z.enum(categories, { errorMap: () => ({ message: "Category is required." }) }),
+});
+
+type ExpenseFormData = z.infer<typeof schema>;
 
 interface ExpenseFormProps {
-  onSubmit: (expense: { description: string; amount: number; category: string }) => void;
+  onSubmit: (data: ExpenseFormData) => void;
 }
 
 const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
-  const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState(0);
-  const [category, setCategory] = useState('');
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<ExpenseFormData>({
+    resolver: zodResolver(schema),
+  });
 
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    onSubmit({ description, amount, category });
-    setDescription('');
-    setAmount(0);
-    setCategory('');
+  const submitHandler = (data: ExpenseFormData) => {
+    onSubmit(data);
+    reset();
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="form-group">
-        <label>Description</label>
-        <input
-          type="text"
-          className="form-control"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
+    <form onSubmit={handleSubmit(submitHandler)}>
+      <div className="mb-3">
+        <label className="form-label" htmlFor="description">Description</label>
+        <input id="description" className="form-control" {...register("description")} />
+        {errors.description && (
+          <p className="text-danger">{errors.description.message}</p>
+        )}
       </div>
-      <div className="form-group">
-        <label>Amount</label>
-        <input
-          type="number"
-          className="form-control"
-          value={amount}
-          onChange={(e) => setAmount(Number(e.target.value))}
-        />
+
+      <div className="mb-3">
+        <label className="form-label" htmlFor="amount">Amount</label>
+        <input id="amount" type="number" className="form-control" {...register("amount", { valueAsNumber: true })} />
+        {errors.amount && (
+          <p className="text-danger">{errors.amount.message}</p>
+        )}
       </div>
-      <div className="form-group">
-        <label>Category</label>
-        <select
-          className="form-select"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-        >
-          <option value="">Select Category</option>
-          <option value="groceries">Groceries</option>
-          <option value="utilities">Utilities</option>
-          <option value="entertainment">Entertainment</option>
+
+      <div className="mb-3">
+        <label className="form-label" htmlFor="category">Category</label>
+        <select id="category" className="form-select" {...register("category")}>
+          <option value="">Select a category</option>
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
         </select>
+        {errors.category && (
+          <p className="text-danger">{errors.category.message}</p>
+        )}
       </div>
+
       <button type="submit" className="btn btn-primary">Submit</button>
     </form>
   );
@@ -4691,27 +4831,84 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
 export default ExpenseForm;
 ```
 
-**5. 父组件整合：添加新的费用项**
+**4. 父组件整合：处理过滤与添加新支出**
 
 
 
-在父组件中，我们需要添加一个 onSubmit 处理方法，处理表单提交并将新的费用项添加到 expenses 数组中。
+在父组件（例如 App.tsx）中，我们将整合 Expense Filter、Expense Form 以及 Expense List 组件：
 
-```
-// App.tsx (continued)
-import ExpenseForm from './components/ExpenseForm';
+1. **状态管理**：
+
+   + **expenses**：存储所有支出数据。
+   
+   
+      + 	**selectedCategory**：当前选中的过滤类别。
+   
+
+
+2.	**数据过滤**：
+   + 计算 visibleExpenses，若 selectedCategory 有值，则使用 expenses.filter 筛选，否则显示全部支出。
+
+
+3.	**新增支出**：
+   + 	Expense Form 提交后，父组件通过回调（例如 onSubmit）获取新支出数据，使用 setExpenses([...expenses, { ...newExpense, id: expenses.length + 1 }]) 更新状态。
+
+
+
+
+**App.tsx 示例代码：**
+
+```tsx
+import React, { useState } from 'react';
+import ExpenseList from './expense-tracker/components/ExpenseList';
+import ExpenseFilter from './expense-tracker/components/ExpenseFilter';
+import ExpenseForm from './expense-tracker/components/ExpenseForm';
+import categories from './expense-tracker/categories';
+
+interface Expense {
+  id: number;
+  description: string;
+  amount: number;
+  category: string;
+}
 
 const App: React.FC = () => {
-  // Existing state and functions
-  const handleSubmit = (expense: { description: string; amount: number; category: string }) => {
-    setExpenses([...expenses, { ...expense, id: expenses.length + 1 }]);
+  const [expenses, setExpenses] = useState<Expense[]>([
+    { id: 1, description: 'Groceries', amount: 50, category: 'groceries' },
+    { id: 2, description: 'Electricity Bill', amount: 100, category: 'utilities' },
+    { id: 3, description: 'Movie Tickets', amount: 30, category: 'entertainment' },
+  ]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+
+  const handleDelete = (id: number) => {
+    setExpenses(expenses.filter(expense => expense.id !== id));
   };
+
+  const handleFilter = (category: string) => {
+    setSelectedCategory(category);
+  };
+
+  const handleAddExpense = (newExpense: any) => {
+    setExpenses([...expenses, { ...newExpense, id: expenses.length + 1 }]);
+  };
+
+  // 根据选中的过滤条件计算显示的支出
+  const visibleExpenses = selectedCategory
+    ? expenses.filter(exp => exp.category === selectedCategory)
+    : expenses;
 
   return (
     <div className="container mt-4">
-      <ExpenseFilter categories={categories} onSelectCategory={handleCategoryChange} />
-      <ExpenseForm onSubmit={handleSubmit} />
-      <ExpenseList expenses={filteredExpenses} onDelete={handleDelete} />
+      <h1>Expense Tracker</h1>
+      <ExpenseForm onSubmit={handleAddExpense} />
+      <div className="my-3">
+        <ExpenseFilter onSelectCategory={handleFilter} />
+      </div>
+      {visibleExpenses.length > 0 ? (
+        <ExpenseList expenses={visibleExpenses} onDelete={handleDelete} />
+      ) : (
+        <p>No expenses found.</p>
+      )}
     </div>
   );
 };
@@ -4719,21 +4916,49 @@ const App: React.FC = () => {
 export default App;
 ```
 
-**6. 项目最终实现与总结**
+**三、总结与思考**
+
+1.	**模块化设计**：将应用按功能拆分到独立文件夹（如 expense-tracker），使得项目结构清晰、便于维护。
+
+2. **组件职责单一**：
+
+   + 	**Expense Filter**：只负责展示筛选器和传递用户选择，不管理数据。
+   
+   
+      + 	**Expense Form**：专注于数据录入和验证，利用 react-hook-form 与 Zod 集中管理验证规则和错误提示。
+   
+   
+      + 	**Expense List**：负责展示支出数据和总额计算，同时通过回调通知父组件删除操作。
+   
+
+
+3.	**状态管理与数据流**：父组件统一管理支出列表和过滤条件，通过回调函数与子组件通信，实现数据更新和动态过滤。
+
+4.	**验证与类型安全**：结合 Zod 与 react-hook-form，不仅大幅减少冗余代码，还提供了友好的错误信息与强类型支持。
+
+5.	**最佳实践**：避免为可以从现有状态计算的数据（如 visibleExpenses）创建额外的 state，确保状态简洁且一致。
+
+
+
+通过本节课，你不仅学会了如何构建支出过滤器和表单组件，还掌握了在实际项目中如何组织模块、管理状态、处理表单验证以及组件间的通信。接下来，你可以继续探索如何进一步扩展功能（如更复杂的过滤、多条件筛选等），并优化用户体验。
+
+
+
+**项目最终实现与总结**
 
 
 
 通过本节的内容，我们实现了一个完整的费用追踪器应用。这个应用支持：
 
-​	•	添加新的费用项；
++ 	添加新的费用项；
 
-​	•	删除费用项；
++ 	删除费用项；
 
-​	•	按类别筛选费用；
++ 按类别筛选费用；
 
-​	•	动态计算和显示费用总计；
++ 动态计算和显示费用总计；
 
-​	•	表单验证和处理（使用 React Hook Form 和 Zod）。
++ 表单验证和处理（使用 React Hook Form 和 Zod）。
 
 
 
