@@ -92,7 +92,18 @@ function App() {
       </ExpandableText>
       */}
 
-      <Form />
+      <Form
+        formData1={[
+          { id: 1, value: "Groceries", label: "Groceries" },
+          { id: 2, value: "Utilities", label: "Utilities" },
+          { id: 3, value: "Entertainment", label: "Entertainment" },
+        ]}
+        formData2={[
+          { id: 1, value: "Groceries", label: "Groceries" },
+          { id: 2, value: "Utilities", label: "Utilities" },
+          { id: 3, value: "Entertainment", label: "Entertainment" },
+        ]}
+      />
     </div>
   );
 }
