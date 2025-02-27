@@ -1,35 +1,10 @@
 > 以学习过 HTML&CSS 为基础
 
-# 工具
-
-## Node
-
-> Homebrew 安装
->
-> ```bash
-> brew install node # 默认安装最新版本
-> ```
-
-## VS Code
-
-> https://code.visualstudio.com
->
-> 安装插件：
->
-> - Prettier——代码格式工具
-> - LiveServer——启用本地服务器，便于在浏览器上查看代码效果
-> - indent-rainbow——缩进
-> - Material Icon Theme——图标
-> - HTML CSS Support
-> - CSS Peek
-> - Highlight Matching Tag
-> - TODO Highlight
->
-> setting 文件代码，含代码颜色、自动格式化，见最后
-
 # 入门
 
 ## JavaScript 概念
+
+> **简述**：JavaScript 是目前最流行的编程语言之一，它可以用于构建网页、移动应用、游戏等。它最初只能在浏览器中运行，但通过 Node.js 也可以运行在服务器端。JavaScript 遵循 ECMAScript 规范，而 Chrome 开发者工具的 Console 可以用来调试和执行 JavaScript 代码。
 
 **知识树**
 
@@ -66,11 +41,37 @@
 
 ## 设置开发环境
 
-下载 VS code、插件
+> **简述**：在开始学习 JavaScript 之前，需要搭建一个合适的开发环境。在学习过程中，为了避免兼容问题，建议安装各类最新的稳定版本。
 
-安装 Node
+1. 安装 Node
+
+   - Mac
+
+     - 安装 homebrew，homebrew 官网：https://brew.sh/
+
+     - 使用 homebrew 安装 node ，控制台运行 `brew install node`
+
+   - windows
+
+     - 手动下载 node，node 官网：https://nodejs.org/en，选择一个LTS版本下载安装
+
+2. 安装 Visual Studio Code
+
+   - 官网：https://code.visualstudio.com/Download
+
+3. 安装 Visual Studio Code 插件
+
+   - Prettier
+   - Live Server
+
+4. Chrome
+
+   - https://www.google.com/chrome/dev/next-steps.html?statcb=0&installdataindex=empty&defaultbrowser=0#
+   - 点击蓝色的`[click here to retry]`
 
 ## 基础代码
+
+> **简述**：编写 JavaScript 代码时，需要注意代码的结构和浏览器的解析顺序。通常，将 `<script>` 标签放在 `<body>` 末尾可以避免页面渲染延迟，同时确保 JavaScript 能够正确操作页面元素。
 
 **知识树**
 
@@ -97,7 +98,7 @@
     <title>Document</title>
   </head>
   <body>
-    <script src="index.js">
+    <script>
       console.log("Hello World"); // 将命令输出到控制台
     </script>
   </body>
@@ -105,6 +106,8 @@
 ```
 
 ## 分离 JS
+
+> 简述：在开发过程中，将 JavaScript 代码从 HTML 文件中分离出来，有助于提高代码的可维护性和复用性。此外，外部 JS 文件可以被浏览器缓存，从而提升页面的加载性能。
 
 **知识树**
 
@@ -124,7 +127,7 @@
 
 1. 在`index.html`中引用
 
-   ```js
+   ```html
    <!DOCTYPE html>
    <html lang="en">
      <head>
@@ -149,12 +152,23 @@
 
 ## Node 环境运行 JS
 
-在命令行工具（终端），文件（index.js）所在路径下，运行
+> **简述**：Node.js 允许在浏览器之外运行 JavaScript 代码，使其可以用于服务器端开发、脚本自动化等。通过命令行工具，可以直接执行 JavaScript 文件。
 
-```bash
-node index.js
-# 输出：Hello World
-```
+**运行方式**
+
+1. 打开命令行工具（终端）。
+2. 进入包含 JavaScript 文件 (`index.js`) 的目录。
+3. 运行以下命令执行 JavaScript 代码：
+
+   ```bash
+   node index.js
+   ```
+
+4. 预期输出：
+
+   ```bash
+   Hello World
+   ```
 
 # 基础
 
