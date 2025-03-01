@@ -1,7 +1,11 @@
-let value = "5" + 2; // 字符串拼接
-console.log(value); // "52"
-console.log(typeof value); // "string"
-
-let result = "5" - 2; // 数字运算
-console.log(result); // 3
-console.log(typeof result); // "number"
+const people = [
+  { id: 1, name: "Alice" },
+  { id: 2, name: "Bob" },
+  { id: 3, name: "Charlie" },
+];
+const peopleById = people.reduce((acc, person) => {
+  acc[person.id] = person.name;
+  return acc;
+}, {});
+console.log(peopleById);
+// 输出: { 1: "Alice", 2: "Bob", 3: "Charlie" }
