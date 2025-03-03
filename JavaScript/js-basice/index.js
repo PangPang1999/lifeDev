@@ -1,11 +1,11 @@
-const people = [
-  { id: 1, name: "Alice" },
-  { id: 2, name: "Bob" },
-  { id: 3, name: "Charlie" },
-];
-const peopleById = people.reduce((acc, person) => {
-  acc[person.id] = person.name;
-  return acc;
-}, {});
-console.log(peopleById);
-// 输出: { 1: "Alice", 2: "Bob", 3: "Charlie" }
+let arr = [10, 20, 30];
+arr.customProperty = "Custom Value";
+
+for (let index in arr) {
+  console.log(index, arr[index]); // 遍历索引和额外属性
+}
+// 输出
+// 0 10
+// 1 20
+// 2 30
+// customProperty Custom Value
