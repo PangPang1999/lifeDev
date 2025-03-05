@@ -2753,43 +2753,42 @@ showPrimes(10);
 
 ## 对象的概念
 
-> **简述**：对象是 JavaScript 中用于将相关属性和方法封装在一起的核心概念，通常用于组织和操作具有相似特性的实体。面向对象编（OOP）程是一种以对象为中心的编程范式。它通过封装 (Encapsulation)、抽象 (Abstraction)、继承(Inheritance)和多态(Polymorphism)等概念，帮助程序员更加高效地组织代码，并使代码更具可维护性。
+> **简述**：对象是 JavaScript 中用于将相关属性和方法封装在一起的核心概念，通常用于组织和操作具有相似特性的实体。
 
 **知识树**
 
 1. 对象的基本概念
 
-    - 对象是键值对（key-value pairs）的集合，用于描述实体的特性和行为。
-    - 属性（Property）：描述对象的状态，可以是基本类型、对象、数组或函数。
-    - 方法（Method）：对象中的函数，用于描述对象的行为，与函数都使用的是`function`。
+    - 对象是键值对（key-value pairs）的集合，表示现实世界的实体。
+    - 属性（Property）：描述对象的状态，值可以是基本数据类型、对象、数组或函数。
+    - 方法（Method）：对象中的函数，用于描述对象的行为。
         - 方法（Method）依附于对象。
         - 函数（Function）独立于对象存在。
 
 2. 创建对象的方式
 
     - 对象字面量（Object Literal）：最常见的方式，适用于简单的对象。
-    - 工厂函数（Factory Function）：通过函数创建对象，以实现复用。
-    - 构造函数（Constructor Function）：使用 `new` 操作符创建对象，适用于更复杂的对象。
-    - **类 Class（Es6 引入）**：使用 `class` 关键字创建对象和类，提供更清晰的语法和继承机制。（将在后续 ES6 章节学习）
+    - 工厂函数（Factory Function）：使用函数返回对象，以实现复用。
+    - 构造函数（Constructor Function）：使用 `new` 关键字创建对象，适用于更复杂的对象。
 
 3. 对象的使用
 
-    - 使用点语法（`.`）或方括号语法（`[]`）访问对象的属性和方法。
-    - 对象的方法操作其属性，实现行为和状态的结合。
+    - 访问对象的属性和方法
+        - 点语法（`.`）：`object.property`
+        - 方括号语法（`[]`）：`object["property"]`
+    - 修改、添加和删除对象的属性
 
-4. 面向对象编程的核心思想
+4. 面向对象编程
 
-    - 封装：将相关数据（属性）和行为（方法）组织在一个对象中（将在后续学习）。
-    - 抽象：通过对象模型化现实世界的实体（将在后续学习）。
-    - 继承：允许对象基于其他对象扩展功能（将在后续学习）。
-    - 多态：对象可以以不同形式表现（将在后续学习）。
+    - 以对象为核心的编程范式，将数据和操作封装在对象中，使代码更结构化、可复用、易维护。
+    - 更高级的对象创建方式（如 class 语法）将在 ES6 章节详细讲解。
 
 **代码示例**
 
 1. 对象基础
 
     ```js
-    // 对象字面量方式创建对象
+    // 通过对象字面量创建对象
     const circle = {
     	radius: 1, // 属性
     	location: { x: 1, y: 1 }, // 嵌套对象
@@ -2799,6 +2798,7 @@ showPrimes(10);
     		console.log("draw");
     	},
     };
+
     // 访问属性和方法
     console.log(circle.radius); // 输出: 1
     console.log(circle.location.x); // 输出: 1
@@ -2807,22 +2807,29 @@ showPrimes(10);
 
 ## 工厂函数
 
-> **简述**：工厂函数是一种创建对象的简洁方式，避免重复代码，将对象的属性和方法集中定义在一个地方，从而实现高效的复用和维护。
+> **简述**：工厂函数是一种创建对象的方式，通过封装对象创建逻辑来避免代码重复，提高代码复用性和易维护性。
 
 **知识树**
 
 1. 对象创建问题
-    - 使用对象字面量创建多个对象会导致代码重复，特别是当对象中包含逻辑（如方法）时。
-    - 代码重复使得维护困难，一处修改需要在多个地方同步更改。
+
+    - 当使用对象字面量创建多个对象时，容易导致代码重复，尤其是在对象包含方法时。
+    - 当需要修改对象逻辑时，必须在多个地方同步修改，容易出错。
+
 2. 工厂函数的概念
-    - 工厂函数是一个函数，用于动态创建对象并返回。
+
+    - 工厂函数是一个返回新对象的函数。
     - 通过参数化工厂函数，可以为每个对象设置独立的属性值。
+
 3. 工厂函数的优化
+
     - 属性简化：如果属性名和变量名相同，可以省略值，直接写属性名。
     - 方法简化：使用 ES6 简写方法定义。传统的`methodName: function () {}`，可以简写为`methodName() {}`。
+
 4. 工厂函数的优势
-    - 复用性：逻辑集中定义，减少代码重复。
-    - 可维护性：修复或更新逻辑只需修改工厂函数。
+
+    - 复用性：集中定义对象创建逻辑，减少重复代码。
+    - 可维护性：修改逻辑时只需更新工厂函数。
 
 **代码示例**
 
@@ -2858,19 +2865,26 @@ showPrimes(10);
 **知识树**
 
 1. 构造函数的命名规范
+
     - 使用 Pascal 命名法：所有单词首字母大写（如 `Circle`）。
     - 与工厂函数的 Camel 命名法（首单词小写，其余单词首字母大写）区别开来。
+
 2. 构造函数的定义与使用
+
     - 使用 `this` 关键字初始化属性和方法。
     - 通过 `new` 操作符创建对象：
         - 自动创建一个空对象。
         - 将 `this` 指向该对象。
         - 返回这个新对象。
+
 3. 构造函数的关键特点
+
     - 没有显式 `return` 语句。
     - 属性和方法通过 `this` 绑定到新创建的对象上。
     - 更贴近传统 OOP 编程风格。
+
 4. 工厂函数与构造函数的对比
+
     - 工厂函数返回对象；构造函数使用 `this` 初始化属性。
     - 命名规则不同：工厂函数使用 Camel 命名法，构造函数使用 Pascal 命名法。
     - 使用场景根据开发者背景和团队约定而定，两者功能等效。
@@ -2905,9 +2919,12 @@ showPrimes(10);
 **知识树**
 
 1. 对象的动态特性
+
     - 对象可以在运行时添加或删除属性和方法。
     - 对象的成员包括属性（存储数据）和方法（实现行为）。
+
 2. `const` 声明的限制
+
     - `const` 仅限制对象引用不可更改。
     - 对象内部的属性和方法仍然可以被修改或删除。
 
@@ -2961,40 +2978,32 @@ console.log(circle.radius); // 输出：10
 
 ## `constructor` 属性
 
-> **简述**：JavaScript 中每个对象都有一个 `constructor` 属性，它引用用于创建该对象的构造函数。通过 `constructor` 属性，我们可以查看对象是由哪个构造函数创建的。
+> **简述**：在 JavaScript 中，每个对象都有一个 constructor 属性，该属性引用了用于创建该对象的构造函数。
 
 **知识树**
 
 1. `constructor` 的定义
-    - 所有对象都有一个 `constructor` 属性。
-    - 它指向创建该对象的构造函数。
+
+    - 每个对象都有一个 `constructor` 属性。
+    - `constructor` 属性指向创建该对象时使用的构造函数。
+
 2. 对象的创建方式及其构造函数
-    - 对象字面量：由内置的 `Object` 构造函数创建。
-    - 自定义构造函数：通过 `new` 操作符和构造函数显式创建。
-    - 内置类型构造函数：
-        - 字符串：`String`
-        - 数字：`Number`
-        - 布尔值：`Boolean`
+
+    - 对象字面量：通过 `{}`、`""`、`[]` 等字面量语法创建的对象，其 `constructor` 属性默认指向内置构造函数（如 `Object`、`String`、`Array`）。
+    - 自定义构造函数：使用 `new` 操作符和自定义函数创建的对象，其 `constructor` 属性指向该自定义构造函数。
+    - 工厂函数：通过函数返回一个对象。直接返回的对象字面量的 `constructor` 属性通常指向内置的 `Object`，而不是工厂函数本身。
+
 3. 推荐的创建方式
-    - 使用字面量语法（如 `{}`、`""`、`[]`）比直接调用构造函数更简洁、更直观。
+
+    - 对于内置类型，推荐使用字面量语法，因为它更简洁直观，并自动使用相应的内置构造函数。
+    - 对于自定义对象，建议使用构造函数或工厂函数；但如果采用工厂函数并希望返回对象拥有自定义的 constructor 属性，则需要在函数中做特殊处理。
 
 **代码示例**
 
-1. 使用 `constructor` 查看构造函数
+1. 使用构造函数创建对象
 
     ```js
-    // 使用自定义构造函数
-    function createCircle(radius) {
-    	return {
-    		radius,
-    		draw() {
-    			console.log("draw");
-    		},
-    	};
-    }
-    const circle = new createCircle(1);
-
-    // 使用对象字面量
+    // 使用构造函数
     function Circle(radius) {
     	this.radius = radius;
     	this.draw = function () {
@@ -3002,10 +3011,11 @@ console.log(circle.radius); // 输出：10
     	};
     }
 
-    const another = new Circle(1);
-    console.log(circle.constructor); // 输出: [Function: Object]
-    console.log(another.constructor); // 输出: [Function: Circle]
+    const circle = new Circle(1);
+    console.log(circle.constructor); // 输出: [Function: Circle]
     ```
+
+    - 说明：通过 `new Circle(1)` 创建的对象，其 `constructor` 指向 `Circle` 函数。
 
 2. 内置构造函数的行为
 
@@ -3019,6 +3029,8 @@ console.log(circle.radius); // 输出：10
     console.log(strLiteral.constructor); // 输出: [Function: String]
     ```
 
+    - 说明：无论使用构造函数还是字面量语法创建字符串，其 `constructor` 均为内置的 `String` 函数。
+
 3. 字面量 vs 构造函数
 
     ```js
@@ -3027,6 +3039,7 @@ console.log(circle.radius); // 输出：10
     const arrConstructor = new Array();
     console.log(arrLiteral.constructor); // 输出: [Function: Array]
     console.log(arrConstructor.constructor); // 输出: [Function: Array]
+
     // 数字
     const numLiteral = 42;
     const numConstructor = new Number(42);
@@ -3034,36 +3047,61 @@ console.log(circle.radius); // 输出：10
     console.log(numConstructor.constructor); // 输出: [Function: Number]
     ```
 
+    - 说明：使用字面量语法创建的数组和数字，其 `constructor` 属性分别指向内置的 `Array` 和 `Number` 构造函数。
+
+4. 工厂函数的特殊处理
+
+    ```js
+    // 工厂函数返回对象字面量
+    function createCircle(radius) {
+    	return {
+    		radius, // 属性简写
+    		draw() {
+    			// 方法简写
+    			console.log("draw");
+    		},
+    	};
+    }
+    const circle = createCircle(1);
+    console.log(circle.constructor); // 输出: [Function: Object]
+
+    // 特殊处理：手动设置 constructor 属性
+    function createSquare(side) {
+    	let obj = Object.create(null); // 创建一个没有原型的对象
+    	obj.side = side;
+    	obj.constructor = createSquare; // 手动设置 constructor 属性
+    	return obj;
+    }
+
+    const square = createSquare(10);
+    console.log(square.constructor); // 输出: [Function: createSquare]
+    ```
+
+    - 说明：直接返回对象字面量的工厂函数，其返回对象的 `constructor` 属性默认为内置的 `Object`。通过特殊处理（如使用 `Object.create(null)` 并手动设置 `constructor`），可以使返回的对象拥有自定义的 `constructor` 属性。
+
 ## 函数是 对象
 
-> **简述**：在 JavaScript 中，函数本质上是对象。函数不仅可以被调用，还拥有一些内建属性和方法，允许更灵活和动态的操作。
+> 简述：在 JavaScript 中，函数不仅是可调用的代码块，而且本质上是对象。它们拥有内建的属性和方法，使得函数可以像普通对象那样被操作、传递和扩展，从而支持动态和灵活的编程模式。
 
 **知识树**
 
 1. 函数的本质
 
     - 函数是 `Function` 构造函数创建的对象。
-    - 函数可以有属性（如 `name`, `length`）和方法（如 `call`, `apply`, `bind`）。
+    - 作为对象，函数可以拥有属性和方法，并且可以像数据一样被赋值、传递和返回。
 
-2. 函数的属性
+2. 函数的常见属性
 
-    - `name`：函数的名称。
-    - `length`：函数参数的个数。
-    - `constructor`：引用创建函数的 `Function` 构造函数。
+    - `name`：表示函数的名称。
+    - `length`：表示函数参数的个数。
+    - `constructor`：指向创建函数的 Function 构造函数。
 
 3. 函数的动态构建
 
-    - 可以通过 `Function` 构造函数动态创建函数。
+    - 动态修改：函数作为对象，可以在运行时被动态修改（例如添加或修改属性），使其具备更灵活的特性。一般不推荐在构造函数上使用这种方式
+    - 动态生成：可以利用 Function 构造函数在运行时根据字符串生成新的函数对象。这种方式属于动态生成代码，而不是修改已有函数，但它也体现了 JavaScript 的灵活性。（注意：这种方法可能涉及安全性和性能问题，通常建议谨慎使用。）
 
 4. 函数的方法（后续函数章节详细说明）
-
-    - `call()`：调用函数，第一个参数明确指定 `this` 和参数，后续参数传入`this`。
-
-    - `apply()`：与 `call()` 类似，但以数组形式传递参数。
-
-    - `bind()`：返回一个绑定了特定 `this` 值的新函数。
-
-    - _`call()`、`apply()`这些方法一般不直接作用在构造函数上，因为它们的本意是执行一个函数，而构造函数的场景需要结合 `new` 操作符使用。如果直接对构造函数使用 `call()` 或 `apply()`，可能会导致一些问题，例如 `this` 指向问题，或者实例无法继承构造函数的原型方法。`bind()` 在构造函数上的使用也比较少_
 
 **代码示例**
 
@@ -3082,90 +3120,68 @@ console.log(circle.radius); // 输出：10
     console.log(Circle.constructor); // 输出: [Function: Function]
     ```
 
-2. 使用 `Function` 构造函数
+2. 函数动态修改
 
     ```js
-    const Circle = new Function(
-    	"radius",
-    	`
-      this.radius = radius;
-      this.draw = function () {
-        console.log("Draw a circle");
-      };
-    `
-    );
-
-    const circle = new Circle(5);
-    circle.draw(); // 输出: "Draw a circle"
-    ```
-
-3. `call` 、 `apply` 和 `bind` 方法
-
-    ```js
-    function greet(greeting, punctuation) {
-    	console.log(`${greeting}, ${this.name}${punctuation}`);
+    // 定义一个简单的函数
+    function greet(name) {
+    	console.log("Hello, " + name + "!");
     }
 
-    const person = { name: "John" };
+    // 动态添加一个属性
+    greet.language = "English";
 
-    // 使用 call
-    greet.call(person, "Hello", "!"); // 输出: "Hello, John!"
+    // 动态添加一个方法
+    greet.info = function () {
+    	console.log("This function greets someone in " + greet.language);
+    };
 
-    // 使用 apply
-    greet.apply(person, ["Hi", "."]); // 输出: "Hi, John."
+    // 调用函数
+    greet("Alice"); // 输出: Hello, Alice!
 
-    // 使用 bind
-    const sayHi = greet.bind(person, "Hello", "!");
-    sayHi(); // 输出: "Hello, John!"
+    // 访问动态添加的属性
+    console.log(greet.language); // 输出: English
+
+    // 调用动态添加的方法
+    greet.info(); // 输出: This function greets someone in English
     ```
 
-4. 补充作用于构造函数的情况
+3. `Function` 构造函数动态生成函数
 
     ```js
-    function Circle(radius) {
-    	this.radius = radius;
-    	this.draw = function () {
-    		console.log("draw");
-    	};
-    	return this; // 若没有显式返回this，使用call/apply方法将返回underfined
-    }
-    const circle1 = Circle.call({}, 1);
-    console.log("circle1:", circle1); // 输出 circle1: {radius: 1, draw: ƒ}
-    const circle2 = Circle.apply({}, [1]);
-    console.log("circle2:", circle2); // 输出 circle1: {radius: 1, draw: ƒ}
-    const circle3 = Circle.bind({}, 1);
-    console.log("circle3:", circle3);
-    // 输出
-    // circle3: ƒ Circle(radius) {
-    //   this.radius = radius;
-    //   this.draw = function () {
-    //     console.log("draw");
-    //   };
-    //   return this; // 若没有显式返回this，使用call/apply方法将返回underfined
-    // }
+    // 使用 Function 构造函数动态生成一个计算两个数字之和的函数
+    const sumFunction = new Function("a", "b", "return a + b;");
+
+    // 调用动态生成的函数
+    console.log(sumFunction(3, 5)); // 输出: 8
     ```
 
-## 值类型与引用类型
+## 原始类型与引用类型
 
-> **简述**：JavaScript 的数据分为两大类：**值类型**（primitives）和**引用类型**（reference types）。它们的存储方式和行为存在根本区别。
+> **简述**：JavaScript 中的数据分为两大类：原始类型（也称为值类型）和引用类型。这两种类型在存储方式和赋值行为上有根本区别。原始类型直接保存数据本身，而引用类型保存的是对数据的引用，因此在赋值和函数传参时表现出不同的行为。
 
 **知识树**
 
-1. 值类型（Primitives）
+1. 原始类型（Primitive types）
+
     - 包括：`Number`、`String`、`Boolean`、`Symbol`、`undefined` 和 `null`。
     - 特性：
         - 直接存储在变量中。
-        - 通过 值拷贝 进行赋值，拷贝的是实际的值。
-        - 每个变量独立存储其值，修改一个变量不会影响另一个。
+        - 赋值时执行值拷贝，即拷贝实际的值。
+        - 每个变量独立保存自己的值，修改一个变量不会影响另一个。
+
 2. 引用类型（Reference Types）
+
     - 包括：`Object`、`Array`、`Function`。
     - 特性：
-        - 变量存储的是对象的内存地址（引用）。
-        - 通过 引用拷贝 进行赋值，多个变量共享同一个内存地址。
-        - 修改对象属性时，所有引用都会反映变化。
+        - 变量存储的是对象的引用（内存地址）。
+        - 赋值时复制的是引用，多个变量可能指向同一对象。
+        - 修改对象的属性会影响所有指向该对象的变量。
+
 3. 函数中的行为
-    - 传递值类型时，会复制值本身，函数内部的更改不会影响外部变量。
-    - 传递引用类型时，会复制内存地址，函数内部修改对象会影响外部对象。
+
+    - 传递原始类型：复制的是实际值，函数内部对参数的修改不会影响外部变量。
+    - 传递引用类型：复制的是引用，函数内部修改对象属性会反映到外部对象上。
 
 **代码示例**
 
@@ -3212,31 +3228,43 @@ console.log(circle.radius); // 输出：10
     function increase(obj) {
     	obj.value++;
     }
+
     let obj = { value: 10 };
     increase(obj);
+
     console.log(obj.value); // 输出: 11
     ```
 
 ## 枚举对象的属性
 
-> **简述**：JavaScript 中有几种遍历对象的属性和方法的方式，包括 `for...in` 循环、`for...of` 循环结合 `Object.keys()` 和 `Object.entries()` 方法，以及使用 `in` 操作符检查对象是否包含某个属性。这些方法可以帮助开发者有效地访问和操作对象的各个部分。
+> **简述**：JavaScript 中有多种遍历对象属性的方法，包括 `for...in` 循环、`for...of` 循环结合 `Object.keys()` 与 `Object.entries()` 方法，以及使用 in 操作符来检查对象是否包含某个属性。这些方法能帮助开发者有效地访问和操作对象的各个部分。
 
 **知识树**
 
 1. `for...in` 循环
-    - 用于遍历对象的所有可枚举属性（包括方法）。
-    - 循环时返回的是对象的 键（key）。
+
+    - 遍历对象所有可枚举的属性，返回属性名（键）。
+    - 通过 `object[key]` 访问对应的值。
+
 2. `for...of` 循环
-    - 仅用于遍历 可迭代对象（如数组、字符串、Map 等），不能直接用于对象。
-    - 结合 `Object.keys()` 或 `Object.entries()` 可用于对象。
+
+    - 普通对象本身不可直接迭代，但可通过 `object.keys()`得到属性名数组，或 `Object.entries()` 得到键值对数组，再用 `for...of` 遍历。
+
 3. `Object.keys()` 方法
-    - 返回对象的所有键，以字符串数组的形式。
-    - 可以与 `for...of` 循环结合使用。
+
+    - 返回对象自身所有属性名组成的数组，适合用来遍历对象的键。
+
 4. `Object.entries()` 方法
-    - 返回对象的所有属性的 键值对，每对以数组形式存储。
-    - 结合 `for...of` 循环，可以遍历对象的键值对。
+
+    - 返回对象自身所有属性的键值对组成的二维数组，便于同时访问键和值。
+
 5. `in` 操作符
-    - 检查对象是否具有某个属性或方法。
+
+    - 用于检查对象中是否包含某个属性，返回布尔值。
+
+6. 说明
+
+    - `for...in`、`for...of` 在控制流程章节已经提及，这里补充了 Objcet 的几个方法及 `in` 操作符
 
 **代码示例**
 
@@ -3298,26 +3326,39 @@ console.log(circle.radius); // 输出：10
     		console.log("Drawing a circle");
     	},
     };
+
     console.log("radius" in circle); // 输出: true
     console.log("color" in circle); // 输出: false
     ```
 
 ## 克隆和合并对象
 
-> **简述**：JavaScript 中有多种方式克隆对象或合并多个对象，包括传统的 `for...in` 循环、`Object.assign()` 方法，以及更简洁的扩展运算符（`...`）。
+> **简述**：在 JavaScript 中，有多种方法可以克隆对象或合并多个对象。常见的方法包括使用传统的 `for...in` 循环、`Object.assign()` 方法以及扩展运算符（`...`）。这些方法实现的都是浅拷贝，即只复制对象的第一层属性，对于嵌套对象只复制引用。
 
 **知识树**
 
-1. 克隆对象的方法
-    - `for...in` 循环
-    - `Object.assign()` 方法
-    - 扩展运算符（Spread Operator）
+1. 克隆和合并对象的方法
+
+    - 使用 `for...in` 循环遍历对象的可枚举属性，然后手动复制到新对象中。
+    - 使用 Object.assign() 方法，将一个或多个源对象的可枚举自有属性复制到目标对象中。
+    - 使用扩展运算符（Spread Operator）将对象的属性展开到一个新的对象中。
+    - 合并对象时，后面的属性会覆盖前面的属性（覆盖顺序从左至右）。
+
 2. `Object.assign()` 方法
-    - 用于将源对象的所有属性复制到目标对象。
-    - 可用于克隆单个对象，或者将多个对象合并到一个目标对象中。
+
+    - 将源对象的所有可枚举自有属性复制到目标对象中。
+    - 可用于克隆单个对象，也可用于将多个对象合并到一个目标对象中。
+
 3. 扩展运算符（Spread Operator）
-    - 用于快速克隆对象或合并对象。
-    - 通过将对象的所有属性展开到新对象中，实现浅拷贝。
+
+    - 快速展开对象的属性到新对象中，实现浅拷贝。
+    - 语法上更简洁，易读性更好。
+
+4. 说明
+
+    - `for in`、 `Object.assign()` 、扩展运算符三者都可以拷贝对象的可枚举的自有属性
+    - `for in`还可以拷贝可枚举的原型属性
+    - 这里涉及继承相关知识，将在对应章节讲解。
 
 **代码示例**
 
@@ -3331,14 +3372,15 @@ console.log(circle.radius); // 输出：10
     	},
     };
 
-    // 使用 for...in 循环复制对象属性
     let another = {};
     for (let key in circle) {
     	another[key] = circle[key];
     }
 
-    console.log(another); // 输出: { radius: 10, draw: function }
+    console.log(another); // 输出: { radius: 10, draw: [Function: draw] }
     ```
+
+    - 说明：使用 for...in 循环手动复制对象的每个属性。这种方法实现的是浅拷贝，对于嵌套对象仅复制引用。
 
 2. 使用 `Object.assign()` 克隆对象
 
@@ -3350,11 +3392,12 @@ console.log(circle.radius); // 输出：10
     	},
     };
 
-    // 使用 Object.assign() 克隆对象
     let another = Object.assign({}, circle);
 
-    console.log(another); // 输出: { radius: 10, draw: function }
+    console.log(another); // 输出: { radius: 10, draw: [Function: draw] }
     ```
+
+    - 说明：Object.assign() 复制的是对象的可枚举自有属性，实现浅拷贝。
 
 3. 使用扩展运算符（Spread Operator）克隆对象
 
@@ -3366,10 +3409,9 @@ console.log(circle.radius); // 输出：10
     	},
     };
 
-    // 使用扩展运算符（Spread Operator）克隆对象
     let another = { ...circle };
 
-    console.log(another); // 输出: { radius: 10, draw: function }
+    console.log(another); // 输出: { radius: 10, draw: [Function: draw] }
     ```
 
 4. 合并多个对象
@@ -3381,15 +3423,19 @@ console.log(circle.radius); // 输出：10
     		console.log("Drawing a circle");
     	},
     };
-    let color = {
+
+    let another = {
+    	radius: 5,
     	color: "yellow",
     };
+
     // 使用 Object.assign() 合并对象
-    let merged1 = Object.assign({}, circle, color);
-    console.log(merged1); // 输出: { radius: 10, draw: function, color: 'yellow' }
+    let merged1 = Object.assign({}, circle, another);
+    console.log(merged1);
+
     // 使用扩展运算符合并对象
-    let merged2 = { ...circle, ...color };
-    console.log(merged2); // 输出: { radius: 10, draw: function, color: 'yellow' }
+    let merged2 = { ...circle, ...another };
+    console.log(merged2);
     ```
 
 ## 垃圾回收
@@ -3399,13 +3445,20 @@ console.log(circle.radius); // 输出：10
 **知识树**
 
 1. 内存管理
+
     - 在 JavaScript 中，内存管理由引擎自动处理，开发者无需手动分配或释放内存。
+
 2. 垃圾回收
+
     - 自动回收不再使用的变量和对象的内存。
     - 垃圾回收器根据一些复杂算法在后台运行，判断哪些变量不再使用，并释放它们的内存。
+
 3. 垃圾回收的工作原理
+
     - 通过引用计数和标记清除等算法确定哪些对象可以被回收。
+
 4. JavaScript 内存分配与释放
+
     - JavaScript 中的对象、数组、函数等都是动态分配内存的，当这些数据不再被引用时，垃圾回收器会回收它们的内存。
 
 **代码示例**
@@ -3435,17 +3488,24 @@ console.log(circle.radius); // 输出：10
 **知识树**
 
 1. Math 对象简介
+
     - 内置的数学工具类
     - 提供常见的数学函数和常量
+
 2. 常用属性
+
     - `Math.PI`: 圆周率常数。
     - 其他数学常量。
+
 3. 常用方法
+
     - `Math.abs()`: 求绝对值。
     - `Math.random()`: 生成随机数。
     - `Math.max()`: 返回最大值。
     - `Math.min()`: 返回最小值。
+
 4. 应用示例
+
     - 使用 `Math.random()` 生成区间随机数。
     - 使用 `Math.max()` 和 `Math.min()` 查找最大/最小值。
 
@@ -3487,11 +3547,16 @@ console.log(circle.radius); // 输出：10
 **知识树**
 
 1. String 原始类型与对象
+
     - 字符串可以是原始类型（primitive）或字符串对象（通过 `new String()` 创建）。
     - `typeof` 操作符可以区分这两者：原始字符串返回 `'string'`，字符串对象返回 `'object'`。
+
 2. 常用属性
+
     - `length`: 获取字符串的字符数。
+
 3. 常用方法
+
     - `includes()`: 检查字符串是否包含某个子字符串。
     - `startsWith()`: 检查字符串是否以指定子字符串开头。
     - `endsWith()`: 检查字符串是否以指定子字符串结尾。
@@ -3501,10 +3566,14 @@ console.log(circle.radius); // 输出：10
     - `toLowerCase()`: 将字符串转换为小写。
     - `trim()`: 移除字符串两端的空格。
     - `split()`: 按照指定字符将字符串分割成数组。
+
 4. 转义字符
+
     - `\'`、`\"`、`\n`、`\t`等，处理特殊字符和换行符。
+
 5. 模板字面量（Template Literals）：
-    - 使用反引号（```）创建字符串，可以嵌入表达式，支持多行字符串。
+
+    - 使用反引号创建字符串，可以嵌入表达式，支持多行字符串。
 
 **代码示例**
 
@@ -3606,21 +3675,28 @@ console.log(circle.radius); // 输出：10
 
 ## 模板字面量
 
-> **简述**：模板字面量是 JavaScript 中一种更加灵活和简洁的字符串表示方式。与传统的字符串字面量（使用单引号或双引号）相比，模板字面量使用反引号（`` `）定义，支持多行字符串和嵌入表达式，使得字符串的操作更为直观和易读。
+> **简述**：模板字面量是 JavaScript 中一种更加灵活和简洁的字符串表示方式。与传统的字符串字面量（使用单引号或双引号）相比，模板字面量使用反引号定义，支持多行字符串和嵌入表达式，使得字符串的操作更为直观和易读。
 
 **知识树**
 
 1. 定义模板字面量
-    - 使用反引号（`` `）包围字符串，而不是使用单引号或双引号。
+
+    - 使用反引号包围字符串，而不是使用单引号或双引号。
     - 支持多行字符串，避免了使用换行符（`\n`）来手动拼接多行。
+
 2. 内嵌表达式
+
     - 可以在模板字面量中嵌入变量和表达式，通过 `${}` 语法将其嵌入字符串中。
     - 支持任何可以产生值的表达式，比如变量、运算、函数调用等。
+
 3. 拼接字符串
+
     - 通过模板字面量，可以避免传统字符串拼接时使用 `+` 符号，使得代码更清晰易读。
     - 也不需要像传统字符串那样手动处理换行符或特殊字符。
+
 4. 应用场景
-    - 模板字面量非常适用于动态生成内容，如发送邮件、构建复杂的 HTML 或生成用户友好的消息。
+
+    - 模板字面量非常适用于动态生成内容，如发送邮件、构建复杂的 HTML 等。
 
 **代码示例**
 
@@ -3680,7 +3756,7 @@ console.log(circle.radius); // 输出：10
 
     - 使用模板字面量时，直接书写字符串中的特殊字符（如单引号或双引号），不需要使用 `\` 转义。
 
-6. 处理多行格式
+6. 处理复杂格式
 
     ```js
     const name = "John";
@@ -3702,13 +3778,18 @@ console.log(circle.radius); // 输出：10
 **知识树**
 
 1. 创建 Date 对象的方式
+
     - 不带参数：获取当前日期和时间。
     - 传递字符串：解析特定日期时间格式的字符串。
     - 传递数字：指定自 1970 年 1 月 1 日以来的毫秒数。
     - 传递年月日等数值：通过指定年、月、日等创建日期对象。
+
 2. 获取和设置日期
+
     - 使用 `.get` 和 `.set` 系列方法来获取和设置日期的各个部分（如年、月、日、小时等）。
+
 3. 转换日期格式
+
     - `.toDateString()`：返回日期部分的字符串。
     - `.toTimeString()`：返回时间部分的字符串。
     - `.toISOString()`：返回符合 ISO 8601 标准的日期时间字符串，常用于与服务器的数据交互。
@@ -3918,28 +3999,6 @@ console.log(post);
 3. Step3：创建一个新帖子对象，传入必要的参数并验证初始化结果。
 
 **代码**
-
-```js
-// 构造函数创建博客帖子对象
-function Post(title, body, author) {
-	this.title = title;
-	this.body = body;
-	this.author = author;
-	this.views = 0; // 默认查看次数为 0
-	this.comments = []; // 默认评论为空数组
-	this.isLive = false; // 默认未发布
-}
-
-// 使用构造函数创建一个新帖子
-const post1 = new Post(
-	"JavaScript Basics",
-	"This post covers the basics of JavaScript.",
-	"John Doe"
-);
-
-// 输出博客帖子对象
-console.log(post1);
-```
 
 ```js
 // 定义 Post 构造函数
@@ -5924,6 +5983,32 @@ console.log(person); // 输出对象，检查是否修改成功
     video.showTags(); // 正常输出标题和标签
     ```
 
+6. 补充作用于构造函数的情况
+
+    ```js
+    function Circle(radius) {
+    	this.radius = radius;
+    	this.draw = function () {
+    		console.log("draw");
+    	};
+    	return this; // 若没有显式返回this，使用call/apply方法将返回underfined
+    }
+    const circle1 = Circle.call({}, 1);
+    console.log("circle1:", circle1); // 输出 circle1: {radius: 1, draw: ƒ}
+    const circle2 = Circle.apply({}, [1]);
+    console.log("circle2:", circle2); // 输出 circle1: {radius: 1, draw: ƒ}
+    const circle3 = Circle.bind({}, 1);
+    console.log("circle3:", circle3);
+    // 输出
+    // circle3: ƒ Circle(radius) {
+    //   this.radius = radius;
+    //   this.draw = function () {
+    //     console.log("draw");
+    //   };
+    //   return this; // 若没有显式返回this，使用call/apply方法将返回underfined
+    // }
+    ```
+
 **补充**
 
 1. 普通函数附加到 `window` 对象
@@ -6060,15 +6145,20 @@ try {
 **知识树**
 
 1. 面向对象编程概述
+
     - 面向对象编程是一种编程范式，围绕“对象”而不是函数进行编程。
     - 支持 OOP 的编程语言有：C#、Java、Ruby、Python、JavaScript 等。
     - 面向对象编程不仅是编程语言或工具，而是一种编程思想，帮助解决程序复杂性问题。
+
 2. OOP 的核心概念
+
     - 封装：将相关的变量和函数组合成一个“对象”，隐藏对象内部的实现细节，提供简单易用的接口。
     - 抽象：隐藏复杂的实现，暴露必要的功能，简化使用者的操作。
     - 继承：允许新对象继承已有对象的属性和方法，减少代码冗余。
     - 多态：允许不同类型的对象以相同的方式调用相同的方法，减少重复的条件判断。
+
 3. OOP 的优势
+
     - 通过封装，代码模块化，提高代码的复用性。
     - 通过抽象，减少代码复杂度，提高可维护性。
     - 通过继承，减少冗余代码，增强可扩展性。
@@ -6184,183 +6274,6 @@ try {
     ```
 
     - `renderShape` 方法不需要关心传入对象的类型，只需调用 `render` 方法，具体实现由对象自身定义。
-
-## 创建对象
-
-> **简述**：在 JavaScript 中，创建对象有不同的方式，包括使用对象字面量、工厂函数、构造函数，以及 ES6 引入的`class`。每种方法都有其特点，适用于不同的情况。掌握这些方法对编写高效、可维护的代码至关重要。
-
-**知识树**
-
-1. 对象字面量（Object Literal）
-    - 用 `{}` 定义对象。
-    - 对象包含属性和值，可以是基本数据类型或方法（函数）。
-2. 工厂函数（Factory Function）
-    - 定义一个普通函数，返回一个新对象。
-    - 适用于需要重复创建多个相似对象的场景。
-3. 构造函数（Constructor Function）
-    - 使用 `this` 关键字创建对象，并通过 `new` 关键字调用。
-    - 与类（class）类似，构造函数是创建实例的传统方法。
-4. 工厂函数与构造函数的对比
-    - 两者都可以用来创建对象，但语法和行为有所不同。
-    - 工厂函数通过返回对象创建新实例；构造函数通过 `new` 关键字实例化对象。
-5. 类（class）
-    - 引入于 ES6，`class` 是一种更简洁的语法糖，用来创建构造函数。
-    - `class` 提供了清晰的结构，使代码更具可读性，同时也支持继承和其他面向对象编程的特性。
-6. class 与构造函数的对比
-    - `class` 提供了更清晰的对象结构，使得代码更加简洁和易读。与传统的构造函数不同，`class` 语法支持更多面向对象的特性，如继承（`extends`）、静态方法（`static`）等。
-    - 构造函数依旧在某些项目中使用，但 `class` 是推荐的现代方式，尤其是在 ES6 及以上的 JavaScript 版本中。
-
-**代码示例**
-
-1. 对象字面量
-
-    使用对象字面量语法创建对象，适合对象属性和方法简单的场景。
-
-    ```js
-    const circle = {
-    	radius: 5,
-    	location: { x: 0, y: 0 },
-    	draw: function () {
-    		console.log("Drawing a circle");
-    	},
-    };
-
-    circle.draw(); // 输出 "Drawing a circle"
-    ```
-
-    - 对象字面量是最简单的创建对象的方式，其中 `radius` 和 `location` 是属性，`draw` 是方法。
-
-2. 工厂函数
-
-    使用工厂函数创建对象，适合需要根据不同参数生成多个相似对象的情况。
-
-    ```js
-    function createCircle(radius) {
-    	return {
-    		radius: radius,
-    		draw: function () {
-    			console.log("Drawing a circle");
-    		},
-    	};
-    }
-
-    const circle1 = createCircle(5);
-    const circle2 = createCircle(10);
-    circle1.draw(); // 输出 "Drawing a circle"
-    circle2.draw(); // 输出 "Drawing a circle"
-    ```
-
-    - `createCircle` 是一个工厂函数，它返回一个包含属性和方法的对象。
-    - 每次调用 `createCircle` 都能创建一个新的圆对象。
-
-3. 构造函数
-
-    使用构造函数和 `new` 关键字创建对象，适用于需要创建具有相同结构但不同属性的多个实例。
-
-    ```js
-    function Circle(radius) {
-    	this.radius = radius;
-    	this.draw = function () {
-    		console.log("Drawing a circle");
-    	};
-    }
-
-    const circle1 = new Circle(5);
-    const circle2 = new Circle(10);
-    circle1.draw(); // 输出 "Drawing a circle"
-    circle2.draw(); // 输出 "Drawing a circle"
-    ```
-
-    - `Circle` 是一个构造函数，`this` 关键字将其绑定到新创建的对象上。
-    - 使用 `new` 关键字时，JavaScript 会自动创建一个空对象，并将 `this` 绑定到该对象上，返回该对象。
-
-4. class（类）
-
-    `class` 提供了一个更现代、简洁的方式来创建对象。它是 ES6 引入的一个语法糖，使得构造函数更具可读性，并支持继承和其他面向对象的特性。
-
-    ```js
-    class Circle {
-    	constructor(radius) {
-    		this.radius = radius;
-    	}
-    	draw() {
-    		console.log("Drawing a circle");
-    	}
-    }
-    const circle1 = new Circle(5);
-    const circle2 = new Circle(10);
-    circle1.draw(); // 输出 "Drawing a circle"
-    circle2.draw(); // 输出 "Drawing a circle"
-    ```
-
-    - 使用 `class`，可以定义构造函数 `constructor` 和实例方法 `draw`。
-    - `new Circle(5)` 创建了一个新的 `Circle` 实例，且通过 `this.radius` 绑定了对象的属性。
-
-## `Constructor`
-
-> 简述：在 JavaScript 中，每个对象都有一个称为 `constructor` 的属性，这个属性引用了用于创建该对象的构造函数。通过了解构造函数的工作原理，可以更好地理解对象是如何在 JavaScript 中被实例化的。
-
-**知识树**
-
-1. constructor 属性
-    - 每个对象都有一个 `constructor` 属性。
-    - `constructor` 引用的是用于创建该对象的构造函数。
-2. 构造函数的作用
-    - 构造函数是用来创建对象的函数。
-    - 使用构造函数时，JavaScript 引擎会创建并返回一个新对象。
-3. 内置构造函数
-    - `Object`：用于创建普通对象。
-    - `String`：用于创建字符串对象。
-    - `Boolean`：用于创建布尔对象。
-    - `Number`：用于创建数字对象。
-4. 字面量与构造函数的差异
-    - 字面量语法（如 `[]`, `{}`, `""`, `true`, `42`）通常比使用构造函数更简洁。
-    - 构造函数语法（如 `new Object()`, `new Boolean()`）在实际编码中不常用。
-
-**代码示例**
-
-1. 构造函数的基本概念
-
-    ```js
-    function Circle(radius) {
-    	this.radius = radius;
-    	this.draw = function () {
-    		console.log("Drawing a circle");
-    	};
-    }
-
-    let circle = new Circle(5);
-    console.log(circle.constructor); // Circle
-    ```
-
-    - `circle.constructor` 返回的是 `Circle` 函数，说明该对象是通过 `Circle` 构造函数创建的。
-
-2. 对象字面量与构造函数
-
-    ```js
-    let obj = {};
-    console.log(obj.constructor); // Object
-    ```
-
-    - 在使用对象字面量时，内部实际上是通过 `new Object()` 创建的。
-
-3. 内置构造函数
-
-    ```js
-    let str = new String("Hello");
-    console.log(str.constructor); // String
-    ```
-
-    - `new String()` 是通过构造函数创建一个字符串对象，`constructor` 返回 `String`。
-
-4. 使用字面量的简洁性
-
-    ```js
-    let bool = true;
-    console.log(bool.constructor); // Boolean
-    ```
-
-    - 使用字面量（如 `true`）更加简洁，而无需使用 `new Boolean()`。
 
 ## 函数是对象
 

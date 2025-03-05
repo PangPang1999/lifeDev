@@ -1,11 +1,19 @@
-let arr = [10, 20, 30];
-arr.customProperty = "Custom Value";
+let circle = {
+  radius: 10,
+  draw() {
+    console.log("Drawing a circle");
+  },
+};
 
-for (let index in arr) {
-  console.log(index, arr[index]); // 遍历索引和额外属性
-}
-// 输出
-// 0 10
-// 1 20
-// 2 30
-// customProperty Custom Value
+let another = {
+  radius: 5,
+  color: "yellow",
+};
+
+// 使用 Object.assign() 合并对象
+let merged1 = Object.assign({}, circle, another);
+console.log(merged1);
+
+// 使用扩展运算符合并对象
+let merged2 = { ...circle, ...another };
+console.log(merged2);
