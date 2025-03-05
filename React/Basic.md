@@ -5548,7 +5548,7 @@ export default App;
 
 ------
 
-### 4. 总结与最佳实践
+4. 总结与最佳实践
 
 - **Promise 处理方式**：
   - then/catch 方式代码简洁且直观；async/await 虽然写法线性，但在 Effect Hook 中使用需要额外包装和错误类型处理，整体显得冗长。
@@ -5562,23 +5562,459 @@ export default App;
   - 在严格模式（streak 模式）下，组件可能被渲染两次，导致请求发送或取消行为看起来不一致，但这只影响开发调试阶段。
   - 在 TypeScript 环境下，使用 async/await 需要注意 catch 块中 error 对象的类型问题，可通过类型断言解决。
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 9. 数据删除、创建与更新及 UI 优化
+
+在本节内容中，我们将讲解如何在 React 应用中实现对数据的删除、添加与更新操作。主要内容包括：
+
+- **删除数据**：在每个用户项前添加删除按钮，通过乐观更新先行修改 UI，再调用服务器接口，如果出错则回滚；
+- **添加数据**：在页面顶部添加“新增”按钮，实现创建新用户（同样采用乐观更新的策略）；
+- **更新数据**：在每个用户项中添加“更新”按钮，通过修改用户对象来更新 UI，同时调用服务器接口进行数据持久化；
+- **UI 调整与优化**：使用 Bootstrap 的 List Group、Flex 布局等工具美化页面，解决 JSX 中相邻元素间空白被移除的问题。
+
 ------
 
-以上笔记详细记录了如何在 React 的 Effect Hook 中处理异步请求、使用 Promise 的两种写法、取消不再需要的请求以及管理加载状态的完整流程和最佳实践。希望这份笔记能帮助你深入理解相关概念，并在实际开发中更好地应用这些技巧。
+### 1. 删除数据
+
+#### 1.1 UI 调整
+
+- **添加删除按钮**
+   在每个用户列表项前添加一个删除按钮，使用 Bootstrap 样式：
+  - 按钮使用 `btn` 与 `btn-outline-danger` 类
+  - 由于 JSX 编译时会移除相邻元素间的空白，为确保按钮与文本间有间距，需要将空白包裹在花括号中
+- **列表样式优化**
+   将原本的无序列表转换为 Bootstrap 的 List Group：
+  - `<ul>` 设置 `className="list-group"`
+  - 每个 `<li>` 设置 `className="list-group-item"`
+- **Flex 布局实现左右分布**
+   为每个列表项添加 `d-flex justify-content-between` 类，使得用户名始终靠左、操作按钮靠右。
+
+#### 1.2 删除功能实现
+
+采用**乐观更新**思路：
+
+1. **更新 UI**：先将用户从状态中移除，立刻反馈给用户。
+2. **调用服务器**：使用 `axios.delete` 发送删除请求，将用户 id 附加在 URL 后。
+3. **错误处理**：如果服务器返回错误，使用事先保存的“原始用户列表”恢复 UI，并通过 `setError` 显示错误信息。
+
+##### 示例代码
+
+```jsx
+// 假设已定义 User 接口和相关状态：users, setUsers, error, setError
+function deleteUser(user) {
+  // 保存删除前的原始用户列表，用于错误恢复
+  const originalUsers = [...users];
+
+  // 乐观更新：先在 UI 中移除该用户
+  setUsers(users.filter(u => u.id !== user.id));
+
+  // 调用服务器删除数据
+  axios.delete(`https://jsonplaceholder.typicode.com/users/${user.id}`)
+    .catch(error => {
+      // 出现错误时，显示错误信息并恢复原始数据
+      setError(error.message);
+      setUsers(originalUsers);
+    });
+}
+
+// 在渲染列表时，每个列表项：
+<li key={user.id} className="list-group-item d-flex justify-content-between">
+  <span>{user.name}</span>
+  <div>
+    {/* 更新按钮和删除按钮放在一个容器中，便于左右对齐 */}
+    <button onClick={() => updateUser(user)}
+      className="btn btn-outline-secondary me-2">
+      Update
+    </button>
+    <button onClick={() => deleteUser(user)}
+      className="btn btn-outline-danger">
+      Delete
+    </button>
+  </div>
+</li>
+```
+
+------
+
+### 2. 添加数据
+
+#### 2.1 UI 与交互
+
+- 在用户列表上方添加一个按钮，点击后触发添加新用户的操作。
+- 实际开发中通常会使用表单采集数据，但这里为了聚焦核心逻辑，直接通过按钮和硬编码值创建用户。
+
+#### 2.2 添加功能实现
+
+同样采用乐观更新：
+
+1. **更新 UI**：先将新用户添加到当前列表中（例如放在数组头部或尾部）。
+2. **调用服务器**：使用 `axios.post` 提交新用户数据到服务器端，服务器生成新的 id 后返回。
+3. **更新状态**：将返回的保存后用户（包含生成的 id）替换掉原有的用户数据。
+4. **错误处理**：如果请求失败，恢复原始列表并显示错误信息。
+
+#### 示例代码
+
+```jsx
+function addUser() {
+  // 保存当前的用户列表，用于错误恢复
+  const originalUsers = [...users];
+
+  // 创建新用户对象，实际项目中属性应来自表单输入
+  const newUser = {
+    name: "mush"
+  };
+
+  // 乐观更新：先更新 UI，将新用户添加到列表中
+  setUsers([newUser, ...users]);
+
+  // 调用服务器创建新用户
+  axios.post('https://jsonplaceholder.typicode.com/users', newUser)
+    .then(({ data: savedUser }) => {
+      // 返回的保存用户数据中会包含生成的 id
+      // 刷新列表，将新用户替换为保存后的用户对象
+      setUsers([savedUser, ...users]);
+    })
+    .catch(error => {
+      setError(error.message);
+      setUsers(originalUsers);
+    });
+}
+```
+
+> **注意**：由于使用了假的后端 jsonplaceholder，可能会出现多个用户拥有相同 id 的情况，此时在 JSX 渲染时会报“遇到重复 key”的警告。在真实应用中，新生成的 id 应确保唯一性。
+
+------
+
+### 3. 更新数据
+
+#### 3.1 UI 布局优化
+
+- **对齐问题**：原本在列表项中直接渲染用户名、更新按钮和删除按钮时，因用户名长度不同可能导致布局不统一。
+- **解决方法**：将更新与删除按钮包装在一个容器 `<div>` 中，使列表项只分成两部分：左侧的用户名和右侧的按钮容器。
+- **额外样式**：在按钮间添加水平边距（如 Bootstrap 的 `me-2`）以保持间距。
+
+#### 3.2 更新功能实现
+
+同样采用乐观更新：
+
+1. **更新 UI**：使用 `Array.map` 遍历用户列表，将目标用户替换为更新后的用户对象（例如在名字后追加一个感叹号）。
+2. **调用服务器**：使用 `axios.patch`（或 put）提交更新请求。这里使用 patch 方法更新部分属性。
+3. **错误处理**：请求出错时，通过保存的原始用户列表恢复 UI，并显示错误信息。
+
+#### 示例代码
+
+```jsx
+function updateUser(user) {
+  // 保存更新前的原始用户列表
+  const originalUsers = [...users];
+
+  // 创建更新后的用户对象，示例中为在名字后追加感叹号
+  const updatedUser = { ...user, name: user.name + "!" };
+
+  // 乐观更新：先在 UI 中更新数据
+  setUsers(users.map(u => u.id === user.id ? updatedUser : u));
+
+  // 调用服务器更新数据，使用 patch 方法更新部分字段
+  axios.patch(`https://jsonplaceholder.typicode.com/users/${user.id}`, updatedUser)
+    .catch(error => {
+      setError(error.message);
+      setUsers(originalUsers);
+    });
+}
+```
+
+------
+
+4. 总结与最佳实践
+
+- **乐观更新 vs. 悲观更新**
+  - 乐观更新：先更新 UI 再调用服务器，能给用户更快的反馈；但如果服务器出错需要回滚数据。
+  - 悲观更新：先等待服务器返回成功后再更新 UI，用户体验稍慢。
+  - 讲师推荐使用乐观更新以提升页面响应速度。
+- **错误处理与恢复**
+  - 每个操作（删除、添加、更新）都需要在调用服务器时捕获异常，提示错误信息并恢复原始状态，保证数据一致性。
+- **UI 布局优化**
+  - 使用 Bootstrap 的 List Group 和 Flex 布局（`d-flex`、`justify-content-between`）有效解决了元素对齐与空白问题。
+  - 当多个操作按钮在同一行中时，建议将它们放在单独的容器中，确保整体布局稳定统一。
+- **请求 URL 及接口问题**
+  - 使用 jsonplaceholder 作为模拟后端时，需注意生成数据的局限性（例如重复 id 等问题），在真实应用中应确保接口返回数据的正确性与唯一性。
 
 
 
 
 
+## 10. axios 
 
+### 1.axios的基础与特点
 
+- **基于 Promise**
+   axios 是一个基于 Promise 的 HTTP 客户端，它支持在浏览器和 Node.js 环境中发起请求。所有请求（如 GET、POST、PATCH、DELETE 等）都会返回一个 Promise，这使得我们可以使用 then/catch 链式调用或 async/await 语法来处理异步操作。
+- **简洁的 API**
+   axios 提供了简洁易用的 API，帮助开发者更方便地配置请求参数、请求头以及处理响应数据。
 
+------
 
+### 2. axios 的基本用法
 
+#### 2.1 GET 请求
 
+- **基本用法**
 
+  ```jsx
+  axios.get('https://jsonplaceholder.typicode.com/users')
+    .then(response => {
+      // response.data 包含了服务器返回的数据
+      setUsers(response.data);
+    })
+    .catch(error => {
+      setError(error.message);
+    });
+  ```
 
+  - 响应对象
 
+    ：返回的 
+
+    ```
+    response
+    ```
+
+     对象包含多个属性：
+
+    - `data`：实际返回的数据
+    - `status`：HTTP 状态码
+    - `headers`：响应头
+    - `config`：请求配置信息
+
+- **类型安全**（TypeScript）
+   可以在请求时指定泛型来获得更好的类型推断：
+
+  ```tsx
+  axios.get<User[]>('https://jsonplaceholder.typicode.com/users')
+    .then(response => {
+      setUsers(response.data);
+    });
+  ```
+
+#### 2.2 POST 请求（创建数据）
+
+- 用法
+
+  ```jsx
+  axios.post('https://jsonplaceholder.typicode.com/users', newUser)
+    .then(({ data: savedUser }) => {
+      // 这里解构 response 返回的 data，并重命名为 savedUser
+      setUsers([savedUser, ...users]);
+    })
+    .catch(error => {
+      setError(error.message);
+      // 错误时恢复原始用户列表
+      setUsers(originalUsers);
+    });
+  ```
+
+  - POST 请求一般用于创建数据，服务器生成新对象的 id 后返回保存后的数据。
+
+#### 2.3 DELETE 请求（删除数据）
+
+- 用法
+
+  ```jsx
+  axios.delete(`https://jsonplaceholder.typicode.com/users/${user.id}`)
+    .catch(error => {
+      setError(error.message);
+      // 恢复原始数据
+      setUsers(originalUsers);
+    });
+  ```
+
+  - DELETE 请求用于从服务器删除资源，一般不需要返回数据，因此通常只关心错误处理。
+
+#### 2.4 PATCH 请求（部分更新数据）
+
+- 用法
+
+  ```jsx
+  axios.patch(`https://jsonplaceholder.typicode.com/users/${user.id}`, updatedUser)
+    .catch(error => {
+      setError(error.message);
+      setUsers(originalUsers);
+    });
+  ```
+
+  - PATCH 用于更新资源的部分属性，与 PUT（整体替换）相比，更适合仅更新部分字段的场景。
+
+------
+
+### 3. axios 的错误处理
+
+- **Promise 错误捕获**
+   使用 then/catch 链式调用来处理成功和失败情况：
+
+  ```jsx
+  axios.get(url)
+    .then(response => { /* 处理成功 */ })
+    .catch(error => {
+      // error 是 AxiosError 类型对象，包含 message、response、code 等属性
+      setError(error.message);
+    });
+  ```
+
+- **TypeScript 中的类型断言**
+   在 async/await 写法中，由于 catch 捕获的 error 类型为 unknown，需要使用类型断言：
+
+  ```tsx
+  try {
+    const response = await axios.get<User[]>(url);
+    setUsers(response.data);
+  } catch (error) {
+    const err = error as AxiosError;
+    setError(err.message);
+  }
+  ```
+
+- **判断取消请求**
+   axios 还提供了辅助方法 `axios.isCancel(error)` 来判断错误是否由于请求被取消，从而避免误处理取消的错误：
+
+  ```jsx
+  .catch(error => {
+    if (axios.isCancel(error)) return;
+    setError(error.message);
+  });
+  ```
+
+------
+
+### 4. axios 与请求取消（AbortController）
+
+- **AbortController 作用**
+   当组件卸载或用户导航离开页面时，如果请求还未完成，利用 AbortController 可以取消请求，防止异步操作完成后更新已卸载组件。
+
+- **使用方式**
+
+  1. 创建 AbortController 实例：
+
+     ```jsx
+     const controller = new AbortController();
+     ```
+
+  2. 将 
+
+     ```
+     controller.signal
+     ```
+
+      传入 axios 请求配置中：
+
+     ```jsx
+     axios.get(url, { signal: controller.signal })
+       .then(...)
+       .catch(...);
+     ```
+
+  3. 在 effect 的清理函数中调用 
+
+     ```
+     controller.abort()
+     ```
+
+      取消请求：
+
+     ```jsx
+     return () => {
+       controller.abort();
+     };
+     ```
+
+  - **注意**：在开发模式中（如 React 严格模式），组件可能会被渲染两次，导致请求被取消后重新发起，但在生产环境中不会有这种现象。
+
+------
+
+### 5. axios 与乐观更新
+
+- **乐观更新思路**
+   在删除、添加或更新操作中，我们先立即更新 UI（例如删除用户项或显示新添加的用户），然后再调用 axios 发起请求。如果服务器请求失败，则回滚到原始状态，并显示错误信息。
+
+- **示例**
+   删除用户的乐观更新：
+
+  ```jsx
+  function deleteUser(user) {
+    const originalUsers = [...users];
+    setUsers(users.filter(u => u.id !== user.id)); // 先更新 UI
+  
+    axios.delete(`https://jsonplaceholder.typicode.com/users/${user.id}`)
+      .catch(error => {
+        setError(error.message);
+        setUsers(originalUsers); // 请求失败时回滚
+      });
+  }
+  ```
+
+  添加和更新操作也是类似的模式，先修改状态，再调用 axios 请求，并在失败时进行错误处理和状态恢复。
+
+------
+
+### 6. axios 与 async/await 在 useEffect 中的使用
+
+- **问题描述**
+   在 React 的 useEffect 中不能直接传入 async 函数，因此我们通常在 effect 内部定义一个 async 函数来调用 axios 请求。
+
+- **示例代码**
+
+  ```jsx
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get<User[]>(url);
+        setUsers(response.data);
+      } catch (error) {
+        const err = error as AxiosError;
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchUsers();
+  }, []);
+  ```
+
+  - 这种写法使得代码逻辑看起来更像同步代码，但同时增加了 try/catch 以及内部函数的嵌套，可能导致代码显得冗长。
+
+------
+
+### 7. 总结
+
+- **axios 作为 HTTP 客户端**：
+   提供了简单、统一的 API 来处理所有 HTTP 请求，并基于 Promise 进行异步操作。
+- **请求方法**：
+  - `axios.get` 用于获取数据
+  - `axios.post` 用于创建数据
+  - `axios.delete` 用于删除数据
+  - `axios.patch` 用于部分更新数据
+- **错误处理与请求取消**：
+  - 利用 then/catch 或 async/await + try/catch 处理错误
+  - 使用 AbortController 及 axios 的配置项（signal）来取消请求，确保组件卸载时不会继续处理响应
+- **乐观更新**：
+   先更新 UI 状态，再调用 axios 发起请求；若请求失败则回滚到原始状态，从而提高用户体验。
+
+通过这些细节，你可以更好地掌握 axios 的使用方法，并在实际开发中合理运用这些模式来构建健壮的、响应迅速的 React 应用。
 
 
 
