@@ -4741,33 +4741,25 @@ const restaurants = [
 
 ## 测试数组
 
-> 简述：`every()` 和 `some()` 是 JavaScript 中用于测试数组元素是否满足特定条件的方法。它们接受一个回调函数并返回布尔值，分别检查**所有元素**或**至少一个元素**是否满足条件。
+> 简述：`every()` 和 `some()` 是 JavaScript 中用于测试数组元素是否满足特定条件的方法。它们接受一个**回调函数**并返回布尔值，分别检查所有元素或至少一个元素是否满足条件。
 
 **知识树**
 
-1. `every()` 方法
+1.  `every()` 方法
 
-    - 用于测试数组中**所有元素**是否满足条件。
+    - 用于测试数组中所有元素是否满足条件。
     - 如果所有元素满足条件，返回 `true`；否则返回 `false`。
     - 遇到不满足条件的元素时会立即终止检查。
 
-2. `some()` 方法
+2.  `some()` 方法
 
-    - 用于测试数组中是否**至少有一个元素**满足条件。
+    - 用于测试数组中是否至少有一个元素满足条件。
     - 如果存在满足条件的元素，返回 `true`；否则返回 `false`。
     - 遇到满足条件的元素时会立即终止检查。
 
-3. 回调函数
-
-    - `callback(element, index, array)`：
-        - `element`：当前被检查的元素。
-        - `index`：当前元素的索引（可选）。
-        - `array`：被测试的数组（可选）。
-    - 回调函数应返回布尔值。
-
 **代码示例**
 
-1. 检查所有元素是否为正数
+1.  检查所有元素是否为正数
 
     ```js
     const numbers = [1, -1, 2, 3];
@@ -4781,7 +4773,7 @@ const restaurants = [
 
     - `every()` 方法会遍历数组并检查是否所有元素都为正数。因为数组中包含 `-1`，所以返回 `false`。
 
-2. 检查是否至少有一个正数
+2.  检查是否至少有一个正数
 
     ```js
     const numbers = [1, -1, 2, 3];
@@ -4795,7 +4787,7 @@ const restaurants = [
 
     - `some()` 方法会检查数组中是否至少有一个元素为正数。由于存在多个正数（如 `1` 和 `2`），因此返回 `true`。
 
-3. 使用箭头函数简化
+3.  使用箭头函数简化
 
     ```js
     const numbers = [1, -1, 2, 3];
@@ -4805,7 +4797,7 @@ const restaurants = [
 
 ## 过滤数组
 
-> 简述：`filter()` 方法用于根据指定条件筛选数组中的元素，返回一个包含满足条件元素的新数组，而不修改原数组。
+> 简述：`filter()` 方法用于根据指定条件筛选数组中的元素，应用回调函数，返回一个包含满足条件元素的新数组，而不修改原数组。
 
 **知识树**
 
@@ -4815,15 +4807,7 @@ const restaurants = [
     - 返回一个新数组，其中包含所有满足条件的元素。
     - 不会修改原数组。
 
-2. 回调函数
-
-    - `callback(element, index, array)`：
-        - `element`：当前处理的数组元素。
-        - `index`（可选）：当前元素的索引。
-        - `array`（可选）：调用 `filter()` 的数组。
-    - 回调函数应返回布尔值，`true` 表示保留元素，`false` 表示过滤掉。
-
-3. 常见用法
+2. 常见用法
 
     - 过滤正数、负数、特定条件的元素。
     - 结合箭头函数简化代码。
@@ -4870,7 +4854,7 @@ const restaurants = [
 
 ## `map()` 方法
 
-> `map()` 方法用于遍历数组并对数组中的每个元素应用回调函数，返回一个新的数组，其中每个元素是原数组元素应用回调函数后的结果。
+> `map()` 方法用于遍历数组并对数组中的每个元素，应用回调函数，返回一个新的数组，其中每个元素是原数组元素应用回调函数后的结果。
 
 **知识树**
 
@@ -4880,19 +4864,11 @@ const restaurants = [
     - 返回一个新的数组，新数组中的每个元素为回调函数的返回值。
     - 不会修改原数组。
 
-2. 回调函数
-
-    - 接受三个参数：
-        - `element`：当前元素。
-        - `index`（可选）：当前元素的索引。
-        - `array`（可选）：调用 `map()` 的数组。
-    - 返回值用于生成新数组的元素。
-
-3. 常见用法
+2. 常见用法
 
     - 将数组元素转换为不同格式（如字符串、对象等）。
 
-4. 注意事项
+3. 注意事项
 
     - 当回调函数返回对象字面量时，需要用括号包裹对象，以避免语法解析错误。
 
@@ -4976,21 +4952,17 @@ const restaurants = [
 1. 基本概念
 
     - `reduce(callback, initialValue)` 方法接收一个回调函数和一个可选的初始值。
-    - 回调函数逐步处理数组元素，将结果累积到 `accumulator` 中。
+    - 此处回调函数（`callback`）有两个必须的参数
+        - `accumulator`（累加器）：存储前一次迭代计算的结果。
+        - `currentValue`（当前元素）：当前正在处理的数组元素。
+    - `reduce()` 会对数组的每个元素执行 `callback`，并返回最终累积的值。
 
-2. 回调函数参数
-
-    - `accumulator`：累积计算的结果。
-    - `currentValue`：当前迭代的数组元素。
-    - `currentIndex`（可选）：当前元素的索引。
-    - `array`（可选）：调用 `reduce()` 的数组。
-
-3. 初始值
+2. 初始值
 
     - 如果提供了初始值，第一次迭代时，`accumulator` 的值为初始值。
     - 如果未提供初始值，数组的第一个元素将作为初始值，迭代从第二个元素开始。
 
-4. 常见用途
+3. 常见用途
 
     - 数组求和、计算乘积。
     - 查找最大值或最小值。
@@ -5497,7 +5469,9 @@ console.log(titles); // 输出: ["b", "a"]
     - 使函数可以接收动态数量的参数。
 
 3. 限制
-    - 剩余参数必须放在函数参数列表的最后，不能放在其他参数后面。
+
+    - 剩余参数必须放在函数参数列表的最后，不能放在其他参数前面。
+
 4. `arguments` 与剩余参数的对比
 
     - `arguments` 是类数组对象，`rest` 是实际的数组。
@@ -5591,7 +5565,7 @@ console.log(titles); // 输出: ["b", "a"]
     }
 
     console.log(interest(10000)); // 使用默认值: rate = 3.5, year = 5
-    console.log(interest(10000, undefined, 5)); // 使用默认值: rate = 3.5, year = 5
+    console.log(interest(10000, undefined, 10)); // 使用默认值: rate = 3.5
     ```
 
     - `rate = 3.5` 和 `year = 5` 是默认值。如果函数调用时未传递这些参数或传递 `undefined`，则会使用默认值。
@@ -5602,6 +5576,7 @@ console.log(titles); // 输出: ["b", "a"]
     function test(principal, rate = 3.5, year) {
     	return ((principal * rate) / 100) * year;
     }
+
     console.log(test(10000, 5)); // NaN
     console.log(test(10000, undefined, 5)); // 1750
     ```
@@ -5611,69 +5586,158 @@ console.log(titles); // 输出: ["b", "a"]
 
 ## `Getter`&`Setter`
 
-> 简述：在 JavaScript 中，`getter` 和 `setter` 是定义对象属性的特殊方法，用于控制属性的读取和赋值行为。`getter` 用于访问属性值，而 `setter` 用于修改或设置属性值。它们可以使代码更简洁、更具可读性。
+> **简述**：在 JavaScript 中，`getter` 和 `setter` 是特殊的方法，用于拦截对象属性的访问（`get`）和赋值（`set`）。虽然它们并不是必须的，但在某些情况下，它们可以提升代码的封装性、可读性，并控制数据访问。
 
 **知识树**
 
 1. `getter` 的作用
 
-    - 允许以属性的形式访问对象的方法，而不需要显式调用它。
-    - 提高代码的可读性，简化访问。
+    - 允许以属性的形式访问计算属性，而不是调用方法。
+    - 提高代码可读性，简化调用方式（例如 `obj.fullName` 而不是 `obj.getFullName()`）。
+    - 封装逻辑，防止外部直接访问内部状态。
 
 2. `getter` 的实现
 
     - 使用 `get` 关键字定义。
-    - 可以像属性一样调用，无需显式调用方法。
+    - 不能接收参数，必须返回一个值。
+    - 适用于动态计算属性。
 
 3. `setter` 的作用
 
-    - 允许以赋值的形式更新对象的属性值，并自动执行额外的逻辑。
-    - 提供数据验证或转换的机会。
+    - 允许使用赋值语法（`obj.fullName = "John Doe"`）来触发方法，而不是 `obj.setFullName("John Doe"`)。
+    - 拦截属性赋值，可用于数据验证、转换，或触发额外逻辑。
 
 4. `setter` 的实现
 
     - 使用 `set` 关键字定义。
-    - 必须接收一个参数，该参数表示被赋予的值。
-    - 可以在赋值时执行额外的逻辑，例如验证或解析。
+    - 必须接收一个参数（即赋值时传入的值）。
+    - 不能有返回值，否则会报错。
 
-5. 使用场景
+5. 无限递归陷阱
 
-    - 创建计算属性（如动态生成的值）。
-    - 在属性赋值时执行验证或逻辑。
-    - 简化对象的外部接口。
+    - 在 `getter / setter` 内直接访问同名属性会导致无限递归。
+    - 解决方案：使用私有属性（如 `_prop` 或 `#prop`）存储数据，而不是直接访问 `this.prop`。
 
-6. 注意事项
+6. `getter` / `setter` 使用场景
 
-    - `getter` 必须返回一个值。
-    - `setter` 必须接收一个参数作为值。
+    - 计算属性：如 `fullName`，动态拼接 `firstName + lastName`。
+    - 数据验证：确保赋值符合要求（如字符串不能包含数字）。
+    - 封装私有属性：避免外部直接修改内部数据。
+
+7. 注意事项
+
+    - 定义 `getter`，如果没有对应的 `setter`，该属性就变成了只读的。
     - 一旦定义了 `getter` 和 `setter`，对象属性就会变得不可直接操作，而是通过访问器方法控制。
 
 **代码示例**
 
-```js
-const person = {
-	firstName: "Mosh",
-	lastName: "Hamedani",
-	// Getter
-	get fullName() {
-		return `${this.firstName} ${this.lastName}`;
-	},
-	// Setter
-	set fullName(value) {
-		const parts = value.split(" ");
-		this.firstName = parts[0];
-		this.lastName = parts[1];
-	},
-};
+1. 使用对象字面量
 
-// 使用 Getter
-console.log(person.fullName); // 输出：Mosh Hamedani
+    ```js
+    const person = {
+    	firstName: "Mosh",
+    	lastName: "Hamedani",
+    	// Getter
+    	get fullName() {
+    		return `${this.firstName} ${this.lastName}`;
+    	},
+    	// Setter
+    	set fullName(value) {
+    		const parts = value.split(" ");
+    		this.firstName = parts[0];
+    		this.lastName = parts[1];
+    	},
+    };
 
-// 使用 Setter
-person.fullName = "John Smith";
-console.log(person);
-// 输出：{ firstName: "John", lastName: "Smith", fullName: [Getter/Setter] }
-```
+    // 使用 Getter
+    console.log(person.fullName); // 输出：Mosh Hamedani
+
+    // 使用 Setter
+    person.fullName = "John Smith";
+    console.log(person);
+    // 输出：{ firstName: "John", lastName: "Smith", fullName: [Getter/Setter] }
+    ```
+
+2. ES6 类中的 getter 和 setter（含数据验证与双向转换）
+
+    ```js
+    class Temperature {
+    	constructor(celsius) {
+    		this._celsius = celsius; // 私有属性
+    	}
+
+    	// 获取当前摄氏温度
+    	get celsius() {
+    		return this._celsius;
+    	}
+
+    	// 设置摄氏温度，要求为数值
+    	set celsius(value) {
+    		if (typeof value !== "number") {
+    			throw new Error("温度必须为数字");
+    		}
+    		this._celsius = value;
+    	}
+
+    	// 计算华氏温度
+    	get fahrenheit() {
+    		return (this._celsius * 9) / 5 + 32;
+    	}
+
+    	// 通过华氏温度设置摄氏温度
+    	set fahrenheit(value) {
+    		if (typeof value !== "number") {
+    			throw new Error("温度必须为数字");
+    		}
+    		this._celsius = ((value - 32) * 5) / 9;
+    	}
+    }
+
+    const temp = new Temperature(25);
+    console.log(temp.celsius); // 输出: 25
+    console.log(temp.fahrenheit); // 输出: 77
+
+    temp.fahrenheit = 86;
+    console.log(temp.celsius); // 输出: 30
+    ```
+
+3. 只定义 getter 的只读属性
+
+    ```js
+    const rectangle = {
+    	width: 10,
+    	height: 5,
+
+    	// 只读属性 area，根据 width 和 height 计算矩形面积
+    	get area() {
+    		return this.width * this.height;
+    	},
+    };
+
+    console.log(rectangle.area); // 输出: 50
+
+    // 尝试赋值将不会生效，因为没有对应的 setter
+    rectangle.area = 100;
+    console.log(rectangle.area); // 依然输出: 50
+    ```
+
+4. 演示无限递归问题及其解决方案
+
+    ```js
+    const person = {
+    	// firstName: "Mosh",
+    	_firstName: "Mosh",
+
+    	get firstName() {
+    		// return this.firstName;
+    		return this._firstName;
+    	},
+    };
+
+    console.log(person._firstName);
+    ```
+
+    - 这段代码会报错，是因为 firstName 属性同时被定义为数据属性和 getter 方法，getter 方法中使用 this.firstName 造成了无限递归。
 
 ## `Try`&`Catch`
 
@@ -5684,9 +5748,7 @@ console.log(person);
 1. 异常抛出（Throwing Exceptions）
 
     - 使用 `throw` 关键字显式地抛出一个异常。
-
     - 异常可以是任何类型（如字符串、对象、错误对象等），但推荐使用 `Error` 对象来创建标准化的错误信息。
-
     - 一旦抛出异常，代码将跳过当前的执行路径，转而进入最近的 `catch` 块。
 
 2. 异常捕获（Catching Exceptions）
@@ -5921,7 +5983,7 @@ console.log(person); // 输出对象，检查是否修改成功
 1. `this` 的含义
 
     - `this` 指向当前执行上下文的对象。
-    - 在对象方法中，`this` 指向调用该方法的对象。（无论是一开始就写下的方法还是后续添加的方法）
+    - 在对象的方法中，`this` 指向调用该方法的对象。（无论是一开始就写下的方法还是后续添加的方法）
     - 在普通函数中，`this` 指向全局对象（在浏览器中是 `window`）
     - 在构造函数中，使用 `new` 操作符创建一个新的空对象，让`this` 指向一个该空对象，随后进行构造函数内的代码执行。
     - 在**回调函数**中， `this` 默认指向全局对象，但可以通过额外参数或绑定方法改变。
@@ -6054,8 +6116,6 @@ console.log(person); // 输出对象，检查是否修改成功
 
     playVideo.call({ name: "Moth" }, 1, 2);
     playVideo.apply({ name: "Moth" }, [1, 2]);
-
-    playVideo();
     ```
 
 4. 使用 `bind()`
@@ -6068,7 +6128,7 @@ console.log(person); // 输出对象，检查是否修改成功
     const fn = playVideo.bind({ name: "Moth" });
     fn();
     // 等价
-    playVideo.bind({ name: "Moth" })();
+    playVideo.bind({ name: "Moth" })(); // 注意括号
 
     // 结合回调函数使用
     const video = {
@@ -6135,73 +6195,6 @@ console.log(person); // 输出对象，检查是否修改成功
     	console.log("hi");
     }
     console.log(window.sayHi); // 输出：函数本身
-    ```
-
-## 箭头函数
-
-> **简述**：箭头函数（Arrow Function）是 JavaScript 中一种简洁的函数定义方式，使用 `=>` 语法，具有更直观的语法和特性，尤其在处理回调函数和 `this` 绑定时更为便利。
-
-**知识树**
-
-1. 语法简洁性
-    - 可以省略大括号 `{}` 和 `return`，直接返回结果。
-    - 单参数时可以省略圆括号 `()`；无参数时必须加圆括号。
-2. 特点
-    - 继承外部作用域的 `this`，没有自己的 `this`，适用于保持 `this` 的一致性。
-    - 没有 `arguments` 对象，可用剩余参数 `...args` 替代。（见函数章节 arguments）
-    - 无法作为构造函数，不能用 `new` 调用。
-3. 应用
-    - 常用于回调函数的简化，提高代码可读性。
-
-**代码示例**
-
-1. 基本语法
-
-    ```js
-    // 多参数
-    const add = (a, b) => a + b;
-    console.log(add(3, 4)); // 输出: 7
-
-    // 单参数（省略括号）
-    const square = (x) => x * x;
-    console.log(square(5)); // 输出: 25
-
-    // 无参数
-    const greet = () => console.log("Hello!");
-    greet(); // 输出: Hello!
-    ```
-
-2. 继承 `this` 的特性
-
-    ```js
-    function Person() {
-    	this.age = 0;
-
-    	// 每秒自动执行一次
-    	setInterval(() => {
-    		this.age++; // `this` 继承自 Person
-    		console.log(this.age);
-    	}, 1000);
-    }
-
-    const p = new Person();
-    ```
-
-3. 在回调函数中的应用
-
-    ```js
-    const courses = [
-    	{ id: 1, name: "a" },
-    	{ id: 2, name: "b" },
-    ];
-    // 使用传统函数
-    const course1 = courses.find(function (course) {
-    	return course.name === "a";
-    });
-    // 使用箭头函数
-    const course2 = courses.find((course) => course.name === "a");
-    console.log(course1); // { id: 1, name: "a" }
-    console.log(course2); // { id: 1, name: "a" }
     ```
 
 ## Ex1
@@ -6293,11 +6286,11 @@ console.log(circle.area); // 无法设置只读属性，输出之前计算的面
 >
 > **解法**
 >
-> 1. **验证参数类型**
+> 1. 验证参数类型
 >    使用 `Array.isArray()` 方法检查第一个参数是否为有效的数组，如果不是，则抛出异常。
-> 2. **错误处理**
+> 2. 错误处理
 >    使用 `try...catch` 语句来捕获和处理抛出的异常，并在 `catch` 块中输出错误信息。
-> 3. **异常抛出**
+> 3. 异常抛出
 >    如果第一个参数不是数组，使用 `throw new Error('Invalid array')` 来抛出异常。
 
 ```JS
@@ -6320,9 +6313,9 @@ try {
 }
 ```
 
-# 对象
+# 面向对象编程
 
-## 面向对象编程
+## 概念
 
 > **简述**：面向对象编程是一种以对象为中心的编程范式。它通过封装 (Encapsulation)、抽象 (Abstraction)、继承(Inheritance)和多态(Polymorphism)等概念，帮助程序员更加高效地组织代码，并使代码更具可维护性。
 
@@ -6348,207 +6341,6 @@ try {
     - 通过继承，减少冗余代码，增强可扩展性。
     - 通过多态，简化代码，减少繁琐的条件判断。
 
-**代码示例**
-
-1. 封装
-
-    封装将数据和操作这些数据的函数（方法）放在同一个对象中，从而避免了数据和函数之间的混乱。
-
-    ```js
-    // 字面量创建
-    let employee = {
-    	baseSalary: 3_000,
-    	overtime: 10,
-    	rate: 20,
-    	getWage: function () {
-    		return this.baseSalary + this.overtime * this.rate;
-    	},
-    };
-    console.log("employee.getWage() : ", employee.getWage());
-
-    //ES6引入：class
-    class Employee {
-    	constructor(baseSalary, overtime, rate) {
-    		this.baseSalary = baseSalary;
-    		this.overtime = overtime;
-    		this.rate = rate;
-    	}
-
-    	getWage() {
-    		return this.baseSalary + this.overtime * this.rate;
-    	}
-    }
-
-    const emp = new Employee(3000, 10, 20);
-    console.log("emp.getWage() : ", emp.getWage());
-    ```
-
-    - 通过封装，`baseSalary`、`overtime` 和 `rate` 成为 `Employee` 对象的属性，而 `getWage` 成为其方法。这样，函数不需要参数，因为数据已经封装在对象内部。
-
-2. 抽象
-
-    抽象通过隐藏复杂的实现，只暴露出简单的接口，让使用者无需关心内部实现细节。
-
-    ```js
-    class DVDPlayer {
-    	play() {
-    		// ...复杂逻辑
-    		console.log("DVD is playing");
-    	}
-    }
-
-    const player = new DVDPlayer();
-    player.play(); // 简单调用，内部的实现细节被隐藏
-    ```
-
-    - 在使用 `DVDPlayer` 时，用户只需关心如何调用 `play` 方法，而不必了解播放器内部的复杂操作。
-
-3. 继承
-
-    继承允许子类从父类继承属性和方法，从而避免重复定义相似的代码。
-
-    ```js
-    class HTMLElement {
-    	constructor(hidden, innerHTML) {
-    		this.hidden = hidden;
-    		this.innerHTML = innerHTML;
-    	}
-
-    	click() {
-    		console.log("Element clicked");
-    	}
-    }
-
-    class TextBox extends HTMLElement {
-    	constructor(hidden, innerHTML, placeholder) {
-    		super(hidden, innerHTML);
-    		this.placeholder = placeholder;
-    	}
-    }
-
-    const textbox = new TextBox(false, "Hello", "Enter text...");
-    textbox.click(); // 继承父类方法
-    console.log(textbox.placeholder); // 访问子类属性
-    ```
-
-    - `TextBox` 类继承了 `HTMLElement` 类的属性和方法，避免了重复代码。
-
-4. 多态
-
-    多态让不同的对象可以调用相同的方法，但每个对象的方法行为不同，简化了代码。
-
-    ```js
-    class Circle {
-    	render() {
-    		console.log("Rendering a circle");
-    	}
-    }
-    class Square {
-    	render() {
-    		console.log("Rendering a square");
-    	}
-    }
-    function renderShape(shape) {
-    	shape.render(); // 无需关心对象的具体类型
-    }
-    const circle = new Circle();
-    const square = new Square();
-    renderShape(circle); // Rendering a circle
-    renderShape(square); // Rendering a square
-    ```
-
-    - `renderShape` 方法不需要关心传入对象的类型，只需调用 `render` 方法，具体实现由对象自身定义。
-
-## 函数是对象
-
-> **简述**：在 JavaScript 中，函数不仅仅是用来执行任务的代码块，它们本质上也是对象。这意味着函数不仅可以有执行代码，还可以拥有属性和方法。
-
-**知识树**
-
-1. 函数是对象
-
-    - 函数本身是 JavaScript 中的对象，可以拥有属性和方法。
-
-2. 函数的成员
-
-    - 每个函数都有一些默认的属性和方法，例如 `name`、`length`、`call`、`bind` 和 `apply`。
-
-3. 函数的构造器
-
-    - 函数的构造器是 `Function`，它用于在 JavaScript 内部创建函数对象。
-
-4. 函数的方法
-
-    - `call()`：调用函数，第一个参数明确指定 `this`，后续参数传入该函数。
-    - `apply()`：与 `call()` 类似，但以数组形式传递参数。
-    - `bind()`：返回一个绑定了特定 `this` 值的新函数，常用于函数柯里化和绑定事件处理程序。
-
-**代码示例**
-
-1. 函数是对象
-
-    JavaScript 中的函数实际上是对象，可以拥有属性和方法。
-
-    ```js
-    function Circle(radius) {
-    	this.radius = radius;
-    	this.draw = function () {
-    		console.log("Drawing a circle");
-    	};
-    }
-
-    const circle = new Circle(5);
-
-    console.log(Circle.name); // 输出 "Circle"，函数的名称
-    console.log(Circle.length); // 输出 1，函数的参数个数
-    console.log(Circle.constructor); // 输出 Function，指向 Function 构造器
-    ```
-
-    - `Circle` 是一个函数对象，`name` 和 `length` 是它的属性，`constructor` 属性指向创建该函数的构造器 `Function`。
-
-2. 使用 `Function` 构造函数
-
-    可以使用 `Function` 构造函数动态创建函数对象。
-
-    ```js
-    const Circle = new Function(
-    	"radius",
-    	`
-      this.radius = radius;
-      this.draw = function () {
-        console.log("Drawing a circle");
-      };
-    `
-    );
-
-    const circle = new Circle(5);
-    circle.draw(); // 输出: "Drawing a circle"
-    ```
-
-    - 通过 `Function` 构造函数动态创建的 `Circle` 函数，可以像普通函数一样使用 `new` 关键字来创建对象。
-
-3. `call` 、`apply` 和 `bind` 方法
-
-    `call`、`apply` 和 `bind` 都是 JavaScript 中的函数方法，它们用于修改函数的 `this` 上下文。
-
-    ```js
-    function greet(greeting, punctuation) {
-    	console.log(`${greeting}, ${this.name}${punctuation}`);
-    }
-    const person = { name: "John" };
-    // 使用 call：直接传递参数
-    greet.call(person, "Hello", "!"); // 输出: "Hello, John!"
-    // 使用 apply：以数组的形式传递参数
-    greet.apply(person, ["Hi", "."]); // 输出: "Hi, John."
-    // 使用 bind：返回一个新函数，绑定了指定的 this 和参数
-    const sayHi = greet.bind(person, "Hello", "!");
-    sayHi(); // 输出: "Hello, John!"
-    ```
-
-    - `call()`：直接调用函数，参数依次传入。
-    - `apply()`：与 `call()` 类似，区别在于参数传递形式为数组。
-    - `bind()`：不会立即执行函数，而是返回一个绑定了特定 `this` 的新函数，常用于事件处理。
-
 ## 抽象和封装
 
 > **简述**：在面向对象编程中，抽象和封装是非常重要的概念。抽象是指将复杂的实现细节隐藏起来，仅暴露出核心的、简单的接口。而封装则是将数据和操作数据的行为（方法）绑定在一起，避免外部直接修改对象的状态。它们共同提高了代码的安全性、可维护性和可扩展性。
@@ -6557,22 +6349,21 @@ try {
 
 1. 抽象
 
-    - 将复杂的实现细节隐藏，仅暴露出对象的核心功能。
-    - 外部与对象的交互仅通过简洁的接口，而不需要了解内部的实现。
+    - 目的：隐藏复杂实现细节，仅暴露必要的、简洁的接口给用户。
+    - 实现：设计简洁的 API，将复杂业务逻辑封装在内部模块中，对外只暴露核心功能。
 
 2. 封装
 
-    - 将数据和操作数据的行为组合在一起，避免外部代码直接访问对象的内部状态。
-    - 通过访问控制（如私有属性和方法），保护对象的状态不被随意修改。
+    - 定义：将数据和操作数据的行为绑定在一起，并隐藏对象的内部状态，防止外部直接访问或修改。
+    - 实现方式：
+        - 对象属性封装：使用私有属性（如 `_prop` 或 ES2022 中的 `#prop`）保护内部数据。
+        - 闭包封装：利用闭包将内部状态定义为局部变量（使用 let 或 const），只通过公开方法（如构造函数中返回的接口）来访问。例如，封装的核心思想可以归结为“将 `this` 中的属性用 let 声明为局部变量，通过闭包提供访问接口”。
 
-3. 抽象和封装的优势
+3. 抽象与封装的优势
 
-    - 在实际应用中，封装和抽象通常是一起使用的。封装确保对象内部的安全性，抽象确保外部代码能够简洁、高效地与对象交互。
-
-4. 抽象和封装的实现
-
-    - 封装：通过函数、对象的方法和闭包将内部状态隐藏，提供公共接口进行访问。
-    - 抽象：通过简化的接口与隐藏复杂业务逻辑，将外部与对象复杂内部实现隔离。
+    - 提高代码安全性和可维护性。
+    - 简化外部交互接口，降低使用复杂性。
+    - 有助于实现模块化设计，便于测试和扩展。
 
 **代码示例**
 
@@ -6592,23 +6383,20 @@ try {
     		console.log(
     			`Drawing a circle at location: x = ${defaultLocation.x}, y = ${defaultLocation.y}`
     		);
-    		this.computeOptimalLocation(); // 内部调用，避免外部直接访问
+    		computeOptimalLocation(); // 内部调用，避免外部直接访问
     	};
 
     	// 私有方法，外部无法访问，只供内部使用
-    	function computeOptimalLocation() {
+    	let computeOptimalLocation = function () {
     		console.log("Computing optimal location...");
-    	}
-
-    	// 提供公共接口访问半径
-    	this.getRadius = function () {
-    		return this.radius;
     	};
     }
 
     const circle = new Circle(5);
-    console.log(circle.getRadius()); // 输出 5
     circle.draw(); // 输出：Drawing a circle at location: x = 0, y = 0 和 Computing optimal location...
+
+    console.log(circle.defaultLocation); // undefined
+    circle.computeOptimalLocation(); // Uncaught TypeError
     ```
 
     - 在这个代码中，`defaultLocation` 和 `computeOptimalLocation` 被封装在 `Circle` 对象内部，外部无法直接修改它们。外部只能通过 `draw` 方法与对象交互。
@@ -6640,98 +6428,112 @@ try {
     };
     ```
 
-## `Getter`&`Setter`
+## 属性描述符
 
-> **简述**：在 JavaScript 中，`Object.defineProperty` 方法允许我们动态地为对象添加属性，并定义该属性的行为。通过使用 getter 和 setter，我们可以控制属性的访问和修改，同时进行数据验证，确保对象始终处于有效的状态。getter 用于读取属性值，而 setter 用于修改属性值，并可以在修改时加入额外的验证逻辑。
+> **简述**：在 JavaScript 中，Object.defineProperty 允许我们在对象上动态定义属性，并精细控制属性的行为。通过设置属性描述符（如 `configurable`、`enumerable`、`writable` 以及 `getter` 和 `setter`），我们不仅可以控制属性的读写操作，还能保护内部状态，确保对象始终处于有效状态。相比直接在对象上赋值，它提供了更高级的封装能力。
 
 **知识树**
 
-1. `Object.defineProperty` 方法
+1.  `Object.defineProperty` 方法
 
-    - 用于在对象上定义新属性，或者修改现有属性的行为。
-    - 可以使用 getter 和 setter 来定义属性的读写行为。
+    - 基本作用：在对象上定义新属性或修改现有属性的行为。
+    - 接收参数：指向，属性名，描述符
 
-2. getter 和 setter
+2.  属性描述符：
 
-    - getter：用于获取属性的值，能够控制如何返回该属性值。
-    - setter：用于设置属性的值，可以在设置时进行验证或转换。
+    - 数据描述符：
+        - `value`：设置属性的具体值
+        - `writable` 属性：制属性值是否可以修改。如果设置为 `false`，属性值将变为只读。
+        - `enumerable` 属性：控制属性是否可以被枚举。如果设置为 `false`，该属性不会出现在 `for...in` 循环或者 `Object.keys()` 方法返回的数组中。
+        - `configurable` 属性：控制属性是否可以被删除或重新定义。如果设置为 `false`，该属性不能被删除，且不能重新定义它的描述符。
+    - 访问描述符：
+        - `get`：函数，用于在读取属性时返回值。
+        - `set`：函数，用于在为属性赋值时自定义赋值行为。
+        - 同时也具有 `enumerable` 和 `configurable` 字段，但不包含 `value` 和 `writable` 字段。
+    - 注意：
+        - 同一属性不能同时同时存在数据描述符和访问描述符，否则会产生冲突。也就是说，如果定义了 get 或 set，则不能同时定义 value 或 writable。
 
-3. 只读属性
+3.  辅助方法
 
-    - 通过只定义 getter，可以创建只能读取而无法修改的属性。
+    - `Object.getOwnPropertyDescriptor`：查看指定属性的描述符，用于调试和验证属性行为。
 
-4. 带验证的 setter
+4.  实际应用与优势
 
-    - 使用 setter 时，可以加入验证逻辑，在设置属性值之前检查数据是否有效。
+    - 封装：利用描述符控制属性的可写性、枚举性和可配置性，实现细粒度的封装。
+    - 安全性：防止重要属性被误修改或误删除。
+    - 灵活性：结合 getter 和 setter，实现数据验证和自动计算逻辑。
 
 **代码示例**
 
-1. 只读属性：使用 `Object.defineProperty` 定义 getter
-
-    假设我们希望将 `defaultLocation` 设置为只读，不能直接修改其值。我们只定义 getter，而不定义 setter。
+1. 使用数据描述符定义只读、不可枚举属性
 
     ```js
-    "use strict";
+    const obj = {};
 
-    function Circle(radius) {
-    	this.radius = radius;
+    // 定义一个只读、不可枚举且不可配置的属性
+    Object.defineProperty(obj, "constantValue", {
+    	value: 42,
+    	writable: false, // 只读
+    	enumerable: false, // 不可枚举
+    	configurable: false, // 不可重新定义或删除
+    });
 
-    	let defaultLocation = { x: 0, y: 0 };
+    console.log(obj.constantValue); // 输出: 42
+    obj.constantValue = 100;
+    console.log(obj.constantValue); // 依然输出: 42
 
-    	Object.defineProperty(this, "defaultLocation", {
-    		get: function () {
-    			return defaultLocation;
-    		},
-    	});
-    }
-
-    const circle = new Circle(5);
-    console.log(circle.defaultLocation); // 输出：{ x: 0, y: 0 }
-
-    // 尝试修改 defaultLocation 会导致错误
-    try {
-    	circle.defaultLocation = { x: 100, y: 100 }; // TypeError: Cannot set property defaultLocation of #<Circle> which has only a getter
-    } catch (e) {
-    	console.log(e.message); // 输出："Cannot set property defaultLocation of #<Circle> which has only a getter"
-    }
+    console.log(Object.keys(obj)); // 不包含 constantValue
     ```
 
-2. 使用 `Object.defineProperty` 定义 getter 和 setter
-
-    假设我们希望提供一个 `defaultLocation` 属性，同时在尝试修改时加入验证逻辑。
+2. 使用访问描述符封装内部状态
 
     ```js
-    "use strict";
-    function Circle(radius) {
-    	this.radius = radius;
-    	// 私有变量，不能直接被外部访问
-    	let defaultLocation = { x: 0, y: 0 };
-    	// 使用 Object.defineProperty 定义 getter 和 setter
-    	Object.defineProperty(this, "defaultLocation", {
-    		// getter: 只允许读取 defaultLocation
-    		get: function () {
-    			return defaultLocation;
+    function Person(firstName, lastName) {
+    	// 内部状态通过闭包隐藏
+    	let _firstName = firstName;
+    	let _lastName = lastName;
+
+    	// 定义访问描述符，暴露 getter 和 setter
+    	Object.defineProperty(this, "fullName", {
+    		get() {
+    			return `${_firstName} ${_lastName}`;
     		},
-    		// setter: 在设置 defaultLocation 时进行验证
-    		set: function (value) {
-    			if (!value.x || !value.y) {
-    				throw new Error("Invalid location");
+    		set(value) {
+    			const parts = value.split(" ");
+    			if (parts.length !== 2) {
+    				throw new Error("请输入有效的全名");
     			}
-    			defaultLocation = value;
+    			_firstName = parts[0];
+    			_lastName = parts[1];
     		},
+    		enumerable: true,
+    		configurable: true,
     	});
     }
-    const circle = new Circle(10);
-    console.log(circle.defaultLocation); // 输出：{ x: 0, y: 0 }
-    // 尝试修改 defaultLocation，若传入无效值则抛出错误
-    try {
-    	circle.defaultLocation = { x: null, y: 5 }; // 抛出错误
-    } catch (e) {
-    	console.log(e.message); // 输出："Invalid location"
-    }
-    // 正确修改 defaultLocation
-    circle.defaultLocation = { x: 10, y: 10 };
-    console.log(circle.defaultLocation); // 输出：{ x: 10, y: 10 }
+
+    const person = new Person("Mosh", "Hamedani");
+    console.log(person.fullName); // 输出: Mosh Hamedani
+    person.fullName = "John Smith";
+    console.log(person.fullName); // 输出: John Smith
+    ```
+
+3. 利用 `Object.getOwnPropertyDescriptor` 检查属性描述符
+
+    ```js
+    const obj2 = {};
+
+    // 定义属性
+    Object.defineProperty(obj2, "name", {
+    	value: "Alice",
+    	writable: true,
+    	enumerable: true,
+    	configurable: true,
+    });
+
+    // 获取属性描述符
+    const descriptor = Object.getOwnPropertyDescriptor(obj2, "name");
+    console.log(descriptor);
+    // 输出类似：{ value: 'Alice', writable: true, enumerable: true, configurable: true }
     ```
 
 ## Ex: Stopwatch Object
@@ -6811,218 +6613,218 @@ setTimeout(() => {
 
 ## 继承
 
-> **简述**：继承是面向对象编程（OOP）中的核心概念，它使得一个构造函数（类）能够继承另一个构造函数（类）的属性和方法，从而实现代码复用。
->
-> 这里的类，即种类的意思，比如 Person 构造函数，创建了对象 John，Nancy，Steven，这些对象都是 Person 类型的（）
+> **简述**：继承是面向对象编程（OOP）的核心机制，通过继承，子类可以从父类中获取属性和方法，实现代码复用与多态。需要注意的是，JavaScript 的继承基于原型链机制，ES6 `class` 语法仅为其提供了一层更友好的抽象。
 
 **知识树**
 
-1. 继承的概念
+1. 构造函数与类的概念
 
-    - 继承是子类从父类获取属性和方法的一种机制，将公共属性和方法放入父类中，避免了重复的代码实现。
-    - 继承的关系通过子类继承父类来实现，子类是父类的一种特殊类型。例如，`Circle IS-A Shape`，表示圆形是形状的一种类型。
-    - 父类被称为基类或父类（`Base`/`Super`/`Parent`）
-    - 子类为派生类或子类（`Derived`/`Sub`/`Child`）
+    - 概念说明：
+        - 在 JavaScript 中，构造函数相当于其他语言中的“类”。“类”原本指的是“种类”，用于描述具有相同特性和行为的一组对象。
+        - 为了便于理解，这里我们用‘类’来统一描述构造函数
+    - 注意事项：
+        - 这里讨论的“类”指的是传统基于构造函数和原型链的实现方式，并不是 ES6 中通过 class 关键字引入的语法糖。
 
-2. ES6 引入`class`
+2. 继承的概念
 
-    - 尽管 JavaScript 在 ES6 中引入了类的概念，但 JavaScript 本质上是基于原型继承的，类的概念只是对原型继承的一种语法糖。类的概念将在后续讲解中详细介绍。
+    - 概念：
+        - 继承是一种机制，通过子类继承父类的属性和方法，实现代码复用和多态。
+        - “IS-A” 关系：例如，Circle 是一种 Shape，说明圆形类继承自形状类。
+    - 优势：
+        - 提高代码复用性和模块化设计。
+        - 支持方法重写，从而实现多态性。
+    - 别称
+        - 父类被称为基类或父类（`Base`/`Super`/`Parent`）
+        - 子类为派生类或子类（`Derived`/`Sub`/`Child`）
+
+3. 继承的实现机制
+
+    - 原型链机制：JS 中，实例通过内部的 `[[Prototype]]` 指向父对象，沿着原型链查找所需属性与方法。
+    - 动态继承：原型链是动态的，父对象的修改会影响所有继承它的实例。
+
+- 设计思想与注意事项
+
+    - 方法重写与多态：子类可以重写父类方法，实现行为的定制和扩展。
+    - 组合优于继承：在某些场景下，应考虑使用组合 Mixins（composition）而非继承，以提高代码的灵活性和可维护性。
 
 ## 原型和原型继承
 
-> **简述**：在 JavaScript 中，我们没有传统的类（class）机制，而是通过对象和原型（prototype）来实现继承。每个对象都与另一个对象（它的原型）相关联，继承其属性和方法。这种机制被称为原型继承，它允许对象共享属性和方法，而不需要直接复制数据。理解原型和原型继承是掌握 JavaScript 面向对象编程的关键。
->
-> **这一节注意代码示例**
+> **简述**：在 JavaScript 中，继承是通过构造函数和原型链实现的。当使用构造函数创建对象时，该对象的内部 `[[Prototype]]`（可通过 `Object.getPrototypeOf()` 获取）被设置为构造函数的 `prototype` 属性。通过这种原型链机制，多个对象能够共享属性和方法，实现代码复用和动态继承。
 
 **知识树**
 
-1. 原型（Prototype）
+1. 对象的原型
 
-    - 每个对象都有一个原型（parent），它是该对象的父对象，包含对象继承的属性和方法。
+    - 每个 JavaScript 对象都有一个内部属性 `[[Prototype]]`，也称为其原型（可通过 `__proto__` 或 `Object.getPrototypeOf()` 访问），它决定了对象的继承链。
 
-2. 原型继承（Prototypal Inheritance）
+2. 构造函数的 `prototype` 属性
 
-    - 当对象访问某个属性或方法时，JavaScript 引擎首先在该对象自身查找，如果找不到，则查找对象的原型，直到找到或到达 `Object` 根对象。
-    - 这种机制使得多个对象可以共享相同的方法和属性，而不需要复制。
+    - 每个构造函数都有一个 `prototype` 属性（一个对象），用于定义由该构造函数创建的新实例 共同拥有的属性和方法。
+    - 当使用 `new Constructor()` 创建新对象时，新对象的内部原型（即 `[[Prototype]]` 或 `__proto__`）指向 `Constructor.prototype`。
 
 3. 原型链（Prototype Chain）
 
-    - 通过原型连接的对象链。当访问对象的属性时，JavaScript 会沿着原型链查找，直到找到为止。
+    - 通过原型连接的对象链。对象的原型 `[[Prototype]]`，指向其构造函数的 `prototype` 属性，而构造函数的 `prototype` 属性本身也是一个对象，指向这个构造函数的构造函数的 `prototype` 属性。比如构造函数 String 的属性`String.prototype` 的构造函数是 `Object`。
 
-4. 继承成员
+4. 原型继承（Prototypal Inheritance）
 
-    - 继承成员（ Inherited Members）是指对象从其原型链上继承的属性和方法。继承成员包括原型对象本身的成员，也包括原型对象的父类或祖先对象上的成员。
-    - 简而言之，继承成员是指在对象的原型链中找到的所有属性和方法。
+    - 当对象访问某个属性或方法时，JavaScript 引擎首先在该对象自身查找，若对象（的构造函数）没有定义该属性，JavaScript 会沿着原型链查找，直到找到或到达 `Object` 根构造函数。
+    - 这种机制使得多个构造函数可以共享相同的方法和属性，而不需要再每个构造函数中重复定义。
 
-5. JavaScript 根对象（ObjectBase）
+5. 继承成员
 
-    - 所有对象的原型链最终都会指向一个共同的祖先对象 `Object`，称为 `ObjectBase`，它是所有对象的根对象。
-    - `Object` 没有原型，它是原型链的终点。
+    - 继承成员（Inherited Members）指的是一个对象并非直接在自身上定义的属性和方法，而是通过原型链从它的父对象（或者更高层的祖先对象）中继承而来的。
+    - 这里的父对象，指的是父构造函数的 `prototype` 属性
 
-6. 获取原型
+6. JavaScript 根构造函数（ObjectBase）
+
+    - 所有构造函数的原型链最终都会指向一个共同的祖先构造函数 `Object`，称为 `ObjectBase`，它是所有构造函数的根构造函数。先祖对象，也就是`Object.prototype`
+    - `Object.prototype` 没有原型`[[Prototype]]`，它是原型链的终点。
+
+7. 获取原型
 
     - 使用 `Object.getPrototypeOf` 来获取对象的原型。`__proto__` 也可以用于查看和修改对象的原型，但它是过时的属性。
 
-7. prototype 属性
+8. 原型继承示例（不同软件展示可能有差异，使用 Obsidian）
 
-    - 每个构造函数（Function）都有一个 `prototype` 属性，它指向一个对象。这个对象包含所有通过该构造函数创建的实例共享的方法和属性。
-    - `prototype` 属性是实现原型继承的关键，通过它，构造函数创建的对象实例会继承 `prototype` 中定义的成员。
-    - `Object`、`Array`等，以及自定义的构造函数，都是构造函数
-    - 通过 `prototype` 属性，可以让多个实例共享相同的方法，从而实现方法的继承（后面章节）。
+    - 从通俗的角度来看，是构造函数之间的继承，实际上，是构造函数的原型（`__proto__`）之间的继承
+
+    ```js
+    		  arr ("abc")
+    			  │
+    			  ▼
+    	   arr.__proto__  →  String.prototype
+    								  │
+    								  ▼
+    				   String.prototype.__proto__  →  Object.prototype
+    														  │
+    														  ▼
+    											 Object.prototype.__proto__  →  null
+
+    ```
 
 **代码示例**
 
-1. 基本的原型概念：对象和原型
-
-    每个 JavaScript 对象都有一个原型。
+1. 每个 JavaScript 对象都有一个原型。
 
     ```js
     const x = {}; // 创建一个空对象
     console.log(x);
-    // {}
-    // [[Prototype]]: Object
+    //{} 展开后，看到[[Prototype]] Object，指这对象的属性和方法，来自Object
 
-    // > constructor: f Object()
-    // > hasOwnProperty: f hasOwnProperty()
-    // > isPrototypeOf: f isPrototypeOf()
-    // > propertyIsEnumerable: f propertyIsEnumerable()
-    // > toLocaleString: f toLocaleString()
-    // > toString: f toString()
-    // > valueOf: f valueOf()
-    // > __defineGetter__: f __defineGetter__()
-    // > __defineSetter__: f __defineSetter__()
-    // > __lookupGetter__: f __lookupGetter__()
-    // > __lookupSetter__: f __lookupSetter__()
-    // > __proto__: Object
-
-    //   > constructor: f Object()
-    //   > hasOwnProperty: f hasOwnProperty()
-    //   > isPrototypeOf: f isPrototypeOf()
-    //   > propertyIsEnumerable: f propertyIsEnumerable()
-    //   > toLocaleString: f toLocaleString()
-    //   > toString: f toString()
-    //   > valueOf: f valueOf()
-    //   > __defineGetter__: f __defineGetter__()
-    //   > __defineSetter__: f __defineSetter__()
-    //   > __lookupGetter__: f __lookupGetter__()
-    //   > __lookupSetter__: f __lookupSetter__()
-    //     __proto__: null
-
-    // > get __proto__: f __proto__()
-    // > set __proto__: f __proto__()
-    // > get __proto__: f __proto__()
-    // > set __proto__: f __proto__()
+    const str = "abc";
+    console.log(str.__proto__); // 输出 String{...}，，指这对象的属性和方法，来自String
     ```
 
-    - `[[Prototype]]` 是一个内部属性：
-        - `[[Prototype]]` 是 JavaScript 引擎内部使用的一个隐式属性，它并不直接暴露给开发者。这是 JavaScript 引擎用来实现原型链的机制。它指向该对象的原型对象（通常是 `Object.prototype`，除非修改了原型）。
-        - 在这里，`[[Prototype]]` 指向了 `Object`，意味着对象 `x` 从内置的 `Object` 原型继承属性和方法。`Object` 原型包括像 `hasOwnProperty`、`toString` 和 `toLocaleString` 这样的方法。
-    - `__proto__` 是外部可访问的属性：
-        - `__proto__` 是 JavaScript 对象暴露给开发者的一个标准属性。虽然它提供了对 `[[Prototype]]` 的访问，但它是一个显式的、用于操作对象原型链的接口。你可以通过 `obj.__proto__` 来查看或修改对象的原型（已过时）。
-        - 当你看到 `__proto__: Object` 时，这意味着 `x` 的原型是 `Object` 原型，这与 `[[Prototype]]: Object` 的意思是一样的。不过，`__proto__` 还可以用于修改原型链，比如通过给它赋值一个新的对象。
-
-2. 基本的原型概念：对象和原型
-
-    当我们在对象上查找属性或方法时，如果该对象本身没有，就会查找它的原型。
+2. 构造函数的 `prototype` 属性
 
     ```js
     const x = {}; // 创建一个空对象
-    console.log(x.toString); // 访问继承自 Object.prototype 的 toString 方法
-    // 返回一个字符串 "[object Object]"，这是表示该对象的默认字符串表示形式。
+    console.log(x);
+    //{} 展开后，看到[[Prototype]] Object，指这对象的属性和方法，来自Object
+
+    const str = "abc";
+    console.log(str.__proto__); // 输出 String{...}，，指这对象的属性和方法，来自String
+
+    console.log(x.__proto__ === Object.prototype); // 输出：true
+    console.log(arr.__proto__ === String.prototype); // 输出：true
     ```
 
-3. 使用 `Object.getPrototypeOf` 获取原型
-
-    使用 `Object.getPrototypeOf` 方法，我们可以安全地获取对象的原型，而不是直接访问过时的 `__proto__`。
+3. 原型链（Prototype Chain）
 
     ```js
     const x = {}; // 创建一个空对象
-    console.log(Object.getPrototypeOf(x)); // 输出 Object.prototype
-    console.log(Object.prototype); // 和上一行输出一致
-    console.log(Object.getPrototypeOf(x) === Object.prototype); // true
-    // 一般不直接在代码中使用__proto__，这里使用是为了帮助理解
-    console.log(Object.getPrototypeOf(x) === x.__proto__); // true
-    // 父对象相同时，使用该函数获取prototype，得到的值完全一致
-    const y = {}; // 创建一个空对象
+    console.log(x);
+    //{} 展开后，看到[[Prototype]] Object，指这对象的属性和方法，来自Object
+
+    const str = "abc";
+    console.log(str.__proto__); // 输出 String{...}，，指这对象的属性和方法，来自String，展开可以看到 [[Prototype]] Object ，指这对象 str.__proto__，也就是 String.prototype 的属性和方法，来自Object
+
+    const n = 1;
+    console.log(n.__proto__); // 输出 Number{...}，，指这对象的属性和方法，来自Number，展开可以看到 [[Prototype]] Object ，指这对象 n.__proto__，也就是 Number.prototype 的属性和方法，来自Object
+
+    console.log(str.__proto__.__proto__ === Object.prototype); // 输出：true
+    console.log(n.__proto__.__proto__ === Object.prototype); // 输出：true
     ```
 
-4. 原型链：多个对象共享原型
-
-    每个对象的原型都指向另一个对象，直到原型链的顶端（`Object.prototype`）。多个对象可以共享相同的原型，从而实现继承。
+4. 原型链关系（不同软件展示可能有差异，使用 Obsidian）
 
     ```js
-    const x = {};
-    const y = {};
-    console.log(Object.getPrototypeOf(x) === Object.getPrototypeOf(y)); // true
+    x = {}                   str = "abc"                       n = 1
+    │                            │                                │
+    ▼                            ▼                                ▼
+    x.__proto__          str.__proto__                n.__proto__
+    │                            │                                │
+    │                            │                                │
+    │                            │                                │
+    │                            ▼                                ▼
+    │                String.prototype.__proto__    Number.prototype.__proto__
+    │                            │                                │
+    │                            │                                │
+    │                            ▼                                │
+    └─────> Object.prototype <───────┘
     ```
 
-    - `x` 和 `y` 都继承自 `Object.prototype`，它们共享相同的原型。
+5. 原型继承
 
-5. `prototype` 属性
-
-    每个构造函数都有一个 `prototype` 属性。这个属性是一个对象，包含构造函数所创建的所有实例共享的属性和方法。
+    - 这里 `x` 使用了来自`Object`的`toString()`方法
 
     ```js
-    function Circle(radius) {
-    	this.radius = radius;
-    }
-    const circle = new Circle(5);
-    console.log(circle);
-    console.log(Object.getPrototypeOf(circle));
-    console.log(Circle.prototype);
-    console.log(Object.getPrototypeOf(circle) === Circle.prototype); //true
+    const x = {}; // 创建一个空对象
 
-    const x = {};
-    console.log(Object.getPrototypeOf(x) === Object.prototype); //true
+    console.log(x.toString()); // 输出 [object Object]
+    console.log(x.play()); // Uncaught TypeError: x.play is not a function
     ```
+
+    - JavaScript 对象默认的 `toString` 方法返回的是 `[object Object]`
+
+6. `Object.getPrototypeOf`
+
+```js
+const x = {}; // 创建一个空对象
+console.log(Object.getPrototypeOf(x)); // 现代方式
+console.log(x.__proto__); // 过时的方式，不要在实际开发中使用
+
+console.log(Object.getPrototypeOf(x) === x.__proto__); // true
+```
 
 ## 多级继承
 
-> **简述**：在 JavaScript 中，原型继承不仅可以实现简单的继承关系，还支持多层级继承。通过原型链，JavaScript 对象可以继承多层父对象的属性和方法。这种多层级继承机制允许对象不仅继承自其直接父类，还可以进一步继承从根对象（`Object.prototype`）传下来的方法和属性。理解多层级原型继承能够帮助我们深入理解 JavaScript 中的继承模型。
+> **简述**：在 JavaScript 中，原型继承不仅可以实现简单的继承关系，还支持多层级继承。通过原型链，JavaScript 对象可以继承多层父类的属性和方法。这种多层级继承机制允许对象不仅继承自其直接父类，还可以进一步继承从根对象（`Object.prototype`）传下来的方法和属性。
 
 **知识树**
 
 1. 多层级原型继承
 
-    - JavaScript 中的对象继承是基于原型链的，可以形成多层级的继承关系。对象可以继承多个父对象的属性和方法。
+    - 概念：
+        - 每个对象的原型指向他的构造函数的`prototype`属性，而这个`prototype`属性也是一个对象，指向其构造函数的`prototype`属性。直到最终指向 `Object.prototype`，即原型链的根对象。
+    - 解释：
+        - 构造函数 String 的属性`String.prototype` 的构造函数是 `Object`。
 
-2. 原型链的结构
+2. 自定义构造函数的原型继承
 
-    - 每个对象的原型指向其父对象，而父对象的原型又指向其父对象，直到最终指向 `Object.prototype`，即原型链的根对象。
+    - 概念：
+        - 使用自定义构造函数创建的对象，也具有原型继承关系。对象的原型指向构造函数的`prototype`属性，进一步继承自 `Object.prototype`。
+    - 控制台显示歧义：
+        - 对于任何自定义构造函数来说，其创建的实例的内部原型指向构造函数的 `prototype`，而这个 `prototype` 本身是一个普通对象，其内部原型又指向 `Object.prototype`，这就是控制台显示“`[[Prototype]]: Object`” 的原因。除内置构造函数外，其余显示为 `Object`。
 
-3. 自定义构造函数的原型继承
-
-    - 使用自定义构造函数创建的对象，也具有原型继承关系。对象的原型指向构造函数的原型，进一步继承自 `Object.prototype`。
-
-4. 对象继承层级的可视化
+3. 对象继承层级的可视化
 
     - 可以通过开发者工具的 `prototype` 属性查看对象的继承关系，理解对象在内存中的原型链结构。
 
 **代码示例**
 
-1. 原型链：数组的原型继承
+1. 原型链：`String`的原型继承
 
-    JavaScript 中的数组（`Array`）也具有原型继承。通过访问数组对象的原型，您可以看到它继承自 `Array.prototype`，而 `Array.prototype` 又继承自 `Object.prototype`。
+    通过访问字符串对象的原型，您可以看到它继承自 `String.prototype`，而 `String.prototype` 又继承自 `Object.prototype`。
 
     ```js
-    const myArray = [];
-
-    console.log(myArray); // 最后一行 [[Prototype]]: Array(0)
-    // 相当于 console.log(myArray.__proto__);
-    console.log(Object.getPrototypeOf(myArray)); // 最后一行 [[Prototype]]: Object
-    // 相当于 console.log(myArray.__proto__.__proto__);
-
-    // 以下代码帮助理解
-    console.log(Object.getPrototypeOf(myArray) === Array.prototype); //true
-    console.log(Object.getPrototypeOf(Object.getPrototypeOf(myArray))); // 得到了Object.prototype
-    console.log(
-    	Object.getPrototypeOf(Object.getPrototypeOf(myArray)) ===
-    		Object.prototype
-    ); // true
+    const str = "abc";
+    console.log(str.__proto__); // 输出 String{...}，，指这对象的属性和方法，来自String，展开可以看到 [[Prototype]] Object ，指这对象 str.__proto__，也就是 String.prototype 的属性和方法，来自Object
+    console.log(str.__proto__.__proto__ === Object.prototype); // true
     ```
 
-    - `myArray` 对象继承自 `Array.prototype`，后者又继承自 `Object.prototype`。因此，数组不仅具有数组特有的方法（如 `push` 和 `indexOf`），还可以访问 `Object` 原型中的方法（如 `toString`）。
-    - `myAr`对象继承自`arrayBase`，`arrayBase`继承自`objectBase`
+    - `str` 对象继承自 `String.prototype`，后者又继承自 `Object.prototype`。因此，字符串不仅具有字符串特有的方法，还可以访问 `Object` 原型中的方法。
 
 2. 自定义构造函数的原型继承
 
@@ -7033,9 +6835,9 @@ setTimeout(() => {
     	this.radius = radius;
     }
     const circle = new Circle(5);
-    console.log(circle); // 输出 circle 对象，包含属性 radius
-    console.log(Object.getPrototypeOf(circle)); // 查看 Circle 构造函数的原型：Circle.prototype
-    console.log(Object.getPrototypeOf(Object.getPrototypeOf(circle))); // 查看 Circle.prototype 的原型：Object.prototype
+    console.log(circle); // 输出 circle 对象，展开后，[[Prototype]]显示为Object，因为 Circle.prototype 本身也是一个对象，除内置构造函数外，其余显示为Object
+    console.log(circle.__proto__ === Circle.prototype); // true
+    console.log(Circle.prototype.__proto__ === Object.prototype); // true
     ```
 
     - `circle`对象继承自`circleBase`，`circleBase`继承自`objectBase`
@@ -7181,7 +6983,7 @@ setTimeout(() => {
 
 ## 实例成员与原型成员
 
-> **简述**：在 JavaScript 中，每个对象可以有实例成员（instance members）和原型成员（prototype members）。实例成员是直接在对象上定义的，而原型成员则定义在对象的原型上。原型继承使得多个对象可以共享相同的行为和方法，从而节省内存并提高性能。理解实例成员与原型成员的区别是构建高效、可维护 JavaScript 应用程序的关键。
+> **简述**：实例成员强调的是与实例对象的关系，是构造函数中新创建的对象所独有的属性。原型成员则定义在对象的原型上，原型继承使得多个对象可以共享相同的行为和方法。
 
 **知识树**
 
@@ -7189,18 +6991,16 @@ setTimeout(() => {
 
     - 实例成员（Instance Members）：直接在对象上定义的属性和方法，每个对象都会有自己的副本，这可能导致资源浪费。
     - 原型成员（Prototype Members）：定义在对象原型上的属性和方法，所有通过该构造函数创建的对象共享同一副本。
+    - 自有成员（Own Members）：自有成员更强调的是对象是否直接拥有某个属性，而不考虑它是通过构造函数还是其他方式定义的，实例成员也是自有成员
 
-2. 自有成员（补充）
-
-    - Instance Members（实例成员）和 Own Members（自有成员）在 JavaScript 中是两个相似但稍有不同的概念，通常可以在某些情况下是一样的，但在不同的上下文中可能有不同的含义。
-    - 实例成员强调的是与实例对象的关系，是构造函数中新创建的对象所独有的属性。
-    - 自有成员更强调的是对象是否直接拥有某个属性，而不考虑它是通过构造函数还是其他方式定义的。
-    - 实例成员也是自有成员
-
-3. 原型继承
+2. 原型继承
 
     - 当访问一个对象的属性或方法时，JavaScript 会先查找该对象本身的属性，如果找不到，就会查找它的原型。
     - 通过将方法移到原型上，多个对象可以共享这些方法，从而节省内存。
+
+3. 继承属性的枚举
+
+    - xxx
 
 4. `constructor.prototype` 和 `__proto__`
 
