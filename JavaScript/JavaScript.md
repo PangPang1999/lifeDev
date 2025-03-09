@@ -6842,185 +6842,60 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
     - `circle`对象继承自`circleBase`，`circleBase`继承自`objectBase`
 
-## 属性描述符
-
-> **简述**：在 JavaScript 中，每个对象的属性不仅包含值，还包括一些属性描述符，这些描述符控制属性的行为。主要有三个属性描述符：`writable`、`enumerable` 和 `configurable`。它们分别控制属性是否可以修改、是否可以枚举（是否出现在 `for...in` 或 `Object.keys()` 中）、以及是否可以删除。理解这些描述符对于更精确地控制对象行为非常重要。
-
-**知识树**
-
-1. 属性描述符（Property Descriptor）
-
-    - 每个对象的属性都有一个描述符，描述符控制着属性的行为。最常见的三个描述符是：`writable`（可写性）、`enumerable`（可枚举性）和 `configurable`（可配置性）。
-
-2. `writable` 属性
-
-    - 制属性值是否可以修改。如果设置为 `false`，属性值将变为只读。
-
-3. `enumerable` 属性
-
-    - 控制属性是否可以被枚举。如果设置为 `false`，该属性不会出现在 `for...in` 循环或者 `Object.keys()` 方法返回的数组中。
-
-4. `configurable` 属性
-
-    - 控制属性是否可以被删除或重新定义。如果设置为 `false`，该属性不能被删除，**且不能重新定义它的描述符。**
-
-5. `Object.getOwnPropertyDescriptor` 和 `Object.defineProperty`
-
-    - 使用 `Object.getOwnPropertyDescriptor` 可以查看对象属性的描述符。
-    - 使用 `Object.defineProperty` 可以自定义属性的行为，修改属性的描述符。
-
-**代码示例**
-
-1. 默认属性描述符
-
-    创建一个简单的对象并检查它的属性描述符：
-
-    ```js
-    const person = { name: "Mosh" };
-
-    // 获取 person 对象的原型（即 Object.prototype）
-    const objectBase = Object.getPrototypeOf(person);
-
-    // 获取 toString 方法的属性描述符
-    const descriptor = Object.getOwnPropertyDescriptor(objectBase, "toString");
-
-    console.log(descriptor);
-    // {writable: true, enumerable: false, configurable: true, value: f}
-    ```
-
-    - 解释：
-        - `writable: true`：说明 `toString` 方法是可以修改的。
-        - `enumerable: false`：说明 `toString` 方法不可枚举，即它不会出现在 `for...in` 或 `Object.keys()` 中。
-        - `configurable: true`：说明 `toString` 方法是可以删除的，并且可以重新定义它的描述符。
-        - `value: f`：`toString` 方法的实际值是一个函数（`f` 表示函数）。
-
-2. 通过 `Object.defineProperty` 修改属性描述符
-
-    我们可以使用 `Object.defineProperty` 来修改对象属性的描述符。例如，修改 `name` 属性，使其不可修改并不可枚举：
-
-    ```js
-    // "use strict";
-
-    const person = { name: "Mosh" };
-    // 修改 'name' 属性的描述符
-    Object.defineProperty(person, "name", {
-    	writable: false, // 使 'name' 属性只读
-    	enumerable: false, // 使 'name' 不可枚举
-    	configurable: false, // 使 'name' 不能被删除
-    });
-
-    // 尝试修改 'name' 属性
-    person.name = "John"; // 无效，'name' 属性是只读的，严格模式报错
-    console.log(person.name); // 非严格模式 输出 'Mosh'
-
-    // 查看属性描述符
-    const descriptorName = Object.getOwnPropertyDescriptor(person, "name");
-    console.log(descriptorName); // 输出 { writable: false, enumerable: false, configurable: false, value: 'Mosh' }
-    ```
-
-    - 在这个例子中，我们通过 `Object.defineProperty` 修改了 `name` 属性的描述符，使其成为只读、不可以枚举且不可删除的属性。
-
-3. 控制属性是否可以枚举
-
-    使用 `enumerable` 属性控制属性是否可枚举。如果我们将 `name` 属性设置为不可枚举，它将不会出现在 `Object.keys()` 中。
-
-    ```js
-    const person = { name: "Mosh" };
-
-    // 修改 'name' 属性，使其不可枚举
-    Object.defineProperty(person, "name", {
-    	enumerable: false,
-    });
-
-    // 查看属性描述符
-    console.log(Object.keys(person)); // 输出空数组 []
-
-    // 将 'name' 设置为可枚举
-    Object.defineProperty(person, "name", {
-    	enumerable: true,
-    });
-
-    console.log(Object.keys(person)); // 输出 ['name']
-    ```
-
-    - 通过设置 `enumerable: false`，`name` 属性不会出现在 `Object.keys(person)` 中，即使它仍然存在于对象中。
-
-4. 使用 `configurable` 控制属性是否可以删除
-
-    设置 `configurable: false` 后，属性将无法被删除。
-
-    ```js
-    const person = { name: "Mosh" };
-
-    // 修改 'name' 属性，使其不可删除
-    Object.defineProperty(person, "name", {
-    	configurable: false,
-    });
-
-    // 尝试删除 'name' 属性
-    delete person.name; // 无效，'name' 无法被删除
-
-    console.log(person.name); // 输出 'Mosh'
-    ```
-
-    - 当 `configurable` 为 `false` 时，即使使用 `delete` 语句，也无法删除 `name` 属性。
-
-5. 查看继承自原型的属性
-
-    当我们创建一个对象并继承自 `Object.prototype`，我们无法通过迭代看到继承自原型的属性和方法。只有对象自身定义的属性才会被枚举。
-
-    ```js
-    const person = { name: "Mosh" };
-    console.log(Object.keys(person)); // 输出 ['name']
-
-    // 使用 `for...in` 迭代属性时，不会列出继承自原型的属性
-    for (let key in person) {
-    	console.log(key); // 只输出 'name'
-    }
-    ```
-
-    - `toString` 是继承自 `Object.prototype` 的方法，但它不会显示在 `Object.keys()` 或 `for...in` 中，因为 `enumerable` 属性默认是 `false`。
-
 ## 实例成员与原型成员
 
-> **简述**：实例成员强调的是与实例对象的关系，是构造函数中新创建的对象所独有的属性。原型成员则定义在对象的原型上，原型继承使得多个对象可以共享相同的行为和方法。
+> **简述**：在 JavaScript 中，每个对象既拥有通过构造函数或直接赋值创建的**实例成员**，又可以通过其原型链共享来自构造函数 `prototype` 对象的**原型成员**。实例成员是对象自身的属性和方法，它们在每个实例中单独存在，因此适合存储每个实例独有的数据；而原型成员则在所有实例之间共享，既节约内存，又使得对方法的修改能够在所有实例中生效。理解这两者的区别，对于合理组织代码、实现高效的对象复用和内存管理至关重要。
 
 **知识树**
 
-1. 实例成员与原型成员的区别
+1. 成员之间的区分
 
-    - 实例成员（Instance Members）：直接在对象上定义的属性和方法，每个对象都会有自己的副本，这可能导致资源浪费。
-    - 原型成员（Prototype Members）：定义在对象原型上的属性和方法，所有通过该构造函数创建的对象共享同一副本。
-    - 自有成员（Own Members）：自有成员更强调的是对象是否直接拥有某个属性，而不考虑它是通过构造函数还是其他方式定义的，实例成员也是自有成员
+    - 自有成员（Own Members）：
+        - 指直接定义在对象自身上的属性和方法（例如在构造函数中使用 `this.xxx` 或通过 `obj.prop = ...` 添加的成员）。
+        - 每个对象都有自己的副本，适用于存储独立的、实例特有的数据。
+    - 实例成员（Instance Members）：
+        - 强调通过构造函数初始化并直接存储在对象上的成员，与自有成员本质上是相同的，但侧重描述在实例化时产生的独有数据。
+    - 继承成员（Inherited Members）：
+        - 指不直接定义在对象自身，而是通过原型链继承而来的成员。当对象访问不存在于自身的属性时，会沿着原型链查找这些成员。
+    - 原型成员（Prototype Members）：
+        - 指定义在构造函数 `prototype` 对象上的成员，这些成员被所有实例共享，是继承成员的一部分。
 
-2. 原型继承
+2. **通过 `.prototype` 添加方法**
 
-    - 当访问一个对象的属性或方法时，JavaScript 会先查找该对象本身的属性，如果找不到，就会查找它的原型。
-    - 通过将方法移到原型上，多个对象可以共享这些方法，从而节省内存。
+    - 定义共享方法：
+        - 将构造函数的行为（方法）添加到 prototype 上，避免每个实例都创建一份相同函数。
+    - 共享性与修改性：
+        - 无论实例何时创建，只要 prototype 中的方法发生更改，所有实例都会受到影响。
+    - 注意：
+        - 避免在 prototype 中添加引用类型属性，因为这会导致所有实例共享同一引用，易引发副作用。
 
-3. 继承属性的枚举
+3. 原型方法与实例方法的互相调用
 
-    - xxx
+    - 属性查找机制：当实例调用方法时，首先查找自身的属性，若不存在则沿着原型链查找。
+    - 重写与覆盖：实例成员可覆盖原型成员，实现方法重写；同时，原型方法内部也可以通过 this 访问实例成员，从而实现复合行为。
 
-4. `constructor.prototype` 和 `__proto__`
+4. 性能与内存优化
 
-    - 每个构造函数都有一个 `prototype` 属性，指向该构造函数实例对象的原型。
-    - `__proto__` 是对象的原型属性，指向对象实例的原型。
+    - 将方法定义在 prototype 上可大幅减少内存消耗，因为每个实例共享同一方法实现。
+    - 实例成员适合存储独立状态，但若涉及大对象或数组等引用类型时，应谨慎设计，避免不必要的重复。
 
-5. **通过 `.prototype` 添加方法**
+5. 成员示例
 
-    - 可以通过修改构造函数的 `prototype` 属性，向所有实例添加共享方法，从而减少内存消耗。
-    - 不管对象创建时是否已经创建，只要在调用方法之前通过 `prototype` 修改构造函数中的方法，对象中方法调用时都可以生效。
+    ```js
+    function Circle(radius) {
+    	this.radius = radius; // 实例成员&自有成员
+    }
+    Circle.prototype.color = "red"; // 原型成员&继承成员
 
-6. 原型方法与实例方法的互相调用
+    const circle = new Circle(5);
+    circle.position = { x: 1, y: 2 }; // 自有成员
 
-    - 实例方法可以调用原型方法，反之亦然。这提供了强大的灵活性，能够通过实例和原型的结合来创建更复杂的行为。
+    console.log(circle.toString()); // 继承成员，toString方法继承自Object.prototype
+    ```
 
 **代码示例**
 
 1. 实例方法与资源浪费
-
-    假设我们定义一个 `Circle` 构造函数，它包含 `radius` 属性和 `draw` 方法。如果每个实例都将自己的 `draw` 方法保存在内存中，内存将被浪费：
 
     ```js
     function Circle(radius) {
@@ -7032,7 +6907,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     const circle1 = new Circle(5);
     const circle2 = new Circle(10);
 
-    // 每个实例都有自己的 draw 方法
+    // 每个实例都有自己的 radius 属性、draw 方法
     console.log(circle1);
     console.log(circle2);
     ```
@@ -7040,8 +6915,6 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     - `circle1` 和 `circle2` 各自有独立的 `draw` 方法，这会导致内存的浪费，因为方法功能是相同的。
 
 2. 实例方法与原型方法的区分
-
-    我们可以将 `draw` 方法移动到 `Circle.prototype`，使得所有通过 `Circle` 构造函数创建的实例共享这个方法，从而节省内存：
 
     ```js
     function Circle(radius) {
@@ -7052,32 +6925,18 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     	console.log("Drawing a circle with radius " + this.radius);
     };
 
-    const circle1 = new Circle(5);
-    const circle2 = new Circle(10);
+    const circle1 = new Circle(5); // radius独有，但是draw()方法共享一个
+    const circle2 = new Circle(10); //  radius独有，但是draw()方法共享一个
 
     // 调用实例方法
     circle1.draw(); // 输出：Drawing a circle with radius 5
     circle2.draw(); // 输出：Drawing a circle with radius 10
     ```
 
-    - `draw` 方法已经移到 `Circle.prototype` 上，所有 `Circle` 实例共享这一个方法，从而节省了内存。
+    - `draw` 方法已经移到 `Circle.prototype` 上，所有 `Circle` 构造函数的 实例 都共享这一个方法，从而节省了内存。
     - 这里 `radius` 是实例成员，`draw` 方法是原型成员。
 
-3. 通过原型实现方法共享
-
-    通过将方法定义在原型上，所有实例都共享该方法，避免了重复存储相同的方法：
-
-    ```js
-    Circle.prototype.draw = function () {
-    	console.log("Drawing a circle with radius " + this.radius);
-    };
-
-    // circle1 和 circle2 都继承自 Circle.prototype，因此它们共享 draw 方法
-    ```
-
-4. 重写 `toString` 方法
-
-    JavaScript 对象默认的 `toString` 方法返回的是 `[object Object]`。我们可以通过修改 `Circle.prototype` 上的 `toString` 方法来改变 `Circle` 对象的字符串表示。
+3. 重写 `toString` 方法
 
     ```js
     function Circle(radius) {
@@ -7098,9 +6957,9 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     console.log(circle2.toString()); // 输出：Circle with radius 10
     ```
 
-5. 实例方法调用原型方法
+    - JavaScript 对象默认的 `toString` 方法返回的是 `[object Object]`。我们可以通过修改 `Circle.prototype` 上的 `toString` 方法来改变 `Circle` 对象的字符串表示。
 
-    可以在实例方法中调用原型方法。例如，在 `draw` 方法中调用原型中的 `move` 方法：
+4. 实例方法调用原型方法
 
     ```js
     function Circle(radius) {
@@ -7123,7 +6982,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
     - 在这个例子中，`draw` 方法是实例方法，它调用了原型中的 `move` 方法。
 
-6. 原型方法调用实例方法
+5. 原型方法调用实例方法
 
     反之，原型方法也可以调用实例方法。例如，`move` 方法中调用实例方法 `draw`：
 
@@ -7152,15 +7011,20 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
 1. `Object.keys` 方法
 
-    - `Object.keys` 仅返回对象的实例成员（own properties），不包含从原型继承来的成员。
+    - 仅返回对象的自有、可枚举属性，不包括继承的属性。
+    - 无论继承的属性是否为可枚举，都不会返回
 
 2. `for...in` 循环
 
-    - `for...in` 循环会返回对象的所有可枚举属性，包括实例成员和原型成员。
+    - 遍历对象所有可枚举属性（包括继承的原型成员）。
 
 3. `hasOwnProperty` 方法
 
-    - `hasOwnProperty` 用来检查一个属性是否是对象的自有成员，而不是继承自原型的成员。
+    - 判断属性是否是对象自身的，而非继承自原型链的。
+
+4. 枚举性与属性控制
+
+    - 通过 `Object.defineProperty` 设置属性的 `enumerable` 特性，可以使某些默认不可枚举的属性（如 `toString`）变为可枚举。
 
 **代码示例**
 
@@ -7188,9 +7052,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     console.log(Object.keys(circle)); // 输出 ['radius', 'move']
     ```
 
-2. **`for...in` 循环返回实例和原型成员**
-
-    `for...in` 循环会遍历对象的所有可枚举属性，包括实例成员和原型成员。
+2. `for...in` 循环返回实例和原型成员
 
     ```js
     // Return all members (instance + prototype)
@@ -7202,9 +7064,9 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     // draw
     ```
 
-3. `hasOwnProperty` 方法区分自有成员和原型成员
+    - `for...in` 循环会遍历对象的所有可枚举属性，包括实例成员和原型成员。
 
-    使用 `hasOwnProperty` 可以检查一个属性是否是对象的自有成员，而不是原型成员。
+3. `hasOwnProperty` 方法区分自有成员和原型成员
 
     ```js
     console.log(circle.hasOwnProperty("radius")); // 输出 true，radius 是自有成员
@@ -7213,6 +7075,25 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
     - `circle.hasOwnProperty('radius')` 返回 `true`，因为 `radius` 是直接在 `circle` 对象上定义的自有成员。
     - `circle.hasOwnProperty('draw')` 返回 `false`，因为 `draw` 是从 `Circle.prototype` 继承来的原型成员。
+
+4. 枚举性与属性控制
+
+    ```js
+    let x = {};
+    for (let key in x) {
+    	console.log(key, "-- before set enumerable true");
+    }
+
+    // 如果需要将 toString 设置为可枚举（不推荐，但仅作演示）
+    Object.defineProperty(Object.prototype, "toString", {
+    	enumerable: true,
+    });
+
+    for (let key in x) {
+    	console.log(key, "-- after set enumerable true");
+    }
+    // 输出将包含 "toString"，因为我们将其设置为可枚举
+    ```
 
 ## 不要修改内置对象的原型
 
@@ -7351,7 +7232,7 @@ setTimeout(() => {
 
 ## 原型继承与共享方法
 
-> **简述**：在 JavaScript 中，没有传统意义上的类，而是通过对象和原型链来实现继承与代码复用。利用原型继承，我们可以将多个构造函数中共有的方法抽取到一个父构造函数（比如 Shape）上，让不同的子构造函数（如 Circle 和 Square）共享同一份实现，从而避免重复定义，提高内存效率和代码的可维护性。
+> **简述**：在 JavaScript 中，没有传统意义上的类，而是通过对象和原型链来实现继承与代码复用。利用原型继承，我们可以将多个构造函数中共有的方法抽取到一个父构造函数（的 `prototype` 属性）上，让不同的子构造函数的 实例 共享同一份实现，从而避免重复定义，提高内存效率和代码的可维护性。
 
 **知识树**
 
