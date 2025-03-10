@@ -1,14 +1,52 @@
-let x = {};
-for (let key in x) {
-  console.log(key, "-- before set enumerable true");
+function HtmlElement() {
+  this.click = function () {
+    console.log("clicked");
+  };
 }
 
-// 如果需要将 toString 设置为可枚举（不推荐，但仅作演示）
-Object.defineProperty(Object.prototype, "toString", {
-  enumerable: true,
-});
+HtmlElement.prototype.focus = function () {
+  console.log("focused");
+};
 
-for (let key in x) {
-  console.log(key, "-- after set enumerable true");
+function HtmlSelectElement(items = []) {
+  this.items = items;
+
+  this.addItem = function (item) {
+    this.items.push(item);
+  };
+
+  this.removeItem = function (item) {
+    this.items.splice(this.items.indexOf(item), 1);
+  };
 }
-// 输出将包含 "toString"，因为我们将其设置为可枚举
+
+// 手动设置 HtmlSelectElement 的原型为 HtmlElement 的实例
+// HtmlSelectElement.prototype = Object.create(
+//   HtmlElement.prototype
+// );
+HtmlSelectElement.prototype = new HtmlElement();
+HtmlSelectElement.prototype.constructor = HtmlSelectElement;
+
+// Step3: 为 HtmlSelectElement 添加特有的方法
+HtmlSelectElement.prototype.addItem = function (item) {
+  this.items.push(item);
+};
+
+HtmlSelectElement.prototype.removeItem = function (item) {
+  const index = this.items.indexOf(item);
+  if (index > -1) {
+    this.items.splice(index, 1);
+  }
+};
+
+// 测试代码
+const selectElement = new HtmlSelectElement([
+  "Option1",
+  "Option2",
+]);
+selectElement.addItem("Option3");
+console.log(selectElement.items); // 输出: ["Option1", "Option2", "Option3"]
+
+// 继承自 HtmlElement 的方法
+selectElement.click(); // 输出: Element clicked
+selectElement.focus(); // 输出: Element focused

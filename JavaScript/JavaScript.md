@@ -2983,13 +2983,14 @@ console.log(circle.radius); // 输出：10
 
 1. `constructor` 的定义
 
-    - 每个对象都有一个 `constructor` 属性。
+    - 每个对象都有一个 `constructor` 属性（继承而来，并非直接拥有）。
     - `constructor` 属性指向创建该对象时使用的构造函数。
 
 2. 对象的创建方式及其构造函数
 
     - 对象字面量：通过 `{}`、`""`、`[]` 等字面量语法创建的对象，其 `constructor` 属性默认指向内置构造函数（如 `Object`、`String`、`Array`）。
     - 自定义构造函数：使用 `new` 操作符和自定义函数创建的对象，其 `constructor` 属性指向该自定义构造函数。
+    -
     - 工厂函数：通过函数返回一个对象。直接返回的对象字面量的 `constructor` 属性通常指向内置的 `Object`，而不是工厂函数本身。
 
 3. 推荐的创建方式
@@ -3047,36 +3048,6 @@ console.log(circle.radius); // 输出：10
     ```
 
     - 说明：使用字面量语法创建的数组和数字，其 `constructor` 属性分别指向内置的 `Array` 和 `Number` 构造函数。
-
-4. 工厂函数的特殊处理
-
-    ```js
-    // 工厂函数返回对象字面量
-    function createCircle(radius) {
-    	return {
-    		radius, // 属性简写
-    		draw() {
-    			// 方法简写
-    			console.log("draw");
-    		},
-    	};
-    }
-    const circle = createCircle(1);
-    console.log(circle.constructor); // 输出: [Function: Object]
-
-    // 特殊处理：手动设置 constructor 属性
-    function createSquare(side) {
-    	let obj = Object.create(null); // 创建一个没有原型的对象
-    	obj.side = side;
-    	obj.constructor = createSquare; // 手动设置 constructor 属性
-    	return obj;
-    }
-
-    const square = createSquare(10);
-    console.log(square.constructor); // 输出: [Function: createSquare]
-    ```
-
-    - 说明：直接返回对象字面量的工厂函数，其返回对象的 `constructor` 属性默认为内置的 `Object`。通过特殊处理（如使用 `Object.create(null)` 并手动设置 `constructor`），可以使返回的对象拥有自定义的 `constructor` 属性。
 
 ## 函数是 对象
 
@@ -5994,7 +5965,7 @@ console.log(person); // 输出对象，检查是否修改成功
     - 在回调函数后，加上`this`参数，但不一定所有方法都适配
     - 在对象中引入`self`或`that`来指向对象中的`this`，在回调函数中引用`self`
     - 使用 `call()` 和 `apply()`：这两个方法可以显式地指定函数执行时的 `this` 值，但它的参数传递方式有所不同。
-        - `call` 方法的第一个参数是指定 `this` 的对象，后面的参数则是传递给函数的参数。
+        - `call` ，立即调用函数并且明确指定 this 的值。方法的第一个参数是指定 `this` 的对象，后面的参数则是传递给函数的参数。
         - `apply` 的第一个参数是指定 `this` 的对象，第二个参数是一个数组，它会被传递给函数。
     - 使用 `bind()`：`bind` 方法和 `call`、`apply` 类似，都允许你显式地指定 `this` 值，但不同的是，`bind` 不会立即调用函数，而是返回一个新的函数。
         - `bind` 方法创建了一个新函数，该函数的 `this` 被固定为。可以结合回调函数使用。
@@ -6653,39 +6624,51 @@ setTimeout(() => {
 
 **知识树**
 
-1. 对象的原型
+1.  对象的原型
 
-    - 每个 JavaScript 对象都有一个内部属性 `[[Prototype]]`，也称为其原型（可通过 `__proto__` 或 `Object.getPrototypeOf()` 访问），它决定了对象的继承链。
+    - 每个 JavaScript 对象都有一个内部属性 `[[Prototype]]`，这是 JavaScript 引擎用于实现原型链的抽象机制。开发者可以通过 `Object.getPrototypeOf()` 或非标准的 `__proto__` 属性来访问它。
 
-2. 构造函数的 `prototype` 属性
+2.  `__proto__` VS `Object.getPrototypeOf()`
 
-    - 每个构造函数都有一个 `prototype` 属性（一个对象），用于定义由该构造函数创建的新实例 共同拥有的属性和方法。
-    - 当使用 `new Constructor()` 创建新对象时，新对象的内部原型（即 `[[Prototype]]` 或 `__proto__`）指向 `Constructor.prototype`。
+    - `__proto__` ：
+        - `__proto__` 是一个由浏览器实现的访问器属性，用于查看或修改对象的原型。虽然它在 ES6 中被标准化为可选特性，但由于其历史遗留问题和潜在的性能问题，仍然不建议在实际开发中使用。尽管如此，出于演示方便，常在学习中使用 `__proto__` 来表示对象的原型。
+    - `Object.getPrototypeOf()`：
+        - `Object.getPrototypeOf()` 是标准的、推荐的方法，用于获取对象的原型。
 
-3. 原型链（Prototype Chain）
+3.  构造函数的 `prototype` 属性
 
-    - 通过原型连接的对象链。对象的原型 `[[Prototype]]`，指向其构造函数的 `prototype` 属性，而构造函数的 `prototype` 属性本身也是一个对象，指向这个构造函数的构造函数的 `prototype` 属性。比如构造函数 String 的属性`String.prototype` 的构造函数是 `Object`。
+    - 概念：
+        - 每个构造函数都有一个 prototype 属性，它是一个对象，用于定义由该构造函数创建的新实例共同拥有的属性和方法。
+    - 用法：
+        - 当使用 `new Constructor()` 创建新对象时，新对象的内部原型（即 `[[Prototype]]` 或 `__proto__`）会指向 `Constructor.prototype`。
+    - 默认情况：
+        - 一个构造函数的 `prototype` 属性（一个对象）包含一个属性：`constructor`，指向构造函数本身。此外，`Constructor.prototype` 的 `[[Prototype]]` 指向 `Object.prototype`。
 
-4. 原型继承（Prototypal Inheritance）
+4.  原型链（Prototype Chain）
 
-    - 当对象访问某个属性或方法时，JavaScript 引擎首先在该对象自身查找，若对象（的构造函数）没有定义该属性，JavaScript 会沿着原型链查找，直到找到或到达 `Object` 根构造函数。
-    - 这种机制使得多个构造函数可以共享相同的方法和属性，而不需要再每个构造函数中重复定义。
+    - 概念：
+        - 原型链是通过原型连接的对象链。每个对象的 `[[Prototype]]` 指向其构造函数的 `prototype` 属性，而构造函数的 `prototype` 属性本身也是一个对象，它的 `[[Prototype]]` 又指向其父构造函数的 `prototype` 属性，依此类推，直到 `Object.prototype`，其 `[[Prototype]]` 为 `null`，这是原型链的终点。
+    - 示例：
+        - 例如，`String.prototype` 的 `[[Prototype]]` 指向 `Object.prototype`，因此 `String` 实例可以访问 `Object.prototype` 上的方法，如 `toString()`。
 
-5. 继承成员
+5.  原型继承（Prototypal Inheritance）
+
+    - 概念：
+        - 当访问一个对象的属性或方法时，JavaScript 引擎会首先在对象自身查找，如果找不到，则会沿着原型链向上查找，直到找到该属性或方法，或者到达原型链的顶端（`Object.prototype`）。
+    - 优点与影响：
+        - 这种机制使得多个构造函数可以共享相同的方法和属性，而不需要在每个构造函数中重复定义。此外，原型继承是动态的，如果修改了原型链上的属性或方法，所有继承该原型的对象都会受到影响。
+
+6.  继承成员
 
     - 继承成员（Inherited Members）指的是一个对象并非直接在自身上定义的属性和方法，而是通过原型链从它的父对象（或者更高层的祖先对象）中继承而来的。
-    - 这里的父对象，指的是父构造函数的 `prototype` 属性
+    - 这里的父对象，指的是父构造函数的 `prototype` 属性。例如，`String` 实例继承自 `String.prototype`，而 `String.prototype` 又继承自 `Object.prototype`。
 
-6. JavaScript 根构造函数（ObjectBase）
+7.  JavaScript 根构造函数（ObjectBase）
 
     - 所有构造函数的原型链最终都会指向一个共同的祖先构造函数 `Object`，称为 `ObjectBase`，它是所有构造函数的根构造函数。先祖对象，也就是`Object.prototype`
     - `Object.prototype` 没有原型`[[Prototype]]`，它是原型链的终点。
 
-7. 获取原型
-
-    - 使用 `Object.getPrototypeOf` 来获取对象的原型。`__proto__` 也可以用于查看和修改对象的原型，但它是过时的属性。
-
-8. 原型继承示例（不同软件展示可能有差异，使用 Obsidian）
+8.  原型继承示例（不同软件展示可能有差异，使用 Obsidian）
 
     - 从通俗的角度来看，是构造函数之间的继承，实际上，是构造函数的原型（`__proto__`）之间的继承
 
@@ -6700,8 +6683,26 @@ setTimeout(() => {
     														  │
     														  ▼
     											 Object.prototype.__proto__  →  null
-
     ```
+
+```mermaid
+classDiagram
+    class arr {
+        + value: "abc"
+    }
+
+    class StringPrototype {
+        + __proto__: Object.prototype
+    }
+
+    class ObjectPrototype {
+        + __proto__: null
+    }
+
+    arr -->|__proto__| StringPrototype
+    StringPrototype -->|__proto__| ObjectPrototype
+    ObjectPrototype -->|__proto__| null
+```
 
 **代码示例**
 
@@ -6860,7 +6861,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     - 原型成员（Prototype Members）：
         - 指定义在构造函数 `prototype` 对象上的成员，这些成员被所有实例共享，是继承成员的一部分。
 
-2. **通过 `.prototype` 添加方法**
+2. 通过 `.prototype` 添加方法
 
     - 定义共享方法：
         - 将构造函数的行为（方法）添加到 prototype 上，避免每个实例都创建一份相同函数。
@@ -7182,92 +7183,110 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 >
 > 1. 将`start`、`stop`、`reset`和`duration`放入`prototype`中
 >
-> > 这是一个提前优化导致坏影响的示范
+> >
 
 **代码**
 
-```js
-function Stopwatch() {
-	this.startTime = 0; // 记录开始时间
-	this.endTime = 0; // 记录结束时间
-	this.running = false; // 是否正在计时
-	this.duration = 0; // 记录持续时间
-}
+- 这是一个提前优化导致坏影响的示范
 
-Stopwatch.prototype.start = function () {
-	if (this.running) {
-		throw new Error("Stopwatch has already started"); // 如果已经启动，则抛出错误
-	}
-	this.running = true;
-	this.startTime = new Date(); // 设置开始时间为当前时间
-};
+    ```js
+    function Stopwatch() {
+    	this.startTime = 0; // 记录开始时间
+    	this.endTime = 0; // 记录结束时间
+    	this.running = false; // 是否正在计时
+    	this.duration = 0; // 记录持续时间
+    }
 
-Stopwatch.prototype.stop = function () {
-	if (!this.running) {
-		throw new Error("Stopwatch has not started yet"); // 如果未启动，则抛出错误
-	}
-	this.running = false;
-	this.endTime = new Date(); // 设置结束时间为当前时间
-	this.duration = (this.endTime - this.startTime) / 1000; // 计算持续时间，单位为秒
-};
+    Stopwatch.prototype.start = function () {
+    	if (this.running) {
+    		throw new Error("Stopwatch has already started"); // 如果已经启动，则抛出错误
+    	}
+    	this.running = true;
+    	this.startTime = new Date(); // 设置开始时间为当前时间
+    };
 
-Stopwatch.prototype.reset = function () {
-	this.startTime = 0;
-	this.endTime = 0;
-	this.running = false;
-	this.duration = 0; // 重置时长
-};
+    Stopwatch.prototype.stop = function () {
+    	if (!this.running) {
+    		throw new Error("Stopwatch has not started yet"); // 如果未启动，则抛出错误
+    	}
+    	this.running = false;
+    	this.endTime = new Date(); // 设置结束时间为当前时间
+    	this.duration = (this.endTime - this.startTime) / 1000; // 计算持续时间，单位为秒
+    };
 
-const stopwatch = new Stopwatch();
+    Stopwatch.prototype.reset = function () {
+    	this.startTime = 0;
+    	this.endTime = 0;
+    	this.running = false;
+    	this.duration = 0; // 重置时长
+    };
 
-stopwatch.start(); // 启动计时器
-setTimeout(() => {
-	stopwatch.stop(); // 停止计时器
-	console.log(stopwatch.duration); // 输出计时器时长，例如 2 秒
-	stopwatch.reset(); // 重置计时器
-}, 2000);
-```
+    const stopwatch = new Stopwatch();
+
+    stopwatch.start(); // 启动计时器
+    setTimeout(() => {
+    	stopwatch.stop(); // 停止计时器
+    	console.log(stopwatch.duration); // 输出计时器时长，例如 2 秒
+    	stopwatch.reset(); // 重置计时器
+    }, 2000);
+    ```
 
 # 原型继承
 
 ## 原型继承与共享方法
 
-> **简述**：在 JavaScript 中，没有传统意义上的类，而是通过对象和原型链来实现继承与代码复用。利用原型继承，我们可以将多个构造函数中共有的方法抽取到一个父构造函数（的 `prototype` 属性）上，让不同的子构造函数的 实例 共享同一份实现，从而避免重复定义，提高内存效率和代码的可维护性。
+> **简述**：利用原型继承，我们可以将多个构造函数中共有的方法抽取到一个父构造函数（的 `prototype` 属性）上，让不同的子构造函数的 实例 共享同一份实现，从而避免重复定义，提高内存效率和代码的可维护性。
 
 **知识树**
 
 1. 继承需求
 
-    - 当多个构造函数（例如 Circle 和 Square）需要具备相同功能时，继承可以让它们共享同一个方法的实现，而不必在每个构造函数或其原型上重复定义。这种方式不仅提高了代码复用性，还使得修改和维护变得集中和容易。
-    - 如果相同的方法在每个实例中重复定义，会占用额外内存；如果在不同构造函数的原型上重复定义，则每个构造函数各自拥有一份该方法的拷贝，这在逻辑上虽然没问题，但会增加维护成本和内存消耗。
-    - 通过抽象出一个共同的父类（例如 Shape）并将通用方法定义在其原型上，然后让 Circle 和 Square 继承该父类，便能共享同一份方法实现，既减少了代码重复，又节省内存。
+    - 当多个构造函数需要具备相同功能时，继承可以让它们共享同一个方法的实现，从而避免重复定义。
+    - 如果方法在不同构造函数的 `prototype` 属性上重复定义，则每个构造函数各自拥有一份该方法的拷贝，这不仅会增加内存消耗，还会增加维护成本（例如，修改方法时需要同步更新多个地方）。
 
-2. 继承方法
+2. `Object.create()`方法
 
-    - 使用 `Shape.call(this)` 在子构造函数中调用父构造函数，初始化父类的属性（如有需要）。
-    - 通过 `Object.create(Parent.prototype)` 重设子构造函数的原型，使其继承自父构造函数的原型。
-    - 修正子构造函数的 `constructor` 属性，确保其指向自身。
-    - 注意：在子类原型上添加方法前，需要先继承，否则子类的 `prototype` 被替换后，先前定义在原型上的方法会丢失。
+    - 概念：
+        - `Object.create()` 方法的作用是创建一个新的对象，并将该对象的内部 `[[Prototype]]` 设置为指定的原型对象（`proto`）。
+    - 语法：`Object.create(proto, [propertiesObject])`
+        - `proto`（必填）：作为新创建对象的原型，可以是对象或 `null`。如果为 `null`，则新对象的 `[[Prototype]]` 为 null，即没有原型。
+        - `propertiesObject`（可选）：一个对象，用于定义新对象自身的属性。这些属性通过属性描述符（`configurable`、`enumerable`、`writable` 等）定义。
+        - 返回值：一个以指定对象作为原型的新对象。
+    - 示例 1：` Object.create(Shape.prototype);`
+        - 这段代码将返回一个以 `Shape.prototype` 为原型的新对象。该新对象本身没有属性，但可以通过原型链访问 `Shape.prototype` 上的属性和方法。
+    - 示例 2：`Object.create(null, { foo: { value: 'bar', writable: true } });`
+        - 这段代码将返回一个没有原型（`[[Prototype]]` 为 `null`）的新对象，并定义了一个自身的属性 `foo`，其值为 `'bar'`。
 
-3. 关注点
+3. 继承方式（示例 `Circle` 继承自 `Shape`）
 
-    - 直接写 `Circle.prototype = Shape.prototype;` 可以吗？不可以
+    1. 通过 `Object.create(Parent.prototype)` 重设子构造函数的 `prototype` 属性
+        ```js
+        Circle.prototype = Object.create(Shape.prototype);
+        ```
+        - 这一步的目的是将 `Circle.prototype` 的原型设置为 `Shape.prototype`，从而实现原型继承。
+    2. 修正子构造函数的 `constructor` 属性，确保其指向自身。
+        ```js
+        Circle.prototype.constructor = Circle;
+        ```
+        - 这一步的目的是修复 `constructor` 属性，使其指向 `Circle` 而不是 `Shape`。
 
-        - 共享同一个原型对象：
-          直接赋值后，`Circle.prototype` 和 `Shape.prototype` 指向同一个对象。这意味着对 `Circle.prototype` 的任何修改都会直接影响到 `Shape.prototype`，反之亦然。例如，如果你在 `Circle.prototype` 上添加或修改方法，同样会改变所有使用 `Shape.prototype` 的地方，这通常不是我们想要的。
-        - 破坏继承结构
-          正常的继承应当让 `Circle` 的实例继承自 `Shape.prototype` 的内容，但同时保持它们各自独立的原型对象。使用 `Circle.prototype = Object.create(Shape.prototype);` 可以创建一个新的对象，该对象继承了 `Shape.prototype`，但又与之分离，允许你在 `Circle.prototype` 上添加专属于 `Circle` 的方法而不会污染 `Shape.prototype`。
-        - 构造函数指向问题
-          直接赋值会导致 `Circle.prototype.constructor` 仍然指向 `Shape`（因为它们是同一个对象），这会使得实例的构造函数标识不正确，从而影响调试和类型判断。
+4. 继承方式阐述
 
-    - 为什么要套`Object.create()`，有什么影响？
-
-        - 使用 `Object.create(Shape.prototype)` 来创建一个独立但具有继承关系的原型对象
-        - 使用 `Object.create()`生成的对象没有 `constructor` 属性，生成对象查找 `constructor` 属性是通过原型链找到的。比如，`Object.create(Shape.prototype)` 创建的新对象本身没有定义自己的 `constructor` 属性，但它的内部原型（即 `__proto__`）正是 `Shape.prototype`，而 `Shape.prototype` 上有 `constructor` 属性。
-        - 所以，执行`Circle.prototype = Object.create(Shape.prototype);`后，``Circle.prototype`上丢失了 `constructor` 属性，Circle 生成的对象调用 `constructor` 属性时，会通过原型链查找，最终会指向 `Shape.prototype.constructor` ，即指向创建 Shape 的函数本身
-
+    - 使用 `Object.create()` ：
+        1. 隔离原型链：
+            - 使用 `Object.create(Shape.prototype)` 创建一个新对象，并将 `Circle.prototype` 设置为该对象的引用。这样，`Circle.prototype` 的原型是 `Shape.prototype`，但 `Circle.prototype` 本身是一个独立的对象。
+            - 这种设计确保了在 `Circle.prototype` 上的修改不会影响到 `Shape.prototype`，而在 `Shape.prototype` 上的修改会动态影响 `Circle.prototype`。
+        2. 避免直接赋值的副作用：
+            - 如果直接写 `Circle.prototype = Shape.prototype;`，那么 `Circle.prototype` 和 `Shape.prototype` 将指向同一个对象。对 `Circle.prototype` 的任何修改都会直接影响到 `Shape.prototype`，这会导致意外的副作用。
+        3. 修复 `constructor` 属性：
+            - 直接赋值会导致 `Circle.prototype.constructor` 仍然指向 `Shape`，因此需要手动修正为 `Circle`。
+    - 修正 `constructor` 属性的原因：
+        - 使用 `Object.create(Shape.prototype)` 创建的对象，其 `constructor` 属性继承自 `Shape.prototype`，指向 `Shape`。
+        - 这会导致通过 `Circle` 创建的实例调用 `constructor` 属性时，指向 `Shape` 而不是 `Circle`，因此需要手动修正为 `Circle`。
+    - 方法添加：
+        - 在子构造函数的 `prototype` 属性上添加方法前，需要先继承父构造函数的 `prototype`。
+        - 如果先添加方法再继承，`prototype` 被替换后，先前定义在 `prototype` 属性上的方法会丢失。
     - 等价
-
         ```js
         Circle.prototype = Object.create(Shape.prototype);
         Circle.prototype.constructor = Circle;
@@ -7275,31 +7294,24 @@ setTimeout(() => {
         Circle.prototype.__proto__ = Shape.prototype; // 不推荐直接使用 __proto__
         ```
 
-        - `__proto__` 是一个内部属性（通常称为“内部`[[Prototype]]`”），它指向当前对象的原型对象，也就是对象用于属性查找的链接。
-        - `Circle.prototype` 是一个对象，作为通过 `new Circle()` 创建的实例的原型对象。
-        - `Circle.prototype.__proto__` 就是指向 `Circle.prototype` 的原型对象，也就是它所继承的对象。
-        - 当我们通过 `Circle.prototype = Object.create(Shape.prototype);` 来设置继承关系时，`Circle.prototype.__proto__` 就指向 `Shape.prototype`。
-        - `__proto__` 在这里表示原型链中的链接，用于实现继承和属性查找。
-        - 第二种操作没有直接替换掉 `Circle` 的 `prototype` 属性，但是不推荐直接使用过时的属性`__proto__`
+5. 属性为什么不建议挂载在 `prototype` 上
 
-    - 属性为什么不能卸载 prototype 上
-
-        - 每个对象的属性值是独立的，放在 prototype 中，修改一个变量属性值，所有变量均改变
+    - 每个对象的属性值是独立的，放在 prototype 中，修改一个变量属性值，所有变量均改变
 
 **代码示例**
 
 1. 继承需求：两个构造函数在原型属性上定义了重复方法
-
-    假设我们有一个 Circle 构造函数，定义了 `radius` 属性，在原型上定义了 `draw()`方法和 `duplicate()`方法，一个 Shape 构造函数，定义了 `side` 属性，在原型上定义了 `draw()`方法和 `duplicate()`方法。 `duplicate()`方法是重复的。
 
     ```js
     // 定义 Circle 构造函数
     function Circle(radius) {
     	this.radius = radius;
     }
+    // 通用方法
     Circle.prototype.duplicate = function () {
     	console.log("Duplicating " + this.constructor.name);
     };
+    // 独有方法，Circle 的绘制依赖于半径
     Circle.prototype.draw = function () {
     	console.log("Drawing circle with radius " + this.radius);
     };
@@ -7308,47 +7320,40 @@ setTimeout(() => {
     function Square(side) {
     	this.side = side;
     }
+    // 通用方法
     Square.prototype.duplicate = function () {
     	console.log("Duplicating " + this.constructor.name);
     };
+    // 独有方法，Square 的绘制依赖于边长
     Square.prototype.draw = function () {
     	console.log("Drawing square with side " + this.side);
     };
 
     const circle = new Circle(5);
-    const square = new Square(5);
+    const square = new Square(10);
 
     circle.duplicate(); // Duplicating Circle
     circle.draw(); // Drawing circle with radius 5
     square.duplicate(); // Duplicating Square
-    square.draw(); // Drawing square with radius 5
+    square.draw(); // Drawing square with radius 10
     ```
 
 2. 继承方法
 
-    我们创建一个 Shape 构造函数，并将 duplicate 方法定义在其原型上。然后让 Circle 和 Square 继承自 Shape，从而共享 duplicate 方法而不需要重复定义。
-
     ```js
-    function Shape(color) {
-    	this.color = color;
-    }
+    // 定义 Shape构造函数
+    function Shape() {}
     Shape.prototype.duplicate = function () {
-    	if (this.color)
-    		console.log(
-    			"Duplicating " + this.constructor.name + "with " + this.color
-    		);
-    	else console.log("Duplicating " + this.constructor.name);
+    	console.log("Duplicating " + this.constructor.name);
     };
 
     // 定义 Circle 构造函数
-    function Circle(radius, color) {
-    	Shape.call(this, color);
+    function Circle(radius) {
     	this.radius = radius;
     }
 
     // 定义 Square 构造函数
-    function Square(side, color) {
-    	Shape.call(this, color);
+    function Square(side) {
     	this.side = side;
     }
 
@@ -7367,59 +7372,488 @@ setTimeout(() => {
     };
 
     const circle = new Circle(5);
-    const square = new Square(5, "red");
+    const square = new Square(10);
 
     circle.duplicate(); // Duplicating Circle
     circle.draw(); // Drawing circle with radius 5
     square.duplicate(); // Duplicating Square
-    square.draw(); // Drawing square with radius 5
+    square.draw(); // Drawing square with radius 10
+    ```
+
+3. 属性为什么不建议挂载在 `prototype` 上
+
+    ```js
+    function Shape() {}
+    Shape.prototype.color = "red";
+
+    const shape1 = new Shape();
+    const shape2 = new Shape();
+
+    console.log(shape1.color); // 输出: red
+    console.log(shape2.color); // 输出: red
+
+    Shape.prototype.color = "blue";
+
+    console.log(shape1.color); // 输出: blue
+    console.log(shape2.color); // 输出: blue
     ```
 
 ## 使用父类属性
 
-（从上一节抽离）
+> 简述：在继承关系中，若想要在子构造函数中调用父构造函数中的属性，通常使用 `call()` 或 `apply()` 方法来实现。
+
+**知识树**
+
+1.  `call()` 和 `apply()`：
+
+    - 这两个方法可以显式地指定函数执行时的 `this` 值，但它的参数传递方式有所不同。
+    - `call` 方法的第一个参数是指定 `this` 的对象，后面的参数则是传递给函数的参数。
+    - `apply` 的第一个参数是指定 `this` 的对象，第二个参数是一个数组，它会被传递给函数。
+
+2.  构造函数中的 `this`：
+
+    - `this` 是指向当前实例对象的指针，子类构造函数通过 `call()` 或 `apply()` 继承父类的 `this`。
+
+**代码示例**
+
+- `Shape.call(this, color);`
+
+    1. call() 将 this 指向 circle 实例。
+    2. 然后，将 "red" 作为 color 传递给 Shape 构造函数。
+    3. 在 Shape 构造函数中，this.color = color 这行代码将 "red" 赋值给了 circle 实例的 color 属性。
+
+    ```js
+    // 定义 Shape构造函数
+    function Shape(color) {
+    	this.color = color;
+    }
+    Shape.prototype.duplicate = function () {
+    	console.log("Duplicating " + this.constructor.name);
+    };
+
+    // 定义 Circle 构造函数
+    function Circle(radius, color) {
+    	Shape.call(this, color);
+    	this.radius = radius;
+    }
+
+    // 让 Circle 继承自 Shape
+    Circle.prototype = Object.create(Shape.prototype);
+    Circle.prototype.constructor = Circle;
+    Circle.prototype.draw = function () {
+    	console.log("Drawing circle with radius " + this.radius);
+    };
+
+    const circle = new Circle(5, "red");
+    console.log(circle.color); // 输出 red
+    ```
+
+- `Shape(color);`补充
+
+    - 若将`Shape.call(this, color);` 替换为 `Shape(color);` ，这样的调用没有明确指定 this，因此 this 默认指向全局对象（在浏览器中是 window）。
 
 ## 封装继承方法
 
-> 简述
+> 简述：中间函数继承，是一种将继承关系设置逻辑，提取到一个独立函数中的方法，旨在简化继承设置，避免重复代码并减少出错的概率。通过这个方法，我们可以避免为每个子类手动设置继承链。
 
-**知识点**
+**知识树**
+
+1. 手动设置继承链的问题：
+
+    - 手动设置继承链（如通过直接操作 `prototype`）会导致代码重复，并且容易出错。
+    - 这种方式随着子类数量增加，可能使得代码变得混乱且冗长。
+
+2. 中间函数继承：
+
+    - 通过创建一个函数（如 `extend()`），可以将继承链的设置逻辑提取到一个可复用的地方，从而简化代码。
+    - 这个函数接受子构造函数和父类构造函数作为参数，自动设置继承链。
+
+3. 使用中间函数的优点：
+
+    - 重复代码减少，维护更加简便。
+    - 可避免错误地手动设置继承链。
+    - 使继承操作变得更加抽象，提升代码的可读性和可维护性。
 
 **代码示例**
+
+1. 使用 extend 函数
+
+    ```js
+    function extend(Child, Parent) {
+    	Child.prototype = Object.create(Parent.prototype); // 设置继承链
+    	Child.prototype.constructor = Child; // 修正 constructor 指向子类
+    }
+
+    // 定义 Shape构造函数
+    function Shape() {}
+    Shape.prototype.duplicate = function () {
+    	console.log("Duplicating " + this.constructor.name);
+    };
+
+    // 定义 Circle 构造函数
+    function Circle(radius, color) {
+    	Shape.call(this, color);
+    	this.radius = radius;
+    }
+
+    // 定义 Square 构造函数
+    function Square(side) {
+    	this.side = side;
+    }
+
+    // 使用 extend 函数设置继承
+    extend(Circle, Shape);
+    Circle.prototype.draw = function () {
+    	console.log("Drawing circle with radius " + this.radius);
+    };
+
+    // 使用 extend 函数设置继承
+    extend(Square, Shape);
+    Square.prototype.draw = function () {
+    	console.log("Drawing square with side " + this.side);
+    };
+
+    const circle = new Circle(5, "red");
+    const square = new Square(10);
+
+    circle.duplicate(); // Duplicating Circle
+    circle.draw(); // Drawing circle with radius 5
+    square.duplicate(); // Duplicating Square
+    square.draw(); // Drawing square with radius 10
+    ```
+
+## 方法重写
+
+> 简述：方法重写是面向对象编程中一种重要的技巧，它允许子类重定义父类的方法。在 JavaScript 中，方法重写是通过覆盖继承自父类的函数来实现的。通过这种方式，子类可以根据需求调整父类方法的行为。同时，子类仍然可以在需要时调用父类的实现。
+
+**知识树**
+
+1. 方法重写的概念：
+
+    - 方法重写是指在子类中重新定义从父类继承的方法。
+    - 通过方法重写，子类可以修改父类方法的行为，以适应不同的需求。
+
+2. 方法重写的应用：
+
+    - 在子类中定义与父类相同名称的方法，JavaScript 会使用子类的实现覆盖父类的实现。
+    - 需要注意，方法重写通常会在继承链中发生，子类的方法会优先被调用。
+
+3. 调用父类的方法：
+
+    - 子类重写父类方法时，如果需要调用父类的实现，可以使用 super 关键字（在现代 JavaScript 中）或使用 call() 方法手动调用。
+    - 通过 super 或 call()，子类可以调用父类的具体实现，并将当前对象的 this 作为上下文传递给父类方法。
+
+4. 注意事项：
+
+    - 子类重写方法时，需要确保在修改原有方法的逻辑后，可以调用父类方法来保证正确的继承行为。
+    - 使用 call() 时，要特别注意方法的 this 上下文，确保父类方法接收到正确的对象上下文。
+
+**代码示例**
+
+1. 方法重写
+
+    ```js
+    function extend(Child, Parent) {
+    	Child.prototype = Object.create(Parent.prototype); // 设置继承链
+    	Child.prototype.constructor = Child; // 修正 constructor 指向子类
+    }
+
+    // 定义 Shape构造函数
+    function Shape(color) {
+    	this.color = color;
+    }
+    Shape.prototype.duplicate = function () {
+    	console.log("Duplicating " + this.constructor.name);
+    };
+
+    // 定义 Circle 构造函数
+    function Circle(radius) {
+    	this.radius = radius;
+    }
+
+    // 让 Circle 继承自 Shape
+    extend(Circle, Shape);
+    // 重写 duplicate 方法
+    Circle.prototype.duplicate = function () {
+    	console.log("Duplicating circle with radius " + this.radius);
+    };
+
+    const circle = new Circle(5);
+    console.log(circle.duplicate()); // 输出 Duplicating circle with radius 5
+    ```
+
+2. 调用父类的方法
+
+    ```js
+    function extend(Child, Parent) {
+    	Child.prototype = Object.create(Parent.prototype); // 设置继承链
+    	Child.prototype.constructor = Child; // 修正 constructor 指向子类
+    }
+
+    // 定义 Shape构造函数
+    function Shape(color) {
+    	this.color = color;
+    }
+    Shape.prototype.duplicate = function () {
+    	console.log("Duplicating " + this.constructor.name);
+    };
+
+    // 定义 Circle 构造函数
+    function Circle(radius) {
+    	this.radius = radius;
+    }
+
+    // 让 Circle 继承自 Shape
+    extend(Circle, Shape);
+    // 重写 duplicate 方法
+    Circle.prototype.duplicate = function () {
+    	Shape.prototype.duplicate.call(this);
+
+    	console.log("Duplicating circle with radius " + this.radius);
+    };
+
+    const circle = new Circle(5);
+    console.log(circle.duplicate());
+    // 输出
+    // Duplicating Circle
+    // Duplicating circle with radius 5
+    ```
+
+## 多态性
+
+> 简述：多态性是面向对象编程中一个非常强大且关键的概念，意味着“多种形态”。在 JavaScript 中，多态性允许一个方法根据不同的对象类型表现出不同的行为。这使得代码更加灵活、简洁，并且易于扩展和维护。
+
+1. 多态性的定义：
+
+    - 多态性源自希腊语，“poly” 意味着“多”，“morph” 意味着“形态”。在编程中，它指的是同一操作作用于不同类型的对象时，表现出不同的行为。
+    - 多态性使得同一方法可以在不同的对象中有不同的实现，从而增强代码的灵活性和可维护性。
+
+2. 多态性的实现：
+
+    - 通过方法重写，子类可以根据自己的需要改变父类的方法实现，从而形成多种不同的行为。
+    - 多态性让你可以使用同一方法名调用不同类的实现，而不需要关心具体的实现细节。
+
+3. 多态性的优势：
+
+    - 简化代码：多态性可以使代码更简洁，不需要写多个条件语句来处理不同类型的对象。
+    - 增强灵活性：同一方法在不同的对象中有不同的表现，可以根据对象的类型自动选择正确的实现。
+    - 可扩展性：新的子类可以在不修改现有代码的情况下轻松添加到现有系统中，并且可以自然地继承父类的多态行为。
+
+**知识树**
+
+1. 基本的多态性实现
+
+    ```JS
+    function extend(Child, Parent) {
+      Child.prototype = Object.create(Parent.prototype); // 设置继承链
+      Child.prototype.constructor = Child; // 修正 constructor 指向子类
+    }
+
+    // 定义 Shape构造函数
+    function Shape(color) {
+      this.color = color;
+    }
+    Shape.prototype.duplicate = function () {
+      console.log("Duplicating " + this.constructor.name);
+    };
+
+    // 定义 Circle 构造函数
+    function Circle(radius) {
+      this.radius = radius;
+    }
+
+    // 让 Circle 继承自 Shape
+    extend(Circle, Shape);
+    // 重写 duplicate 方法
+    Circle.prototype.duplicate = function () {
+      console.log("Duplicating circle with radius " + this.radius);
+    };
+
+    function Square(side) {
+      this.side = side;
+    }
+
+    extend(Square, Shape); // 设置继承链
+
+    // 子类重写父类的方法
+    Square.prototype.duplicate = function () {
+      console.log("Duplicating square with side " + this.side);
+    };
+
+    const circle = new Circle(5);
+    const square = new Square(10);
+
+    const shapes = [circle, square];
+    shapes.forEach(function (shape) {
+      shape.duplicate(); // 根据对象类型自动调用不同的 duplicate 方法
+    });
+    // 输出：
+    // Duplicating circle with radius 5
+    // Duplicating square with side 10
+
+    ```
+
+## 继承的局限性
+
+> **简述**：继承是面向对象编程中常用的代码复用手段，但在多层继承的结构中，它可能会导致代码复杂和脆弱。尤其是当新对象加入时，继承链可能变得不清晰且难以维护。在这种情况下，组合作为继承的替代方案，提供了更加灵活且易于管理的代码重用方式。
+
+**知识树**
+
+1. 继承的局限性：
+
+    - 继承链的复杂性：当继承结构变得复杂时，问题随之而来。以动物对象为例，假设我们有一个 `Animal` 类，包含 `eat()` 和 `walk()` 方法。若我们加入一个 `Goldfish` 对象，从 `Animal` 继承而来，它继承了 `walk()` 方法，但金鱼不能走路，只能游泳，这就造成了继承链的设计不合理。
+        ```js
+        Animal (eat、walk)
+        ├── Person
+        ├── Dog
+        └── Goldfish（不符合，需要调整结构）
+        ```
+    - 解决方案：一种常见的解决方法是引入中间层次的继承结构，例如 `Mammal`（哺乳动物）和 `Fish`（鱼类）。
+        ```js
+        Animal (eat)
+        ├── Mammal (walk)
+        │   ├── Person
+        │   └── Dog
+        └── Fish (swim)
+            └── Goldfish
+        ```
+    - 复杂性加剧：这种多层继承关系可能导致在未来每次需要新增对象时，继承结构的修改变得越来越脆弱，代码的扩展性受限，管理起来困难重重。
+
+2. 组合引入
+
+    - **组合优于继承**：相较于继承，组合通过将对象的功能模块化，并在需要时进行组合，提供了一种灵活且易于扩展的方式。组合不依赖于固定的层次结构，而是通过独立的对象协作来完成目标。
+    - 将特征封装为独立对象：我们可以将动物的各种行为或特性封装为独立的对象。例如，canWalk、canEat 和 canSwim 可以分别定义不同的特性，表示能走、能吃和能游泳的能力。然后，通过组合这些能力对象，来构建不同的动物。
+    - JavaScript 中，我们可以使用混入（mixin）来实现组合。
+
+        ```js
+        canEat (eat)
+        canWalk (walk)
+        canSwim (swim)
+
+        Person (组合两个对象)
+        ├── canEat (eat)
+        └── canWalk (walk)
+
+        Fish (组合两个对象)
+        ├── canEat (eat)
+        └── canSwim (swim)
+        ```
+
+## Mixins
+
+> 简述：Mixins 是一种将多个对象的功能组合到一个目标对象中的技术。通过将不同的功能合并到一个对象，我们能够实现代码复用、模块化功能扩展以及更灵活的对象功能组合。`Object.assign()` 是实现 `Mixins` 的常用方法，它可以将多个源对象的属性和方法复制到目标对象中。通过这种方式，我们可以增强对象的功能，而不需要通过继承来创建复杂的类层次结构。
+
+**知识树**
+
+1. 使用 `Object.assign()` 组合对象
+
+    - `Object.assign()` 方法用于将多个源对象的属性和方法合并到一个目标对象中。目标对象将获得所有源对象的属性和方法，支持快速实现代码复用和功能扩展。
+
+2. 使用构造函数与原型链继承
+
+    - 通过构造函数的原型和 `Object.assign()` 的结合，可以为实例对象动态添加功能，这使得对象能够继承多个功能，而不需要显式的类继承。
+
+3. `mixin` 函数简化对象组合
+
+    - 通过定义通用的 `mixin` 函数，多个源对象的功能可以被灵活地合并到目标对象中，简化代码并提升可维护性和可扩展性。
+
+**代码示例**
+
+1. 对象字面量与方法定义
+
+    ```js
+    const canEat = {
+    	eat: function () {
+    		this.hunger--;
+    		console.log("eating");
+    	},
+    };
+
+    const canWalk = {
+    	walk: function () {
+    		console.log("walking");
+    	},
+    };
+    ```
+
+2. 使用 `Object.assign()` 组合对象
+
+    ```js
+    const canEat = {
+    	eat: function () {
+    		this.hunger--;
+    		console.log("eating");
+    	},
+    };
+
+    const canWalk = {
+    	walk: function () {
+    		console.log("walking");
+    	},
+    };
+
+    const person = Object.assign({}, canEat, canWalk);
+    console.log(person); // { eat: [Function: eat], walk: [Function: walk] }
+    ```
+
+3. 使用构造函数与原型链继承
+
+    ```js
+    const canEat = {
+    	eat: function () {
+    		this.hunger--;
+    		console.log("eating");
+    	},
+    };
+    const canWalk = {
+    	walk: function () {
+    		console.log("walking");
+    	},
+    };
+    const canSwim = {
+    	swim: function () {
+    		console.log("swimming");
+    	},
+    };
+
+    function Person() {}
+    Object.assign(Person.prototype, canEat, canWalk);
+    console.log(new Person()); //   查看对象原型，可以找到 eat、walk 方法
+
+    function Goldfish() {}
+    Object.assign(Goldfish.prototype, canEat, canSwim);
+    console.log(new Goldfish()); //   查看对象原型，可以找到 swim 方法
+    ```
+
+4. `mixin` 函数简化对象组合
+
+    ```js
+    function mixin(target, ...sources) {
+        Object.assign(target, ...sources);
+    }
+
+    ...
+
+    mixin(Person.prototype, canEat, canWalk);
+    const personWithMixin = new Person();
+    console.log(personWithMixin); // Person { eat: [Function: eat], walk: [Function: walk] }
+    ```
+
+## Ex: Inheriting Methods in JavaScript
+
+> **要求**：设计两个对象，`HtmlElement` 和 `HtmlSelectElement`，后者表示下拉选择框（dropdown list）。`HtmlSelectElement` 继承自 `HtmlElement`，并且需要正确设置原型链，使得子类可以继承父类的方法，同时实现自定义的功能。
+>
+> **解法**：
+>
+> 1. **Step1**：定义一个构造函数 `HtmlElement`，并在其原型上添加 `click` 和 `focus` 方法。
+> 2. **Step2**：定义一个构造函数 `HtmlSelectElement`，并手动将其原型设置为 `HtmlElement` 的一个实例，从而让 `HtmlSelectElement` 继承 `HtmlElement` 的方法。
+> 3. **Step3**：为 `HtmlSelectElement` 添加自己的属性（如 `items`）和方法（如 `addItem`、`removeItem`）。
+
+**代码**
 
 ```js
 
 ```
-
-## 方法重写
-
-1，重写方法
-
-2、在重写过程中调用父类的方法
-
-3、提一下原型链方法调用顺序
-
-## Polymorphism
-
-Poly many, morph form
-
-多态
-
-## 什么时候使用继承
-
-不要为了用而用，特别是在小项目中
-
-继承不是复用代码的唯一方式，还有 composition
-
-继承的问题
-
-尽量避免使用继承，如果使用，尽量保证不要多级继承
-
-简要介绍 composition
-
-## Mixins
-
-实现 composition
 
 # 技巧
 
