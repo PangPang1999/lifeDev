@@ -18,35 +18,44 @@ function HtmlSelectElement(items = []) {
   this.removeItem = function (item) {
     this.items.splice(this.items.indexOf(item), 1);
   };
+
+  this.render = function () {
+    return `
+<select>${this.items
+      .map(
+        (item) => `
+  <option>${item}</option>`
+      )
+      .join("")}
+</select>`;
+  };
 }
 
-// 手动设置 HtmlSelectElement 的原型为 HtmlElement 的实例
-// HtmlSelectElement.prototype = Object.create(
-//   HtmlElement.prototype
-// );
 HtmlSelectElement.prototype = new HtmlElement();
+// 调整 constructor
 HtmlSelectElement.prototype.constructor = HtmlSelectElement;
 
-// Step3: 为 HtmlSelectElement 添加特有的方法
-HtmlSelectElement.prototype.addItem = function (item) {
-  this.items.push(item);
-};
+function HtmlImageElement(src) {
+  this.src = src;
+  this.render = function () {
+    return `<img src ="${this.src}" />`;
+  };
+}
 
-HtmlSelectElement.prototype.removeItem = function (item) {
-  const index = this.items.indexOf(item);
-  if (index > -1) {
-    this.items.splice(index, 1);
-  }
-};
+HtmlImageElement.prototype = new HtmlElement();
+HtmlImageElement.prototype.constructor = HtmlImageElement;
 
-// 测试代码
-const selectElement = new HtmlSelectElement([
-  "Option1",
-  "Option2",
-]);
-selectElement.addItem("Option3");
-console.log(selectElement.items); // 输出: ["Option1", "Option2", "Option3"]
+const selectElement = new HtmlSelectElement(["Option1", "Option2"]);
+console.log(selectElement.render());
+// 输出
+// <select>
+//   <option>Option1</option>
+//   <option>Option2</option>
+// </select>
 
-// 继承自 HtmlElement 的方法
-selectElement.click(); // 输出: Element clicked
-selectElement.focus(); // 输出: Element focused
+const imageElement = new HtmlImageElement();
+console.log(imageElement.render());
+// 输出：<img src ="undefined" />
+imageElement.src = "http://";
+console.log(imageElement.render());
+// 输出：<img src ="http://" />

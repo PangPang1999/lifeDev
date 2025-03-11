@@ -5505,7 +5505,7 @@ console.log(titles); // 输出: ["b", "a"]
 
 ## 默认值
 
-> 简述：默认值是在函数的参数中为某些未传递的值提供预设的初始值。这避免了函数在调用时遇到 `undefined` 并且仍然能够正确执行。与使用逻辑运算符（如 `||`）的方式相比，默认值的语法更加简洁和明确。
+> 简述：默认值是在函数的参数中为某些未传递的值提供预设的初始值。这避免了函数在调用时遇到 `undefined` 并且仍然能够正确执行。与使用逻辑运算符（如 `||`）的方式相比，默认值的语法更加简洁和明确，该方式在 es6 引入。
 
 **知识树**
 
@@ -5554,6 +5554,18 @@ console.log(titles); // 输出: ["b", "a"]
 
     - 在 `test` 函数中，`year` 没有默认值。当 `rate` 被传递为 `5` 时，`year` 会被视为 `undefined`，导致函数返回 `NaN`。
     - 为了避免这种情况，默认值应放在参数列表的末尾。
+
+3. ES6 之前的做法
+
+    ```js
+    function interest(principal, rate, year) {
+    	rate = rate || 3.5; // 如果 rate 没传，使用 3.5
+    	year = year || 5; // 如果 year 没传，使用 5
+    	return ((principal * rate) / 100) * year;
+    }
+
+    console.log(interest(1000)); // 使用默认值，输出 175
+    ```
 
 ## `Getter`&`Setter`
 
@@ -7839,20 +7851,146 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     console.log(personWithMixin); // Person { eat: [Function: eat], walk: [Function: walk] }
     ```
 
-## Ex: Inheriting Methods in JavaScript
+## Ex:1 Inheritance Exercise
 
-> **要求**：设计两个对象，`HtmlElement` 和 `HtmlSelectElement`，后者表示下拉选择框（dropdown list）。`HtmlSelectElement` 继承自 `HtmlElement`，并且需要正确设置原型链，使得子类可以继承父类的方法，同时实现自定义的功能。
+> **要求**：设计两个对象，`HtmlElement` 和 `HtmlSelectElement`，后者表示下拉选择框（`dropdown list`）。`HtmlSelectElement` 继承自 `HtmlElement`，并且需要正确设置原型链，使得子类可以继承父类的方法，同时实现自定义的功能。
 >
 > **解法**：
 >
-> 1. **Step1**：定义一个构造函数 `HtmlElement`，并在其原型上添加 `click` 和 `focus` 方法。
-> 2. **Step2**：定义一个构造函数 `HtmlSelectElement`，并手动将其原型设置为 `HtmlElement` 的一个实例，从而让 `HtmlSelectElement` 继承 `HtmlElement` 的方法。
-> 3. **Step3**：为 `HtmlSelectElement` 添加自己的属性（如 `items`）和方法（如 `addItem`、`removeItem`）。
+> 1. **Step1**：定义一个构造函数 `HtmlElement`，添加 `click` 方法，并在其原型上添加 `focus` 方法。
+> 2. **Step2**：定义一个构造函数 `HtmlSelectElement`，为 `HtmlSelectElement` 添加自己的属性（如 `items`）和方法（如 `addItem`、`removeItem`）。
+> 3. **Step3**：手动将 HtmlSelectElement 原型设置为 `HtmlElement` ，从而让 `HtmlSelectElement` 继承 `HtmlElement` 的方法。
+
+**示例**
+
+- 目标结构展示
+
+    ```js
+    HtmlSelectElement实例
+    ├── addItem()
+    ├── items
+    ├── removeItem()
+    ├── [[Prototype]]
+    	├── click()
+    	└── [[Prototype]]
+    		└── focus()
+    ```
 
 **代码**
 
 ```js
+function HtmlElement() {
+	this.click = function () {
+		console.log("clicked");
+	};
+}
 
+HtmlElement.prototype.focus = function () {
+	console.log("focused");
+};
+
+function HtmlSelectElement(items = []) {
+	this.items = items;
+
+	this.addItem = function (item) {
+		this.items.push(item);
+	};
+
+	this.removeItem = function (item) {
+		this.items.splice(this.items.indexOf(item), 1);
+	};
+}
+
+// 继承设置，但是这里无法满足需求，丢失了 click 方法
+// HtmlSelectElement.prototype = Object.create(HtmlElement.prototype);
+// 为实现要求，需要采用继承实例的方式
+HtmlSelectElement.prototype = new HtmlElement();
+// 调整 constructor
+HtmlSelectElement.prototype.constructor = HtmlSelectElement;
+
+// 测试代码
+const selectElement = new HtmlSelectElement(["Option1", "Option2"]);
+
+selectElement.addItem("Option3");
+console.log(selectElement.items); // 输出: ["Option1", "Option2", "Option3"]
+
+selectElement.removeItem("Option1");
+console.log(selectElement.items); // 输出: ["Option2", "Option3"]
+
+// 继承自 HtmlElement 的方法
+selectElement.click(); // 输出: clicked
+selectElement.focus(); // 输出: focused
+```
+
+## Ex:2 Polymorphism Exercise
+
+> **要求**：设计两个对象：`HtmlImageElement` 和 `HtmlSelectElement`，它们都继承自 `HtmlElement`。 他们都有 `render` 方法，但是形式不同
+> **解法**：在上述代码继承上，分别在两个构造函数上添加同名方法 `render`
+
+**代码**
+
+```js
+function HtmlElement() {
+	this.click = function () {
+		console.log("clicked");
+	};
+}
+
+HtmlElement.prototype.focus = function () {
+	console.log("focused");
+};
+
+function HtmlSelectElement(items = []) {
+	this.items = items;
+
+	this.addItem = function (item) {
+		this.items.push(item);
+	};
+
+	this.removeItem = function (item) {
+		this.items.splice(this.items.indexOf(item), 1);
+	};
+
+	this.render = function () {
+		return `
+<select>${this.items
+			.map(
+				(item) => `
+  <option>${item}</option>`
+			)
+			.join("")}
+</select>`;
+	};
+}
+
+HtmlSelectElement.prototype = new HtmlElement();
+// 调整 constructor
+HtmlSelectElement.prototype.constructor = HtmlSelectElement;
+
+function HtmlImageElement(src) {
+	this.src = src;
+	this.render = function () {
+		return `<img src ="${this.src}" />`;
+	};
+}
+
+HtmlImageElement.prototype = new HtmlElement();
+HtmlImageElement.prototype.constructor = HtmlImageElement;
+
+const selectElement = new HtmlSelectElement(["Option1", "Option2"]);
+console.log(selectElement.render());
+// 输出
+// <select>
+//   <option>Option1</option>
+//   <option>Option2</option>
+// </select>
+
+const imageElement = new HtmlImageElement();
+console.log(imageElement.render());
+// 输出：<img src ="undefined" />
+imageElement.src = "http://";
+console.log(imageElement.render());
+// 输出：<img src ="http://" />
 ```
 
 # 技巧
