@@ -8310,7 +8310,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
         - 使用方括号 `[]` 表达式访问，点 `.` 无法访问 Symbol 属性。
         - 外部通过常规方式无法直接获取 Symbol 属性。
 
-4. 使用 WeakMap 实现私有成员（推荐方式）：
+4. 使用 WeakMap 实现私有成员：
 
     - WeakMap 是一种特殊的 Map，键必须为对象类型。
     - 键的引用为弱引用，当键对象不再被使用时，自动垃圾回收。
@@ -8322,6 +8322,11 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
         - `get(key)`：获取私有成员的值。
     - 箭头函数与 `this`：
         - 当在 WeakMap 中定义私有方法时，建议使用箭头函数，使得内部的 `this` 指向类实例本身。
+
+5. ES2022 `#`
+
+    - 使用 `#` 前缀声明私有属性和方法，是语言内置的私有机制。
+    - 只有在类内部才能访问，外部访问会报错，从而保护对象状态。
 
 **代码示例**
 
@@ -8421,6 +8426,28 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     ```
 
     - 虽然可用单一 WeakMap，但不建议，因为代码易混乱且难以维护。
+
+4. 使用 ES2022 `#` 语法实现私有成员：
+
+    ```js
+    class Person {
+    	// 使用 # 定义私有属性
+    	#name;
+
+    	constructor(name) {
+    		this.#name = name;
+    	}
+
+    	// 公共方法用于访问私有属性
+    	getName() {
+    		return this.#name;
+    	}
+    }
+
+    const p = new Person("Alice");
+    console.log(p.getName()); // 输出: "Alice"
+    // console.log(p.#name); // 报错：无法从类外部访问私有属性
+    ```
 
 ## `Setter & Getter in Classes`
 
