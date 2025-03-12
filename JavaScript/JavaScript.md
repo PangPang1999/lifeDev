@@ -4141,7 +4141,7 @@ const restaurants = [
     - `lastIndexOf()`：返回数组中最后一个匹配元素的索引，同样基于严格相等。
     - `includes()`：返回布尔值，表示数组是否包含某元素，同样采用严格比较，区分数据类型。
 
-2. 回调函数
+2. 回调函数(`callback`)
 
     - 回调函数是将一个函数作为参数传递给另一个函数，让后者在适当时机调用传入的函数，从而实现自定义逻辑。
 
@@ -4485,8 +4485,6 @@ const restaurants = [
     ```
 
     - 对象的拓展运算符会按照顺序覆盖同名属性，`obj2` 的 `b` 覆盖了 `obj1` 的 `b`。
-
-(开始)
 
 ## 遍历数组
 
@@ -5569,52 +5567,46 @@ console.log(titles); // 输出: ["b", "a"]
 
 ## `Getter`&`Setter`
 
-> **简述**：在 JavaScript 中，`getter` 和 `setter` 是特殊的方法，用于拦截对象属性的访问（`get`）和赋值（`set`）。虽然它们并不是必须的，但在某些情况下，它们可以提升代码的封装性、可读性，并控制数据访问。
+> **简述**：简述：`在JavaScript中`，`getter` 和 `setter` 是特殊函数，用于拦截对象属性的读取与赋值操作。主要用于计算属性、数据校验与封装内部状态。ES6 前仅支持对象字面量定义，ES6 后新增 `class` 方式定义。
 
 **知识树**
 
-1. `getter` 的作用
+1. `getter` 用途
 
-    - 允许以属性的形式访问计算属性，而不是调用方法。
-    - 提高代码可读性，简化调用方式（例如 `obj.fullName` 而不是 `obj.getFullName()`）。
-    - 封装逻辑，防止外部直接访问内部状态。
+    - 用属性方式访问计算结果，提升可读性（例如 `obj.fullName` 而不是 `obj.getFullName()`）。
+    - 封装逻辑，防止直接访问内部数据。
 
-2. `getter` 的实现
+2. `getter` 实现规则
 
-    - 使用 `get` 关键字定义。
-    - 不能接收参数，必须返回一个值。
-    - 适用于动态计算属性。
+    - 用 `get` 关键字定义。
+    - 无参数，必须返回一个值。
 
-3. `setter` 的作用
+3. `setter` 用途
 
-    - 允许使用赋值语法（`obj.fullName = "John Doe"`）来触发方法，而不是 `obj.setFullName("John Doe"`)。
-    - 拦截属性赋值，可用于数据验证、转换，或触发额外逻辑。
+    - 用赋值语法执行数据校验或逻辑操作（例如 `obj.fullName = "John Doe"`）。
+    - 控制数据有效性及状态更新。
 
-4. `setter` 的实现
+4. `setter` 实现规则
 
-    - 使用 `set` 关键字定义。
-    - 必须接收一个参数（即赋值时传入的值）。
-    - 不能有返回值，否则会报错。
+    - 用 `set` 关键字定义。
+    - 必须接收一个参数，无返回值。
 
-5. 无限递归陷阱
+5. 使用限制与注意事项
 
-    - 在 `getter / setter` 内直接访问同名属性会导致无限递归。
-    - 解决方案：使用私有属性（如 `_prop` 或 `#prop`）存储数据，而不是直接访问 `this.prop`。
+    - ES6 前仅在字面量对象使用；ES6 后可用于 `class`。
+    - 仅定义 `getter` 时属性为只读。
+    - 避免 `getter` 或 `setter` 内直接访问同名属性，否则引发无限递归。
+        - 解决方式：使用私有变量存储（如 `_prop` 或 `#prop` ）。
 
-6. `getter` / `setter` 使用场景
+6. 常见使用场景
 
-    - 计算属性：如 `fullName`，动态拼接 `firstName + lastName`。
-    - 数据验证：确保赋值符合要求（如字符串不能包含数字）。
-    - 封装私有属性：避免外部直接修改内部数据。
-
-7. 注意事项
-
-    - 定义 `getter`，如果没有对应的 `setter`，该属性就变成了只读的。
-    - 一旦定义了 `getter` 和 `setter`，对象属性就会变得不可直接操作，而是通过访问器方法控制。
+    - 计算属性（如拼接全名）。
+    - 数据校验（如限制数据类型或取值范围）。
+    - 封装内部状态，防止外部直接修改。
 
 **代码示例**
 
-1. 使用对象字面量
+1. 对象字面量定义 `getter` 与 `setter`
 
     ```js
     const person = {
@@ -5641,50 +5633,7 @@ console.log(titles); // 输出: ["b", "a"]
     // 输出：{ firstName: "John", lastName: "Smith", fullName: [Getter/Setter] }
     ```
 
-2. ES6 类中的 getter 和 setter（含数据验证与双向转换）
-
-    ```js
-    class Temperature {
-    	constructor(celsius) {
-    		this._celsius = celsius; // 私有属性
-    	}
-
-    	// 获取当前摄氏温度
-    	get celsius() {
-    		return this._celsius;
-    	}
-
-    	// 设置摄氏温度，要求为数值
-    	set celsius(value) {
-    		if (typeof value !== "number") {
-    			throw new Error("温度必须为数字");
-    		}
-    		this._celsius = value;
-    	}
-
-    	// 计算华氏温度
-    	get fahrenheit() {
-    		return (this._celsius * 9) / 5 + 32;
-    	}
-
-    	// 通过华氏温度设置摄氏温度
-    	set fahrenheit(value) {
-    		if (typeof value !== "number") {
-    			throw new Error("温度必须为数字");
-    		}
-    		this._celsius = ((value - 32) * 5) / 9;
-    	}
-    }
-
-    const temp = new Temperature(25);
-    console.log(temp.celsius); // 输出: 25
-    console.log(temp.fahrenheit); // 输出: 77
-
-    temp.fahrenheit = 86;
-    console.log(temp.celsius); // 输出: 30
-    ```
-
-3. 只定义 getter 的只读属性
+2. 只读计算属性（仅定义 `getter`）
 
     ```js
     const rectangle = {
@@ -5704,7 +5653,7 @@ console.log(titles); // 输出: ["b", "a"]
     console.log(rectangle.area); // 依然输出: 50
     ```
 
-4. 演示无限递归问题及其解决方案
+3. 演示无限递归问题及其解决方案
 
     ```js
     const person = {
@@ -5720,7 +5669,7 @@ console.log(titles); // 输出: ["b", "a"]
     console.log(person._firstName);
     ```
 
-    - 这段代码会报错，是因为 firstName 属性同时被定义为数据属性和 getter 方法，getter 方法中使用 this.firstName 造成了无限递归。
+    - 这段代码会报错，是因为 `firstName` 属性同时被定义为数据属性和 `getter` 方法，`getter` 方法中使用 `this.firstName` 造成了无限递归。
 
 ## `Try`&`Catch`
 
@@ -5957,228 +5906,271 @@ console.log(person); // 输出对象，检查是否修改成功
     let y = 20;
     ```
 
-## `This`
+## This
 
-> 简述：`this` 是 JavaScript 中一个非常常见但容易混淆的概念。它的值取决于函数的调用方式。通过理解 `this` 的行为，我们可以更清楚地掌握 JavaScript 中的对象方法、回调函数以及构造函数的作用。
+> **简述**：`this` 是 JavaScript 中的一个特殊关键字，它在函数调用时动态确定指向的对象，取决于函数调用的方式和上下文环境。
 
 **知识树**
 
-1. `this` 的含义
+1.  `this` 的基本含义：
 
-    - `this` 指向当前执行上下文的对象。
-    - 在对象的方法中，`this` 指向调用该方法的对象。（无论是一开始就写下的方法还是后续添加的方法）
-    - 在普通函数中，`this` 指向全局对象（在浏览器中是 `window`）
-    - 在构造函数中，使用 `new` 操作符创建一个新的空对象，让`this` 指向一个该空对象，随后进行构造函数内的代码执行。
-    - 在**回调函数**中， `this` 默认指向全局对象，但可以通过额外参数或绑定方法改变。
-    - 在箭头函数中，`this` 的值取决于定义时的上下文，继承自外层作用域。
+    - `this` 是函数内部的一个特殊对象引用
+    - 具体指向在调用函数时确定，而非定义时确定（称为动态绑定）
 
-2. 解决**回调函数**中 `this` 引用问题
+2.  `this` 的绑定规则：
 
-    - 在回调函数后，加上`this`参数，但不一定所有方法都适配
-    - 在对象中引入`self`或`that`来指向对象中的`this`，在回调函数中引用`self`
-    - 使用 `call()` 和 `apply()`：这两个方法可以显式地指定函数执行时的 `this` 值，但它的参数传递方式有所不同。
-        - `call` ，立即调用函数并且明确指定 this 的值。方法的第一个参数是指定 `this` 的对象，后面的参数则是传递给函数的参数。
-        - `apply` 的第一个参数是指定 `this` 的对象，第二个参数是一个数组，它会被传递给函数。
-    - 使用 `bind()`：`bind` 方法和 `call`、`apply` 类似，都允许你显式地指定 `this` 值，但不同的是，`bind` 不会立即调用函数，而是返回一个新的函数。
-        - `bind` 方法创建了一个新函数，该函数的 `this` 被固定为。可以结合回调函数使用。
-        - `bind` 方法的第一个参数是指定 `this` 的对象，后面的参数则是传递给函数的参数。
-    - 箭头函数（最优）：箭头函数不会创建自己的 `this`，它会继承外层作用域的 `this`。
+    - 作为对象方法调用：指向调用该方法的对象
+    - 作为普通函数调用（未绑定对象时）：
+        - 非严格模式下指向全局对象（浏览器中为 `window`，Node 环境中为 `global`）
+        - 严格模式 (`'use strict'`) 下为 `undefined`
+    - 作为回调函数调用：默认指向全局对象 `Window`，可手动绑定为特定对象。
+
+3.  构造函数中的 `this`：
+
+    - 使用 `new` 操作符调用构造函数时，`this` 会自动指向新创建的空对象
+    - 忘记使用 `new` 操作符时，构造函数内的 `this` 会指向全局对象（严格模式下为 `undefined`）
+    - 操作 DOM 时情况有所不同，`this` 通常会自动绑定到触发事件的 DOM 元素，而不是 `window`
+
+4.  严格模式（strict mode）：
+
+    - 启用方式：在脚本顶部添加 `'use strict';`
+    - 作用：
+        - 强化语法检查，避免隐式全局变量
+        - 独立调用函数时，`this` 指向变为 `undefined`
+
+5.  `this` 的指向特殊情况：
+
+    - 箭头函数中的`this`：继承定义时所在作用域的`this`，不会创建自己的`this`。
+    - 独立函数调用（如直接函数调用或方法引用调用），`this` 指向全局对象或 `undefined`
 
 **代码示例**
 
-1. 方法调用
+1.  对象方法中`this`
 
     ```js
-    const video = {
-    	title: "a",
-    	play() {
-    		console.log(this); // 输出 video 对象
+    const person = {
+    	name: "Alice",
+    	greet() {
+    		console.log(this);
     	},
     };
-    video.play();
-    video.stop = function () {
-    	console.log(this);
-    };
-    video.stop();
-    ```
+    person.greet(); // 输出：person 对象本身
 
-2. 普通函数调用
-
-    ```js
-    function playVideo() {
-    	console.log(this);
+    function Circle(radius) {
+    	this.radius = radius;
+    	this.draw = function () {
+    		console.log(this);
+    	};
     }
 
-    playVideo(); // 在浏览器中输出 window 对象
+    const c = new Circle(5);
+    c.draw(); // 输出：c 对象本身
     ```
 
-3. 构造函数调用
+2.  普通函数中的`this`
 
     ```js
-    function Video(title) {
-    	this.title = title;
+    function sayHello() {
     	console.log(this);
     }
-
-    const v = new Video("a"); // 输出新创建的 Video 对象
+    sayHello(); // 浏览器中输出 window
     ```
 
-4. **回调函数**中的 `this`
+3.  回调函数中的`this`
 
     ```js
-    const video = {
-    	title: "a",
-    	tags: ["a", "b", "c"],
-    	showTags() {
-    		this.tags.forEach(function (tag) {
-    			console.log(this.title, tag); // this.title 为 undefined，因为 this 指向全局对象
-    			console.log(this); // 在浏览器中输出 window 对象
-    		});
-    	},
-    };
-
-    video.showTags();
-    ```
-
-5. 在箭头函数中的`this`
-
-    ```js
-    const video = {
-    	title: "a",
-    	tags: ["a", "b", "c"],
-    	showTags() {
-    		this.tags.forEach((tag) => {
-    			console.log(this.title, tag); // 箭头函数继承外层的 this
-    		});
-    	},
-    };
-    video.showTags(); // 正常输出标题和标签
-    ```
-
-**解决回调函数中 `this` 问题**
-
-1. 传递 `this` 参数（不一定都适用）
-
-    ```js
-    const video = {
-    	title: "a",
-    	tags: ["a", "b", "c"],
-    	showTags() {
-    		this.tags.forEach(function (tag) {
-    			console.log(this.title, tag);
-    		}, this); // 将 this 作为第二个参数传递
-    	},
-    };
-
-    video.showTags(); // 正常输出标题和标签
-    ```
-
-2. 在对象中引入`self`或`that`（传统方法，需要理解）
-
-    ```js
-    const video = {
-    	title: "a",
-    	tags: ["a", "b", "c"],
-    	showTags() {
-    		const self = this; // 引入self
-    		this.tags.forEach(function (tag) {
-    			console.log(self.title, tag);
-    		});
-    	},
-    };
-
-    video.showTags(); // 正常输出标题和标签
-    ```
-
-3. 使用 `call()` 和 `apply()`
-
-    ```js
-    function playVideo(a, b) {
-    	console.log(this);
-    }
-
-    playVideo.call({ name: "Moth" }, 1, 2);
-    playVideo.apply({ name: "Moth" }, [1, 2]);
-    ```
-
-4. 使用 `bind()`
-
-    ```js
-    function playVideo(a, b) {
-    	console.log(this);
-    }
-
-    const fn = playVideo.bind({ name: "Moth" });
-    fn();
-    // 等价
-    playVideo.bind({ name: "Moth" })(); // 注意括号
-
-    // 结合回调函数使用
-    const video = {
-    	title: "a",
-    	tags: ["a", "b", "c"],
+    const user = {
+    	name: "Bob",
+    	tags: ["js", "vue"],
     	showTags() {
     		this.tags.forEach(
     			function (tag) {
-    				console.log(this.title, tag);
+    				console.log(this.name, tag);
     			}.bind(this)
-    		);
+    		); // 明确指定 this 为 user 对象
     	},
     };
-    video.showTags();
+    user.showTags(); // 输出：'Bob js' 和 'Bob vue'
+
+    this.name = "testName"; // 修改全局的 name 属性
+
+    const user2 = {
+    	name: "Bob",
+    	tags: ["js", "vue"],
+    	showTags() {
+    		this.tags.forEach(function (tag) {
+    			console.log(this.name, tag);
+    		}); // 未指定this
+    	},
+    };
+    user2.showTags(); // 输出：'testName js' 和 'testName vue'
+
+    //补充：DOM 事件处理
+    const btn = document.getElementById("myButton");
+    btn.addEventListener("click", function () {
+    	console.log(this); // 输出：点击事件的目标元素，即 btn
+    });
     ```
 
-5. 使用箭头函数
+4.  构造函数中的`this`
+
+    - 非严格模式下
+
+        ```js
+        //
+        function Person(name, age) {
+        	this.name = name;
+        	this.age = age;
+        }
+
+        const p = Person("Alice", 25);
+        console.log(p); // 输出: undefined，因为函数没有返回值
+        console.log(window.name); // 输出: "Alice"，全局对象被修改
+        ```
+
+    - 在严格模式下
+
+        ```js
+        "use strict";
+        function Person(name, age) {
+        	this.name = name; // 这里会报错，因为 this 是 undefined
+        	this.age = age;
+        }
+
+        Person("Bob", 30); // 报错: Cannot set property 'name' of undefined
+        ```
+
+5.  箭头函数的`this`
 
     ```js
-    const video = {
-    	title: "a",
-    	tags: ["a", "b", "c"],
+    const obj = {
+    	name: "Bob",
+    	tags: ["a", "b"],
     	showTags() {
     		this.tags.forEach((tag) => {
-    			console.log(this.title, tag); // 箭头函数继承外层的 this
+    			console.log(this.name, tag); // 'Bob a', 'Bob b'
     		});
     	},
     };
-    video.showTags(); // 正常输出标题和标签
+    obj.showTags();
     ```
 
-6. 补充作用于构造函数的情况
+6.  独立函数调用
 
     ```js
     function Circle(radius) {
     	this.radius = radius;
     	this.draw = function () {
-    		console.log("draw");
+    		console.log(this);
     	};
-    	return this; // 若没有显式返回this，使用call/apply方法将返回underfined
     }
-    const circle1 = Circle.call({}, 1);
-    console.log("circle1:", circle1); // 输出 circle1: {radius: 1, draw: ƒ}
-    const circle2 = Circle.apply({}, [1]);
-    console.log("circle2:", circle2); // 输出 circle1: {radius: 1, draw: ƒ}
-    const circle3 = Circle.bind({}, 1);
-    console.log("circle3:", circle3);
-    // 输出
-    // circle3: ƒ Circle(radius) {
-    //   this.radius = radius;
-    //   this.draw = function () {
-    //     console.log("draw");
-    //   };
-    //   return this; // 若没有显式返回this，使用call/apply方法将返回underfined
-    // }
+
+    const c = new Circle(10);
+    c.draw(); // 输出：Circle 实例对象
+
+    const draw = c.draw;
+    draw(); // 非严格模式下输出：window (浏览器环境)
+    // 严格模式下输出：undefined
     ```
 
-**补充**
+## Call & Apply & Bind
 
-1. 普通函数附加到 `window` 对象
+> **简述**：`call`、`apply`和`bind` 是用来显式绑定函数调用时的`this`，解决函数调用环境不确定的问题。掌握它们可以灵活控制函数执行的上下文，尤其适用于**回调**场景。
+
+**知识树**
+
+1. `call` 方法
+
+    - 立即执行函数并指定`this`，参数逐个传入。
+
+2. `apply` 方法
+
+    - 功能与`call`类似，参数以数组形式传入。
+
+3. `bind` 方法
+
+    - 返回一个绑定好`this`的新函数，稍后调用。
+    - 经常用来提前定义回调函数的执行环境。
+
+4. 适用场景
+
+    - 明确指定函数执行环境。
+    - 解决回调函数内`this`错乱问题。
+    - 借用方法实现类似继承或方法复用功能。
+
+**代码示例**
+
+1. `call`与`apply`基础用法
 
     ```js
-    function sayHi() {
-    	console.log("hi");
+    function greet(greeting, punctuation) {
+    	console.log(greeting + ", " + this.name + punctuation);
     }
-    console.log(window.sayHi); // 输出：函数本身
+
+    const user = { name: "Alice" };
+
+    greet.call(user, "Hi", "!"); // 输出：Hi, Alice!
+    greet.apply(user, ["Hello", "."]); // 输出：Hello, Alice.
     ```
+
+2. 用`bind`绑定`this`
+
+    - 这里使用了回调函数，若不绑定，默认指向 `Windows`
+
+    ```js
+    const user = {
+    	name: "Bob",
+    	tags: ["js", "vue"],
+    	showTags() {
+    		this.tags.forEach(
+    			function (tag) {
+    				console.log(this.name, tag);
+    			}.bind(this)
+    		); // 明确指定 this 为 user 对象
+    	},
+    };
+
+    user.showTags(); // 输出：'Bob js' 和 'Bob vue'
+    ```
+
+3. 箭头函数 vs `bind`（推荐使用箭头函数）
+
+    ```js
+    const user = {
+    	name: "Bob",
+    	tags: ["js", "vue"],
+    	showTags() {
+    		this.tags.forEach((tag) => {
+    			console.log(this.name, tag); // 箭头函数自动继承外层的 this
+    		});
+    	},
+    };
+
+    user.showTags(); // 输出：'Bob js' 和 'Bob vue'
+    ```
+
+4. 用`call`、`apply` 或 `bind` 调用构造函数
+
+    ```js
+    function Person(name, age) {
+    	this.name = name;
+    	this.age = age;
+
+    	return this; // 若没有显式返回this，使用call/apply方法将返回underfined
+    }
+
+    const p1 = new Person("Alice", 25);
+    const p2 = Person.call({}, "Bob", 30); // 等价于 new Person，但需提供一个空对象{}
+    const p3 = Person.apply({}, ["Charlie", 30]);
+    const p4 = Person.bind({}, "Nancy", 28);
+
+    console.log(p1); // {name: 'Alice', age: 25}
+    console.log(p2); // {name: 'Bob', age: 30}，注意此处须显式返回，否则为undefined
+    console.log(p3); // {name: 'Charlie', age: 30}，注意此处须显式返回，否则为undefined
+    console.log(p4()); // {name: 'Nancy', age: 28}，，注意此处须显式返回并主动调用
+    ```
+
+    - 注意：使用`call`或`apply`调用构造函数时，必须显式返回`this`对象，否则为`undefined`。
 
 ## Ex1
 
@@ -6350,9 +6342,9 @@ try {
 
 **代码示例**
 
-1. 封装和抽象：简化对象的交互
+1.  封装和抽象：简化对象的交互
 
-    在这个例子中，我们将 `Circle` 对象的 `defaultLocation` 属性和 `computeOptimalLocation` 方法封装在对象内部，只暴露 `draw` 方法供外部使用。
+    - 在这个例子中，我们将 `Circle` 对象的 `defaultLocation` 属性和 `computeOptimalLocation` 方法封装在对象内部，只暴露 `draw` 方法供外部使用。
 
     ```js
     function Circle(radius) {
@@ -6384,24 +6376,24 @@ try {
 
     - 在这个代码中，`defaultLocation` 和 `computeOptimalLocation` 被封装在 `Circle` 对象内部，外部无法直接修改它们。外部只能通过 `draw` 方法与对象交互。
 
-2. 通过封装保护数据
+2.  通过封装保护数据
 
-    如果没有封装，外部代码可能修改对象的属性，导致对象状态不一致。例如，修改 `defaultLocation` 会导致不可预测的行为。
+    - 如果没有封装，外部代码可能修改对象的属性，导致对象状态不一致。例如，修改 `defaultLocation` 会导致不可预测的行为。
 
     ```js
     circle.defaultLocation = false; // 修改了内部的 defaultLocation 属性
     console.log(circle.defaultLocation); // 输出 false，可能导致不一致的行为
     ```
 
-3. 抽象：隐藏复杂性
+3.  抽象：隐藏复杂性
 
-    假设 `computeOptimalLocation` 方法现在需要一个参数 `factor`。如果我们将其暴露给外部，所有调用该方法的地方都需要传递新的参数，这增加了外部代码的复杂度。
+    - 假设 `computeOptimalLocation` 方法现在需要一个参数 `factor`。如果我们将其暴露给外部，所有调用该方法的地方都需要传递新的参数，这增加了外部代码的复杂度。
 
     ```js
     circle.computeOptimalLocation(5); // 需要传递新的参数
     ```
 
-    但如果 `computeOptimalLocation` 被封装为私有方法，外部无需关心其内部的实现，只需要调用公开接口 `draw` 即可。
+    - 但如果 `computeOptimalLocation` 被封装为私有方法，外部无需关心其内部的实现，只需要调用公开接口 `draw` 即可。
 
     ```js
     this.draw = function () {
@@ -6413,110 +6405,110 @@ try {
 
 ## 属性描述符
 
-> **简述**：在 JavaScript 中，Object.defineProperty 允许我们在对象上动态定义属性，并精细控制属性的行为。通过设置属性描述符（如 `configurable`、`enumerable`、`writable` 以及 `getter` 和 `setter`），我们不仅可以控制属性的读写操作，还能保护内部状态，确保对象始终处于有效状态。相比直接在对象上赋值，它提供了更高级的封装能力。
+> **简述**：属性描述符（Property Descriptor）用于精细控制 JavaScript 对象属性的行为，如读写、枚举和配置权限。通过 `Object.defineProperty` 可实现对属性更灵活的封装和保护，超出一般属性定义的能力范围。
 
 **知识树**
 
-1.  `Object.defineProperty` 方法
+1. `Object.defineProperty`方法
 
-    - 基本作用：在对象上定义新属性或修改现有属性的行为。
-    - 接收参数：指向，属性名，描述符
+    - 作用：定义或修改对象的单个属性及其行为。
+    - 参数：
+        - 对象本身
+        - 属性名
+        - 属性描述符对象（Descriptor）
 
-2.  属性描述符：
+2. 属性描述符类型
 
-    - 数据描述符：
-        - `value`：设置属性的具体值
-        - `writable` 属性：制属性值是否可以修改。如果设置为 `false`，属性值将变为只读。
-        - `enumerable` 属性：控制属性是否可以被枚举。如果设置为 `false`，该属性不会出现在 `for...in` 循环或者 `Object.keys()` 方法返回的数组中。
-        - `configurable` 属性：控制属性是否可以被删除或重新定义。如果设置为 `false`，该属性不能被删除，且不能重新定义它的描述符。
-    - 访问描述符：
-        - `get`：函数，用于在读取属性时返回值。
-        - `set`：函数，用于在为属性赋值时自定义赋值行为。
-        - 同时也具有 `enumerable` 和 `configurable` 字段，但不包含 `value` 和 `writable` 字段。
-    - 注意：
-        - 同一属性不能同时同时存在数据描述符和访问描述符，否则会产生冲突。也就是说，如果定义了 get 或 set，则不能同时定义 value 或 writable。
+    - 数据描述符（控制属性值本身）：
+        - `value`：属性初始值。
+        - `writable`：是否允许修改属性值（默认`false`）。
+        - `enumerable`：是否允许属性枚举（如`for...in`）（默认`false`）。
+        - `configurable`：是否允许重新定义或删除属性（默认`false`）。
+    - 访问描述符（控制属性的访问方式）：
+        - `get`：读取属性时调用的函数，无参数，必须返回值。
+        - `set`：设置属性时调用的函数，接收单一参数（赋值的新值），无返回值。
+        - 同样具有`enumerable`和`configurable`，但**不包含**`value`和`writable`。
 
-3.  辅助方法
+3. 注意事项
 
-    - `Object.getOwnPropertyDescriptor`：查看指定属性的描述符，用于调试和验证属性行为。
+    - 同一属性不可同时设置数据描述符与访问描述符，否则报错。
+    - 描述符一旦设置`configurable: false`后，无法修改或删除该属性描述符（但`writable`为`true`时值仍可修改）。
+    - 默认创建属性（如`obj.prop = 1`）时，描述符均为`true`（除显式定义外）。
 
-4.  实际应用与优势
+4. 辅助方法
 
-    - 封装：利用描述符控制属性的可写性、枚举性和可配置性，实现细粒度的封装。
-    - 安全性：防止重要属性被误修改或误删除。
-    - 灵活性：结合 getter 和 setter，实现数据验证和自动计算逻辑。
+    - `Object.getOwnPropertyDescriptor(obj, prop)`：
+        - 获取指定对象属性的描述符，常用于调试或验证属性配置。
+
+5. `Object.defineProperty`与`getter`/`setter`对比
+    - 定义位置：
+        - Getter/Setter：ES6 前仅对象字面量，ES6 后扩展至类。
+        - `defineProperty`：任意对象、函数或类均可使用，更广泛。
+    - 使用体验：
+        - Getter/Setter 语法更直观、清晰。
+        - `defineProperty`更灵活全面，适用于高级封装与严格控制。
 
 **代码示例**
 
-1. 使用数据描述符定义只读、不可枚举属性
+1. 数据描述符示例（定义只读、不可枚举、不可配置属性）
 
     ```js
-    const obj = {};
+    const config = {};
 
-    // 定义一个只读、不可枚举且不可配置的属性
-    Object.defineProperty(obj, "constantValue", {
-    	value: 42,
+    Object.defineProperty(config, "VERSION", {
+    	value: "1.0.0",
     	writable: false, // 只读
     	enumerable: false, // 不可枚举
-    	configurable: false, // 不可重新定义或删除
+    	configurable: false, // 不可删除或重新定义
     });
 
-    console.log(obj.constantValue); // 输出: 42
-    obj.constantValue = 100;
-    console.log(obj.constantValue); // 依然输出: 42
+    console.log(config.VERSION); // 输出: 1.0.0
+    config.VERSION = "2.0.0"; // 无效赋值
+    console.log(config.VERSION); // 仍输出: 1.0.0
 
-    console.log(Object.keys(obj)); // 不包含 constantValue
+    console.log(Object.keys(config)); // 输出: []
     ```
 
-2. 使用访问描述符封装内部状态
+2. 访问描述符示例（封装私有状态，进行数据校验）
 
     ```js
-    function Person(firstName, lastName) {
-    	// 内部状态通过闭包隐藏
-    	let _firstName = firstName;
-    	let _lastName = lastName;
+    function User(initialAge) {
+    	let _age = initialAge; // 私有状态
 
-    	// 定义访问描述符，暴露 getter 和 setter
-    	Object.defineProperty(this, "fullName", {
+    	Object.defineProperty(this, "age", {
     		get() {
-    			return `${_firstName} ${_lastName}`;
+    			return _age;
     		},
-    		set(value) {
-    			const parts = value.split(" ");
-    			if (parts.length !== 2) {
-    				throw new Error("请输入有效的全名");
+    		set(newAge) {
+    			if (typeof newAge !== "number" || newAge < 0) {
+    				throw new Error("年龄必须为非负数");
     			}
-    			_firstName = parts[0];
-    			_lastName = parts[1];
+    			_age = newAge;
     		},
     		enumerable: true,
-    		configurable: true,
+    		configurable: false,
     	});
     }
 
-    const person = new Person("Mosh", "Hamedani");
-    console.log(person.fullName); // 输出: Mosh Hamedani
-    person.fullName = "John Smith";
-    console.log(person.fullName); // 输出: John Smith
+    const user = new User(25);
+    console.log(user.age); // 输出: 25
+
+    user.age = 30;
+    console.log(user.age); // 输出: 30
+
+    // user.age = -5; // 抛出错误：年龄必须为非负数
     ```
 
-3. 利用 `Object.getOwnPropertyDescriptor` 检查属性描述符
+3. 使用`getOwnPropertyDescriptor`检查属性配置
 
     ```js
-    const obj2 = {};
+    const book = {
+    	title: "JavaScript Guide",
+    };
 
-    // 定义属性
-    Object.defineProperty(obj2, "name", {
-    	value: "Alice",
-    	writable: true,
-    	enumerable: true,
-    	configurable: true,
-    });
-
-    // 获取属性描述符
-    const descriptor = Object.getOwnPropertyDescriptor(obj2, "name");
+    const descriptor = Object.getOwnPropertyDescriptor(book, "title");
     console.log(descriptor);
-    // 输出类似：{ value: 'Alice', writable: true, enumerable: true, configurable: true }
+    // 输出：{ value: 'JavaScript Guide', writable: true, enumerable: true, configurable: true }
     ```
 
 ## Ex: Stopwatch Object
@@ -7412,7 +7404,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
 ## 使用父类属性
 
-> 简述：在继承关系中，若想要在子构造函数中调用父构造函数中的属性，通常使用 `call()` 或 `apply()` 方法来实现。
+> **简述**：在继承关系中，若想要在子构造函数中调用父构造函数中的属性，通常使用 `call()` 或 `apply()` 方法来实现。
 
 **知识树**
 
@@ -7466,7 +7458,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
 ## 封装继承方法
 
-> 简述：中间函数继承，是一种将继承关系设置逻辑，提取到一个独立函数中的方法，旨在简化继承设置，避免重复代码并减少出错的概率。通过这个方法，我们可以避免为每个子类手动设置继承链。
+> **简述**：中间函数继承，是一种将继承关系设置逻辑，提取到一个独立函数中的方法，旨在简化继承设置，避免重复代码并减少出错的概率。通过这个方法，我们可以避免为每个子类手动设置继承链。
 
 **知识树**
 
@@ -7536,7 +7528,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
 ## 方法重写
 
-> 简述：方法重写是面向对象编程中一种重要的技巧，它允许子类重定义父类的方法。在 JavaScript 中，方法重写是通过覆盖继承自父类的函数来实现的。通过这种方式，子类可以根据需求调整父类方法的行为。同时，子类仍然可以在需要时调用父类的实现。
+> **简述**：方法重写是面向对象编程中一种重要的技巧，它允许子类重定义父类的方法。在 JavaScript 中，方法重写是通过覆盖继承自父类的函数来实现的。通过这种方式，子类可以根据需求调整父类方法的行为。同时，子类仍然可以在需要时调用父类的实现。
 
 **知识树**
 
@@ -7633,7 +7625,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
 ## 多态性
 
-> 简述：多态性是面向对象编程中一个非常强大且关键的概念，意味着“多种形态”。在 JavaScript 中，多态性允许一个方法根据不同的对象类型表现出不同的行为。这使得代码更加灵活、简洁，并且易于扩展和维护。
+> **简述**：多态性是面向对象编程中一个非常强大且关键的概念，意味着“多种形态”。在 JavaScript 中，多态性允许一个方法根据不同的对象类型表现出不同的行为。这使得代码更加灵活、简洁，并且易于扩展和维护。
 
 1. 多态性的定义：
 
@@ -7753,7 +7745,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
 ## Mixins
 
-> 简述：Mixins 是一种将多个对象的功能组合到一个目标对象中的技术。通过将不同的功能合并到一个对象，我们能够实现代码复用、模块化功能扩展以及更灵活的对象功能组合。`Object.assign()` 是实现 `Mixins` 的常用方法，它可以将多个源对象的属性和方法复制到目标对象中。通过这种方式，我们可以增强对象的功能，而不需要通过继承来创建复杂的类层次结构。
+> **简述**：Mixins 是一种将多个对象的功能组合到一个目标对象中的技术。通过将不同的功能合并到一个对象，我们能够实现代码复用、模块化功能扩展以及更灵活的对象功能组合。`Object.assign()` 是实现 `Mixins` 的常用方法，它可以将多个源对象的属性和方法复制到目标对象中。通过这种方式，我们可以增强对象的功能，而不需要通过继承来创建复杂的类层次结构。
 
 **知识树**
 
@@ -7861,8 +7853,6 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 > 2. **Step2**：定义一个构造函数 `HtmlSelectElement`，为 `HtmlSelectElement` 添加自己的属性（如 `items`）和方法（如 `addItem`、`removeItem`）。
 > 3. **Step3**：手动将 HtmlSelectElement 原型设置为 `HtmlElement` ，从而让 `HtmlSelectElement` 继承 `HtmlElement` 的方法。
 
-**示例**
-
 - 目标结构展示
 
     ```js
@@ -7876,122 +7866,767 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     		└── focus()
     ```
 
-**代码**
+- 代码示例
 
-```js
-function HtmlElement() {
-	this.click = function () {
-		console.log("clicked");
-	};
-}
+    ```js
+    function HtmlElement() {
+    	this.click = function () {
+    		console.log("clicked");
+    	};
+    }
 
-HtmlElement.prototype.focus = function () {
-	console.log("focused");
-};
+    HtmlElement.prototype.focus = function () {
+    	console.log("focused");
+    };
 
-function HtmlSelectElement(items = []) {
-	this.items = items;
+    function HtmlSelectElement(items = []) {
+    	this.items = items;
 
-	this.addItem = function (item) {
-		this.items.push(item);
-	};
+    	this.addItem = function (item) {
+    		this.items.push(item);
+    	};
 
-	this.removeItem = function (item) {
-		this.items.splice(this.items.indexOf(item), 1);
-	};
-}
+    	this.removeItem = function (item) {
+    		this.items.splice(this.items.indexOf(item), 1);
+    	};
+    }
 
-// 继承设置，但是这里无法满足需求，丢失了 click 方法
-// HtmlSelectElement.prototype = Object.create(HtmlElement.prototype);
-// 为实现要求，需要采用继承实例的方式
-HtmlSelectElement.prototype = new HtmlElement();
-// 调整 constructor
-HtmlSelectElement.prototype.constructor = HtmlSelectElement;
+    // 继承设置，但是这里无法满足需求，丢失了 click 方法
+    // HtmlSelectElement.prototype = Object.create(HtmlElement.prototype);
+    // 为实现要求，需要采用继承实例的方式
+    HtmlSelectElement.prototype = new HtmlElement();
+    // 调整 constructor
+    HtmlSelectElement.prototype.constructor = HtmlSelectElement;
 
-// 测试代码
-const selectElement = new HtmlSelectElement(["Option1", "Option2"]);
+    // 测试代码
+    const selectElement = new HtmlSelectElement(["Option1", "Option2"]);
 
-selectElement.addItem("Option3");
-console.log(selectElement.items); // 输出: ["Option1", "Option2", "Option3"]
+    selectElement.addItem("Option3");
+    console.log(selectElement.items); // 输出: ["Option1", "Option2", "Option3"]
 
-selectElement.removeItem("Option1");
-console.log(selectElement.items); // 输出: ["Option2", "Option3"]
+    selectElement.removeItem("Option1");
+    console.log(selectElement.items); // 输出: ["Option2", "Option3"]
 
-// 继承自 HtmlElement 的方法
-selectElement.click(); // 输出: clicked
-selectElement.focus(); // 输出: focused
-```
+    // 继承自 HtmlElement 的方法
+    selectElement.click(); // 输出: clicked
+    selectElement.focus(); // 输出: focused
+    ```
 
 ## Ex:2 Polymorphism Exercise
 
 > **要求**：设计两个对象：`HtmlImageElement` 和 `HtmlSelectElement`，它们都继承自 `HtmlElement`。 他们都有 `render` 方法，但是形式不同
 > **解法**：在上述代码继承上，分别在两个构造函数上添加同名方法 `render`
 
-**代码**
+- 代码示例
+
+    ```js
+    function HtmlElement() {
+    	this.click = function () {
+    		console.log("clicked");
+    	};
+    }
+
+    HtmlElement.prototype.focus = function () {
+    	console.log("focused");
+    };
+
+    function HtmlSelectElement(items = []) {
+    	this.items = items;
+
+    	this.addItem = function (item) {
+    		this.items.push(item);
+    	};
+
+    	this.removeItem = function (item) {
+    		this.items.splice(this.items.indexOf(item), 1);
+    	};
+
+    	this.render = function () {
+    		return `
+    <select>${this.items
+    			.map(
+    				(item) => `
+      <option>${item}</option>`
+    			)
+    			.join("")}
+    </select>`;
+    	};
+    }
+
+    HtmlSelectElement.prototype = new HtmlElement();
+    // 调整 constructor
+    HtmlSelectElement.prototype.constructor = HtmlSelectElement;
+
+    function HtmlImageElement(src) {
+    	this.src = src;
+    	this.render = function () {
+    		return `<img src ="${this.src}" />`;
+    	};
+    }
+
+    HtmlImageElement.prototype = new HtmlElement();
+    HtmlImageElement.prototype.constructor = HtmlImageElement;
+
+    const selectElement = new HtmlSelectElement(["Option1", "Option2"]);
+    console.log(selectElement.render());
+    // 输出
+    // <select>
+    //   <option>Option1</option>
+    //   <option>Option2</option>
+    // </select>
+
+    const imageElement = new HtmlImageElement();
+    console.log(imageElement.render());
+    // 输出：<img src ="undefined" />
+    imageElement.src = "http://";
+    console.log(imageElement.render());
+    // 输出：<img src ="http://" />
+    ```
+
+# ES6 Class
+
+## `Classes`
+
+> **简述**：在 ES6 引入的类（class）是一种创建对象和继承的新语法，但本质仍是原型继承的语法糖，本身并未引入传统面向对象语言中真正意义上的类机制。
+>
+> > 学习此节前，确保自己已经对原型、继承的关系十分熟悉
+
+**知识树**
+
+1. class 的概念
+
+    - 类实际上是构造函数的语法糖，typeof class 返回 "function"
+    - 默认开启严格模式，增强代码的安全性
+
+2. class 的结构
+
+    - 类体 `{}` 内定义类成员（属性、方法）
+    - 成员类型：
+        - 实例成员：在 constructor 中定义，仅实例可访问
+        - 原型成员：在类体内定义的方法，不同实例共享，通过原型链访问
+
+3. constructor 构造函数
+
+    - 初始化实例成员，类实例化时自动调用
+    - 每个类只能有一个 constructor，若未定义则自动生成空构造函数
+
+4. class 与 new 操作符
+
+    - 用于实例化类，创建类的实例对象
+    - 使用类时不加 new 会直接报错，区别于传统构造函数（后者返回 undefined）
+    - 原因在于类默认启用严格模式
+
+5. class 中的 this 关键字
+
+    - 在类方法中，独立调用时 this 为 undefined
+
+**代码示例**
+
+1. class 替代构造函数
+
+    ```js
+    // 传统构造函数方式
+    // function Circle(radius) {
+    //   this.radius = radius;
+
+    //   this.draw = function () {
+    //     console.log("draw");
+    //   };
+    // }
+
+    // ES6 类方式
+    class Circle {
+    	// {} 内称为该class 的 body
+
+    	//使用 constructor 初始化实例
+    	constructor(radius) {
+    		//  定义实例成员
+    		this.radius = radius;
+    		this.move = function () {};
+    	}
+
+    	//  定义原型方法（共享）
+    	draw() {
+    		console.log("draw");
+    	}
+    }
+
+    const c = new Circle(1);
+    console.log(c); // 实例对象，含 radius 和 move 方法
+    c.draw(); // 调用原型方法 draw
+
+    console.log(typeof Circle); // "function"，验证类本质仍是函数
+    ```
+
+2. new 操作符
+
+    ```js
+    // 传统构造函数方式
+    function Circle(radius) {
+    	this.radius = radius;
+    }
+
+    const c = new Circle(5);
+    console.log(c); // 输出 c 对象
+
+    const c1 = Circle(5);
+    console.log(c1); // 输出 undefined
+
+    // ES6 类方式
+    class Square {
+    	constructor(side) {
+    		this.side = side;
+    	}
+    }
+
+    const s = new Square(1);
+    console.log(s); // 输出 s 对象
+
+    const s1 = Square(1); // 直接报错 Uncaught TypeError: Class constructor Square cannot be invoked without 'new'
+    ```
+
+3. 类中的 `this` 默认使用严格模式：
+
+    ```js
+    // "use strict";
+
+    // 类
+    class Circle {
+    	constructor(radius) {
+    		this.radius = radius;
+    	}
+
+    	draw() {
+    		console.log(this);
+    	}
+    }
+
+    const c = new Circle(5);
+    c.draw(); // 输出：Circle 实例对象
+
+    const draw = c.draw;
+    draw(); // 输出：undefined (因为类体默认启用严格模式)
+
+    // 原始构造函数
+    function Square(side) {
+    	this.side = side;
+    	this.duplicate = function () {
+    		console.log(this);
+    	};
+    }
+
+    const c1 = new Square(10);
+    c1.duplicate(); // 输出：Square 实例对象
+
+    const duplicate = c1.duplicate;
+    duplicate(); // 非严格模式下输出：window (浏览器环境)
+    // 严格模式下输出：undefined
+    ```
+
+    - 类的定义体默认启用严格模式，独立调用类的方法时，`this` 默认是 `undefined`。
+
+## `Hoisting`
+
+> **简述**：提升（Hoisting）是 JavaScript 的一种特性，会在代码执行前自动将函数或变量声明提前到所在作用域的顶部，但不同的声明方式（如函数声明、函数表达式、类声明和类表达式）提升行为不同。
+
+**知识树**
+
+1. 提升的概念
+
+    - 在代码实际执行前，JS 会自动将声明提前到当前作用域顶部（注意：仅声明本身，不含赋值）
+
+2. 函数声明（Function Declaration）
+
+    - 会被完全提升到作用域顶部，因此可在声明前调用而不会出错
+    - 不需要末尾分号 `;`，即便加上， prettier 格式化之后将消除
+
+3. 函数表达式（Function Expression）
+
+    - 不会提升，仅变量声明被提升，函数本身的赋值操作不会提升
+    - 使用变量或常量存储函数，表达式末尾需加分号 `;`（惯例），即便不加，prettier 格式化之后将加上
+    - 在定义前调用会报错（未初始化）
+
+4. 类声明与类表达式（Class Declaration & Expression）
+
+    - 类声明和类表达式均不会提升，必须先定义再使用
+    - 相较于类表达式，推荐使用类声明语法
+
+**代码示例**
+
+1. 函数声明与提升
+
+    ```js
+    sayHello(); // 输出正常：'Hello'
+
+    // 函数声明（Function Declaration）
+    function sayHello() {
+    	console.log("Hello");
+    }
+    ```
+
+    - 函数声明在定义前调用不会报错，因为已被提升到顶部。
+
+2. 函数表达式与非提升
+
+    ```js
+    sayGoodbye(); // 报错：sayGoodbye is not defined
+
+    // 函数表达式（Function Expression）
+    const sayGoodbye = function () {
+    	console.log("Goodbye");
+    };
+    ```
+
+    - 表达式未提升，调用时变量未初始化，因此报错。
+
+3. 类声明与类表达式的非提升特性
+
+    ```js
+    const c = new Circle(); // 报错：Cannot access 'Circle' before initialization
+
+    // 类声明（Class Declaration）
+    class Circle {}
+
+    const square = new Square(); // 报错：Cannot access 'Square' before initialization
+
+    // 类表达式（Class Expression）
+    const Square = class {};
+    ```
+
+    - 类声明和类表达式均不提升，必须定义后使用。
+
+## `Static & Instance Methods`
+
+> **简述**：实例方法属于对象实例，可以访问实例数据；静态方法属于类本身，用于实现通用工具功能，不涉及实例数据。ES6 并没有引入静态方法这一概念，而是通过 class 语法使得定义静态方法变得更加正式和直观。
+
+**知识树**
+
+1. 实例方法（Instance Methods）
+
+    - 属于具体实例对象，通过实例调用
+    - 可访问实例的数据和方法
+    - 原型方法也属于实例方法
+
+2. 静态方法（Static Methods）
+
+    - 属于类，通过类名调用
+    - 不能访问实例数据或方法
+    - 常用于通用工具函数封装
+
+3. static 关键字
+
+    - 修饰方法，使之成为静态方法
+    - 只能由类调用，实例调用则报错
+
+4. 常见用途：
+
+    -工具函数（类型转换、数据校验、对象创建、通用计算等）
+
+5. 概念辨析
+
+    - 实例方法 ≠ 实例成员属性（实例属性由构造函数创建直接存储于实例）
+    - 原型方法属于实例方法，但存储于原型链上，由所有实例共享
+
+**代码示例**
+
+1. 实例方法与静态方法对比：
+
+    ```js
+    class Circle {
+    	constructor(radius) {
+    		this.radius = radius;
+    	}
+
+    	// 实例方法（对象拥有）
+    	draw() {
+    		console.log("draw circle with radius", this.radius);
+    	}
+
+    	// 静态方法（类拥有）
+    	static parse(jsonString) {
+    		console.log("$", this.radius); // 在静态方法中无法访问实例数据，将输出 $ undefined
+    		const jsonObj = JSON.parse(jsonString);
+    		return new Circle(jsonObj.radius);
+    	}
+    }
+
+    const c = new Circle(5);
+    c.draw();
+    // 输出：draw circle with radius 5
+    // c.parse(); 报错：c.parse is not a function
+
+    const json = '{"radius":10}';
+    const c2 = Circle.parse(json);
+    console.log(c2);
+    // 输出：
+    // $ undefined
+    // Circle { radius: 10 }
+    // c2.parse(json); // 报错：Uncaught TypeError: c2.parse is not a function
+    ```
+
+    - `draw()`： 实例方法，操作具体对象。
+    - `parse()` ：静态方法，解析 JSON，创建实例对象。
+
+2. 工具类的典型应用（如 Math 对象）：
+
+    ```js
+    class MyMath {
+    	static abs(value) {
+    		return value >= 0 ? value : -value;
+    	}
+    }
+
+    console.log(MyMath.abs(-7)); // 输出：7
+    ```
+
+    - 静态方法用于封装通用工具函数，无需创建对象即可直接使用。
+
+## `Private Members in Classes`
+
+> 简述：私有成员是类中不能从外部直接访问的属性或方法，用于隐藏内部实现细节，降低代码复杂性，实现对象的抽象性和安全性。
+
+**知识树**
+
+1. 私有成员（Private Members）：
+
+    - 用于隐藏类的内部细节，避免外部直接访问。
+    - 增强类的封装性，实现更好的抽象。
+
+2. 伪私有（约定式）实现方法：
+
+    - 使用下划线 `_` 作为前缀（如 `_radius`）。
+    - 仅为开发人员之间的约定，并不是真正私有。
+    - 不推荐使用，因为外部仍然可以访问。
+
+3. 使用 Symbol 实现私有成员：
+
+    - Symbol 为 ES6 中新增的原始数据类型，每次调用都会生成唯一标识符。
+    - 使用 Symbol 作为对象的属性或方法名，有效避免外部直接访问。
+
+    - 创建方法：
+        - `Symbol()`：调用函数生成唯一标识符。
+        - 不使用 `new` 关键字，否则报错。
+    - 访问方法：
+        - 使用方括号 `[]` 表达式访问，点 `.` 无法访问 Symbol 属性。
+        - 外部通过常规方式无法直接获取 Symbol 属性。
+
+4. 使用 WeakMap 实现私有成员（推荐方式）：
+
+    - WeakMap 是一种特殊的 Map，键必须为对象类型。
+    - 键的引用为弱引用，当键对象不再被使用时，自动垃圾回收。
+    - 每个私有属性或方法建议单独使用一个 WeakMap 存储，更清晰。
+    - 配合模块化（后续讲解），私有属性实现真正无法被外部访问。
+
+    - 方法说明：
+        - `set(key, value)`：设置私有成员，`key` 通常是类实例对象。
+        - `get(key)`：获取私有成员的值。
+    - 箭头函数与 `this`：
+        - 当在 WeakMap 中定义私有方法时，建议使用箭头函数，使得内部的 `this` 指向类实例本身。
+
+**代码示例**
+
+1. 使用 Symbol 实现私有成员：
+
+    ```js
+    const _radius = Symbol(); // 创建Symbol类型的私有属性
+    const _draw = Symbol(); // 创建Symbol类型的私有方法
+
+    class Circle {
+    	constructor(radius) {
+    		this[_radius] = radius; // 使用Symbol设置私有属性
+    	}
+
+    	[_draw]() {
+    		// 使用Symbol定义私有方法
+    		console.log("Drawing with radius:", this[_radius]);
+    	}
+
+    	drawPublic() {
+    		this[_draw](); // 在类内部调用私有方法
+    	}
+    }
+
+    const c = new Circle(10);
+    c.drawPublic(); // 正常调用公有方法，输出私有方法内容
+
+    console.log(c._radius); // undefined，无法直接访问
+    console.log(Object.getOwnPropertyNames(c)); // []
+
+    // 可通过此方式访问，但通常不使用
+    console.log(Object.getOwnPropertySymbols(c)); // [Symbol()]
+    const key = Object.getOwnPropertySymbols(c)[0];
+    console.log(c[key]); // 10
+    ```
+
+    - 使用 Symbol 有效避免了常规访问方式，提供了简单的私有成员实现。
+
+2. 使用 WeakMap 实现私有属性和方法（推荐）：
+
+    ```js
+    const _radius = new WeakMap(); // 私有属性 WeakMap
+    const _move = new WeakMap(); // 私有方法 WeakMap
+
+    class Circle {
+    	constructor(radius) {
+    		_radius.set(this, radius); // 存储实例与私有属性的对应关系
+
+    		_move.set(this, () => {
+    			// 存储实例与私有方法（箭头函数）的对应关系
+    			console.log("move", this);
+    		});
+    	}
+
+    	draw() {
+    		console.log("draw radius:", _radius.get(this)); // 内部访问私有属性
+    		_move.get(this)(); // 调用私有方法
+    	}
+    }
+
+    const c = new Circle(5);
+    c.draw(); // 正常调用输出draw和move的内容
+
+    console.log(c.radius); // undefined，无法直接访问私有属性
+    console.log(c.move); // undefined，无法直接访问私有方法
+    ```
+
+    - 通过 WeakMap 存储私有数据，结合箭头函数完美解决 `this` 指向问题，提供真正的私有成员。
+
+3. 使用单个 WeakMap 存储多个私有成员（不推荐，但可选）：
+
+    ```js
+    const _privateProps = new WeakMap();
+
+    class Circle {
+    	constructor(radius) {
+    		_privateProps.set(this, {
+    			radius, // 私有属性
+    			move: () => {
+    				// 私有方法（箭头函数）
+    				console.log("move", this);
+    			},
+    		});
+    	}
+
+    	draw() {
+    		const props = _privateProps.get(this);
+    		console.log("draw radius:", props.radius); // 访问私有属性
+    		props.move(); // 调用私有方法
+    	}
+    }
+
+    const c = new Circle(3);
+    c.draw(); // 正常调用输出draw和move内容
+
+    console.log(c.radius); // undefined，无法访问
+    ```
+
+    - 虽然可用单一 WeakMap，但不建议，因为代码易混乱且难以维护。
+
+## `Setter & Getter in Classes`
+
+> 简述：ES6 引入的类语法支持 `setter` 和 `getter` 特殊方法，使得访问或修改属性时可自动触发逻辑，从而实现数据封装、校验和计算。相比构造函数，只能在类和对象字面量中定义。
+
+**知识树**
+
+1. 核心作用
+
+    - 封装属性访问逻辑。
+    - 实现数据校验和约束。
+
+2. 使用限制与注意事项
+
+    - 只能定义在类或对象字面量中，不适用于传统构造函数。
+    - 若只定义 `getter`，属性为只读；若只定义 `setter`，属性为只写（极少用）。
+
+3. 与 `Object.defineProperty` 对比（in Classes）
+
+    - 使用便捷性：
+        - 类中直接使用 `getter/setter` 更直观。
+        - `defineProperty` 语法繁琐，但功能更强。
+    - 应用场景差异：
+        - 一般属性逻辑封装推荐使用类的 `getter/setter`。
+        - 复杂或动态定义属性时推荐使用 `defineProperty`。
+    - 灵活度：
+        - `defineProperty`可精确控制属性特性（如`enumerable`、`configurable`）。
+        - 类中的`getter/setter`默认均为可枚举、可配置。
+
+4. 私有属性封装方式（配合 getter/setter）
+    - 使用命名约定（`_prop`）表示私有属性（仍可外部访问）。
+    - 使用 ES2022 私有字段（`#prop`）实现真正私有（不可外部访问）。
+    - 使用 `WeakMap` 存储私有数据，完全封装内部状态（安全性高）。
+
+**代码示例**
+
+1. 类中定义 Getter 和 Setter（使用`WeakMap`封装私有数据）
+
+    ```js
+    const _radius = new WeakMap();
+
+    class Circle {
+    	constructor(radius) {
+    		if (radius <= 0) throw new Error("半径需为正数");
+    		_radius.set(this, radius);
+    	}
+
+    	get radius() {
+    		return _radius.get(this);
+    	}
+
+    	set radius(value) {
+    		if (value <= 0) throw new Error("半径需为正数");
+    		_radius.set(this, value);
+    	}
+
+    	get area() {
+    		return Math.PI * this.radius ** 2;
+    	}
+    }
+
+    const c = new Circle(10);
+    console.log(c.radius); // 输出: 10
+    console.log(c.area); // 输出面积
+
+    c.radius = 15;
+    console.log(c.radius); // 更新为15
+    ```
+
+2. 类中使用`Object.defineProperty`（复杂场景或精细控制属性行为）
+
+    ```js
+    class Person {
+    	constructor(name) {
+    		let _name = name;
+
+    		Object.defineProperty(this, "name", {
+    			get() {
+    				return _name;
+    			},
+    			set(value) {
+    				if (typeof value !== "string") {
+    					throw new Error("姓名必须是字符串");
+    				}
+    				_name = value;
+    			},
+    			enumerable: true,
+    			configurable: false,
+    		});
+    	}
+    }
+
+    const p = new Person("Alice");
+    console.log(p.name); // 输出: Alice
+    p.name = "Bob";
+    console.log(p.name); // 输出: Bob
+    ```
+
+## Inheritance
+
+> 简述：继承是面向对象编程的重要概念，它允许我们基于已有的类创建新类，从而重用代码，减少冗余。通过 class 语法和 extends 关键字，继承变得简单直观。此外，super 关键字用于调用父类的构造函数或方法，确保子类正确继承父类的属性和行为。
+
+**知识树**
+
+1. Class 中继承的实现：
+
+    - 使用 extends 关键字继承父类的方法和属性。
+    - 子类会自动继承父类的方法，无需额外设置原型。
+
+2. `super` 关键字：
+
+    - 若父类存在属性，在子类的构造函数中，必须先调用 `super()`，否则会报错。
+    - 使用 `super` 关键字，可以在子类中调用父类方法
+
+3. 方法重写
+
+    - 在子类中，重写父类的方法后，会优先调用子类同名方法（原型链机制）
+
+**代码示例**
+
+1. Class 继承
+
+    ```js
+    // 定义基础类 Shape，包含 move 方法
+    class Shape {
+    	move() {
+    		console.log("move");
+    	}
+    }
+
+    // 定义子类 Circle，继承 Shape，并新增 draw 方法
+    class Circle extends Shape {
+    	draw() {
+    		console.log("draw");
+    	}
+    }
+
+    // 创建 Circle 实例，并调用继承和自身的方法
+    const c = new Circle();
+    c.move(); // 调用继承自 Shape 的 move 方法
+    c.draw(); // 调用 Circle 自己的 draw 方法
+    ```
+
+2. 使用 `super` 关键字
+
+    ```js
+    // 定义基础类 Shape，包含带参数的构造函数，用于初始化 color 属性
+    class Shape {
+    	constructor(color) {
+    		this.color = color;
+    	}
+    	move() {
+    		console.log("move");
+    	}
+    }
+
+    class Circle extends Shape {
+    	constructor(color, radius) {
+    		super(color); // 调用父类构造函数初始化 color，若没有该行会报错
+    		this.radius = radius; // 添加 Circle 自有的 radius 属性
+    	}
+    	draw() {
+    		super.move(); // 使用super可以调用父类方法
+    		console.log("draw");
+    	}
+    }
+
+    // 创建 Circle 实例，并传入 color 和 radius 参数
+    const c = new Circle("red", 10);
+    console.log(c.color); // 输出: red
+    console.log(c.radius); // 输出: 10
+    ```
+
+3. 重写
 
 ```js
-function HtmlElement() {
-	this.click = function () {
-		console.log("clicked");
-	};
+// 定义基础类 Shape，包含带参数的构造函数，用于初始化 color 属性
+class Shape {
+	constructor(color) {
+		this.color = color;
+	}
+	move() {
+		console.log("move");
+	}
 }
 
-HtmlElement.prototype.focus = function () {
-	console.log("focused");
-};
-
-function HtmlSelectElement(items = []) {
-	this.items = items;
-
-	this.addItem = function (item) {
-		this.items.push(item);
-	};
-
-	this.removeItem = function (item) {
-		this.items.splice(this.items.indexOf(item), 1);
-	};
-
-	this.render = function () {
-		return `
-<select>${this.items
-			.map(
-				(item) => `
-  <option>${item}</option>`
-			)
-			.join("")}
-</select>`;
-	};
+class Circle extends Shape {
+	constructor(color, radius) {
+		super(color); // 调用父类构造函数初始化 color，若没有该行会报错
+		this.radius = radius; // 添加 Circle 自有的 radius 属性
+	}
+	move() {
+		super.move(); // 使用super可以调用父类方法
+		console.log("Circle move");
+	}
 }
 
-HtmlSelectElement.prototype = new HtmlElement();
-// 调整 constructor
-HtmlSelectElement.prototype.constructor = HtmlSelectElement;
-
-function HtmlImageElement(src) {
-	this.src = src;
-	this.render = function () {
-		return `<img src ="${this.src}" />`;
-	};
-}
-
-HtmlImageElement.prototype = new HtmlElement();
-HtmlImageElement.prototype.constructor = HtmlImageElement;
-
-const selectElement = new HtmlSelectElement(["Option1", "Option2"]);
-console.log(selectElement.render());
-// 输出
-// <select>
-//   <option>Option1</option>
-//   <option>Option2</option>
-// </select>
-
-const imageElement = new HtmlImageElement();
-console.log(imageElement.render());
-// 输出：<img src ="undefined" />
-imageElement.src = "http://";
-console.log(imageElement.render());
-// 输出：<img src ="http://" />
+// 创建 Circle 实例，并传入 color 和 radius 参数
+const c = new Circle("red", 10);
+console.log(c); // 对象原型中存在子类的move方法，沿原型链往上一层寻找，存在父类中move方法
+console.log(c.__proto__.move); // 子类中move方法
+console.log(c.__proto__.__proto__.move); // 父类中move方法
+console.log(c.move()); // 输出：Circle move
 ```
+
+## ES6 Module
 
 # 技巧
 
@@ -8004,6 +8639,10 @@ console.log(imageElement.render());
     "use strict";
 
     ```
+
+- Babel
+    使用改技术可以将 ES6 以上的 js 代码转为 所有浏览器都能理解的 es5 代码，网址：https://babeljs
+    .io/
 
 ## 中级
 

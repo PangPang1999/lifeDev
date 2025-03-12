@@ -1,61 +1,26 @@
-function HtmlElement() {
-  this.click = function () {
-    console.log("clicked");
-  };
+// 定义基础类 Shape，包含带参数的构造函数，用于初始化 color 属性
+class Shape {
+  constructor(color) {
+    this.color = color;
+  }
+  move() {
+    console.log("move");
+  }
 }
 
-HtmlElement.prototype.focus = function () {
-  console.log("focused");
-};
-
-function HtmlSelectElement(items = []) {
-  this.items = items;
-
-  this.addItem = function (item) {
-    this.items.push(item);
-  };
-
-  this.removeItem = function (item) {
-    this.items.splice(this.items.indexOf(item), 1);
-  };
-
-  this.render = function () {
-    return `
-<select>${this.items
-      .map(
-        (item) => `
-  <option>${item}</option>`
-      )
-      .join("")}
-</select>`;
-  };
+class Circle extends Shape {
+  constructor(color, radius) {
+    super(color); // 调用父类构造函数初始化 color，若没有该行会报错
+    this.radius = radius; // 添加 Circle 自有的 radius 属性
+  }
+  move() {
+    console.log("Circle move");
+  }
 }
 
-HtmlSelectElement.prototype = new HtmlElement();
-// 调整 constructor
-HtmlSelectElement.prototype.constructor = HtmlSelectElement;
-
-function HtmlImageElement(src) {
-  this.src = src;
-  this.render = function () {
-    return `<img src ="${this.src}" />`;
-  };
-}
-
-HtmlImageElement.prototype = new HtmlElement();
-HtmlImageElement.prototype.constructor = HtmlImageElement;
-
-const selectElement = new HtmlSelectElement(["Option1", "Option2"]);
-console.log(selectElement.render());
-// 输出
-// <select>
-//   <option>Option1</option>
-//   <option>Option2</option>
-// </select>
-
-const imageElement = new HtmlImageElement();
-console.log(imageElement.render());
-// 输出：<img src ="undefined" />
-imageElement.src = "http://";
-console.log(imageElement.render());
-// 输出：<img src ="http://" />
+// 创建 Circle 实例，并传入 color 和 radius 参数
+const c = new Circle("red", 10);
+console.log(c); // 对象原型中存在子类的move方法，沿原型链往上一层寻找，存在父类中move方法
+console.log(c.__proto__.move); // 子类中move方法
+console.log(c.__proto__.__proto__.move); // 父类中move方法
+console.log(c.move()); // 输出：Circle move
