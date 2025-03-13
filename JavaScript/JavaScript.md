@@ -8623,37 +8623,152 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
 3. 重写
 
-```js
-// 定义基础类 Shape，包含带参数的构造函数，用于初始化 color 属性
-class Shape {
-	constructor(color) {
-		this.color = color;
-	}
-	move() {
-		console.log("move");
-	}
-}
+    ```js
+    // 定义基础类 Shape，包含带参数的构造函数，用于初始化 color 属性
+    class Shape {
+    	constructor(color) {
+    		this.color = color;
+    	}
+    	move() {
+    		console.log("move");
+    	}
+    }
 
-class Circle extends Shape {
-	constructor(color, radius) {
-		super(color); // 调用父类构造函数初始化 color，若没有该行会报错
-		this.radius = radius; // 添加 Circle 自有的 radius 属性
-	}
-	move() {
-		super.move(); // 使用super可以调用父类方法
-		console.log("Circle move");
-	}
-}
+    class Circle extends Shape {
+    	constructor(color, radius) {
+    		super(color); // 调用父类构造函数初始化 color，若没有该行会报错
+    		this.radius = radius; // 添加 Circle 自有的 radius 属性
+    	}
+    	move() {
+    		super.move(); // 使用super可以调用父类方法
+    		console.log("Circle move");
+    	}
+    }
 
-// 创建 Circle 实例，并传入 color 和 radius 参数
-const c = new Circle("red", 10);
-console.log(c); // 对象原型中存在子类的move方法，沿原型链往上一层寻找，存在父类中move方法
-console.log(c.__proto__.move); // 子类中move方法
-console.log(c.__proto__.__proto__.move); // 父类中move方法
-console.log(c.move()); // 输出：Circle move
-```
+    // 创建 Circle 实例，并传入 color 和 radius 参数
+    const c = new Circle("red", 10);
+    console.log(c); // 对象原型中存在子类的move方法，沿原型链往上一层寻找，存在父类中move方法
+    console.log(c.__proto__.move); // 子类中move方法
+    console.log(c.__proto__.__proto__.move); // 父类中move方法
+    console.log(c.move()); // 输出：Circle move
+    ```
 
-## ES6 Module
+# ES6 Module
+
+## Concept
+
+> 简述：项目中通过将代码分散到多个文件（模块）中，提升结构清晰度、复用性和维护性。
+
+**知识树**
+
+1. 模块化概念
+
+    - 定义：将代码拆分为多个独立文件，每个文件称为一个模块
+    - 目的：降低单个文件的复杂度，便于维护和扩展
+
+2. 模块化的优势
+
+    - 可维护性：结构清晰，便于管理和调试
+    - 复用性：独立模块可重复使用
+    - 抽象性：隐藏实现细节，仅暴露对外接口
+
+3. 模块格式及发展
+
+    - ES5：
+        - AMD (Asynchronous Module Definition)：适用于浏览器，支持异步加载
+        - CommonJS：用于 Node.js，通过 require 和 module.exports 导入导出
+        - UMD (Universal Module Definition)：兼容浏览器和 Node.js
+    - ES6
+        - Modules：现代浏览器原生支持，使用 import/export 语法，代表未来发展方向
+    - 主要学习：CommonJS（Node.js）和 ES6 Modules（浏览器）
+
+**代码示例**
+
+1. Circle 类未模块化的缺陷
+
+    ```js
+    const _radius = new WeakMap();
+
+    class Circle {
+    	constructor(radius) {
+    		_radius.set(this, radius);
+    	}
+    }
+
+    const c = new Circle(10);
+    console.log(_radius.get(c)); // 输出 10
+    ```
+
+    - 说明：未模块化时内部私有属性 `_radius` 可被访问；通过模块化，只暴露必要接口可解决此问题
+
+## CommonJS
+
+> **简述**：简述：一种在 Node.js 环境下实现模块分离的技术，能够将代码拆分为多个模块，从而提高代码的可维护性和复用性。学习前需确保已安装 Node 并能够运行代码。
+
+**知识树**
+
+1. `export`
+
+    - 导出多个对象（示例）
+        ```js
+        module.exports.Circle = Circle;
+        module.exports.Square = Square;
+        ```
+    - 导出单个对象（示例）
+        ```js
+        // module.exports.Circle = Circle;
+        // 或者
+        module.exports = Circle;
+        ```
+
+2. `require`
+
+    - 使用 `require('./path')` 导入模块，路径为具体文件位置，系统默认引入模块中暴露的接口
+
+3. 运行代码
+
+    - 在终端切换至包含 index.js 的目录
+    - 输入 node index.js 运行文件
+
+代码示例
+
+1. `circle.js`（与 `index.js` 同路径下）
+
+    ```js
+    // Implementation Detail
+    const _radius = new WeakMap();
+
+    // Pulic Inteface
+    class Circle {
+    	constructor(radius) {
+    		_radius.set(this, radius);
+    	}
+
+    	draw() {
+    		console.log("draw circle with radius " + _radius.get(this));
+    	}
+    }
+
+    // 导出 Circle 类
+    // module.exports.Circle = Circle;
+    // 或者
+    module.exports = Circle;
+    ```
+
+    - 说明：利用 WeakMap 实现 Circle 类的私有属性封装，只暴露必要接口。
+
+2. `index.js`
+
+    ```js
+    const Circle = require("./circle"); // index.js:1 Uncaught ReferenceError: require is not defined
+
+    const c = new Circle(10);
+    c.draw();
+    ```
+
+    - 说明：演示如何导入 Circle 模块并创建实例，从而实现模块化编程。
+
+## Module
 
 # 技巧
 
@@ -8668,8 +8783,7 @@ console.log(c.move()); // 输出：Circle move
     ```
 
 - Babel
-    使用改技术可以将 ES6 以上的 js 代码转为 所有浏览器都能理解的 es5 代码，网址：https://babeljs
-    .io/
+    使用改技术可以将 ES6 以上的 js 代码转为 所有浏览器都能理解的 es5 代码，网址：https://babeljs.io/
 
 ## 中级
 
