@@ -8664,9 +8664,11 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 1. 模块化概念
 
     - 定义：将代码拆分为多个独立文件，每个文件称为一个模块
-    - 目的：降低单个文件的复杂度，便于维护和扩展
+    - 目的：
+        - 1. 模块内的内容默认不对外公开，只有显式导出的部分才能被外部访问
+        - 2. 降低单个文件的复杂度，便于维护和扩展
 
-2. 模块化的优势
+2. 优势
 
     - 可维护性：结构清晰，便于管理和调试
     - 复用性：独立模块可重复使用
@@ -8703,11 +8705,11 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
 ## CommonJS
 
-> **简述**：简述：一种在 Node.js 环境下实现模块分离的技术，能够将代码拆分为多个模块，从而提高代码的可维护性和复用性。学习前需确保已安装 Node 并能够运行代码。
+> **简述**：一种在 Node.js 环境下实现模块分离的技术，将代码拆分为多个模块，从而提高代码的可维护性和复用性。学习前需确保已安装 Node 并能够运行代码。
 
 **知识树**
 
-1. `export`
+1. 使用 `export` 导出公共接口
 
     - 导出多个对象（示例）
         ```js
@@ -8721,18 +8723,18 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
         module.exports = Circle;
         ```
 
-2. `require`
+2. 使用 `require` 引入模块
 
-    - 使用 `require('./path')` 导入模块，路径为具体文件位置，系统默认引入模块中暴露的接口
+    - 使用 `require('./path')` 导入模块，路径为具体文件位置（未加拓展名不影响），系统默认引入模块中暴露的接口
 
 3. 运行代码
 
     - 在终端切换至包含 index.js 的目录
     - 输入 node index.js 运行文件
 
-代码示例
+**代码示例**
 
-1. `circle.js`（与 `index.js` 同路径下）
+1. 创建`circle.js`（与 `index.js` 同路径下）
 
     ```js
     // Implementation Detail
@@ -8760,7 +8762,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 2. `index.js`
 
     ```js
-    const Circle = require("./circle"); // index.js:1 Uncaught ReferenceError: require is not defined
+    const Circle = require("./circle");
 
     const c = new Circle(10);
     c.draw();
@@ -8769,6 +8771,202 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     - 说明：演示如何导入 Circle 模块并创建实例，从而实现模块化编程。
 
 ## Module
+
+> 简述：一种在 浏览器 环境下实现模块分离的现代化技术，将代码拆分为多个模块，从而提高代码的可维护性和复用性。
+
+**知识树**
+
+1. 使用 `export` 导出公共接口
+
+    - export 关键字用于公开类、函数或变量
+    - 仅导出需要给外部使用的部分，保持实现细节（如私有变量）隐藏
+
+2. 使用 `import` 引入模块
+
+    - import 关键字用来导入其它模块导出的内容
+    - 需使用花括号指定具体导出项，并确保路径正确
+
+3. 模块间协作与调试注意事项
+
+    - 在 HTML 中使用模块时，应将 script 标签的 type 属性设置为 "module"
+    - 导入路径需要准确匹配文件名（包括扩展名，如 .js），否则会出现加载错误
+
+**代码示例**
+
+1. 创建`circle.js`（与 `index.js` 同路径下）
+
+    ```js
+    const _radius = new WeakMap();
+
+    export class Circle {
+    	constructor(radius) {
+    		_radius.set(this, radius);
+    	}
+
+    	draw() {
+    		console.log("draw circle with radius " + _radius.get(this));
+    	}
+    }
+    ```
+
+    - 说明：利用 WeakMap 实现 Circle 类的私有属性封装，只暴露必要接口。
+
+2. `index.js`
+
+    ```js
+    import { Circle } from "./circle.js";
+    const c = new Circle(10);
+    c.draw();
+    ```
+
+3. `index.html`
+
+    ```html
+    <!DOCTYPE html>
+    <html lang="en">
+    	<head>
+    		<meta charset="UTF-8" />
+    		<meta
+    			name="viewport"
+    			content="width=device-width, initial-scale=1.0"
+    		/>
+    		<title>Document</title>
+    	</head>
+    	<body>
+    		<!-- 这里需要将 type 设置为 module -->
+    		<script type="module" src="index.js"></script>
+    	</body>
+    </html>
+    ```
+
+# Tool
+
+> 简述：Transpiler 与 Bundler
+
+**知识树**
+
+1. Transpiler（代码转换器）
+
+    - 介绍：Transpiler 即 Translator 和 Compiler
+    - 作用：将现代 JavaScript 代码转换为各浏览器都能理解的旧版语法
+    - 示例：Babel
+
+2. Bundler（模块打包器）
+
+    - 作用：将多个 Module（JS） 文件合并成一个文件，去除所有的空白与注释，缩小文件大小
+    - 示例：Webpack
+
+3. 应用场景
+    - 浏览器应用：需要借助这两个工具保证新语法在老旧浏览器上也能运行
+    - Node.js 应用：通常无需使用，因环境已支持大部分现代特性
+
+**代码示例**
+
+1. Babel 配置示例
+
+    ```json
+    {
+    	"presets": ["@babel/preset-env"]
+    }
+    ```
+
+    - 说明：此配置告诉 Babel 使用 preset-env，将现代 JavaScript 代码转译成兼容旧版浏览器的代码
+
+2. Webpack 配置示例
+
+    ```js
+    const path = require("path");
+
+    module.exports = {
+    	entry: "./src/index.js",
+    	output: {
+    		filename: "bundle.js",
+    		path: path.resolve(__dirname, "dist"),
+    	},
+    };
+    ```
+
+    - 说明：简单的 Webpack 配置，将多个模块打包成一个 bundle.js 文件，并进行压缩优化
+
+## Babel
+
+> 简述：介绍如何通过 Node 与 NPM 搭建环境，安装并使用 Babel 将现代 JavaScript 转译为所有浏览器都能理解的代码。使用 Babel 的内容仅仅是为了演示，并不是你在构建真实世界应用时所使用的工作流程。
+
+**知识树**
+
+1. 安装 Node 与 NPM
+
+    - 下载 Node：从 nodejs.org 获取最新稳定版
+    - 验证安装：使用 `node -v` 检查版本
+    - NPM：随 Node 自动安装，用于管理依赖
+
+2. NPM 基础
+
+    - 定义：包管理工具，帮助安装第三方依赖和工具
+
+3. 初始化项目
+
+    - 创建项目文件夹（如 `es6-tooling-babel`）
+    - 新建测试文件 `index.js`（示例代码：`const x = 1`）
+    - 终端中运行 `npm init --yes` 生成 package.json，记录项目信息
+
+4. 安装与使用 Babel
+
+    - 安装命令：
+        ```bash
+        npm i babel-cli@6.26.0 babel-core@6.26.0 babel-preset-env@1.6.1 --save-dev
+        ```
+    - Babel-cli：命令行工具，用于执行转译
+    - Babel-core：实现转译逻辑的核心库
+    - Babel-preset-env：插件集合，将现代语法转换为旧版语法
+    - 修改 package.json scripts，将原有测试命令替换为：
+        ```json
+        "babel": "babel --presets env index.js -o build/index.js"
+        ```
+    - 创建输出文件夹（如 `build`），运行命令 `npm run babel` 编译代码
+
+**代码示例**
+
+1. package.json 脚本配置
+
+    ```json
+    {
+    	"babel": "babel --presets env index.js -o build/index.js"
+    }
+    ```
+
+    - 说明：配置 Babel 编译命令，方便通过 npm 脚本运行转译
+
+2. Babel 编译后生成的代码
+
+    ```js
+    "use strict";
+
+    var x = 1;
+    ```
+
+    - 说明：经过 Babel 转译，ES6 的 `const` 被转换为 ES5 的 `var`
+
+## Webpack
+
+> 简述：介绍如何使用 Webpack
+
+**知识树**
+
+1. 全局安装 Webpack
+
+    - 终端输入，前面可能需要加上`sudo`（和 mac 权限有关），默认安装最新版本，i 即 install，-g 即 global 全局。（#报错安装 moth 同版本 2.0.14）
+
+    ```bash
+    npm i -g webpack-cli
+    npm i -g webpack-cli@2.0.14
+    ```
+
+2. 初始化项目
+
+    - 创建项目文件夹（如 `es6-tooling-webpack`）
+    - 将 Module 一节的三个文件添加到该文件夹
+    - 在项目根目录下执行 webpack-cli init
 
 # 技巧
 
