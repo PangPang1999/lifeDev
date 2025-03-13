@@ -1,0 +1,11 @@
+查看npm安装了哪些东西
+npm list -g --depth=0
+
+卸载
+npm uninstall -g ...
+npm uninstall -g @webpack-cli/init
+
+
+webpack 新版打包
+ - 安装 npm install -g create-webpack-app
+ - 运行 npx create-webpack-app init

@@ -8960,14 +8960,21 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     ```bash
     npm i -g webpack-cli
     npm i -g webpack-cli@2.0.14
+    npm i -g webpack@4 webpack-cli@3 
+    npm install -g @webpack-cli/init@1.1.3
+
     ```
 
 2. 初始化项目
 
-    - 创建项目文件夹（如 `es6-tooling-webpack`）
-    - 将 Module 一节的三个文件添加到该文件夹
-    - 在项目根目录下执行 webpack-cli init
+    - 创建项目文件夹（如 `es6-tooling-webpack`），内部创建 `src` 文件夹
+    - 使用 Module 一节的三个文件，`index.html` 添加进 `es6-tooling-webpack`），两个 js 文件添加进`src`
+    - 旧版本@3命令 webpack-cli init
 
+**流程**
+```
+
+```
 # 技巧
 
 ## 高级
