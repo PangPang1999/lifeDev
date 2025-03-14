@@ -1,0 +1,260 @@
+{
+  "main": {
+    "id": "2594f6b109ee185c",
+    "type": "split",
+    "children": [
+      {
+        "id": "04aed896d83aa805",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "3f7b8050383f8480",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Java.md",
+                "mode": "source",
+                "source": true
+              },
+              "icon": "lucide-file",
+              "title": "Java"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "59dc7917a93b5384",
+    "type": "split",
+    "children": [
+      {
+        "id": "108af4cb7c3ab557",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a32b4ea72f8372b8",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "文件列表"
+            }
+          },
+          {
+            "id": "87b141588f95ca29",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "搜索"
+            }
+          },
+          {
+            "id": "62f9d7497e2ed5ca",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "书签"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "right": {
+    "id": "4c76231ee1d676b9",
+    "type": "split",
+    "children": [
+      {
+        "id": "763d9de58bdb573e",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "77fc384cab48d7b6",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "JavaScript.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "JavaScript 的反向链接列表"
+            }
+          },
+          {
+            "id": "431abc1aa39ad0ff",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "JavaScript.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "JavaScript 的出链列表"
+            }
+          },
+          {
+            "id": "8444e5b7e5c226be",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "标签"
+            }
+          },
+          {
+            "id": "206133cfe8495461",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "followCursor": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "大纲"
+            }
+          }
+        ],
+        "currentTab": 3
+      }
+    ],
+    "direction": "horizontal",
+    "width": 267.5,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:打开快速切换": false,
+      "graph:查看关系图谱": false,
+      "canvas:新建白板": false,
+      "daily-notes:打开/创建今天的日记": false,
+      "templates:插入模板": false,
+      "command-palette:打开命令面板": false
+    }
+  },
+  "floating": {
+    "id": "f8a20b65da9e72f6",
+    "type": "floating",
+    "children": [
+      {
+        "id": "79c8c552c61b1486",
+        "type": "window",
+        "children": [
+          {
+            "id": "82b597d9256efe58",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "df5e1247a4021900",
+                "type": "leaf",
+                "state": {
+                  "type": "markdown",
+                  "state": {
+                    "file": "Java回顾（非Moth版本）.md",
+                    "mode": "source",
+                    "source": true
+                  },
+                  "icon": "lucide-file",
+                  "title": "Java回顾（非Moth版本）"
+                }
+              }
+            ]
+          }
+        ],
+        "direction": "vertical",
+        "x": 0,
+        "y": 44,
+        "width": 1028,
+        "height": 1285,
+        "maximize": false,
+        "zoom": 0
+      }
+    ]
+  },
+  "active": "3f7b8050383f8480",
+  "lastOpenFiles": [
+    "Java回顾（非Moth版本）.md",
+    "Java.md",
+    "JavaScript.md",
+    "es6-tooling-webpack/dist/index.html",
+    "es6-tooling-webpack/dist/bundle.js",
+    "es6-tooling-webpack/dist",
+    "es6-tooling-webpack/webpack.config.js",
+    "es6-tooling-webpack/package-lock.json",
+    "es6-tooling-webpack/node_modules/browserslist/cli.js",
+    "es6-tooling-webpack/node_modules/@babel/plugin-transform-computed-properties/package.json",
+    "es6-tooling-webpack/node_modules/@babel/plugin-transform-exponentiation-operator/package.json",
+    "es6-tooling-webpack/node_modules/@babel/plugin-transform-computed-properties/lib/index.js.map",
+    "es6-tooling-webpack/node_modules/@babel/plugin-transform-computed-properties/lib/index.js",
+    "es6-tooling-webpack/node_modules/@babel/plugin-transform-computed-properties/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-transform-exponentiation-operator/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-transform-destructuring/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-transform-logical-assignment-operators/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-transform-dotall-regex/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-transform-duplicate-named-capturing-groups-regex/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-transform-duplicate-keys/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-proposal-private-property-in-object/README.md",
+    "es6-tooling-webpack/node_modules/babel-loader/CHANGELOG.md",
+    "es6-tooling-webpack/node_modules/babel-loader/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-bugfix-firefox-class-in-computed-class-key/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-bugfix-v8-spread-parameters-in-optional-chaining/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-bugfix-safari-id-destructuring-collision-in-function-expression/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-bugfix-safari-class-field-initializer-scope/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-bugfix-v8-static-class-fields-redefine-readonly/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-transform-class-properties/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-syntax-import-assertions/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-syntax-import-attributes/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-syntax-unicode-sets-regex/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-transform-arrow-functions/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-transform-async-generator-functions/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-transform-block-scoped-functions/README.md",
+    "es6-tooling-webpack/node_modules/@babel/plugin-transform-block-scoping/README.md",
+    "es6-tooling-webpack/node_modules/renderkid/docs/images/usage.png",
+    "es6-tooling-webpack/node_modules/renderkid/docs/images/display.png",
+    "es6-tooling-webpack/node_modules/renderkid/docs/images/bullets-1.png",
+    "js-basics/es6-tooling-webpack/node_modules/renderkid/docs/images/usage.png",
+    "js-basics/es6-tooling-webpack/node_modules/renderkid/docs/images/display.png",
+    "js-basics/es6-tooling-webpack/node_modules/renderkid/docs/images/bullets-1.png",
+    "js-basics/es6-tooling-webpack/node_modules/serve-index/public/icons/page_world.png",
+    "js-basics/es6-tooling-webpack/node_modules/serve-index/public/icons/page_word.png",
+    "js-basics/es6-tooling-webpack/node_modules/serve-index/public/icons/page_white_zip.png",
+    "js-basics/es6-tooling-webpack/node_modules/serve-index/public/icons/page_white_wrench.png"
+  ]
+}

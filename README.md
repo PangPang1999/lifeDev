@@ -1,8 +1,10 @@
 # lifeDev
 
 HTML&CSS
-startDate: 2024/11/19
-endDate: 2024/12/25
+
+- startDate: 2024/11/19
+- endDate: 2024/12/25
+
 summarize:
 
 1. 每日学习时间不稳定(从入职后开始学习)
@@ -11,8 +13,10 @@ summarize:
 4. 笔记整理规范有待提升
 
 JavaSctipt
-startDate: 2024/12/25
-endDate: -- 2025/3/14
+
+- startDate: 2024/12/25
+- endDate: 2025/3/14
+
 summarize:
 
 1. 笔记整理规范得到了极大的提升
@@ -24,3 +28,13 @@ summarize:
    - GPT4.5 重构精简笔记
 
 3. 虽然学习的过程中，因为重构笔记话费了很多时间，但是是值得的，工欲善其事，先利其器
+
+Java
+
+- Part1 Fundamentals 4h
+  - startDate: 2025/3/14
+  - endDate: --
+
+summarize:
+
+1. 开始回顾 Java，计划尽快过一遍基础，并学习高级特性
