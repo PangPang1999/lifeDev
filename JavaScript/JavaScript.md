@@ -8949,35 +8949,126 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
 ## Webpack
 
-> 简述：介绍如何使用 Webpack
+> 简述：介绍如何使用 Webpack，新版本和旧版本有所差异，version 4 及之后移除了 init 命令，需要手动创建配置文件`webpack.config.js`
 
 **知识树**
 
-1. 全局安装 Webpack
+1. 初始化目录，
+
+    - 使用 Module 一节的三个文件，`index.html` 添加进 `es6-tooling-webpack`），两个 js 文件添加进`src`
+
+    ```js
+    es6-tooling-babel
+    ├─ src
+    │    ├ circle.js
+    │    └ index.js
+    └── index.html
+    ```
+
+2. 新版本
+
+    - 版本：node 18，安装依赖时不必指定版本，以下是默认安装的版本
+
+    ```js
+    ❯ npm list webpack webpack-cli babel-loader @babel/core @babel/preset-env html-webpack-plugin --depth=0
+
+    es6-tooling-webpack@1.0.0 /Users/quartz/Desktop/lifeDev/JavaScript/es6-tooling-webpack
+    ├── @babel/core@7.26.10
+    ├── @babel/preset-env@7.26.9
+    ├── babel-loader@10.0.0
+    ├── html-webpack-plugin@5.6.3
+    ├── webpack-cli@6.0.1
+    └── webpack@5.98.0
+    ```
+
+    - 步骤：
+
+        1. 使用 nvm 安装 node18（需要先安装 nvm）
+            ```js
+            nvm install 18
+            ```
+        2. 初始化项目
+
+            ```js
+            npm init -y
+            ```
+
+        3. 配置 Babel，在项目根目录创建一个 .babelrc 文件，内容如下，这样 Babel 就会使用 preset-env 将 ES6+ 代码转译成兼容性更好的代码。
+
+            ```js
+            {
+              "presets": ["@babel/preset-env"]
+            }
+            ```
+
+        4. 配置 Webpack，在项目根目录创建 webpack.config.js 文件，内容示例如下，这个配置文件保证了只用极少的步骤，就能实现代码的转译和打包，并自动将生成的 bundle 注入到 HTML 文件中。
+
+            ```js
+            const path = require("path");
+            const HtmlWebpackPlugin = require("html-webpack-plugin");
+
+            module.exports = {
+            	// 入口文件，假设 src/index.js 是主入口
+            	entry: "./src/index.js",
+            	output: {
+            		filename: "bundle.js", // 输出文件名
+            		path: path.resolve(__dirname, "dist"), // 输出目录
+            		clean: true, // 每次打包时清空 dist 目录
+            	},
+            	module: {
+            		rules: [
+            			{
+            				test: /\.js$/, // 对所有 .js 文件使用 babel-loader
+            				exclude: /node_modules/,
+            				use: "babel-loader",
+            			},
+            		],
+            	},
+            	plugins: [
+            		// 自动生成并注入 bundle 到 index.html 中
+            		new HtmlWebpackPlugin({
+            			template: "index.html", // 使用项目根目录下的 index.html 作为模板
+            		}),
+            	],
+            	mode: "production", // 可根据需要选择 development 或 production
+            };
+            ```
+
+        5. 更新 npm 脚本，在 package.json 中添加构建命令，例如 `webpack`，若设置为`webpack -w`将持续后台运行，呈现修改代码后的效果（将原始 `index.html` 中设置 `src="./dist/bundle.js"` 可以查看效果）
+
+            ```js
+            "scripts": {
+              "build": "webpack"
+            }
+            ```
+
+        6. 运行
+
+            ```js
+            npm run build
+            ```
+
+3. 旧版本（待处理）
 
     - 终端输入，前面可能需要加上`sudo`（和 mac 权限有关），默认安装最新版本，i 即 install，-g 即 global 全局。（#报错安装 moth 同版本 2.0.14）
 
     ```bash
     moth版本
-	    nvm intall 8.11.1
-	    nvm use 8
+        nvm intall 8.11.1
+        nvm use 8
     npm i -g webpack-cli
     npm i -g webpack-cli@2.0.14
-    npm i -g webpack@4 webpack-cli@3 
+    npm i -g webpack@4 webpack-cli@3
     npm install -g @webpack-cli/init@1.1.3
 
     ```
 
-2. 初始化项目
+4. 初始化项目
 
     - 创建项目文件夹（如 `es6-tooling-webpack`），内部创建 `src` 文件夹
     - 使用 Module 一节的三个文件，`index.html` 添加进 `es6-tooling-webpack`），两个 js 文件添加进`src`
-    - 旧版本@3命令 webpack-cli init
+    - 旧版本@3 命令 webpack-cli init
 
-**流程**
-```
-
-```
 # 技巧
 
 ## 高级
