@@ -8958,6 +8958,9 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     - 终端输入，前面可能需要加上`sudo`（和 mac 权限有关），默认安装最新版本，i 即 install，-g 即 global 全局。（#报错安装 moth 同版本 2.0.14）
 
     ```bash
+    moth版本
+	    nvm intall 8.11.1
+	    nvm use 8
     npm i -g webpack-cli
     npm i -g webpack-cli@2.0.14
     npm i -g webpack@4 webpack-cli@3 

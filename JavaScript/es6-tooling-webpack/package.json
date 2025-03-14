@@ -1,0 +1,14 @@
+{
+  "name": "es6-tooling-webpack",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "parcel": "2.13.3"
+  }
+}
