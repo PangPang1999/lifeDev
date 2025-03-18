@@ -372,6 +372,10 @@ brew install svn
 2. Settings--外观与行为--外观--使用自定义字体（导航栏）
 3. Settings--编译器--字体（编译器）
 4. Settings--工具--保存时的操作--重新格式化代码（保存时格式化代码）
+5. Settings--编译器--代码风格--Java--代码生成
+    1. Line comment at first column 顶格注释：取消勾选
+    2. Add a space comment start 注释前加空格：勾选
+
 
 ### 8、Visual Studio Code 设置
 
