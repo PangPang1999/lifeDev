@@ -4,5 +4,6 @@
   "textFontFamily": "",
   "monospaceFontFamily": "MesloLGS NF",
   "baseFontSize": 14,
-  "translucency": true
+  "translucency": true,
+  "accentColor": "#f4696c"
 }

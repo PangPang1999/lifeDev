@@ -4,6 +4,12 @@
     - psvm 输出语句
     - shift+F6（额外按住左下角的🌍）同步修改多个语句
 
+# Note
+
+需要补充：
+
+- ~~字符串池、变量作用域~~
+
 # Start
 
 ## 开发环境
@@ -13,6 +19,7 @@
 **知识树**
 
 1. 安装 Java（JDK8）
+
     - 使用 Homebrew 安装 JDK：
         ```bash
         brew install --cask zulu@8
@@ -31,7 +38,9 @@
         java -version
         javac -version
         ```
+
 2. 安装 IDEA
+
     - 国内官网：https://www.jetbrains.com.cn
 
 ## Java 程序结构
@@ -40,7 +49,8 @@
 
 **知识树**
 
-2. 方法 (`Method`)
+1. 方法 (`Method`)
+
     - 概念：定义特定任务的代码片段，必须存在于类中。
     - 分类：
         - 有返回值：方法必须定义返回类型，方法执行后需返回对应类型的值。
@@ -50,23 +60,32 @@
         - 方法名：camel 命名（如`sendMessage`）
         - 参数列表：定义方法的输入
         - 方法体：实现具体逻辑
-3. Main 方法
+
+2. Main 方法
+
     - 概念：程序启动的入口，执行程序时首先执行`main`内的代码。
-4. 类 (`Class`)
+
+3. 类 (`Class`)
+
     - 概念：方法的容器，组织代码结构，每个 Java 程序至少需要有一个带有 main 方法的类。
     - 结构：
         - `class` 关键字
         - 类名：Pascal 命名（如`MyClass`）
         - 类体：大括号 `{}` 内定义方法或变量
-5. 修饰符 (`Modifier`)
+
+4. 修饰符 (`Modifier`)
+
     - 每个类和方法都有自己的修饰符，控制类或方法的访问权限，常用为`public`（公开访问）。
-6. 命名规范
+
+5. 命名规范
+
     - 类名：Pascal 命名法（如`MyClass`）
     - 方法名：camel 命名法（如`sendMessage`）
 
 **（伪）代码示例**
 
 1. 方法
+
     - 有返回值类型
         ```java
         ReturnType Name() {
@@ -79,13 +98,17 @@
             ...
         }
         ```
+
 2. `main`方法
+
     ```java
     void main() {
     	...
     }
     ```
+
 3. 类
+
     ```java
     Class Main{
     	void main() {
@@ -93,7 +116,9 @@
     	}
     }
     ```
+
 4. 修饰符
+
     ```java
     public class Main{
     	public void main() {
@@ -101,6 +126,7 @@
     	}
     }
     ```
+
     - 这是 java 程序的基本构成（伪代码）
 
 ## 第一个程序
@@ -110,23 +136,30 @@
 **知识树**
 
 1. 构建项目
+
     - 使用 IDEA 新建项目
     - 项目名称：建议设置为 `HelloWorld`
     - 包名：建议设置为 `com.pang`，通常使用公司域名倒序。
     - `src` 目录：存放源代码 (`source`)
+
 2. `Main.java`：
+
     - `.java`：Java 文件的后缀
     - `package`：每个文件上面都有包地址，代表类属于哪个包。
     - `;`：Java 程序中，每一个声明之后都需要有`;`
     - `static`：后续再学习，这里只需要记住，每一个 `main` 方法都需要使用 `static` 修饰
     - `String[] args`：接收参数。
     - `//`：代表单行注释
+
 3. `System.out.println("Hello World!")`
+
     - `System`：属于`java.lang` 类
     - `out`：属于`java.lang`类中的 `field`，`field`后续再学习，输入`out`后，可以看到提示栏右侧的 `PrintStream` ，这是另外一个类。
     - `printlin`：属于 `PrintStream` 中的一个方法
     - `" "`：文本数据比如`Hello World`，需要使用`""`将其包裹
+
 4. 快捷键
+
     - control+R 运行程序
     - psvm 输出语句
 
@@ -149,20 +182,27 @@
 **知识树**
 
 1. 编译（Compilation）
+
     - 概念：Java 代码需要转换为 字节码（`.class` 文件） 才能执行。
     - 工具：`javac`（Java 编译器），随 JDK（Java Development Kit） 提供。
     - 过程：
         1. 使用 `javac` 命令编译 `.java` 文件。
         2. 生成 字节码（`.class` 文件），可在任何支持 Java 的环境下运行。
+
 2. 字节码（Bytecode）
+
     - 概念：Java 代码编译后形成的 中间代码，不是机器码。
     - 特点：
         - 平台无关：可在 Windows、macOS、Linux 等系统运行。
         - 需由 JVM 解析执行。
+
 3. 运行（Execution）
+
     - 概念：JVM 将 字节码 转换为 本地机器码，执行 Java 程序。
     - Java 虚拟机（JVM）：解释/编译 Java 字节码，使其可在不同操作系统运行。
+
 4. 手动编译与运行 Java 程序
+
     1. 编译：
         - 右击 `Main.java` 文件，点击在终端中打开
         - 使用 `javac` 编译 Java 文件，生成 `Main.class`（字节码文件）。
@@ -192,16 +232,27 @@
 **知识树**
 
 1. 变量基础
+
     - 变量：内存中存储数据的单元
     - 声明：指定数据类型和名称
     - 初始化：首次赋值
     - 顺序：先声明，再赋值，赋值之后才能使用，可以声明时同时赋值
+
 2. 变量声明和赋值
+
     - 格式：`数据类型 变量名 = 值;`
-3. 变量值的修改与复制
+
+3. 作用域
+
+    - 变量只能在声明时所在的`{}`（及子括号）内使用
+
+4. 变量值的修改与复制
+
     - 修改变量值：可重新赋值
     - 变量间赋值：复制变量值
-4. 命名规范
+
+5. 命名规范
+
     - 标识符规则：字母、数字、`_`、`$`，不以数字开头，不用关键字，区分大小写
     - 驼峰命名法：如 `myAge`
     - 推荐单行单变量声明
@@ -210,6 +261,7 @@
 **代码示例**
 
 1. 变量赋值与修改
+
     ```java
     int age = 30;
     age = 35; // 修改
@@ -224,20 +276,26 @@
 **知识树**
 
 1. 基本数据类型分类
+
     - 整数类型：`byte`(1 字节)、`short`(2 字节)、`int`(4 字节)、`long`(8 字节)
     - 浮点类型：`float`(4 字节，后缀`F`)、`double`(8 字节，默认浮点类型)
     - 字符类型：`char`(2 字节，单字符，使用单引号 `''`)
     - 布尔类型：`boolean`(1 bit，仅存储`true`或`false`)
+
 2. 字节：
+
     - 1 字节：范围：-128 ~ 127
     - 2 字节：范围：-32,768 ~ 32,767
     - 4 字节：范围：-2³¹ ~ 2³¹-1，约正负 21 亿
+
 3. 数字字面量
+
     - 支持下划线`_`增加可读性
 
 **代码示例**
 
 1. 各类型声明
+
     ```java
     int total = 1000;
     long largeNum = 10_000L;
@@ -254,13 +312,20 @@
 **知识树**
 
 1. 引用类型定义
+
     - 除基本类型外的数据类型
+
 2. 内存管理
+
     - 引用类型：用`new`分配内存，JRE 自动释放
     - JRE：`Java Runtime Environment`，即 Java 运行环境
+
 3. 声明方式
+
     - 格式：`类名 对象名 = new 类名();`
+
 4. 自动导包
+
     - IDEA 自动导入包，解决类重名冲突需手动指定完整路径
 
 **代码示例**
@@ -281,9 +346,12 @@
 **知识树**
 
 1. 存储方式对比
+
     - 基本类型：直接存储值，复制互不影响
     - 引用类型：存储对象地址，复制后共享对象
+
 2. 内存分配
+
     - 基本类型：自动分配
     - 引用类型：通过`new`分配
 
@@ -310,12 +378,17 @@
 **知识树**
 
 1. 字符串概念
+
     - 字符串是由字符组成的序列
     - 本质上是 Java.lang 包下的 String 类的对象
+
 2. 字符串初始化
+
     - 字面量方式：直接赋值，如 `"Hello World"`
     - 对象方式：使用 `new String("...")`（通常多余）
+
 3. 字符串常用操作
+
     - 拼接：使用 `+` 运算符将多个字符串合并
     - 判断：使用 `startsWith` 和 `endsWith` 检查字符串前后缀
     - 长度：调用 `length()` 方法获取字符数
@@ -323,7 +396,9 @@
     - 替换：通过 `replace()` 方法返回替换后的新字符串
     - 大小写转换：使用 `toLowerCase()` 和 `toUpperCase()`
     - 去除空白：用 `trim()` 删除首尾多余空格
+
 4. 字符串不可变性
+
     - 创建后不可修改，所有改变操作均返回新字符串
     - 有助于线程安全及内存管理
 
@@ -386,17 +461,24 @@
 **知识树**
 
 1. 转义字符概念：
+
     - 使用反斜杠 `\` 表示后面的字符是特殊字符。
     - 解决字符与语法冲突的问题。
+
 2. 常见转义字符：
+
     - `\"`：表示双引号 `" `
     - `\\`：表示反斜杠 `\ `
     - `\n`：表示换行符（newline）
     - `\t`：表示制表符（tab）
+
 3. 转义字符的作用：
+
     - 确保字符串内容与编程语言的语法明确区分。
     - 在显示字符串时控制格式（如换行、缩进）。
+
 4. 字符串中常见问题及解决方法：
+
     - 路径字符串：
         - Windows 路径含有`\`，需用`\\`表示。
     - 字符串内引号：
@@ -405,32 +487,43 @@
 **代码示例**
 
 1. 使用转义字符表示双引号：
+
     ```java
     String message = "Hello \"Mosh\"";
     System.out.println(message);
     ```
+
     - 输出：`Hello "Mosh"`
+
 2. 使用转义字符表示路径：
+
     ```java
     String path = "c:\\Windows\\System32";
     System.out.println(path);
     ```
+
     - 输出：`c:\Windows\System32`
+
 3. 使用`\n`换行符：
+
     ```java
     String multiline = "c:\\Windows\nSystem32";
     System.out.println(multiline);
     ```
+
     - 输出：
         ```
         c:\Windows
         System32
         ```
+
 4. 使用`\t`制表符：
+
     ```java
     String tabbed = "c:\\Windows\tSystem32";
     System.out.println(tabbed);
     ```
+
     - 输出：`c:\Windows System32`
 
 ## 数组
@@ -440,22 +533,31 @@
 **知识树**
 
 1. 数组概念
+
     - 存储相同数据类型的连续内存区域
     - 固定长度，创建后不能动态增减，若需要动态增减，则使用 Collection 集合（后续将讲到）
+
 2. 数组地址
+
     - 数组通过存储地址来访问数据，多个变量可引用同一数组对象
+
 3. 声明与初始化
+
     - 声明格式：`数据类型[] 数组名;`
     - 初始化方式：
         - 使用 new：例如 `new int[5]`（指定长度）
         - 直接赋值：使用大括号，如：`{1, 2, 3}`
+
 4. 数组访问与操作
+
     - 通过索引访问，索引从 0 开始
     - 默认值：
         - 数值类型：0
         - 布尔类型：false
         - 引用类型：null
+
 5. 常用方法与特性
+
     - 打印数组：使用 `Arrays.toString(数组)` 得到实际内容
     - 获取长度：通过 `数组.length` 属性
     - 排序：使用 `Arrays.sort(数组)`
@@ -464,6 +566,7 @@
 **代码示例**
 
 1. 声明、初始化数组
+
     ```java
     int[] numbers = new int[10]; // 使用 new 初始化，数组长度为 10
     numbers[0] = 1;
@@ -471,8 +574,11 @@
     // numbers[10] = 3; // 索引超界：长度为 10，最大索引为 9，会报错
     int values[] = {1, 2, 3}; // 直接赋值初始化数组
     ```
+
     - 说明：展示两种数组初始化方式及数组下标使用的注意事项。
+
 2. 数组地址
+
     ```java
     int[] items1 = new int[10];
     int[] items2 = new int[10];
@@ -481,8 +587,11 @@
     System.out.println(items2); // 输出 items2 的内存地址，与 items1 不同
     System.out.println(items3); // 输出 items3 的内存地址，与 items2 相同
     ```
+
     - 说明：说明数组变量保存的是数组对象的地址，相同赋值时地址一致。
+
 3. 数组打印
+
     ```java
     int[] numbers = new int[10]; // 声明一个长度为 10 的数组
     numbers[0] = 1;
@@ -490,8 +599,11 @@
     // 使用 Arrays.toString 打印实际内容，未赋值的元素默认值为0
     System.out.println(Arrays.toString(numbers));
     ```
+
     - 说明：直接打印数组对象只会显示内存地址，使用 Arrays.toString 才能直观显示数组内容。
+
 4. 数组的基本方法
+
     ```java
     int[] numbers = {8, 3, 5, 1, 9};
     System.out.println("原数组: " + Arrays.toString(numbers));
@@ -500,6 +612,7 @@
     // 获取数组长度
     System.out.println("数组长度: " + numbers.length);
     ```
+
     - 说明：展示直接初始化、数组排序、以及使用 length 属性获取数组长度的示例。
 
 ## 多维数组
@@ -509,17 +622,24 @@
 **知识树**
 
 1. 多维数组概念
+
     - 数组的数组，常见的是二维数组
     - 适用于存储矩阵、表格及科学计算数据
+
 2. 声明与初始化
+
     - 声明格式：`数据类型[][] 数组名;`
     - 初始化方式：
         - 使用 new：如 `new int[行数][列数]`
         - 直接赋值：如 `{{1, 2, 3}, {3, 4, 5}}`
+
 3. 数组访问与操作
+
     - 通过连续索引访问，例如：`matrix[i][j]`
     - 第一维表示行，第二维表示列
+
 4. 数组打印与常用方法
+
     - 单维数组打印：使用 `Arrays.toString(数组)`
     - 多维数组打印：使用 `Arrays.deepToString(数组)`
     - 获取行数：`数组.length`；获取列数：`数组[0].length`（假设所有行列数相同）
@@ -554,16 +674,23 @@
 **知识树**
 
 1. 常量概念
+
     - 定义：初始化后值不可修改的变量
     - 用途：防止误改数据，确保重要值保持不变
+
 2. 声明与初始化
+
     - 关键字：使用 final 声明
     - 格式：`final 数据类型 常量名 = 值;`
     - 命名规范：常量名使用全大写（如 PI），可用下划线分隔
+
 3. 常量特性
+
     - 一经赋值，不允许后续修改
     - 修改常量会产生编译错误，确保数据一致性
+
 4. 实际应用
+
     - 用于数学常数、配置参数等场景
     - 提高代码可读性和维护性
 
@@ -605,6 +732,7 @@
     - 确保参与运算的数据类型一致，避免编译错误
 
 4. 自增、自减与复合赋值
+
     - 自增（`++`）和自减（`--`）：
         - 前缀形式：先运算再赋值
         - 后缀形式：先赋值再运算
@@ -644,13 +772,20 @@
 **知识树**
 
 1. 运算符优先级概念
+
     - 定义：决定在没有括号干预的情况下，表达式中各运算符的计算顺序
+
 2. 基本优先级顺序
+
     - 乘法（`*`）、除法（`/`）和取余（`%`）高于加法（`+`）和减法（`-`）
+
 3. 括号的作用
+
     - 括号具有最高优先级，可强制先计算括号内表达式
     - 示例：`(a + b) * c` 与 `a + (b * c)` 的结果不同
+
 4. 实际应用
+
     - 理解运算符优先级有助于编写正确、易读的数学表达式
     - 合理使用括号可以避免歧义和逻辑错误
 
@@ -913,3 +1048,824 @@
     ```
 
     - 说明： `next()` 只读取单个单词，`nextLine()` 可读取整行，用 `trim()` 可清除多余空格。
+
+## Ex: 抵押贷款计算器
+
+> **要求**：  
+> 编写一个程序，要求用户输入贷款本金、年利率及贷款年限，然后计算出每月还款金额，并以货币格式显示。计算前了解贷款计算方式：https://www.wikihow.com/Calculate-Mortgage-Payments
+>
+> **示例**：
+>
+> -   输入本金 100000，年利率 3.92，分期年数 30，最后计算出每月还款金额为 $472.81
+>
+>     ```txt
+>     Principal: 100000
+>     Annual Interest Rate:3.92
+>     Period(Years):30
+>     Monthly mortgage: $472.81
+>     ```
+>
+> **解法**：获取输入，处理得到的值，计算结果，格式化结果输出，其中指数运算使用 Math.pow 方法。
+>
+> **最佳实践**
+>
+> -   使用适合的基本类型：小数用小字节描述，大数用大字节描述
+> -   避免魔法数字：将固定值（如 12、100）定义为常量（如 MONTHS_IN_YEAR、PERCENT）。
+> -   有意义的变量命名：使用描述性变量名，使代码直观易懂。
+> -   分步处理复杂表达式：将计算过程拆解成多个步骤，便于维护与调试。
+> -   代码可读性：适当拆分长表达式，增加中间变量，使代码逻辑更清晰。
+>
+> **扩展建议**
+>
+> -   添加输入验证，确保用户输入有效数据，防止程序因非法输入崩溃。
+> -   在后续章节中介绍条件语句，利用条件判断完善输入验证逻辑。
+
+**代码**
+
+- 代码示例：
+
+    ```js
+    final byte MONTHS_IN_YEAR = 12;
+    final byte PERCENTAGE = 100;
+
+    Scanner scanner = new Scanner(System.in);
+
+    System.out.print("Principal: ");
+    int principal = scanner.nextInt();// 数额
+
+    System.out.print("Annual Interest Rate:");
+    float annualInterestRate = scanner.nextFloat() / PERCENTAGE;// 利率
+    float monthlyInterestRate = annualInterestRate / MONTHS_IN_YEAR;
+    System.out.print("Period(Years):");
+    byte periodYear = scanner.nextByte();// 分期年数
+    int periodMonth = periodYear * MONTHS_IN_YEAR;
+
+
+    double monthlyMortgage = principal
+    		* monthlyInterestRate * Math.pow(1 + monthlyInterestRate, periodMonth)
+    		/ (Math.pow(1 + monthlyInterestRate, periodMonth) - 1);
+
+    String monthlyMortgageFormatted = NumberFormat.getCurrencyInstance().format(monthlyMortgage);
+
+    System.out.println("Monthly mortgage: " + monthlyMortgageFormatted);
+    ```
+
+# Control Flow
+
+## 比较运算符
+
+> 简述：比较运算符用于比较基本数据类型的值，生成布尔值（`true` 或 `false`），从而判断两个值是否相等或满足某种大小关系，常用于条件判断和流程控制。
+
+**知识树**
+
+1. 比较运算符概念
+
+    - 判断两个数据是否满足特定关系（相等、不等、大小比较）
+
+2. 基本比较运算符
+
+    - 等于：`==`（注意与赋值符 `=` 区分）
+    - 不等于：`!=`
+
+3. 大小比较运算符
+
+    - 大于：`>`
+    - 大于等于：`>=`
+    - 小于：`<`
+    - 小于等于：`<=`
+
+4. 布尔表达式与应用
+
+    - 比较运算返回布尔值，构成条件表达式
+    - 用于 if、while 等控制结构，驱动程序逻辑
+
+**代码示例**
+
+1. 基本相等和不等判断
+
+    ```java
+    int x = 5;
+    int y = 5;
+    System.out.println(x == y); // 输出 true，因为 x 与 y 相等
+    System.out.println(x != y); // 输出 false，因为 x 与 y 相等
+    ```
+
+2. 大小比较示例
+
+    ```java
+    int a = 7;
+    int b = 10;
+    System.out.println(a > b);  // 输出 false，因为 7 不大于 10
+    System.out.println(a >= b); // 输出 false，因为 7 既不大于也不等于 10
+    System.out.println(a < b);  // 输出 true，因为 7 小于 10
+    System.out.println(a <= b); // 输出 true，因为 7 小于 10
+    ```
+
+## 字符串比较
+
+> 简述：字符串比较用于判断两个字符串内容是否一致，需区分使用 `==`（比较引用）与 `equals()`（比较内容）。字符串池优化内存管理，`intern()` 方法可将字符串手动加入池中，实现对象共享。
+
+**知识树**
+
+1. `equals()` 方法
+
+    - 比较字符串内容，而非引用地址
+
+2. 字符串池
+
+    - Java 自动维护的内存区域，用于存储常量字符串
+    - 相同字面量自动共享对象（引用地址）
+
+3. 字符串池使用场景
+
+    - 应用于缓存、日志、数据库查询结果等，降低内存开销
+    - 重复字符串可调用 `intern()` 共享对象
+    - 注意：过度使用 intern() 可能引起内存不足（**OutOfMemoryError**）
+
+4. `==` 与 `equals()` 区别
+
+    - `==` 检查是否为同一对象引用
+    - `equals()` 检查对象内容是否相同
+
+**代码示例**
+
+1. 字符串比较
+
+    ```java
+    String a = new String("Str");
+    String b = new String("Str");
+    System.out.println(a == b);      // false: 不同对象引用
+    System.out.println(a.equals(b)); // true: 内容相等
+    ```
+
+    - 说明：展示如何使用 `==` 与 `equals()` 比较字符串。
+
+2. 字符串池
+
+    ```java
+    String a = "hello";
+    String b = "hello";
+    String c = new String("hello");
+    System.out.println(a == b); // true: 同一常量池对象
+    System.out.println(a == c); // false: c 为新对象
+
+    String m = "hello" + " world";
+    String n = "hello world";
+    System.out.println(m == n); // true: 编译器优化，结果为常量
+
+    String s1 = "hello";
+    String s2 = " world";
+    String s3 = s1 + s2;
+    String s4 = "hello world";
+    System.out.println(s3 == s4); // false: 动态拼接生成新对象
+
+    String x = "hello";
+    String y = new String("hello").intern(); // 手动加入字符串池
+    System.out.println(x == y); // true: y 经 intern() 后与 x 相同
+    ```
+
+    - 说明：演示字符串池机制及 intern() 方法的作用，使动态生成的字符串共享常量池对象。
+
+## 逻辑运算符
+
+> 简述：逻辑运算符用于组合多个布尔表达式，生成一个整体的布尔结果。它们包括与、或、非，并支持短路求值，常用于条件判断和流程控制。
+
+**知识树**
+
+1. 逻辑运算符概念
+
+    - 用于组合或反转布尔表达式，输出 true 或 false
+
+2. 基本逻辑运算符
+
+    - 与（AND）：`&&`（或 `&`），所有条件为 true 时返回 true‘
+    - 或（OR）：`||`（或 `|`），至少一个条件为 true 时返回 true
+    - 非（NOT）：`!`，反转布尔值
+
+3. 运算顺序与短路求值
+
+    - 短路求值：
+        - `&&`：当第一个表达式为 false 时，不再计算后续条件， `&`计算所有条件
+        - `||`：当第一个表达式为 true 时，不再计算后续条件，`|`计算所有条件
+    - 使用括号明确运算顺序，避免逻辑混淆
+
+4. 实际应用
+    - 用于实现复杂逻辑判断，如权限验证、贷款资格评估等
+    - 通过合理命名和组合表达式，提高代码可读性和维护性
+
+**代码示例**
+
+1. 与运算符示例
+
+    ```java
+    int temperature = 22;
+    // 判断温度是否处于 20 到 30 之间
+    boolean isWarm = (temperature > 20) && (temperature < 30);
+    System.out.println(isWarm);  // 输出 true
+    ```
+
+2. 或与非运算符组合示例
+
+    ```java
+    boolean hasHighIncome = true;
+    boolean hasGoodCredit = false;
+    // 满足任一条件则可贷款
+    boolean isEligible = hasHighIncome || hasGoodCredit;
+
+    boolean hasCriminalRecord = false;
+    // 仅当无犯罪记录时，资格有效
+    isEligible = isEligible && (!hasCriminalRecord);
+    System.out.println(isEligible);  // 输出 true
+    ```
+
+## if 语句
+
+> 简述：if 语句根据条件判断控制程序流程，支持多分支（`if`、`else if`、`else`）来执行不同代码块，便于处理多种情形。
+
+**知识树**
+
+1. `if` 语句概念
+
+    - 根据布尔表达式的真假执行相应代码
+
+2. 分支结构
+
+    - `if`：当条件为 `true` 时执行
+    - `else if`：提供额外条件判断
+    - `else`：所有条件均不满足时执行
+
+3. 代码块与单行语句
+
+    - 多条语句须用花括号 `{}` 包裹
+    - 单条语句可省略花括号
+
+4. 格式与层级
+    - `if`、`else if`、`else` 应处于同一缩进层级，保持代码整洁
+
+**代码示例**
+
+1. 基本 `if-else` 结构
+
+    ```java
+    int temperature = 30;
+    if (temperature >= 30) {
+    	System.out.println("It's a hot day.");
+    	System.out.println("Drink plenty of water.");
+    } else if (temperature >= 20 && temperature < 30) {
+    	System.out.println("Beautiful day");
+    } else {
+    	System.out.println("It's a cold day.");
+    }
+    ```
+
+    - 说明：这里的第二个条件中，`temperature < 30`可以省略
+
+2. 单行语句省略花括号，优化判断
+
+    ```java
+        int temperature = 30;
+        if (temperature >= 30) {
+            System.out.println("It's a hot day.");
+            System.out.println("Drink plenty of water.");
+        } else if (temperature >= 20)
+            System.out.println("Beautiful day");
+        else
+            System.out.println("It's a cold day.");
+    ```
+
+    - 说明：单条语句时可省略花括号，但注意格式对齐以保证可读性。
+
+## if 与布尔值的优化
+
+> 简述：通过合理的变量声明与布尔表达式赋值，可以简化 if 语句结构，消除冗余的条件分支，提高代码的清晰度和可维护性。
+
+**知识树**
+
+1. 变量作用域与声明
+
+    - 变量必须在代码块内声明，作用域仅限于其所在块
+    - 避免在 if 块中声明临时变量后，试图在外部使用
+
+2. if 语句冗余问题
+
+    - 使用 if-else 分支设置布尔变量往往过于冗长
+    - 初始值设定可避免不必要的 else 分支
+
+3. 直接赋值技巧
+
+    - 将布尔表达式直接赋值给变量，简化逻辑
+    - 表达式用括号包裹提高可读性
+
+**代码示例**
+
+1. 变量作用域错误示例
+
+    ```java
+    // 错误示例：变量在 if 块内声明，外部无法访问
+    if (income > 100_000) {
+        boolean hasHighIncome = true;
+    }
+    System.out.println(hasHighIncome); // 编译错误：无法解析符号 hasHighIncome
+    ```
+
+    - 说明：展示变量声明在局部代码块内导致的作用域问题。
+
+2. if 语句冗余问题
+
+    ```java
+    int income = 120_000;
+    boolean hasHighIncome;
+    if (income > 100_000)
+    	hasHighIncome = true;
+    else
+    	hasHighIncome = false;
+    System.out.println(hasHighIncome);
+    ```
+
+3. 简化 if 语句的优化示例
+
+    ```java
+    // 优化示例：直接将布尔表达式赋值给变量
+    int income = 120_000;
+    boolean hasHighIncome = (income > 100_000);
+    System.out.println(hasHighIncome);
+    ```
+
+    - 说明：通过直接赋值布尔表达式，省去了 if-else 分支，使代码更简洁、易读。
+
+## 三元运算符
+
+> 简述：三元运算符（Ternary operator）是一种简洁的条件表达式，根据一个布尔条件返回两个表达式中的一个值，常用于替代简单的 if-else 赋值操作，使代码更紧凑、可读。
+
+**知识树**
+
+1. 概念
+
+    - 条件表达式返回两个值之一
+    - 用于直接赋值或作为表达式的一部分
+
+2. 语法结构
+
+    - 格式：`条件 ? 表达式1 : 表达式2`
+    - 优先级较低，建议使用括号明确运算顺序
+
+3. 应用场景
+
+    - 替代简单 `if-else` 语句
+    - 快速根据条件确定变量值
+
+4. 注意事项
+
+    - 两个分支返回值类型需兼容
+    - 适用于简单条件，复杂条件应考虑可读性
+
+**代码示例**
+
+1. 原始代码
+
+    ```java
+    int income = 120_000;
+    String className;
+    if (income > 100_000)
+    	className = "First";
+    else
+    	className = "Economy";
+    System.out.println(className);
+    ```
+
+2. 使用默认值简化
+
+    ```java
+    int income = 120_000;
+    String className = "Economy";
+    if (income > 100_000)
+    	className = "First";
+    System.out.println(className);
+    ```
+
+3. 三元运算符
+
+    ```java
+    int income = 120_000;
+    String className = (income > 100_000) ? "First" : "Economy";
+    System.out.println(className);
+    ```
+
+## switch 语句
+
+> 简述：switch 语句用于基于表达式的值选择执行不同的代码块，是 `if-else` 的一种更清晰、结构化的替代方案，适合处理离散值的多分支判断。
+
+**知识树**
+
+1. `switch` 语句概念
+
+    - 根据表达式值匹配不同的 `case` 分支
+    - 替代多个 `if-else` 判断，提高代码整洁度
+
+2. 基本语法
+
+    - 语法格式：
+        ```java
+        switch(表达式) {
+            case 值1:
+                // 代码块
+                break;
+            case 值2:
+                // 代码块
+                break;
+            default:
+                // 默认代码块
+                break;
+        }
+        ```
+    - 表达式类型：可为整数、字符、字符串等。
+
+3. 流程控制
+
+    - 每个 `case` 后用冒号跟随相应代码
+    - `break` 语句用于中断 `switch`，防止贯穿执行
+    - `default` 分支在所有 `case` 不匹配时执行，可选但推荐
+
+4. 应用场景与注意事项
+    - 适用于枚举型条件的判断，如用户角色、状态码等
+    - 注意数据类型匹配，避免编译错误
+    - 与 `if-else` 比较：当分支较多时，switch 更简洁明了
+
+**代码示例**
+
+1. 基于字符串的 switch 示例
+
+    ```java
+    String role = "admin";
+    switch(role) {
+        case "admin":
+            System.out.println("You are an admin.");
+            break;
+        case "moderator":
+            System.out.println("You are a moderator.");
+            break;
+        default:
+            System.out.println("You are a guest.");
+            break;
+    }
+    ```
+
+    - 说明：根据 role 值输出对应提示，用 break 避免代码贯穿。
+
+2. 基于整数的 switch 示例
+
+    ```java
+    int roleCode = 1; // 1代表admin，2代表moderator，其它代表guest
+    switch(roleCode) {
+        case 1:
+            System.out.println("You are an admin.");
+            break;
+        case 2:
+            System.out.println("You are a moderator.");
+            break;
+        default:
+            System.out.println("You are a guest.");
+            break;
+    }
+    ```
+
+    - 说明：展示如何使用整数作为条件进行分支选择，default 用于处理非预期值。
+
+## Ex: FizzBuzz 练习
+
+> **要求**：编写一个程序，要求用户输入一个整数。若该整数同时能被 3 和 5 整除，则输出 "fizz buzz"；若仅能被 3 整除，输出 "fizz"；若仅能被 5 整除，输出 "buzz"；否则输出该数字本身。
+>
+> **解法**：
+>
+> 1. **输入处理**
+>
+>     - 使用 Scanner 读取用户输入的整数。
+>
+> 2. **条件判断**
+>
+>     - **顺序判断**：首先检查是否同时被 3 和 5 整除，满足则输出 "FizzBuzz"；
+>     - 否则检查是否仅被 3 整除，满足则输出 "Buzz"；
+>     - 否则检查是否仅被 5 整除，满足则输出 "Fizz"；
+>     - 如果以上条件均不满足，则输出数字本身。
+>
+> 3. **代码设计讨论**
+>     - **判断顺序**：必须将复合条件放在前面，避免先判断单条件导致复合情况被提前捕捉，从而遗漏 "fizz buzz" 的输出。
+>     - **DRY 原则与可读性**：虽然可通过嵌套 if-else 结构减少重复条件判断，但会增加代码嵌套层次，使得代码难以阅读。因此，采用平铺结构虽然有轻微重复，但更直观易懂。
+>
+> **代码**
+
+- 代码示例
+
+    ```java
+    Scanner scanner = new Scanner(System.in);
+    System.out.print("Enter a number: ");
+    int number = scanner.nextInt();
+
+    // 优先判断复合条件
+    if (number % 3 == 0 && number % 5 == 0)
+    	System.out.println("FizzBuzz");
+    else if (number % 3 == 0)
+    	System.out.println("Buzz");
+    else if (number % 5 == 0)
+    	System.out.println("Fizz");
+    else
+    	System.out.println(number);
+    ```
+
+## for 循环
+
+> 简述：for 循环用于重复执行一段代码，其结构由初始化、条件判断和更新三部分组成，适用于当循环次数已知或可确定时使用。
+
+**知识树**
+
+1. for 循环概念
+
+    - 重复执行特定代码块
+    - 常用于已知次数的循环
+
+2. for 循环基本结构
+
+    - 初始化：设置循环计数器，如 `int i = 0`
+    - 条件判断：布尔表达式决定循环是否继续，如 `i < 5`
+    - 更新表达式：每次迭代后更新计数器，如 `i++`
+
+3. 代码块与单行语句
+
+    - 单条语句可省略大括号
+    - 多条语句必须用 `{}` 包裹形成完整循环体
+
+4. 实际应用与输出
+
+    - 常用于打印、计数、数组遍历等任务
+    - 可通过拼接变量实现动态输出，增强交互性
+
+**代码示例**
+
+1. 基本 for 循环示例
+
+    ```java
+    for (int i = 0; i < 5; i++) {
+        System.out.println("Hello World");
+    }
+    ```
+
+    - 说明：此循环将 "Hello World" 打印五次。
+
+2. 更新表达式 `--` 示例
+
+    ```java
+    for (int i = 5; i > 0; i--) {
+        System.out.println("Iteration " + i + ": Hello World");
+    }
+    ```
+
+    - 说明：在每次迭代中输出当前计数器值，便于追踪循环进度。
+
+## while 循环
+
+> 简述：`while` 循环用于在循环条件为真时重复执行代码块，适合处理未知迭代次数的场景，如根据用户输入持续执行操作，直到满足终止条件。
+
+**知识树**
+
+1. 循环条件
+
+    - 使用 `while(条件)` 结构重复执行代码
+    - 条件表达式返回布尔值，决定是否继续循环
+
+2. 变量作用与范围
+
+    - 循环外声明的变量可在循环内更新
+    - 避免在循环内部重复创建对象以防内存浪费
+
+3. 用户输入格式
+
+    - 利用 `Scanner` 读取用户输入
+    - 可用 `toLowerCase()` 统一格式，避免大小写问题
+
+4. 实际应用
+    - 适用于不确定循环次数的场景，如连续读取用户输入直到特定关键字（如 "quit"）出现
+    - 结合逻辑与输入校验，确保循环正确终止
+
+**代码示例**
+
+1. 基本计数型 while 循环
+
+    ```java
+    int i = 0;
+    while (i < 5) {
+        System.out.println("Iteration " + i);
+        i++;  // 更新计数器
+    }
+    ```
+
+    - 说明：循环从 i=0 开始，每次迭代后递增，直到 i 不小于 5 时结束。
+
+2. 用户输入终止条件示例
+
+    ```java
+    Scanner scanner = new Scanner(System.in);  // 在循环外创建 Scanner 对象
+    String input = "";
+    // 循环条件：用户输入不等于 "quit"（忽略大小写）
+    while (!input.toLowerCase().equals("quit")) {
+    	System.out.print("请输入内容（输入 quit 退出）：");
+    	input = scanner.next();  // 读取单个 token
+    	// 输出用户输入（echo）
+    	System.out.println("你输入了: " + input);
+    }
+    scanner.close();
+    ```
+
+    - 说明：该示例不断读取用户输入，使用 toLowerCase() 标准化输入，再用 equals 比较终止条件，实现用户在输入 "quit" 后退出循环。
+
+## do while 循环
+
+> 简述：do while 循环先执行循环体，再判断条件，保证循环体至少执行一次，适用于需要在条件检查前必执行操作的场景。
+
+**知识树**
+
+1. 循环机制
+
+    - 与 while 循环类似，但条件判断在循环体执行后进行
+
+2. 执行保障
+
+    - 无论条件初始是否满足，循环体总至少执行一次
+
+3. 语法结构
+
+    - 格式：
+        ```java
+        do {
+            // 循环体
+        } while (条件);
+        ```
+    - 循环体后必须以分号结束
+
+4. 应用场景
+
+    - 用户交互：如持续提示输入直至获得特定响应
+    - 初始化操作：在条件判断前需要先执行一次的逻辑
+
+**代码示例**
+
+1. 用户输入示例
+
+    ```java
+    Scanner scanner = new Scanner(System.in);  // 在循环外创建 Scanner 对象
+    String input = "quit";// 即便input一开始就是quit，也会执行一遍
+    do {
+    	System.out.print("请输入内容（输入 quit 退出）：");
+    	input = scanner.next();  // 读取单个ω token
+    	// 输出用户输入（echo）
+    	System.out.println("你输入了: " + input);
+    } while (!input.toLowerCase().equals("quit"));
+    scanner.close();
+    ```
+
+    - 说明：通过 `do while` 循环确保用户至少输入一次内容，使用 `toLowerCase()` 和 `trim()` 统一输入格式，直到用户输入 "quit" 时退出。
+
+## for-each 循环
+
+> 简述：for-each 循环用于遍历数组或集合，无需使用显式计数器，代码更简洁，但只能正向访问元素，且无法直接获取索引。集合相关内容将在后续讲到。
+
+**知识树**
+
+1. 基本概念
+
+    - 用于遍历数组或集合中的每个元素
+    - 简化遍历操作，提高代码可读性
+
+2. 语法结构
+
+    - 格式：`for (类型 变量 : 数组或集合) { … }`
+    - 变量在每次迭代中自动持有当前元素的值
+
+3. 代码块与单行语句
+
+    - 多条语句须用花括号 `{}` 包裹
+    - 单条语句可省略花括号
+
+4. 限制与对比
+
+    - 仅支持正向遍历，无法获取当前元素的索引
+    - 与传统 for 循环相比，适合只需元素值的场景
+
+5. 实际应用
+
+    - 常用于数据遍历、集合迭代和简单处理
+    - 当需要索引或反向遍历时，仍需使用 for 循环
+
+**代码示例**
+
+1. 使用传统 for 循环遍历数组
+
+    ```java
+    String[] fruits = {"apple", "mango", "orange"};
+    for (int i = 0; i < fruits.length; i++)
+    	System.out.println("Fruit at index " + i + ": " + fruits[i]);
+    ```
+
+    - 说明：展示如何通过索引访问数组元素，适用于需要索引信息的情况。
+
+2. 使用 for-each 循环遍历数组
+
+    ```java
+    String[] fruits = {"apple", "mango", "orange"};
+    for (String fruit : fruits)
+    	System.out.println("Fruit: " + fruit);
+    ```
+
+    - 说明：演示增强的 for 循环，直接遍历数组元素，无需索引管理，代码更简洁。
+
+## Ex: 贷款计算-带输入验证
+
+> **要求**：扩展抵押贷款计算器，要求用户输入贷款本金、年利率及贷款年限。对每个输入添加基本的错误处理和验证，若输入不合法则持续提示，直到用户输入有效数据为止。
+>
+> **解法**：
+>
+> 1.  **输入处理与验证**
+>
+>     -   在循环外声明 principal、annualInterest 和 years 变量，保证其作用域在整个方法中有效。
+>     -   对每个输入使用无限循环（while true）进行验证：
+>         -   贷款本金需大于或等于设定的最小值（例如 1000）；
+>         -   年利率必须大于 0；
+>         -   贷款年限必须大于 0。
+>     -   若输入无效，则打印错误提示并重复输入，直到输入合法。
+>
+> 2.  **计算处理**
+>
+>     -   其中指数运算使用 Math.pow 方法。
+
+**代码**
+
+- 代码示例
+
+    ```java
+    final byte MONTHS_IN_YEAR = 12;
+    final byte PERCENTAGE = 100;
+
+    int principal = 0;
+    float monthlyInterestRate = 0;
+    int periodMonth = 0;
+
+    Scanner scanner = new Scanner(System.in);
+
+    while (true) {
+    	System.out.print("Principal: ");
+    	principal = scanner.nextInt();// 数额
+    	if (principal >= 1000 || principal <= 1_000_000) {
+    		break;
+    	}
+    	System.out.print("Enter a value between 1000 and 1_000_000");
+    }
+    while (true) {
+    	System.out.print("Annual Interest Rate:");
+    	float annualInterestRate = scanner.nextFloat() / PERCENTAGE;// 利率
+    	if (annualInterestRate >= 0 && annualInterestRate <= 30) {
+    		monthlyInterestRate = annualInterestRate / MONTHS_IN_YEAR;
+    		break;
+    	}
+    	System.out.print("Enter a value between 1 and 30");
+
+    }
+
+    while (true) {
+    	System.out.print("Period(Years):");
+    	byte periodYear = scanner.nextByte();// 分期年数
+    	if (periodYear >= 0 && periodYear <= 30) {
+    		periodMonth = periodYear * MONTHS_IN_YEAR;
+    		break;
+    	}
+    	System.out.print("Enter a value between 1 and 30");
+    }
+
+    double monthlyMortgage = principal
+    		- monthlyInterestRate * Math.pow(1 + monthlyInterestRate, periodMonth)
+    		/ (Math.pow(1 + monthlyInterestRate, periodMonth) - 1);
+
+    String monthlyMortgageFormatted = NumberFormat.getCurrencyInstance().format(monthlyMortgage);
+
+    System.out.println("Monthly mortgage: " + monthlyMortgageFormatted);
+    ```
+
+# Clean Coding
+
+## Clean Code
+
+> 简述：通过整洁编码，将程序拆分成独立小块，利用方法提取实现模块化。这样代码就像整洁的房间，每个物品都有归处，提高了可读性、可维护性和重用性。
+
+**知识树**
+
+1. 代码整洁概念
+
+    - 类比整理房间：井然有序的代码便于查找与维护
+
+2. 模块化与方法提取
+
+    - 将重复或复杂代码封装为独立方法，减少冗余
+    - 方法名称应语义明确，便于理解
+
+3. 整洁编码的好处
+
+    - 提高代码可读性与扩展性
+    - 降低错误率，便于团队协作与调试

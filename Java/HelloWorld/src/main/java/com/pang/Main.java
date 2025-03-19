@@ -5,38 +5,51 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
+        final byte MONTHS_IN_YEAR = 12;
+        final byte PERCENTAGE = 100;
+
+        int principal = 0;
+        float monthlyInterestRate = 0;
+        int periodMonth = 0;
+
         Scanner scanner = new Scanner(System.in);
 
-        // 输入整数
-        System.out.print("请输入一个整数：");
-        int x = scanner.nextInt();
-        System.out.println("你输入的整数是：" + x);
+        while (true) {
+            System.out.print("Principal: ");
+            principal = scanner.nextInt();// 数额
+            if (principal >= 1000 || principal <= 1_000_000) {
+                break;
+            }
+            System.out.print("Enter a value between 1000 and 1_000_000");
+        }
+        while (true) {
+            System.out.print("Annual Interest Rate:");
+            float annualInterestRate = scanner.nextFloat() / PERCENTAGE;// 利率
+            if (annualInterestRate >= 0 && annualInterestRate <= 30) {
+                monthlyInterestRate = annualInterestRate / MONTHS_IN_YEAR;
+                break;
+            }
+            System.out.print("Enter a value between 1 and 30");
 
-        // 输入小数
-        System.out.print("\n请输入一个小数：");
-        double y = scanner.nextDouble();
-        System.out.println("你输入的小数是：" + y);
+        }
 
-        // 清除换行符
-        scanner.nextLine();  // 处理 nextInt() / nextDouble() 后残留的换行符
+        while (true) {
+            System.out.print("Period(Years):");
+            byte periodYear = scanner.nextByte();// 分期年数
+            if (periodYear >= 0 && periodYear <= 30) {
+                periodMonth = periodYear * MONTHS_IN_YEAR;
+                break;
+            }
+            System.out.print("Enter a value between 1 and 30");
+        }
 
-        // 输入单个单词（不包括空格）
-        System.out.print("\n请输入一个单词（遇到空格停止）：");
-        String s = scanner.next();
-        System.out.println("你输入的单词是：" + s);
-        scanner.nextLine();  // 处理 next() 后的换行符
+        double monthlyMortgage = principal
+                * monthlyInterestRate * Math.pow(1 + monthlyInterestRate, periodMonth)
+                / (Math.pow(1 + monthlyInterestRate, periodMonth) - 1);
 
-        // 输入整行字符串
-        System.out.print("\n请输入一整行文本：");
-        String s2 = scanner.nextLine();
-        System.out.println("你输入的整行文本是：" + s2);
+        String monthlyMortgageFormatted = NumberFormat.getCurrencyInstance().format(monthlyMortgage);
 
-        // 输入整行文本（去除首尾空格）
-        System.out.print("\n请输入一整行文本（自动去除前后空格）：");
-        String s3 = scanner.nextLine().trim();
-        System.out.println("去除空格后的文本是：" + s3);
-
-        scanner.close(); // 关闭 Scanner
+        System.out.println("Monthly mortgage: " + monthlyMortgageFormatted);
     }
 }
 
