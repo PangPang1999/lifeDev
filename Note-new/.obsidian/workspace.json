@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Java.md",
+                "file": "JavaScript.md",
                 "mode": "source",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "Java"
+              "title": "JavaScript"
             }
           }
         ]
@@ -143,13 +143,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Java.md",
+                "file": "JavaScript.md",
                 "followCursor": true,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Java 的大纲"
+              "title": "JavaScript 的大纲"
             }
           }
         ],
@@ -171,8 +171,8 @@
   },
   "active": "199768bd0a865d46",
   "lastOpenFiles": [
-    "JavaScript.md",
     "Java.md",
+    "JavaScript.md",
     "Java回顾（非Moth版本）.md",
     "es6-tooling-webpack/dist/index.html",
     "es6-tooling-webpack/dist/bundle.js",

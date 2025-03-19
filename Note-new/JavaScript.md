@@ -6432,7 +6432,7 @@ try {
 3. 注意事项
 
     - 同一属性不可同时设置数据描述符与访问描述符，否则报错。
-    - 描述符一旦设置`configurable: false`后，无法修改或删除该属性描述符（但`writable`为`true`时值仍可修改）。
+    - 描述符一旦设置`configurable: false`后，无法修改或删除该属性描述符（`writable`为`true`时值仍可修改）。
     - 默认创建属性（如`obj.prop = 1`）时，描述符均为`true`（除显式定义外）。
 
 4. 辅助方法
@@ -8665,8 +8665,8 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
     - 定义：将代码拆分为多个独立文件，每个文件称为一个模块
     - 目的：
-        - 1. 模块内的内容默认不对外公开，只有显式导出的部分才能被外部访问
-        - 2. 降低单个文件的复杂度，便于维护和扩展
+        - 模块内的内容默认不对外公开，只有显式导出的部分才能被外部访问
+        - 降低单个文件的复杂度，便于维护和扩展
 
 2. 优势
 
@@ -8860,37 +8860,9 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     - 浏览器应用：需要借助这两个工具保证新语法在老旧浏览器上也能运行
     - Node.js 应用：通常无需使用，因环境已支持大部分现代特性
 
-**代码示例**
-
-1. Babel 配置示例
-
-    ```json
-    {
-    	"presets": ["@babel/preset-env"]
-    }
-    ```
-
-    - 说明：此配置告诉 Babel 使用 preset-env，将现代 JavaScript 代码转译成兼容旧版浏览器的代码
-
-2. Webpack 配置示例
-
-    ```js
-    const path = require("path");
-
-    module.exports = {
-    	entry: "./src/index.js",
-    	output: {
-    		filename: "bundle.js",
-    		path: path.resolve(__dirname, "dist"),
-    	},
-    };
-    ```
-
-    - 说明：简单的 Webpack 配置，将多个模块打包成一个 bundle.js 文件，并进行压缩优化
-
 ## Babel
 
-> 简述：介绍如何通过 Node 与 NPM 搭建环境，安装并使用 Babel 将现代 JavaScript 转译为所有浏览器都能理解的代码。使用 Babel 的内容仅仅是为了演示，并不是你在构建真实世界应用时所使用的工作流程。
+> 简述：这一节介绍如何通过 Node 与 NPM 搭建环境，安装并使用 Babel 将现代 JavaScript 转译为所有浏览器都能理解的代码。使用 Babel 的内容仅仅是为了演示，并不是你在构建真实世界应用时所使用的工作流程。
 
 **知识树**
 
@@ -8949,7 +8921,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
 ## Webpack
 
-> 简述：介绍如何使用 Webpack，新版本和旧版本有所差异，version 4 及之后移除了 init 命令，需要手动创建配置文件`webpack.config.js`，这里主要讲新版本步骤。
+> 简述：这一节介绍如何使用 Webpack，新版本和旧版本有所差异，version 4 及之后移除了 init 命令，需要手动创建配置文件`webpack.config.js`，这里主要讲新版本步骤。
 
 **知识树**
 
