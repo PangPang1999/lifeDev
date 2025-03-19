@@ -3,6 +3,7 @@
     - control+R 运行程序
     - psvm 输出语句
     - shift+F6（额外按住左下角的🌍）同步修改多个语句
+    - Commond+option+M 提取方法（强👍）： 选取代码——置顶菜单 Refactor——Extract/Introduce——Method
 
 # Note
 
@@ -1058,13 +1059,6 @@
 >
 > -   输入本金 100000，年利率 3.92，分期年数 30，最后计算出每月还款金额为 $472.81
 >
->     ```txt
->     Principal: 100000
->     Annual Interest Rate:3.92
->     Period(Years):30
->     Monthly mortgage: $472.81
->     ```
->
 > **解法**：获取输入，处理得到的值，计算结果，格式化结果输出，其中指数运算使用 Math.pow 方法。
 >
 > **最佳实践**
@@ -1840,7 +1834,7 @@
     }
 
     double monthlyMortgage = principal
-    		- monthlyInterestRate * Math.pow(1 + monthlyInterestRate, periodMonth)
+    		* monthlyInterestRate * Math.pow(1 + monthlyInterestRate, periodMonth)
     		/ (Math.pow(1 + monthlyInterestRate, periodMonth) - 1);
 
     String monthlyMortgageFormatted = NumberFormat.getCurrencyInstance().format(monthlyMortgage);
@@ -1858,6 +1852,7 @@
 
 1. 代码整洁概念
 
+    - 每个人都可以写计算机能理解的代码，优秀的程序员，可以写出普通人就能理解的代码
     - 类比整理房间：井然有序的代码便于查找与维护
 
 2. 模块化与方法提取
@@ -1869,3 +1864,409 @@
 
     - 提高代码可读性与扩展性
     - 降低错误率，便于团队协作与调试
+
+## 创建与调用方法
+
+> 简述：方法将代码拆分成独立模块，使复杂逻辑易于维护和重用。通过定义方法，可将重复或复杂操作封装，提升代码清晰度和可读性。
+
+**知识树**
+
+1. 方法的基本概念
+
+    - 独立代码块：封装特定任务
+    - 定义在类中，与类或对象关联
+
+2. 方法的定义
+
+    - 访问修饰符：public、private 等决定可见性，pulic 意味着方法可以从 lclass 外部访问，具体用法后续讲解。
+    - static 关键字：声明方法属于类，具体用法后续讲解。
+    - 返回类型：void 或具体数据类型，声明方法返回的数据
+    - 方法名：使用 camelCase 命名，描述其功能
+
+3. 参数与返回
+
+    - 参数列表：放在圆括号中，用逗号分隔，作为输入
+    - 方法体：用花括号包裹，包含局部变量和逻辑
+    - return 语句：返回值（必须与返回类型一致），若无返回则使用 void
+
+4. 方法调用与重用
+    - 在 main 方法中调用，传递所需参数
+    - 重用方法避免代码冗余，实现模块化
+
+**代码示例**
+
+1. 简单问候方法（无返回值）
+
+    ```java
+    public static void main(String[] args) {
+        greetUser("Nancy");
+    }
+
+    public static void greetUser(String name) {
+        System.out.println("Hello " + name + "!");
+    }
+    ```
+
+    - 说明：定义一个静态方法 greetUser，接受一个字符串参数，并打印问候信息。
+
+2. 带参数与返回值的方法
+
+    ```java
+    public static void main(String[] args) {
+        String message = greetUser("Yi", "Miao");
+        System.out.println(message);
+    }
+
+    public static String greetUser(String firstName, String lastName) {
+        return "Hello " + firstName + " " + lastName + "!";
+    }
+    ```
+
+    - 说明：展示如何定义和调用一个带两个参数且返回字符串的问候方法，实现参数传递和返回值处理。
+
+## 提取方法 1（贷款计算）
+
+> 简述：提取上一节练习中的计算方法
+
+**代码**
+
+- 代码示例
+
+    ```java
+    public static void main(String[] args) {
+
+    	int principal = 0;
+    	float annualInterestRate = 0;
+    	byte periodYear = 0;
+
+    	Scanner scanner = new Scanner(System.in);
+
+    	while (true) {
+    		System.out.print("Principal: ");
+    		principal = scanner.nextInt();// 数额
+    		if (principal >= 1000 || principal <= 1_000_000) {
+    			break;
+    		}
+    		System.out.print("Enter a value between 1000 and 1_000_000");
+    	}
+    	while (true) {
+    		System.out.print("Annual Interest Rate:");
+    		annualInterestRate = scanner.nextFloat();// 利率
+    		if (annualInterestRate >= 0 && annualInterestRate <= 30)
+    			break;
+    		System.out.print("Enter a value between 1 and 30");
+
+    	}
+
+    	while (true) {
+    		System.out.print("Period(Years):");
+    		periodYear = scanner.nextByte();// 分期年数
+    		if (periodYear >= 0 && periodYear <= 30)
+    			break;
+    		System.out.print("Enter a value between 1 and 30");
+    	}
+
+    	double monthlyMortgage = caculateMortgage(principal, annualInterestRate, periodYear);
+
+    	String monthlyMortgageFormatted = NumberFormat.getCurrencyInstance().format(monthlyMortgage);
+    	System.out.println("Monthly mortgage: " + monthlyMortgageFormatted);
+    }
+
+    public static double caculateMortgage(
+    		int principal,
+    		float annualInterestRate,
+    		byte periodYear) {
+
+    	final byte MONTHS_IN_YEAR = 12;
+    	final byte PERCENTAGE = 100;
+
+    	float monthlyInterestRate = 0;
+    	int periodMonth = 0;
+
+    	monthlyInterestRate = annualInterestRate / MONTHS_IN_YEAR / PERCENTAGE;
+    	periodMonth = periodYear * MONTHS_IN_YEAR;
+
+    	double monthlyMortgage = principal
+    			* monthlyInterestRate * Math.pow(1 + monthlyInterestRate, periodMonth)
+    			/ (Math.pow(1 + monthlyInterestRate, periodMonth) - 1);
+
+    	return monthlyMortgage;
+    }
+    ```
+
+## 提取方法 2（贷款计算）
+
+> 简述：提取上一节练习中的读取方法
+
+**代码**
+
+- 代码示例
+
+    ```java
+    public static void main(String[] args) {
+
+    	int principal = 0;
+    	float annualInterestRate = 0;
+    	byte periodYear = 0;
+
+    	Scanner scanner = new Scanner(System.in);
+
+    	principal = (int) readNumber("Principal: ", 1000, 1_000_000);
+    	annualInterestRate = (float) readNumber("Annual Interest Rate: ", 1, 30);
+    	periodYear = (byte) readNumber("Period Year: ", 1, 30);
+
+    	double monthlyMortgage = caculateMortgage(principal, annualInterestRate, periodYear);
+
+    	String monthlyMortgageFormatted = NumberFormat.getCurrencyInstance().format(monthlyMortgage);
+    	System.out.println("Monthly mortgage: " + monthlyMortgageFormatted);
+    }
+
+    public static double readNumber(String prompt, double min, double max) {
+    	Scanner scanner = new Scanner(System.in);
+    	double value;
+    	while (true) {
+    		System.out.print(prompt);
+    		value = scanner.nextFloat();
+    		if (value >= min && value <= max) break;
+    		System.out.print("Enter a value between " + min + " and " + max);
+    	}
+    	return value;
+    }
+
+    public static double caculateMortgage(
+    		int principal,
+    		float annualInterestRate,
+    		byte periodYear) {
+
+    	final byte MONTHS_IN_YEAR = 12;
+    	final byte PERCENTAGE = 100;
+
+    	float monthlyInterestRate = 0;
+    	int periodMonth = 0;
+
+    	monthlyInterestRate = annualInterestRate / MONTHS_IN_YEAR / PERCENTAGE;
+    	periodMonth = periodYear * MONTHS_IN_YEAR;
+
+    	double monthlyMortgage = principal
+    			* monthlyInterestRate * Math.pow(1 + monthlyInterestRate, periodMonth)
+    			/ (Math.pow(1 + monthlyInterestRate, periodMonth) - 1);
+
+    	return monthlyMortgage;
+    }
+    ```
+
+## Ex: 贷款计算-含还款计划
+
+> **要求**：扩展抵押贷款计算器，实现如下功能：
+>
+> -   用户输入贷款本金、年利率和贷款年限；
+> -   计算并输出月还款额；
+> -   输出每个月还款后剩余本金（还款计划）。
+> -   计算公式：balance = principal \* ((1 + r)^n - (1 + r)^p) / ((1 + r)^n - 1)
+>
+> **示例**：
+>
+> -   输入本金 180000，年利率 4，分期年数 10，最后计算出每月还款金额为 $1,822.41，最后一期还款金额为$1,816.36
+>
+> **解法**：
+>
+> 1. **重构计算逻辑**
+>
+>     - 提取月还款额计算到 `calculateMortgage` 方法；
+>     - 提取剩余本金计算到 `calculateBalance` 方法，公式为
+>         ```
+>         balance = principal * ((1 + r)^n - (1 + r)^p) / ((1 + r)^n - 1)
+>         ```
+>         其中 r 为月利率，n 为总还款期数，p 为已付款次数。
+>
+> 2. **优化代码结构**
+>     - 将常量（如 MONTHS_IN_YEAR、PERCENT）定义为类级别的静态字段；
+>     - 抽取通用输入验证方法 `readNumber`，统一获取合法输入；
+>     - 在 main 方法中调用各方法，依次输出月还款额及支付计划。
+
+**代码**
+
+- 代码示例
+
+    ```java
+    final static byte MONTHS_IN_YEAR = 12;
+    final static byte PERCENTAGE = 100;
+
+    public static void main(String[] args) {
+
+    	int principal = 0;
+    	float annualInterestRate = 0;
+    	byte periodYear = 0;
+
+    	Scanner scanner = new Scanner(System.in);
+
+    	principal = (int) readNumber("Principal: ", 1000, 1_000_000);
+    	annualInterestRate = (float) readNumber("Annual Interest Rate: ", 1, 30);
+    	periodYear = (byte) readNumber("Period Year: ", 1, 30);
+
+    	double monthlyMortgage = caculateMortgage(principal, annualInterestRate, periodYear);
+
+    	String monthlyMortgageFormatted = NumberFormat.getCurrencyInstance().format(monthlyMortgage);
+    	System.out.println("\nMortgage");
+    	System.out.println("---------");
+    	System.out.println("Monthly Payment: " + monthlyMortgageFormatted);
+    	System.out.println("\nPayment Schedule");
+    	System.out.println("----------------");
+    	for (short month = 1; month <= periodYear * MONTHS_IN_YEAR; month++) {
+    		double balance = caculateBalance(principal, annualInterestRate, periodYear, month);
+    		System.out.println(NumberFormat.getCurrencyInstance().format(balance));
+
+    	}
+    }
+
+    public static double readNumber(String prompt, double min, double max) {
+    	Scanner scanner = new Scanner(System.in);
+    	double value;
+    	while (true) {
+    		System.out.print(prompt);
+    		value = scanner.nextFloat();
+    		if (value >= min && value <= max) break;
+    		System.out.print("Enter a value between " + min + " and " + max);
+    	}
+    	return value;
+    }
+
+    public static double caculateMortgage(
+    		int principal,
+    		float annualInterestRate,
+    		byte periodYear) {
+
+    	float monthlyInterestRate = 0;
+    	int periodMonth = 0;
+
+    	monthlyInterestRate = annualInterestRate / MONTHS_IN_YEAR / PERCENTAGE;
+    	periodMonth = periodYear * MONTHS_IN_YEAR;
+
+    	double monthlyMortgage = principal
+    			* monthlyInterestRate * Math.pow(1 + monthlyInterestRate, periodMonth)
+    			/ (Math.pow(1 + monthlyInterestRate, periodMonth) - 1);
+
+    	return monthlyMortgage;
+    }
+
+    public static double caculateBalance(
+    		int principal,
+    		float annualInterestRate,
+    		byte periodYear,
+    		short paymentsMade) {
+
+
+    	float monthlyInterestRate = 0;
+    	int periodMonth = 0;
+
+    	monthlyInterestRate = annualInterestRate / MONTHS_IN_YEAR / PERCENTAGE;
+    	periodMonth = periodYear * MONTHS_IN_YEAR;
+
+    	double banlance = principal *
+    			(Math.pow((1 + monthlyInterestRate), periodMonth)
+    					- Math.pow(1 + monthlyInterestRate, paymentsMade))
+    			/ (Math.pow(1 + monthlyInterestRate, periodMonth) - 1);
+
+    	return banlance;
+    }
+    ```
+
+## 方法提取 Ex
+
+> 简述：使用 IDEA 自带的方法提取工具，进一步优化代码结构
+> 方式：Commond+option+M 提取方法：选取代码——置顶菜单 Refactor——Extract/Introduce——Method
+
+**代码**
+
+- 代码示例
+
+    ```java
+    final static byte MONTHS_IN_YEAR = 12;
+    final static byte PERCENTAGE = 100;
+
+    public static void main(String[] args) {
+
+    	int principal = 0;
+    	float annualInterestRate = 0;
+    	byte periodYear = 0;
+
+    	Scanner scanner = new Scanner(System.in);
+
+    	principal = (int) readNumber("Principal: ", 1000, 1_000_000);
+    	annualInterestRate = (float) readNumber("Annual Interest Rate: ", 1, 30);
+    	periodYear = (byte) readNumber("Period Year: ", 1, 30);
+
+    	printMortgage(principal, annualInterestRate, periodYear);
+    	printPaymentsSchedule(periodYear, principal, annualInterestRate);
+    }
+
+    private static void printMortgage(int principal, float annualInterestRate, byte periodYear) {
+    	double monthlyMortgage = caculateMortgage(principal, annualInterestRate, periodYear);
+
+    	String monthlyMortgageFormatted = NumberFormat.getCurrencyInstance().format(monthlyMortgage);
+    	System.out.println("\nMortgage");
+    	System.out.println("---------");
+    	System.out.println("Monthly Payment: " + monthlyMortgageFormatted);
+    }
+
+    private static void printPaymentsSchedule(byte periodYear, int principal, float annualInterestRate) {
+    	System.out.println("\nPayment Schedule");
+    	System.out.println("----------------");
+    	for (short month = 1; month <= periodYear * MONTHS_IN_YEAR; month++) {
+    		double balance = caculateBalance(principal, annualInterestRate, periodYear, month);
+    		System.out.println(NumberFormat.getCurrencyInstance().format(balance));
+
+    	}
+    }
+
+    public static double readNumber(String prompt, double min, double max) {
+    	Scanner scanner = new Scanner(System.in);
+    	double value;
+    	while (true) {
+    		System.out.print(prompt);
+    		value = scanner.nextFloat();
+    		if (value >= min && value <= max) break;
+    		System.out.print("Enter a value between " + min + " and " + max);
+    	}
+    	return value;
+    }
+
+    public static double caculateMortgage(
+    		int principal,
+    		float annualInterestRate,
+    		byte periodYear) {
+
+    	float monthlyInterestRate = 0;
+    	int periodMonth = 0;
+
+    	monthlyInterestRate = annualInterestRate / MONTHS_IN_YEAR / PERCENTAGE;
+    	periodMonth = periodYear * MONTHS_IN_YEAR;
+
+    	double monthlyMortgage = principal
+    			* monthlyInterestRate * Math.pow(1 + monthlyInterestRate, periodMonth)
+    			/ (Math.pow(1 + monthlyInterestRate, periodMonth) - 1);
+
+    	return monthlyMortgage;
+    }
+
+    public static double caculateBalance(
+    		int principal,
+    		float annualInterestRate,
+    		byte periodYear,
+    		short paymentsMade) {
+
+
+    	float monthlyInterestRate = 0;
+    	int periodMonth = 0;
+
+    	monthlyInterestRate = annualInterestRate / MONTHS_IN_YEAR / PERCENTAGE;
+    	periodMonth = periodYear * MONTHS_IN_YEAR;
+
+    	double banlance = principal *
+    			(Math.pow((1 + monthlyInterestRate), periodMonth)
+    					- Math.pow(1 + monthlyInterestRate, paymentsMade))
+    			/ (Math.pow(1 + monthlyInterestRate, periodMonth) - 1);
+
+    	return banlance;
+    }
+    ```
