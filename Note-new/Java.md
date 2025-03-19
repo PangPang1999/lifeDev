@@ -1,6 +1,8 @@
 # 快捷键
 
     - control+R 运行程序
+    - control+D 调试程序
+    - Commond+D 复制粘贴所在行
     - psvm 输出语句
     - shift+F6（额外按住左下角的🌍）同步修改多个语句
     - Commond+option+M 提取方法（强👍）： 选取代码——置顶菜单 Refactor——Extract/Introduce——Method
@@ -2270,3 +2272,287 @@
     	return banlance;
     }
     ```
+
+# Debugging and Deploying
+
+## 错误种类
+
+> 简述：Java 程序中的错误分为编译时错误和运行时错误。编译时错误由语法问题引起，阻止代码编译；运行时错误则在程序执行时出现。使用代码编辑器提示、Google/Stack Overflow 以及调试器（如 IntelliJ 的 Debugger）可以有效定位并修正错误。
+
+**知识树**
+
+1. 错误类型
+
+    - 编译时错误（Syntax Error）：因不符合 Java 语法而导致编译失败
+    - 运行时错误（Runtime Error）：编译通过，但执行过程中出现异常
+
+2. 编译时错误
+
+    - 特征：在编译阶段出现，常见于语法错误、类型不匹配等
+    - 修正方法：利用 IDE 提示和错误信息，查阅文档或搜索 Stack Overflow
+
+3. 运行时错误
+
+    - 特征：程序在运行时抛出异常，如 NullPointerException、数组越界等
+    - 调试方法：使用调试器逐步跟踪代码、检查变量状态、设置断点
+
+4. 调试工具与技巧
+
+    - IntelliJ Debugger：断点、单步执行、变量监控
+    - 日志记录与异常处理：使用 try-catch 捕获异常，打印日志辅助分析
+
+## 常见编译时错误
+
+> 简述：本节介绍 Java 编译时常见错误，帮助初学者理解如何避免语法和标识符错误，从而提高代码质量与开发效率。
+
+**知识树**
+
+1. 变量声明错误
+
+    - 忘记指定数据类型
+    - 常见于习惯动态语言的开发者
+
+2. 语句终止符错误
+
+    - 忘记在语句末尾加分号
+    - 仅对普通语句有效，代码块无需终止符
+
+3. 方法调用错误
+
+    - 忘记添加圆括号，导致无法识别为方法调用
+
+4. 字符串书写错误
+
+    - 忘记使用双引号包裹字符串
+    - 单引号仅用于字符
+
+5. 标识符拼写与大小写错误
+
+    - Java 为大小写敏感，错误拼写或不一致会引发错误
+
+6. 保留关键字使用错误
+
+    - 不能将保留关键字（如 class）用作标识符
+
+7. 比较运算错误
+
+    - 使用单等号（`=`）进行比较，需使用双等号（`==`）生成布尔表达式
+
+**代码示例**
+
+1. 变量声明错误
+
+    ```java
+    // 错误示例：未指定数据类型
+    name = "Mosh";  // 编译错误：找不到符号 name
+    ```
+
+    - 说明：必须先声明数据类型，如：`String name = "Mosh";`
+
+2. 语句终止符错误
+
+    ```java
+    System.out.println("Hello World")  // 编译错误：缺少分号
+    ```
+
+    - 说明：每个语句后应加分号，正确写法为：`System.out.println("Hello World");`
+
+3. 方法调用错误
+
+    ```java
+    System.out.println;  // 编译错误：方法调用缺少圆括号
+    ```
+
+    - 说明：正确调用方法应为：`System.out.println("Hello World");`
+
+4. 字符串书写错误
+
+    ```java
+    String greeting = 'Hello World';  // 编译错误：应使用双引号
+    ```
+
+    - 说明：字符串需用双引号包裹，正确写法为：`String greeting = "Hello World";`
+
+5. 标识符拼写与大小写错误
+
+    ```java
+    String name = "Mosh";
+    System.out.println(Name);  // 编译错误：Name 与 name 不一致（区分大小写）
+    ```
+
+    - 说明：保持标识符一致性，建议统一使用 camelCase，如 `String name = "Mosh";`
+
+6. 保留关键字使用错误
+
+    ```java
+    int class = 5;  // 编译错误：class 为保留关键字
+    ```
+
+    - 说明：不可使用保留关键字，需使用其他合法名称，如 `int classNum = 5;`
+
+7. 比较运算错误
+
+    ```java
+    if (a = b) {  // 编译错误：单等号用于赋值，不产生布尔值
+        // ...
+    }
+    ```
+
+    - 说明：应使用双等号进行比较，如：`if (a == b) { ... }`
+
+## 调试 Java 应用程序
+
+> 简述：调试是发现和修复程序错误的过程。利用断点、单步执行、变量监控、调用堆栈和监视表达式等工具，可以逐行检查代码，定位问题并验证修复，从而提高代码质量和开发效率。
+
+**知识树**
+
+1. 调试概念
+
+    - 定义：在程序运行中查找并修正错误
+    - 错误类型：编译时错误与运行时错误
+
+2. 断点设置
+
+    - 作用：暂停程序执行以检查代码状态和变量值
+    - 插入方式：点击 IDE 边栏或使用快捷键（如 IntelliJ 中的 toggle line breakpoint）
+
+3. 单步调试工具
+
+    - Step Over：跳过当前语句，执行下一语句
+    - Step Into：进入被调用的方法内部逐行调试
+    - Step Out：退出当前方法，返回调用者上下文
+    - 变量窗口：实时显示当前作用域中变量的值
+    - 调用堆栈（Call Stack）：显示方法调用顺序，帮助追踪错误源
+    - Watch（监视）：添加表达式跟踪关键变量
+
+4. 调试流程与技巧
+    - 定位疑似错误区域：在关键代码处设置断点
+    - 使用调试器单步执行，观察变量变化
+    - 利用调用堆栈了解程序执行路径
+    - 重启调试会话，调整断点以缩小错误范围
+
+**代码示例**
+
+1. 断点调试示例
+
+    ```java
+    public static void main(String[] args) {
+        System.out.println("Start"); // 在此处设置断点
+        printNumbers();            // 使用 Step Into 可进入此方法调试内部逻辑
+        System.out.println("Finish");
+    }
+    ```
+
+    - 说明：在 main 方法中设置断点后，当程序运行到断点时暂停，允许检查“Start”已输出，并准备逐步调试 printNumbers 方法。
+
+2. 循环调试示例
+
+    ```java
+    public static void printNumbers() {
+        for (int i = 0; i < 10; i++) {
+            System.out.println(i);  // 观察变量 i 的变化，确认循环执行逻辑
+        }
+    }
+    ```
+
+    - 说明：通过在循环内部设置断点或使用 Step Over，可实时监控变量 i 的值和循环的执行情况，帮助发现只打印偶数或其他逻辑错误。
+
+## 调试 Java 应用程序
+
+> 简述：调试是发现和修复程序错误的过程。利用断点、单步执行、变量监控、调用堆栈和监视表达式等工具，可以逐行检查代码，定位问题并验证修复，从而提高代码质量和开发效率。
+
+**知识树**
+
+1. 调试
+
+    - 定义：在程序运行中查找并修正错误
+    - 错误类型：编译时错误与运行时错误
+    - 开始调试按钮：运行键右边的甲壳虫按钮
+    - 快捷键：conrol+D
+
+2. 断点设置
+
+    - 作用：暂停程序执行以检查代码状态和变量值
+    - 插入方式：点击 IDE 边栏或使用快捷键（如 IntelliJ 中的 toggle line breakpoint）
+
+3. 单步调试工具
+
+    - Step Over：跳过当前语句，执行下一语句
+    - Step Into：进入被调用的方法内部逐行调试
+    - Step Out：退出当前方法，返回调用者上下文
+    - 变量窗口：实时显示当前作用域中变量的值
+    - 调用堆栈（Call Stack）：显示方法调用顺序，帮助追踪错误源
+    - Watch（监视）：添加表达式跟踪关键变量
+
+4. 调试流程与技巧
+    - 定位疑似错误区域：在关键代码处设置断点
+    - 使用调试器单步执行，观察变量变化
+    - 利用调用堆栈了解程序执行路径
+    - 重启调试会话，调整断点以缩小错误范围
+
+**代码示例**
+
+1. 断点调试示例，目标希望输出 0-4
+
+    ```java
+    public static void main(String[] args) {
+        System.out.println("Start");// 在此处设置断点
+        printNumbers(4);// 使用 Step Into 可进入此方法调试内部逻辑
+        System.out.println("Finish");
+    }
+
+    private static void printNumbers(int limit) {
+        for (int i = 0; i < limit; i += 2) {
+            System.out.println(i);// 观察变量 i 的变化，确认循环执行逻辑
+        }
+    }
+    ```
+
+    - 说明：在 main 方法中设置断点后，当程序运行到断点时暂停，允许检查“Start”已输出，并准备逐步调试 printNumbers 方法。通过在循环内部使用 Step Over，可实时监控变量 i 的值和循环的执行情况，帮助发现只打印偶数或其他逻辑错误。
+    - 纠正：`i += 2`修改为`i++`，`i < limit`修改为`i <= limit`
+
+## 部署 Java 应用程序
+
+> 简述：部署 Java 应用程序是将编译后的代码及资源打包成 jar 文件，供用户在安装了 Java 运行环境的系统上独立运行。这一过程确保代码分发、跨平台执行和维护的便捷性。
+
+**知识树**
+
+1. Jar 文件概念
+
+    - Java Archive 格式，包含 .class 文件和资源
+    - 便于分发和跨平台执行
+
+2. 构建与打包
+
+    - 在 IntelliJ 中配置 Artifact（File——Project Structure——Artifact）
+    - 选择项目模块 Jar（JarFx 是桌面应用）、主类及依赖项（选择 From modules with dependencies...，随后选择 Main class ），生成 jar 文件
+    - 使用 “Build Artifact” 完成打包（Build ——Build Artifact——Build）
+    - 在生成的 out 目录最后的层级下，可以看到生成的 jar 文件
+
+3. 部署与执行
+
+    - 目标机器必须安装 Java 运行环境
+    - 通过命令行执行，在该文件所在路径打开终端，输入：`java -jar HelloWorld.jar`
+    - 注意文件路径及大小写敏感性（特别在 Linux/Mac）
+
+**代码示例**
+
+1. 代码文件示例
+
+    ```java
+    package com.pang;
+
+    public class Main {
+        public static void main(String[] args) {
+            System.out.println("Hello World");// 在此处设置断点
+        }
+    }
+    ```
+
+2. 运行 jar 文件示例
+
+    ```bash
+    java -jar HelloWorld.jar
+    ```
+
+    - 输入：Hello World
