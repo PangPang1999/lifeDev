@@ -2867,8 +2867,8 @@
 
     ```java
     public class Employee {
-    	int baseSalary = 30_000;
-    	int hourlyRate = 20;
+        public int baseSalary;
+        public int hourlyRate;
 
     	public int calculateSalary(int extraHours) {
     		return baseSalary + (hourlyRate * extraHours);
@@ -2889,3 +2889,76 @@
         }
     }
     ```
+
+## 封装与 Getter/Setter
+
+> 简述：利用 getter 和 setter 方法，可以在设置数据时进行验证，确保对象状态合法，同时提高代码的复用性和可维护性。
+
+**知识树**
+
+1. 数据验证与访问控制
+
+    - 将关键字段声明为 private，字段只能在类内部直接访问，防止外部直接访问
+    - 通过 setter 方法在赋值前进行数据验证（例如，baseSalary 必须为正数）
+
+2. Getter 和 Setter 方法
+
+    - Getter：用于读取私有字段的值
+    - Setter：用于修改私有字段，并在设置时执行验证逻辑
+    - 避免重复验证：验证方法写在类中，不必每一次调用类都额外写验证方法
+
+3. 自动生成 Getter/Setter 技巧
+
+    - 快捷 1：利用 IDE 快捷键（如 Command+N）快速生成代码
+    - 快捷 2：右键点击你想封装的字段，选择 Refactor -> Encapsulate Fields，或者在主菜单中选择 Refactor -> Encapsulate Fields。
+
+**代码示例**
+
+1. 自定义 setter 方法实现数据验证
+
+    ```java
+    public class Employee {
+        private int baseSalary;
+        private int hourlyRate;
+
+        public int calculateSalary(int extraHours) {
+            return getBaseSalary() + (getHourlyRate() * extraHours);
+        }
+
+        public void setBaseSalary(int baseSalary) {
+            if (baseSalary <= 0)
+                throw new IllegalArgumentException("Base Salary cannot be 0 or less.");
+            this.baseSalary = baseSalary;
+        }
+
+        public int getBaseSalary() {
+            return baseSalary;
+        }
+
+        public int getHourlyRate() {
+            if (hourlyRate <= 0)
+                throw new IllegalArgumentException("HourlyRate cannot be 0 or less.");
+            return hourlyRate;
+        }
+
+        public void setHourlyRate(int hourlyRate) {
+            this.hourlyRate = hourlyRate;
+        }
+    }
+    ```
+
+    - 描述：通过将 `baseSalary` 、`baseSalary`设为私有，并在 setter 中进行验证，防止无效数据；同时提供 getter 方法读取该字段，避免直接访问。
+
+2. 在 Main 类中使用封装后的 Employee 对象
+
+    ```java
+    public static void main(String[] args) {
+        var employee = new Employee();
+        employee.setBaseSalary(30_000);
+        employee.setHourlyRate(20);
+        int totalWage = employee.calculateSalary(10);
+        System.out.println(totalWage);
+    }
+    ```
+
+    - 描述：展示如何在主方法中调用封装后的 Employee 类，通过 setter 设置数据，通过 getter 获取数据，同时调用 `calculateWage` 方法计算工资，体现封装提高了代码复用性和维护性。
