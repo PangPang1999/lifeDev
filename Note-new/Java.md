@@ -1,3 +1,13 @@
+## 新特性
+
+- var——JDK10
+    - 自动推断变量类型，避免显式声明数据类型，使代码更简洁。
+    - 仅用于局部变量（方法内部），不能用于字段、方法参数或返回值。
+- List.of()——JDK9
+    - 快速创建不可变列表（列表内容不能修改）。
+    - 避免 Arrays.asList() 的缺陷（Arrays.asList() 允许修改元素，但不能调整大小）。
+    - 比 new ArrayList<>() 代码更简洁。
+
 # 快捷键
 
     - control+R 运行程序
@@ -17,11 +27,11 @@
 
 ## 开发环境
 
-> 简述：搭建 Java 开发环境需安装 JDK（推荐 JDK8）和 IDEA，配置环境变量后进行验证。
+> 简述：搭建 Java 开发环境需安装 JDK 和 IDEA，配置环境变量后进行验证。
 
 **知识树**
 
-1. 安装 Java（JDK8）
+1. 安装 Java（JDK8/17）课程使用的是 JDK12 `brew install --cask zulu@17`
 
     - 使用 Homebrew 安装 JDK：
         ```bash
@@ -2497,3 +2507,385 @@
     ```
 
     - 输入：Hello World
+
+# OOP
+
+## 编程范式
+
+> 简述：编程范式（Programming Paradigms）是组织和设计代码结构的基本思想与风格，不局限于具体语言，而是通过特定的模式和原则管理代码，以提高代码的可读性、维护性和扩展性。
+
+**知识树**
+
+1. 常见编程范式：
+
+    - 过程式（Procedural）：以过程（函数或方法）为中心，强调顺序执行。
+    - 面向对象（Object-Oriented）：以对象为核心，强调数据与行为的封装。
+    - 函数式（Functional）：以纯函数为核心，强调数据的不可变性和函数的组合。
+    - 事件驱动（Event-Driven）：以事件为中心，程序流由事件驱动。
+    - 逻辑式（Logic）：基于形式逻辑规则进行推理和决策。
+    - 面向切面（Aspect-Oriented）：强调横切关注点（如日志、安全性）的分离。
+
+2. 编程语言对范式的支持：
+
+    - 单范式语言：仅支持一种编程模式，如 Smalltalk（纯面向对象）。
+    - 多范式语言：同时支持多种模式，如 Python、Ruby、Java、JavaScript 等。
+
+3. 面向对象编程（OOP）的核心思想
+
+    - 以对象为基础单元，将数据（状态）和方法（行为）封装。
+    - 强调对象间的协作与交互，通过消息传递实现功能。
+
+4. 函数式编程（FP）的核心思想
+
+    - 以纯函数为核心，不改变外部状态，无副作用。
+    - 数据与函数分离，通过函数链进行数据变换。
+
+5. 编程范式选择原则
+
+    - 不同范式适用于不同场景。
+    - 面向对象适用于复杂状态管理（如 GUI、游戏）。
+    - 函数式适用于高并发、数据流处理场景。
+
+6. 范式认知的误区与建议
+
+    - 不存在万能的范式，强调场景与需求导向。
+    - 避免盲目推崇，注重实际问题解决能力。
+
+## 面向对象编程（OOP）
+
+> 简述：面向对象编程是一种通过对象来组织代码的编程模式，对象封装了数据和行为，便于管理复杂的程序结构。
+
+**知识树**
+
+1. 类（Class）定义：
+
+    - 概念：类是对象的模板或蓝图。
+    - 组成： 包含属性（字段）和方法（操作）
+        - 属性（Fields）：描述对象状态的变量，如汽车的当前速度、档位等。
+        - 方法（Methods）：改变或操作对象状态的函数，如启动汽车、更换档位等。
+
+2. 对象（Object）定义：
+
+    - 对象是类的具体实例。
+    - 每个对象有独立的内存空间与状态。
+
+3. 类与对象的关系：
+
+    - 类定义对象的结构；对象是类的实例。
+    - 一个类可生成多个对象实例，各实例独立。
+
+4. 面向对象的优势
+
+    - 降低复杂性：问题分解为多个对象，便于理解。
+    - 易于维护：对象间解耦，单个对象变化不会影响整体。
+    - 提高复用性：对象和方法可重复使用。
+
+5. 对象示例
+
+    - 汽车类
+        - 属性：启动状态，当前速度，剩余燃油量等
+        - 方法：启动，停车，消耗燃油等
+    - 灯类（Lamp Class）
+        - 属性：明暗状态
+        - 方法：开灯，关灯
+    - 文本框（TextBox）对象：
+        - 属性：文本内容、字符限制、焦点状态、启用状态。
+        - 方法：设置文本、清空、启用、禁用、获取焦点等。
+
+## 创建类
+
+> 简述：类定义对象的共同特征，是对象创建的模板；对象是类的具体实现，每个对象具有独立状态和行为。类包含字段（用于存储数据）和方法（定义对象的行为）。
+
+**知识树**
+
+1. 类的创建
+
+    - 使用 Pascal 命名法
+    - 在`Main.class`同级目录下，创建`TextBox.class`文件，供学习练习
+
+2. 类的成员：
+
+    - 字段（Field）：存储类的数据状态
+    - 方法（Method）：定义类的行为
+
+3. 关键字与命名约定
+
+    - Pascal 命名法（用于类名，每个单词首字母大写）
+    - camel 命名法（用于字段与方法名，第一个单词小写，后续单词首字母大写）
+
+4. 访问修饰符
+
+    - `public`：其他类可见
+    - （更多访问修饰符后续学习）
+
+5. 特殊关键字
+
+    - `this`：当前对象的引用
+
+6. 继承（后续讲解）
+
+    - 输入`this.`后，能看到当前方法所拥有的`filed`和`method`，除此之外，还能看到一些没有定义的方法，比如`clone()`、`equals()`，这些方法是继承而来，所有的 class 都会自动从其他类继承一些方法，继承相关内容将在后续讲解。
+
+**代码示例**
+
+1. 创建类与字段、方法
+
+    ```java
+    public class TextBox {
+        public String text; // Field
+
+        public void setText(String text) {
+            this.text = text;
+        }
+
+        public void clear() {
+            this.text = "";
+        }
+    }
+    ```
+
+    - 这里一共有三个成员：一个 字段（`Field`），两个方法（`Method`）
+
+## 创建&使用对象
+
+> 简述：对象是类的实例，拥有类定义的结构（字段）和行为（方法）。在 Java 中，通过 `new` 运算符创建对象，每个对象都是独立的实例，有自己的状态。
+
+**知识树**
+
+1. 对象实例化
+
+    - 使用 `new` 运算符创建类的实例
+
+2. `var` 关键字
+
+    - 自动推断变量类型
+    - 简化代码，减少重复
+
+3. 引用类型的初始值
+
+    - 默认值为 `null`
+    - 初始化字段避免 `NullPointerException`导致程序崩溃
+    - 对象中的字段存在默认值，而局部变量声明之后必须赋值才能使用
+
+4. 对象的独立性
+
+    - 每个对象独立维护自己的状态
+
+5. 注意
+
+    - 若测试失败，检测 JDK 版本，建议使用 JDK17 重新创建项目
+
+**代码示例**
+
+1. 创建对象并设置文本
+
+    ```java
+    public static void main(String[] args) {
+        // TextBox textBox = new TextBox();// 原始方式
+        var textBox1 = new TextBox();// JDK10引入var
+        textBox1.setText("Box One");
+        System.out.println(textBox1.text);
+    }
+    ```
+
+    - 在 `Main.class` 中创建 `TextBox类` 的实例
+
+2. 空指针异常
+
+    - 输出 null
+        ```java
+        var textBox1 = new TextBox();// JDK10引入var
+        System.out.println(textBox1.text);// 输出null，并不会导致程序崩溃
+        ```
+    - 未初始化的值调用方法
+        ```java
+        var textBox1 = new TextBox();// JDK10引入var
+        System.out.println(textBox1.text.toUpperCase());// 程序崩溃：NullPointerException
+        ```
+    - 解决方式，修改 `TextBox.class`，将 `text`初始化为空字符串
+        ```java
+        public String text = ""; // Field
+        ```
+
+3. 多个对象实例的独立性
+
+    ```java
+    var textBox1 = new TextBox();
+    textBox1.setText("Box 1");
+    System.out.println(textBox1.text.toUpperCase());
+
+    var textBox2 = new TextBox();
+    textBox2.setText("Box 2");
+    System.out.println(textBox2.text);
+    ```
+
+    - 不同对象实例之间数据互不干扰，各自维护状态。
+
+## 堆和栈
+
+> 简述：堆和栈是程序运行时的内存区域。堆负责存储对象实例，栈负责存储局部变量与引用地址。当堆中的对象失去引用时，Java 的垃圾回收机制会自动释放内存。
+
+**知识树**
+
+1. 内存区域
+
+    - 堆（Heap）
+        - 存储对象实例（通过`new`创建）
+        - 动态分配，大小运行时可变
+        - 垃圾回收机制自动释放无引用对象
+    - 栈（Stack）
+        - 存储基本类型变量、引用变量、方法调用栈帧
+        - 按方法调用顺序先进后出（LIFO）
+        - 方法结束后自动释放栈空间
+    - 栈帧
+        - 栈帧是每次方法调用时在调用栈（stack）中创建的一块内存区域
+        - 每次方法调用创建一个栈帧，保存局部变量（相关概念后续讲解）
+
+2. 对象创建与引用
+
+    - 创建对象实例，存储于堆内存，`new`返回实例的堆内存地址
+    - 将堆地址赋值给栈上的引用变量
+    - 一个对象实例可被多个引用变量指向，任何引用的修改对所有引用可见
+
+3. 内存释放机制
+
+    - 栈内存释放：方法执行结束后立即清除栈帧及其中的变量与引用
+    - 堆内存释放：对象实例无引用变量指向时，等待垃圾回收器自动释放
+
+4. 实践建议
+
+    - 合理管理引用变量，避免不必要的引用导致内存泄露
+    - 了解 JVM 垃圾回收机制，优化代码结构提升程序性能与内存使用效率
+
+**代码示例**
+
+1. 内存区域
+
+    ```java
+    public static void main(String[] args) {
+        var textBox1 = new TextBox();
+    }
+    ```
+
+    - 描述：
+        - 代码运行时，`new TextBox()`实例创建并存储于堆内存区域。
+        - 堆中实例地址赋给栈上的引用变量`textBox1`。
+        - 当`main`方法执行完成，栈内的引用变量被立即释放，堆中对象失去引用，随后被垃圾回收机制清理。
+
+2. 多个引用
+
+    ```java
+    var textBox1 = new TextBox();
+    var textBox2 = textBox1;
+
+    textBox2.setText("Hello World");
+    System.out.println(textBox1.text);
+    System.out.println(textBox2.text);
+    ```
+
+    - 描述：
+        - 堆中只创建了一个`TextBox`实例，栈中的两个引用变量均指向该实例。
+        - 任意引用变量修改实例属性，对所有引用可见。
+
+## 面向对象与过程式编程比较
+
+> 简述：本节比较过程式编程与面向对象编程的区别，通过员工工资计算示例展示了过程式代码的缺陷（如方法冗长、参数过多和代码耦合），以及如何通过面向对象技术实现模块化、可维护和易扩展的代码设计。
+
+**知识树**
+
+1. 过程式编程
+
+    - 以过程（函数或方法）为中心，强调顺序执行
+    - 代码集中在 main 方法中，易产生臃肿和参数过多的问题
+
+2. 面向对象编程（OOP）
+
+    - 以对象为基本单位，封装数据（状态）和行为（方法）
+    - 强调模块化、重用性和可维护性，通过类的抽象管理复杂逻辑
+
+3. 过程式编程的不足
+
+    - Fat Main：主方法中充斥着大量逻辑代码
+    - 参数过多：方法调用需要传入大量参数，降低可读性和重用性
+    - Spaghetti Code：高度耦合、逻辑分散，维护和扩展困难
+
+4. 面向对象的优势
+
+    - 重构：通过封装将数据与方法绑定，降低耦合
+    - 模块化：对象独立管理状态和行为，便于复用和扩展
+    - 设计原则：如单一职责和开放封闭原则，提高系统健壮性
+
+**代码示例**
+
+1. 过程式编程示例
+
+    ```java
+    public static void main(String[] args) {
+        int baseSalary = 30_000;
+        int extraHours = 10;
+        int hourlyRate = 20;
+        int totalWage = calculateWage(baseSalary, extraHours, hourlyRate);
+        System.out.println("Total Wage: " + totalWage);
+    }
+
+    private static int calculateWage(
+            int baseSalary,
+            int extraHours,
+            int hourlyRate) {
+        return baseSalary + extraHours * hourlyRate;
+    }
+    ```
+
+    - 描述：
+        - 代码本身没有技术错误
+        - 功能扩展时 main 方法容易臃肿
+        - 抽象出方法后仍可能面临大量参数的问题
+
+## 封装
+
+> 简述：封装（encapsulate）是面向对象编程的核心原则，通过将数据和操作数据的方法整合到同一单元（对象）中。
+
+**知识树**
+
+1. 封装概念
+
+    - 定义：将对象状态（数据）与行为（方法）组合成一个独立单元。这是面向对象编程的第一个准则。
+
+2. 封装实现
+
+    - 将相关变量（字段）定义在类中
+    - 将操作这些字段的方法封装在类内部
+
+3. 封装优势
+
+    - 降低耦合：数据与行为集中管理
+    - 复用性高：独立类可移植到不同项目中
+
+**代码示例**
+
+4. 继续上一个实例（封装）
+
+    ```java
+    public class Employee {
+    	int baseSalary = 30_000;
+    	int hourlyRate = 20;
+
+    	public int calculateSalary(int extraHours) {
+    		return baseSalary + (hourlyRate * extraHours);
+    	}
+    }
+    ```
+
+5. 调用示例
+
+    ```java
+    public class Main {
+        public static void main(String[] args) {
+            var employee = new Employee();
+            employee.baseSalary = 30_000;
+            employee.hourlyRate = 20;
+            int totalWage = employee.calculateSalary(10);
+            System.out.println(totalWage);
+        }
+    }
+    ```
