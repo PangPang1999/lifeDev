@@ -33,7 +33,10 @@ Java
 
 - Part1 Fundamentals 4h
   - startDate: 2025/3/17
-  - endDate: --
+  - endDate: 2025/3/19
+- Part2 Object-oriented 4h
+  - startDate: 2025/3/20
+  - endDate:
 
 summarize:
 
