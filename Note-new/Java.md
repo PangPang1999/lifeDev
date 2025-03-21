@@ -3403,3 +3403,112 @@
     ```
 
     - 描述：将鼠标放在`new Employee(20_000)`中的`()`上时，可以看到其调用了两次构造函数
+
+## 实例成员与静态成员
+
+> 简述：Java 类中包含两种成员类型：实例成员（属于具体对象，每个对象独立拥有）与静态成员（属于类本身，所有该类的实例对象共享）。实例成员依赖具体对象创建后才能使用，描述对象的具体状态或行为；静态成员与类关联，在类加载时初始化，为类的公共数据。
+
+**知识树**
+
+1. 类成员概述
+
+    - 实例成员：属于对象实例，只在对象创建后分配内存，表示各个实例独有的状态和行为。
+    - 静态成员：属于类本身，类加载时分配内存，由所有实例共享，无需实例化即可访问。
+
+2. 实例成员（Instance Members）
+
+    - 定义：不含`static`关键字的字段和方法。
+    - 特征：
+        - 每个对象独立拥有各自的实例字段。
+        - 实例方法内可自由访问实例字段和静态成员。
+        - 需通过对象引用访问。
+
+3. 静态成员（Static Members）
+
+    - 定义：由`static`关键字修饰的字段和方法。
+    - 特征：
+        - 类加载时即创建，内存中仅存一份，由所有实例共享。
+        - 直接通过类名访问，无需创建对象。
+        - 静态方法无法访问实例成员（因实例成员在对象创建后才存在）。
+    - 用途：
+        - 静态字段：存储共享数据（如对象计数、配置信息）。
+        - 静态方法：提供工具性、全局性功能，不依赖于特定对象状态。
+
+4. 静态成员应用场景举例
+
+    - 系统工具类方法（`Math.random()`、`Arrays.sort()`）。
+    - 常用全局常量（`Math.PI`）。
+    - 统计类或记录对象创建数量。
+
+5. 特殊的静态方法`main`
+
+    - `main` 方法必须为静态，便于 JVM 直接调用（无需实例化类即可启动程序）。
+
+6. 常见静态成员举例
+
+    - `System.out.println()`中`out`为静态字段（源码中显示的 null 是因为未被静态方法初始）
+    - `Integer.parseInt()`为静态工具方法（字符串转整数）。
+
+**代码示例**
+
+1.  静态成员示例
+
+    ```java
+    public class Employee {
+        private int baseSalary;
+        private int hourlyRate;
+
+        // 创建实例字段
+        public static int numberOfEmployees;
+
+        public Employee(int baseSalary) {
+            this(baseSalary, 0);
+        }
+
+        public Employee(int baseSalary, int hourlyRate) {
+            setBaseSalary(baseSalary);
+            setHourlyRate(hourlyRate);
+            numberOfEmployees++;
+        }
+
+        public static int getNumberOfEmployees() {
+            // 在静态方法中，只能调用静态字段
+            return numberOfEmployees;
+        }
+
+    	...
+
+    }
+    ```
+
+    - 描述：
+        - 实例字段`baseSalary`、`hourlyRate` 描述具体员工状态，每个员工独立拥有。
+        - 静态字段`numberOfEmployees` 用于记录创建的对象总数，所有对象共享。
+        - 静态方法`getNumberOfEmployees` 只能访问静态字段
+
+2.  静态字段&方法调用
+
+    ```java
+    public class Main {
+    	public static void main(String[] args) {
+    		var employee1 = new Employee(20_000);
+    		var employee2 = new Employee(30_000);
+    		var employee3 = new Employee(50_000);
+    		// 通过类名访问静态字段
+    		System.out.println(Employee.numberOfEmployees);// 输出 3
+
+    		var employee4 = new Employee(20_000);
+    		var employee5 = new Employee(30_000);
+    		var employee6 = new Employee(50_000);
+    		// 通过类名访问静态方法
+    		System.out.println(Employee.getNumberOfEmployees());// 输出6
+
+    		// 通过对象调用实例方法
+            System.out.println(emp2.calculateWage(10)); // 输出: 41000
+    	}
+    }
+    ```
+
+    - 描述：
+        - 静态字段和方法可直接使用类名调用，无需创建额外对象。
+        - 实例方法需通过对象引用调用，操作具体对象状态。

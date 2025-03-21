@@ -4,16 +4,22 @@ public class Employee {
     private int baseSalary;
     private int hourlyRate;
 
-    // 构造函数：只初始化基本工资
+    // 创建实例字段
+    public static int numberOfEmployees;
+
     public Employee(int baseSalary) {
-        // 调用另一构造函数，复用初始化逻辑；默认时薪设为 0
-        this(baseSalary, 0);// 复用
+        this(baseSalary, 0);
     }
 
-    // 构造函数：初始化基本工资和时薪
     public Employee(int baseSalary, int hourlyRate) {
         setBaseSalary(baseSalary);
         setHourlyRate(hourlyRate);
+        numberOfEmployees++;
+    }
+
+    public static int getNumberOfEmployees() {
+        // 在静态方法中，只能调用静态字段
+        return numberOfEmployees;
     }
 
     public int calculateSalary(int extraHours) {
@@ -39,7 +45,7 @@ public class Employee {
     }
 
     private void setHourlyRate(int hourlyRate) {
-        if (hourlyRate <= 0)
+        if (hourlyRate < 0)
             throw new IllegalArgumentException("Hourly Rate cannot be negative.");
         this.hourlyRate = hourlyRate;
     }
