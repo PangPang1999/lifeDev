@@ -1,8 +1,9 @@
 # 特质
 
-- 在类中进行二次参数校验，
+- 在类中进行二次参数校验，不必每一次创建实例都进行数据校验
+    - 与之而来的是，在创建构造函数时，不使用传统的`this.prop = prop`，而是直接在构造函数中调用 set 方法
 
-## 新特性
+# 新特性
 
 - var——JDK10
     - 自动推断变量类型，避免显式声明数据类型，使代码更简洁。
@@ -28,6 +29,11 @@
 需要补充：
 
 - ~~字符串池、变量作用域~~
+- 构造函数的 super
+    1.  **自动调用父类构造函数**  
+        如果你的构造函数中没有显式调用父类构造函数（即用 super(...)），编译器会在构造函数的第一行自动插入一个 super()调用，这个调用会调用父类的无参构造函数。如果父类没有无参构造函数，就必须手动调用父类的其他构造函数，否则会报错。
+    2.  **初始化成员变量**  
+        默认构造函数有时会在成员变量声明时使用初始化表达式进行初始化，而你自己写的带参数构造函数如果没有做额外的初始化，成员变量就会保持它们的默认值。确保你在构造函数中对必要的变量进行了正确的初始化。
 
 # Start
 
@@ -2937,12 +2943,12 @@
         }
 
         public int getHourlyRate() {
-            if (hourlyRate <= 0)
-                throw new IllegalArgumentException("HourlyRate cannot be 0 or less.");
             return hourlyRate;
         }
 
         public void setHourlyRate(int hourlyRate) {
+            if (hourlyRate < 0)
+                throw new IllegalArgumentException("Hourly Rate cannot be negative.");
             this.hourlyRate = hourlyRate;
         }
     }
@@ -3052,19 +3058,19 @@
             this.baseSalary = baseSalary;
         }
 
-        // 设置为private
+        // 设置为 private
         private int getBaseSalary() {
             return baseSalary;
         }
 
-        // 设置为private
+        // 设置为 private
         private int getHourlyRate() {
-            if (hourlyRate <= 0)
-                throw new IllegalArgumentException("HourlyRate cannot be 0 or less.");
             return hourlyRate;
         }
 
         public void setHourlyRate(int hourlyRate) {
+    		if (hourlyRate < 0)
+    		   throw new IllegalArgumentException("Hourly Rate cannot be negative.");
             this.hourlyRate = hourlyRate;
         }
     }
@@ -3143,4 +3149,257 @@
     }
     ```
 
-    - 描述：内部方法 findIpAdress 新增 cache 参数，导致内部逻辑调整。外部调用该方法的地方也必须更新调用参数。增加了代码的耦合性和维护难度
+    - 描述：如果内部方法 findIpAdress 新增 cache 参数，导致内部逻辑调整，若外部（前提 public）调用该方法，必须更新调用参数。增加了代码的耦合性和维护难度
+
+## 构造函数
+
+> 简述：构造函数（Constructor）是创建对象时自动调用的特殊方法，负责初始化对象状态，确保对象从创建之初就处于有效状态，防止出现无效的初始状态。
+
+**知识树**
+
+1. 构造函数定义与作用
+
+    - 定义：与类同名、无返回类型的方法，创建对象时自动调用
+    - 作用：初始化对象字段，确保对象起始状态有效
+
+2. 默认构造函数
+
+    - 作用：
+        - 对象初始化
+        - 调用父类的构造函数（后续讲解）
+        - 方便对象创建，无需传递参数即可创建对象
+    - 初始化规则：
+        - 数值字段（int, float, double）默认值为`0`
+        - 布尔字段（boolean）默认值为`false`
+        - 引用字段（Object 类型）默认值为`null`
+    - 补充：
+        - 即便构造函数中没有初始化，JVM 也会将其初始化，初始化的意义在于赋予对象明确、符合预期的状态，而不仅仅是依赖于 JVM 的默认值。
+
+3. 自定义构造函数（推荐）
+
+    - 自定义后默认构造函数失效
+    - 默认构造函数失效后，调用父类的构造函数的方法隐式转移到自定义构造函数（后续讲解）
+    - 可接收参数，初始化字段
+    - 确保对象状态始终有效
+        - 直接赋值（不安全）
+        - 通过 setter 方法赋值（推荐）：验证参数合法性，避免无效状态
+
+4. 构造函数设计原则
+
+    - 减少外部调用的猜测性，避免强迫调用者以特定顺序调用方法
+    - 使用构造函数一次性完成对象初始状态设置，降低接口复杂性，体现封装与抽象原则
+
+5. 示例
+
+    - 依旧使用 Employee 类，最终创建的 Employee 示例中，只有一个计算方法，非常优雅
+
+**代码示例**
+
+1. 默认构造函数（Java 自动隐式创建）
+
+    ```java
+    public class Employee {
+        private int baseSalary;    // 初始化为 0
+        private int hourlyRate;    // 初始化为 0
+    }
+    ```
+
+    - 描述：未定义构造函数时，Java 编译器自动提供默认构造函数，并对字段赋默认值。并不会直接显式的创建在代码中，而是隐式存在。
+
+2. 自定义构造函数（推荐实现方式）
+
+    ```java
+    public class Employee {
+        private int baseSalary;
+        private int hourlyRate;
+
+        public Employee(int baseSalary, int hourlyRate) {
+            setBaseSalary(baseSalary);
+            setHourlyRate(hourlyRate);
+        }
+
+        public int calculateSalary(int extraHours) {
+            return getBaseSalary() + (getHourlyRate() * extraHours);
+        }
+
+        public void setBaseSalary(int baseSalary) {
+            if (baseSalary <= 0)
+                throw new IllegalArgumentException("Base Salary cannot be 0 or less.");
+            this.baseSalary = baseSalary;
+        }
+
+        private int getBaseSalary() {
+            return baseSalary;
+        }
+
+        private int getHourlyRate() {
+            return hourlyRate;
+        }
+
+        public void setHourlyRate(int hourlyRate) {
+            if (hourlyRate < 0)
+                throw new IllegalArgumentException("Hourly Rate cannot be negative.");
+            this.hourlyRate = hourlyRate;
+        }
+    }
+    ```
+
+3. 进一步优化，减少暴露接口
+
+    ```java
+    public class Employee {
+        private int baseSalary;
+        private int hourlyRate;
+
+        public Employee(int baseSalary, int hourlyRate) {
+            setBaseSalary(baseSalary);
+            setHourlyRate(hourlyRate);
+        }
+
+        public int calculateSalary(int extraHours) {
+            return getBaseSalary() + (getHourlyRate() * extraHours);
+        }
+
+    	// 隐藏内部实现
+        private void setBaseSalary(int baseSalary) {
+            if (baseSalary <= 0)
+                throw new IllegalArgumentException("Base Salary cannot be 0 or less.");
+            this.baseSalary = baseSalary;
+        }
+
+        private int getBaseSalary() {
+            return baseSalary;
+        }
+
+        private int getHourlyRate() {
+            return hourlyRate;
+        }
+
+    	// 隐藏内部实现
+        private void setHourlyRate(int hourlyRate) {
+            if (hourlyRate < 0)
+                throw new IllegalArgumentException("Hourly Rate cannot be negative.");
+            this.hourlyRate = hourlyRate;
+        }
+    }
+    ```
+
+4. 创建实例并调用
+
+    ```java
+    public class Main {
+        public static void main(String[] args) {
+            var employee = new Employee(1,1);
+            // 当输入 `employee.`后，你会发现，仅暴露了一个接口，没有冗余的get、set
+            int totalWage = employee.calculateSalary(10);
+            System.out.println(totalWage);
+        }
+    }
+    ```
+
+## 方法重载
+
+> 简述：方法重载允许在同一类中定义多个同名方法，它们通过不同的参数列表来区分，从而为不同情形提供不同实现。
+
+**知识树**
+
+1. 方法重载概念
+
+    - 定义：同一类中方法名相同，但参数数量、类型或顺序不同
+    - 作用：根据传入参数调用合适的实现，增强代码灵活性
+
+2. 参数差异
+
+    - 参数个数不同
+    - 参数类型不同
+    - 参数顺序不同
+
+3. 实现与应用
+
+    - 通过重载提供不同输入的专用实现
+    - 替代默认参数，实现可选参数的效果
+    - 过度重载会降低代码可维护性，需合理设计接口
+
+4. 注意事项
+
+    - 返回值类型不作为重载依据
+    - 方法重载应聚焦于处理“完全不同”或“部分可选”的参数
+
+**代码示例**
+
+1. 计算工资方法重载示例（Employee）
+
+    ```java
+    public int calculateSalary(int extraHours) {
+        return getBaseSalary() + (getHourlyRate() * extraHours);
+    }
+
+    public int calculateSalary() {
+        return calculateSalary(0);// 可以在方法内调用其他方法
+    }
+    ```
+
+    - 描述：根据是否有额外工时调用不同版本的 calculateWage 方法，从而避免传递不必要的参数。
+
+2. 主类调用重载方法示例
+
+    ```java
+    public static void main(String[] args) {
+        var employee = new Employee(1,1);
+        int totalWage = employee.calculateSalary();//调用新增的无参计算方法
+        System.out.println(totalWage);
+    }
+    ```
+
+    - 描述：展示如何根据实际需求选择调用合适的 calculateWage 重载版本，实现代码接口的简洁与灵活，这种形式的优化程度有限，仅用于作演示。
+
+## 构造函数重载
+
+> 简述：构造函数本身也是方法，可以进行重载操作。构造函数重载允许一个类定义多个构造函数，通过不同的参数组合初始化对象。
+
+**知识树**
+
+1. 构造函数重载概念
+
+    - 定义：同一类中存在多个构造函数，区分依据为参数数量、类型或顺序
+    - 目的：满足不同情景下的初始化需求
+
+2. 重载策略与复用
+
+    - 利用 `this(...)` 可以调用其他构造函数，复用初始化代码
+    - 避免重复代码，统一数据验证逻辑
+
+3. 优势与注意事项
+
+    - 优势：提高代码复用性、灵活性及对象状态一致性
+    - 注意：自定义构造函数后默认构造函数不再自动生成；重载过多可能导致接口混乱
+
+**代码示例**
+
+1. 构造函数重载示例
+
+    ```java
+    // 构造函数：只初始化基本工资
+    public Employee(int baseSalary) {
+        // 调用另一构造函数，复用初始化逻辑；默认时薪设为 0
+        this(baseSalary, 0);// 复用
+    }
+
+    // 构造函数：初始化基本工资和时薪
+    public Employee(int baseSalary, int hourlyRate) {
+        setBaseSalary(baseSalary);
+        setHourlyRate(hourlyRate);
+    }
+    ```
+
+    - 描述：Employee 类提供两个构造函数，一个只传入基本工资，另一个同时传入基本工资和时薪。通过 `this(...)` 可以复用初始化和验证逻辑。
+
+2. 主类调用示例
+
+    ```java
+    public static void main(String[] args) {
+        var employee = new Employee(20_000);
+    }
+    ```
+
+    - 描述：将鼠标放在`new Employee(20_000)`中的`()`上时，可以看到其调用了两次构造函数
