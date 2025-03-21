@@ -88,11 +88,23 @@
       <option name="presentableId" value="Default" />
       <updated>1724286046209</updated>
       <workItem from="1724286048446" duration="173000" />
-      <workItem from="1742448582494" duration="9532000" />
+      <workItem from="1742448582494" duration="15508000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-field">
+          <url>file://$PROJECT_DIR$/src/main/java/com/pang/Browser.java</url>
+          <line>3</line>
+          <properties field="x" class="com.pang.Browser" />
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
