@@ -1,16 +1,21 @@
 package com.pang;
 
-public class Main {
-    public static void main(String[] args) {
-        var employee1 = new Employee(20_000);
-        var employee2 = new Employee(30_000);
-        var employee3 = new Employee(50_000);
-        System.out.println(Employee.numberOfEmployees);// 输出 3
+import java.util.Scanner;
 
-        var employee4 = new Employee(20_000);
-        var employee5 = new Employee(30_000);
-        var employee6 = new Employee(50_000);
-        System.out.println(Employee.getNumberOfEmployees());// 输出6
-        Integer.parseInt()
+public class Main {
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        int principal = (int) Console.readNumber("Principal: ", 1000, 1_000_000);
+        float annualInterestRate = (float) Console.readNumber("Annual Interest Rate: ", 1, 30);
+        byte periodYear = (byte) Console.readNumber("Period Year: ", 1, 30);
+
+        var mortgageCalculate = new MortgageCalculate(principal, annualInterestRate, periodYear);
+        var mortgageReport = new MortgageReport(mortgageCalculate);
+
+        mortgageReport.printMortgage();
+        mortgageReport.printPaymentsSchedule();
     }
+
 }

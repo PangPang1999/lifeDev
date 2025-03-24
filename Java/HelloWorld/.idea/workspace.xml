@@ -6,8 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="5c228750-e878-446f-ae88-116f91e9fac8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/pang/Employee.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/pang/Employee.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/pang/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/pang/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Note-new/.obsidian/workspace.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../Note-new/.obsidian/workspace.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../Note-new/Java.md" beforeDir="false" afterPath="$PROJECT_DIR$/../../Note-new/Java.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -67,10 +67,17 @@
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.41379312",
-    "settings.editor.selected.configurable": "MavenSettings",
+    "settings.editor.selected.configurable": "editor.preferences.fonts.default",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveMembersDialog.RECENTS_KEY">
+      <recent name="com.pang.MortgageCalculate" />
+      <recent name="com.pang.MortgageReport" />
+      <recent name="com.pang.Console" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -88,7 +95,7 @@
       <option name="presentableId" value="Default" />
       <updated>1724286046209</updated>
       <workItem from="1724286048446" duration="173000" />
-      <workItem from="1742448582494" duration="23615000" />
+      <workItem from="1742448582494" duration="45036000" />
     </task>
     <servers />
   </component>
@@ -106,5 +113,9 @@
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>

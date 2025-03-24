@@ -4,26 +4,6 @@
     "type": "split",
     "children": [
       {
-        "id": "56852653ac1e7b0c",
-        "type": "tabs",
-        "children": [
-          {
-            "id": "199768bd0a865d46",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Java.md",
-                "mode": "source",
-                "source": true
-              },
-              "icon": "lucide-file",
-              "title": "Java"
-            }
-          }
-        ]
-      },
-      {
         "id": "4d2eca77e7281695",
         "type": "tabs",
         "children": [
@@ -189,11 +169,11 @@
       "command-palette:打开命令面板": false
     }
   },
-  "active": "199768bd0a865d46",
+  "active": "ffb0d292d2fe3096",
   "lastOpenFiles": [
-    "JavaScript.md",
-    "Java.md",
     "Java回顾（非Moth版本）.md",
+    "Java.md",
+    "JavaScript.md",
     "es6-tooling-webpack/dist/index.html",
     "es6-tooling-webpack/dist/bundle.js",
     "es6-tooling-webpack/dist",
