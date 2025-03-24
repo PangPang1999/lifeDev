@@ -10,7 +10,7 @@
     - 仅用于局部变量（方法内部），不能用于字段、方法参数或返回值。
 - List.of()——JDK9
     - 快速创建不可变列表（列表内容不能修改）。
-    - 避免 Arrays.asList() 的缺陷（Arrays.asList() 允许修改元素，但不能调整大小）。
+    - 避免 Arrays.asList() 的缺陷（Arrays.asList() 支持修改元素，但不能调整大小）。
     - 比 new ArrayList<>() 代码更简洁。
 
 # 快捷键
@@ -726,7 +726,7 @@
 
 3. 常量特性
 
-    - 一经赋值，不允许后续修改
+    - 一经赋值，不支持后续修改
     - 修改常量会产生编译错误，确保数据一致性
 
 4. 实际应用
@@ -2483,7 +2483,7 @@ public class Main {
     }
     ```
 
-    - 说明：在 main 方法中设置断点后，当程序运行到断点时暂停，允许检查“Start”已输出，并准备逐步调试 printNumbers 方法。通过在循环内部使用 Step Over，可实时监控变量 i 的值和循环的执行情况，帮助发现只打印偶数或其他逻辑错误。
+    - 说明：在 main 方法中设置断点后，当程序运行到断点时暂停，支持检查“Start”已输出，并准备逐步调试 printNumbers 方法。通过在循环内部使用 Step Over，可实时监控变量 i 的值和循环的执行情况，帮助发现只打印偶数或其他逻辑错误。
     - 纠正：`i += 2`修改为`i++`，`i < limit`修改为`i <= limit`
 
 ## 打包 Package
@@ -3310,7 +3310,7 @@ public class Main {
 
 ## 方法重载
 
-> 简述：方法重载允许在同一类中定义多个同名方法，它们通过不同的参数列表来区分，从而为不同情形提供不同实现。
+> 简述：方法重载支持在同一类中定义多个同名方法，它们通过不同的参数列表来区分，从而为不同情形提供不同实现。
 
 **知识树**
 
@@ -3366,7 +3366,7 @@ public class Main {
 
 ## 构造函数重载
 
-> 简述：构造函数本身也是方法，可以进行重载操作。构造函数重载允许一个类定义多个构造函数，通过不同的参数组合初始化对象。
+> 简述：构造函数本身也是方法，可以进行重载操作。构造函数重载支持一个类定义多个构造函数，通过不同的参数组合初始化对象。
 
 **知识树**
 
@@ -3812,18 +3812,32 @@ public class Main {
 
 # 继承
 
-## 继承与代码复用
+## 继承示例
 
-> 简述：继承允许子类复用父类的公共行为。
+> 简述：继承（Inheritance）是一种面向对象的设计方法，使子类自动具备父类的属性和行为，从而实现代码复用，避免代码重复，简化维护。
 
 **知识树**
 
-1. 继承基本概念
+1. 继承定义与目的
 
-    - 定义：子类通过扩展父类获得其字段和方法
-    - 目的：避免重复实现相同功能，实现代码复用
+    - 定义：子类（Subclass）通过扩展（`extends`）父类（Superclass）继承公共字段与方法
+    - 目的：
+        - 代码复用，避免重复编写相同功能
+        - 增强类之间逻辑关系，方便统一维护
 
-2. 应用示例
+2. 继承的基本规则
+
+    - 子类可自动访问父类中 `public` 的成员（修饰符在后续讲解，子类还可以访问父类 protect 中的内容）
+    - 子类无法直接访问父类的 `private` 成员（需通过公共方法间接访问）
+    - 子类可添加自己独有的字段和方法，拓展父类功能
+
+3. 继承实现示例
+
+    - 父类定义公共功能，如启用和禁用控件
+    - 子类通过 `extends` 自动继承父类功能，并可增加独有功能，如设置文本内容
+
+4. 应用示例
+
     - 定义 UIControl 类，封装启用、禁用功能
     - TextBox 类通过 extends UIControl 继承这些功能，无需重复实现
 
@@ -3833,8 +3847,155 @@ public class Main {
 
     ```java
     public class UIControl {
+        private boolean isEnabled = true;
+
+        public void enable() {
+            isEnabled = true;
+        }
+
+        public void disable() {
+            isEnabled = false;
+        }
+
+        public boolean isEnabled() {
+            return isEnabled;
+        }
+    }
+    ```
+
+    - 描述：定义所有控件共有的状态管理方法（启用、禁用与状态查询）
+
+2. 子类 TextBox 示例
+
+    ```java
+    // 使用 extend 关键字实现继承
+    public class TextBox extends UIControl{
+        private String text = ""; // Field
+
+        public void setText(String text) {
+            this.text = text;
+        }
+
+        public void clear() {
+            this.text = "";
+        }
+    }
+    ```
+
+    - 描述：TextBox 自动拥有 UIControl 中的启用与禁用方法，同时额外定义了设置与清空文本的方法
+
+3. TextBox 使用父类方法
+
+    ```java
+    public class Main {
+        public static void main(String[] args) {
+            var textBox = new TextBox();
+            textBox.disable();
+            System.out.println(textBox.isEnabled());
+        }
+    }
+    ```
+
+    - 描述：TextBox 实例自动继承并可使用父类定义的公共方法（如 disable 和 isEnabled）
+
+## Object 类
+
+> 简述：Object 类是 Java 中所有类的根类，任何类都会自动继承自 Object。Object 提供了一系列基础方法，这些方法支持对象的基本操作（如类型获取、相等性比较、哈希码计算和字符串表示），并允许用户通过重写自定义对象行为。
+
+**知识树**
+
+1. Object 类概述
+
+    - Java 中所有类的直接或间接父类
+    - 无需显式声明继承，编译器自动添加 `extends Object`
+
+2. 常用方法
+
+    - `getClass()`：
+        - 获取对象运行时类型信息，用于反射
+    - `equals(Object obj)`：
+        - 默认比较引用地址，可重写为内容比较
+    - `hashCode()`：
+        - 返回基于内存地址计算的整数哈希值
+        - 用于哈希表存储结构中，必须和 `equals()` 保持一致
+    - `toString()`：
+        - 返回类全名加 "@" 和对象哈希码（十六进制）
+        - 常用于调试，可自定义返回更有意义的描述
+
+3. 对象引用与哈希码关系
+
+    - 引用相同对象时，`hashCode()` 返回值相同
+    - 不同实例即使内容相同，默认实现下哈希码也不同
+
+4. 方法重写建议
+    - 对内容敏感的类（如 `Point` 坐标类），应重写 `equals()` 和 `hashCode()` 方法，以内容为基础进行比较
+
+**代码示例**
+
+1. 默认方法演示（未重写）
+
+    ```java
+    package com.pang;
+
+    public class Main {
+        public static void main(String[] args) {
+            var box1 = new TextBox();
+            System.out.println(box1.getClass());   // class com.pang.TextBox
+            System.out.println(box1.hashCode());   // 哈希码，如：1159190947
+            System.out.println(box1.toString());   // com.pang.TextBox@4517d9a3
+
+            var box2 = box1;
+            var box3 = new TextBox();
+            System.out.println(box2.hashCode());   // 与 box1 相同，如：1159190947
+            System.out.println(box3.hashCode());   // 与 box1 不同，如：925858445
+            System.out.println(box2.equals(box1)); // true，同一引用
+            System.out.println(box3.equals(box1)); // false，不同实例
+        }
+    }
+    ```
+
+    - 描述：展示 Object 类默认实现的几个核心方法的效果。默认情况下，对象比较和哈希码均基于内存引用，而非对象内容。
+
+## 构造函数继承
+
+> 简述：构造函数在对象创建时自动调用，子类构造函数会自动调用父类构造函数。若父构造函数中存在参数，需要在子构造函数中使用 super() 进行继承。
+
+**知识树**
+
+1. 构造函数基础
+
+    - 定义：与类同名、无返回类型的方法，在创建对象时自动调用
+    - 作用：初始化类实例，确保对象状态有效。
+    - 默认构造函数：若未显式定义构造函数，编译器自动生成无参默认构造函数。
+    - 自定义构造函数：一旦定义带参构造函数，默认无参构造函数将失效，需显式重新定义。
+
+2. 继承中的构造函数调用
+
+    - 自动调用：子类构造函数默认隐式调用父类的无参构造函数。
+    - 父类仅有带参数构造函数：
+        - 子类必须通过 `super(...)` 显式调用父类构造函数，并传入必要的参数；
+        - `super(...)` 调用必须位于子类构造函数的第一行。
+    - 父类同时定义了无参和带参数构造函数：
+        - 子类默认继承无参构造函数；
+        - 如需调用带参数构造函数，可手动使用 `super(...)` 指定调用。
+
+**代码示例**
+
+1. 父类 UIControl 示例
+
+    ```java
+    public class UIControl {
         // 封装控件状态，默认启用
         private boolean isEnabled = true;
+
+        public UIControl() {
+            System.out.println("UIControl with no parameters");
+        }
+
+        public UIControl(boolean isEnabled) {
+            this.isEnabled = isEnabled;
+            System.out.println("UIControl with parameter");
+        }
 
         // 启用控件
         public void enable() {
@@ -3853,25 +4014,320 @@ public class Main {
     }
     ```
 
-    - 描述：UIControl 类封装了所有 UI 控件的通用功能，隐藏内部实现细节，仅暴露简单易用的接口。
-
-2. 子类 TextBox 示例
+2. 子类 TextBox 调用父类构造函数
 
     ```java
+    // 使用 extend 关键字实现继承
     public class TextBox extends UIControl {
-        // TextBox 独有的属性
-        private String text;
+        public TextBox() {
+            super(true); // 使用super后调用父类带参构造函数
+            System.out.println("TextBox");
+        }
 
-        // 设置文本
+        private String text = ""; // Field
+
         public void setText(String text) {
             this.text = text;
         }
 
-        // 获取文本
-        public String getText() {
-            return text;
+        public void clear() {
+            this.text = "";
         }
     }
     ```
 
-    - 描述：TextBox 类通过 extends 关键字继承 UIControl 的功能，自动拥有 enable、disable 和 isEnabled 方法，同时扩展了文本相关操作，从而实现代码复用和接口简化。
+3. Main.java
+
+    ```java
+    public class Main {
+        public static void main(String[] args) {
+            var box1 = new TextBox();
+        }
+    }
+    ```
+
+## 访问修饰符
+
+> 简述：访问修饰符控制类成员的可见性，决定哪些成员可以被外部访问。常用修饰符包括 public（完全公开）、private（仅限类内部使用）和 protected（在同一包及子类中可见）。默认（包级私有）则仅在同一包内有效。
+
+**知识树**
+
+1. Public
+
+    - 定义：对所有类公开，无访问限制
+    - 适用：需要跨包使用的公共 API
+
+2. Private
+
+    - 定义：仅在声明它的类内部可见
+    - 目的：隐藏实现细节，保护内部数据
+
+3. Protected
+
+    - 定义：在同一包内和子类中可访问
+    - 注意：容易混淆，建议谨慎使用
+
+4. 默认（包级私有）
+
+    - 定义：无修饰符时，仅在同一包内可见
+    - 建议：避免使用，以免引起混淆
+
+5. 修饰符使用建议
+
+    - 只使用 public 或 private
+
+## 方法重写
+
+> 简述：方法重写允许子类重新定义从父类继承的方法，实现定制化行为。通过使用 @Override 注解，编译器能确保方法签名一致。
+>
+> -   “签名”指的是方法的名称和参数列表（包括参数的类型、数量及顺序）
+
+**知识树**
+
+1. 方法重写概念
+
+    - 定义：子类中提供与父类相同方法名、参数列表及返回类型的全新实现
+    - 区别：与方法重载不同，重写不改变方法签名，只改变实现
+
+2. @Override 注解
+
+    - 功能：告诉编译器该方法意图重写父类方法
+    - 校验：确保方法签名完全匹配父类声明，防止误写
+
+3. 应用实例
+
+    - 例如：重写 toString() 方法以提供自定义的对象描述
+
+**代码示例**
+
+1.  重写 toString() 方法示例
+
+    ```java
+    public class TextBox extends UIControl {
+
+        private String text = ""; // Field
+
+        public void setText(String text) {
+            this.text = text;
+        }
+
+        public void clear() {
+            this.text = "";
+        }
+
+        @Override
+        public String toString() {
+            return "TextBox{" +
+                    "text='" + text + '\'' +
+                    '}';
+        }
+    }
+    ```
+
+    - 描述：TextBox 类重写了 Object 类中的 toString() 方法，使其返回文本框内容而非默认的类信息。
+
+2.  主类调用重写方法示例
+
+    ```java
+    public class Main {
+    	public static void main(String[] args) {
+    		var box1 = new TextBox();
+    		box1.setText("Hello World");
+    		System.out.println(box1.toString());
+    	}
+    }
+    ```
+
+    - 描述：在 Main 类中打印 TextBox 对象时，自动调用重写后的 toString() 方法，输出“Hello World”。
+
+## 向上转型与向下转型
+
+> 简述：向上转型（Upcasting）指子类对象转换为父类类型，安全且自动完成；向下转型（Downcasting）指父类引用转换回子类类型，需显式转换，存在类型安全风险，应结合 instanceof 关键字进行判断。
+
+**知识树**
+
+1. 向上转型（Upcasting）
+
+    - 概念：将子类实例赋给父类引用
+    - 特点：自动、安全，不会产生异常
+
+2. 向下转型（Downcasting）
+
+    - 概念：将父类引用显式转换回子类引用
+    - 特点：必须显式声明，可能导致运行时异常 (`ClassCastException`)
+    - 注意事项：
+        - 只有当父类引用指向的对象本来就是目标子类实例时，向下转型才是安全的
+        - 建议结合 `instanceof` 进行安全检查
+
+3. 使用 `instanceof` 关键字进行类型检查
+
+    - 功能：判断对象是否为某个特定类或其子类实例
+    - 作用：避免向下转型时的类型转换异常
+
+**代码示例**
+
+1. 向上转型示例（自动完成、安全）
+
+    ```java
+    public class Main {
+        public static void main(String[] args) {
+            var control = new UIControl();
+            var textBox = new TextBox();
+            show(textBox);
+        }
+
+        private static void show(UIControl control) {// 自动完成转型：UIControl 接收 textBox
+            System.out.println(control);// 仍然使用子类的toString方法 TextBox{text=''}
+        }
+    }
+    ```
+
+    - 说明：直接转换，子类实例 textBox 拥有父类 UIControl 的所有成员
+
+2. 向下转型示例（显式、需谨慎）
+
+    ```java
+    public class Main {
+        public static void main(String[] args) {
+            var control = new UIControl();
+            var textBox = new TextBox();
+            show(control);
+        }
+
+        private static void show(UIControl control) {
+            TextBox textBox = (TextBox) control; // ClassCastException 异常
+            System.out.println(control);
+        }
+    }
+    ```
+
+    - 描述：由于类型不匹配，发生`ClassCastException`异常。
+
+3. 向下转型条件
+
+    ```java
+    public class Main {
+        public static void main(String[] args) {
+            var control = new UIControl();
+            var textBox = new TextBox();
+            show(textBox);
+        }
+
+        private static void show(UIControl control) {
+            TextBox textBox = (TextBox) control;// control原本是TextBox类型
+            System.out.println(control);// TextBox{text=''}
+        }
+    }
+    ```
+
+    - 描述：control 原本就是 TextBox 类型，转为 UIControl 后，又重新转为 TextBox，不会发生异常
+
+4. 向上转型时使用子类成员
+
+    ```java
+    public class Main {
+        public static void main(String[] args) {
+            var control = new UIControl();
+            var textBox = new TextBox();
+            show(textBox);
+        }
+
+        private static void show(UIControl control) {
+            TextBox textBox = (TextBox) control;
+            textBox.setText("Hello World");
+            System.out.println(control);// 使用了子类的toString方法 TextBox{text='Hello World'}
+        }
+    }
+    ```
+
+    - Upcasting 时，转为父类后无法直接使用子类的成员，需要重新转为为子类，才能使用子类成员
+
+5. 使用 instanceof 关键字
+
+    ```java
+    public class Main {
+        public static void main(String[] args) {
+            var control = new UIControl();
+            var textBox = new TextBox();
+            show(control);
+        }
+
+        private static void show(UIControl control) {
+            if (control instanceof TextBox) {// 进行判断，避免异常
+                TextBox textBox = (TextBox) control;
+                textBox.setText("Hello World");
+            }
+            System.out.println(control);
+        }
+    }
+    ```
+
+    - 描述：在调用 TextBox 特有方法前，使用 instanceof 检查确保对象类型，然后进行 downcasting，从而安全地访问子类方法，避免 ClassCastException。
+
+# ---
+
+(开始)
+
+## 向上转型与向下转型（Upcasting & Downcasting）
+
+> 简述：向上转型指子类对象自动转换为父类引用，安全且隐式完成；向下转型指父类引用强制转换为子类引用，需显式声明，存在类型安全风险，需谨慎使用。
+
+**知识树**
+
+1. 向上转型（Upcasting）
+
+    - 子类对象自动赋给父类引用（隐式）
+    - 安全：子类必定包含父类所有特性，符合「is-a」关系
+
+2. 向下转型（Downcasting）
+
+    - 父类引用显式强转为子类引用（显式）
+    - 风险：若父类引用实际非子类实例，将触发`ClassCastException`异常
+    - 前置条件：确保父类引用实际指向子类实例，可借助`instanceof`判断
+
+3. `instanceof`关键字
+
+    - 功能：运行时检查对象真实类型
+    - 目的：在进行向下转型前确保安全，避免强制转换异常
+
+4. 转型的设计原则
+    - 尽量避免频繁使用向下转型，以多态设计取而代之
+    - 谨慎进行强制类型转换，确保类型安全，避免运行时异常
+
+**代码示例**
+
+1. 向上转型示例（安全、自动）
+
+    ```java
+    UIControl control = new TextBox(); // 自动完成向上转型
+    ```
+
+2. 向下转型示例（显式、有风险）
+
+    ```java
+    UIControl control = new UIControl();
+    TextBox textBox = (TextBox) control; // 强制转型，运行时异常 (ClassCastException)
+    ```
+
+    - 描述：父类实例强制转型为子类实例，运行时出现异常。
+
+3. 使用`instanceof`安全向下转型
+
+    ```java
+    public static void show(UIControl control) {
+        if (control instanceof TextBox) { // 检查类型
+            TextBox textBox = (TextBox) control; // 安全转型
+            textBox.setText("Hello World");
+        }
+        System.out.println(control);
+    }
+
+    public static void main(String[] args) {
+        show(new TextBox());    // 安全执行
+        show(new UIControl());  // 检查失败，避免异常
+    }
+    ```
+
+    - 描述：利用`instanceof`确保类型安全后，再执行向下转型，避免出现`ClassCastException`异常。
+
+(结束)

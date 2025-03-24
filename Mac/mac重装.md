@@ -398,12 +398,6 @@ brew install svn
 9. Material Icon Theme：好看的文件图标
 10. Power Mode：。。。
 11. Trailing Spaces：突出显示尾随空格，让你的“空格”型强迫症 显示呈现。
-12. Rainbow Fart：官方概述：**VSCode Rainbow Fart**是一个在你编程时**持续夸你写的牛逼**的扩展，可以根据代码关键字播放贴近代码意义的真人语音。使用方法(来自官方)：
-    1. 在 VSCode 的菜单栏中找到 `查看 - 命令面板`，或使用快捷键 `Ctrl + Shift + P`（MacOS `Command + Shift + P`）呼出 `命令面板`。
-    2. 在 `命令面板` 中输入 `> Enable Rainbow Fart` 并回车。
-    3. 此时应该会弹出一个消息通知，点击通知上的 `Open` 按钮。
-    4. 在打开的页面上点击 `授权`。
-    5. 享受编程吧！请尝试在 VSCode 中输入 `function` 关键字。
 13. Error Lens：将编辑器诊断出的警告、错误、语法问题（提示的波浪线）等，以用颜色填充行背景的方式突出提示，并将诊断信息显示在尾部。
 
 ### 10、Visual Studio Code 配置文件

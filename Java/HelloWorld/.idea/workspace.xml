@@ -7,7 +7,7 @@
     <list default="true" id="5c228750-e878-446f-ae88-116f91e9fac8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/pang/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/pang/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../Note-new/.obsidian/workspace.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../Note-new/.obsidian/workspace.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/pang/TextBox.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/pang/TextBox.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../Note-new/Java.md" beforeDir="false" afterPath="$PROJECT_DIR$/../../Note-new/Java.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -21,6 +21,9 @@
         <option value="Class" />
       </list>
     </option>
+  </component>
+  <component name="FormatOnSaveOptions">
+    <option name="myRunOnSave" value="true" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
@@ -67,7 +70,7 @@
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.41379312",
-    "settings.editor.selected.configurable": "editor.preferences.fonts.default",
+    "settings.editor.selected.configurable": "preferences.sourceCode",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -95,7 +98,7 @@
       <option name="presentableId" value="Default" />
       <updated>1724286046209</updated>
       <workItem from="1724286048446" duration="173000" />
-      <workItem from="1742448582494" duration="45036000" />
+      <workItem from="1742448582494" duration="55902000" />
     </task>
     <servers />
   </component>
