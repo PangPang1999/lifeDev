@@ -2,13 +2,10 @@ package com.pang;
 
 public class Main {
     public static void main(String[] args) {
-        var control = new UIControl();
-        var textBox = new TextBox();
-        show(textBox);
-    }
-
-    private static void show(UIControl control) {
-        TextBox textBox = (TextBox) control;
-        System.out.println(control);// TextBox{text=''}
+        UIControl[] controls = {new UIControl(), new TextBox(), new CheckBox()};
+        for (UIControl control : controls)
+            control.render(); // 根据实际对象类型动态调用各自的 render 方法，避免IF判断
     }
 }
+
+

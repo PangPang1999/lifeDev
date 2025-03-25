@@ -1,17 +1,10 @@
 package com.pang;
 
-public class UIControl {
+public abstract class UIControl {
     // 封装控件状态，默认启用
     private boolean isEnabled = true;
 
-    public UIControl() {
-        System.out.println("UIControl with no parameters");
-    }
-
-    public UIControl(boolean isEnabled) {
-        this.isEnabled = isEnabled;
-        System.out.println("UIControl with parameter");
-    }
+    public abstract void render();
 
     // 启用控件
     public void enable() {

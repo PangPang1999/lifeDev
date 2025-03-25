@@ -38,6 +38,7 @@
     - 复制粘贴所在行: Commond+D
     - 生成 set/get 等: Commond+N，，默认为 public
     - 输出语句: psvm
+    - 注释：command+/
 
 # Note
 
@@ -4150,6 +4151,7 @@ public class Main {
 
     - 概念：将子类实例赋给父类引用
     - 特点：自动、安全，不会产生异常
+    - 注意：转型后无法使用独有成员，需要重写向下转型后使用
 
 2. 向下转型（Downcasting）
 
@@ -4222,7 +4224,7 @@ public class Main {
 
     - 描述：control 原本就是 TextBox 类型，转为 UIControl 后，又重新转为 TextBox，不会发生异常
 
-4. 向上转型时使用子类成员
+4. 向上转型时使用子类独有成员
 
     ```java
     public class Main {
@@ -4264,70 +4266,389 @@ public class Main {
 
     - 描述：在调用 TextBox 特有方法前，使用 instanceof 检查确保对象类型，然后进行 downcasting，从而安全地访问子类方法，避免 ClassCastException。
 
-# ---
+## 对象比较与哈希值
 
-(开始)
-
-## 向上转型与向下转型（Upcasting & Downcasting）
-
-> 简述：向上转型指子类对象自动转换为父类引用，安全且隐式完成；向下转型指父类引用强制转换为子类引用，需显式声明，存在类型安全风险，需谨慎使用。
+> 简述：通过重写 `equals` 与 `hashCode` 方法，可实现对象基于内容的比较与哈希值生成，确保对象相等逻辑与哈希集合（如`HashSet`、`HashMap`）行为一致，避免意外错误。集合相关内容在后续讲解。
 
 **知识树**
 
-1. 向上转型（Upcasting）
+1. 默认比较机制
 
-    - 子类对象自动赋给父类引用（隐式）
-    - 安全：子类必定包含父类所有特性，符合「is-a」关系
+    - 对象默认使用内存地址比较引用
+    - `equals()` 默认与 `==` 等效，仅判断引用是否指向相同对象
+    - `hashCode()` 默认使用内存地址计算，内容相同但地址不同则哈希值不同
 
-2. 向下转型（Downcasting）
+2. 重写 `equals()` 方法（基于内容比较）
 
-    - 父类引用显式强转为子类引用（显式）
-    - 风险：若父类引用实际非子类实例，将触发`ClassCastException`异常
-    - 前置条件：确保父类引用实际指向子类实例，可借助`instanceof`判断
+    - 重写目的：
+        - 实现基于对象内部数据的相等性判断，满足业务逻辑需求
+    - 正确步骤：
+        - 判断引用是否完全相同（优化性能）
+        - 判断类型是否一致（`instanceof` 或 `getClass()`）
+        - 进行向下转型并比较具体字段值
+    - 特别注意：
+        - 参数必须为`Object`类型，否则为方法重载非重写
+        - 必须先进行类型检查以防止`ClassCastException`
+        - 重写`equals()`时必须同时重写`hashCode()`确保一致性
 
-3. `instanceof`关键字
+3. 重写 `hashCode()` 方法（基于内容计算哈希）
 
-    - 功能：运行时检查对象真实类型
-    - 目的：在进行向下转型前确保安全，避免强制转换异常
+    - 重写目的：
+        - 保证在哈希结构（如哈希表）中的对象行为一致
+        - 满足约定：若对象`equals()`相等，则哈希值必须相同
+    - 常用方法：
+        - 使用`Objects.hash()`简洁有效地生成哈希值，自动组合字段计算哈希
 
-4. 转型的设计原则
-    - 尽量避免频繁使用向下转型，以多态设计取而代之
-    - 谨慎进行强制类型转换，确保类型安全，避免运行时异常
+4. IntelliJ 自动生成 equals 和 hashCode
+
+    - 推荐使用 IDE 工具自动生成，减少手写代码导致的错误风险
 
 **代码示例**
 
-1. 向上转型示例（安全、自动）
+1. 创建 Point 类，手动重写 equals 与 hashCode
 
     ```java
-    UIControl control = new TextBox(); // 自动完成向上转型
-    ```
+    public class Point {
+        private int x;
+        private int y;
 
-2. 向下转型示例（显式、有风险）
-
-    ```java
-    UIControl control = new UIControl();
-    TextBox textBox = (TextBox) control; // 强制转型，运行时异常 (ClassCastException)
-    ```
-
-    - 描述：父类实例强制转型为子类实例，运行时出现异常。
-
-3. 使用`instanceof`安全向下转型
-
-    ```java
-    public static void show(UIControl control) {
-        if (control instanceof TextBox) { // 检查类型
-            TextBox textBox = (TextBox) control; // 安全转型
-            textBox.setText("Hello World");
+        public Point(int x, int y) {
+            this.x = x;
+            this.y = y;
         }
-        System.out.println(control);
-    }
 
-    public static void main(String[] args) {
-        show(new TextBox());    // 安全执行
-        show(new UIControl());  // 检查失败，避免异常
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+
+            if (!(obj instanceof Point p))
+                return false;
+
+            var other = (Point) obj;
+            return x == other.x && y == other.y;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(x, y);
+        }
     }
     ```
 
-    - 描述：利用`instanceof`确保类型安全后，再执行向下转型，避免出现`ClassCastException`异常。
+2. IntelliJ 自动生成 equals 与 hashCode 方法（Command + N）
 
-(结束)
+    ```java
+    public class Point {
+        private int x;
+        private int y;
+
+        public Point(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) return false;
+            Point point = (Point) o;
+            return x == point.x && y == point.y;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(x, y);
+        }
+    }
+    ```
+
+    - 描述：不同 JDK 版本代码略有差异，以实际生成代码为准。
+
+## 多态
+
+> 简述：多态（Polymorphism）使得同一接口在不同对象上具有不同实现。通过继承和方法重写，程序可以在运行时动态决定调用哪个具体方法，从而简化条件判断，增强系统的灵活性和可扩展性。
+
+**知识树**
+
+1. 多态的定义
+
+    - 来源：希腊语“poly”（多）与“morph”（形态）
+    - 定义：允许同一方法在不同对象中有不同表现；父类引用调用子类重写的方法。
+
+2. 多态的优势
+
+    - 统一接口管理不同子类对象
+    - 运行时动态绑定，减少冗长条件判断
+
+3. 重载与重写
+
+    - 区分：两者都体现多态，但实现机制不同
+    - 重载（Overloading）：
+        - 同一类中定义多个同名但参数不同的方法
+        - 编译时根据参数类型和数量进行方法选择（静态多态）
+    - 重写（Overriding）：
+        - 子类重新实现父类中已定义的方法
+        - 运行时根据对象的实际类型决定调用哪个版本（动态多态）
+
+**代码示例**
+
+1. 定义父类 UIControl 及子类重写示例
+
+    - UIControl.java 创建基础 render()方法
+
+        ```java
+        public class UIControl {
+
+        	private boolean isEnabled = true;
+
+            public void render() {
+                // 空实现，由子类实现具体逻辑
+            }
+
+        	...
+
+        }
+        ```
+
+    - 创建 CheckBox.java，继承 UIControl 并重写 render()方法
+
+        ```java
+        public class CheckBox extends UIControl {
+          @Override
+          public void render() {
+              System.out.println("Rendering CheckBox");
+          }
+        }
+        ```
+
+    - 修改 TextBox.java，重写父类 render()方法
+
+        ```java
+        public class TextBox extends UIControl {
+
+          private String text = ""; // Field
+
+          @Override
+          public void render() {
+              System.out.println("Render TextBox");
+          }
+
+        	...
+
+        }
+        ```
+
+    - 描述：TextBox 和 CheckBox 继承 UIControl 并分别重写了 render 方法，实现各自的渲染逻辑。
+
+2. 多态调用示例
+
+    ```java
+    public class Main {
+        public static void main(String[] args) {
+            UIControl[] controls = {new TextBox(), new CheckBox()};
+            for (UIControl control : controls)
+                control.render(); // 根据实际对象类型动态调用各自的 render 方法，避免IF判断
+        }
+    }
+    ```
+
+    - 描述：通过父类引用数组管理不同控件，实现多态调用，无需额外的条件判断即可执行正确的渲染行为。
+
+## 抽象类与抽象方法
+
+> 简述：抽象类定义了一个概念性的基类，不能被实例化，能被继承，仅用于封装共有行为并强制子类实现特定方法。抽象方法仅声明不提供实现，子类必须重写这些方法以提供具体行为。
+
+**知识树**
+
+1. 抽象类的定义与作用
+
+    - 定义：用 `abstract` 修饰的类，不能直接实例化
+    - 作用：提供公共代码，作为子类的基类，通过抽象方法来规定子类必须提供的行为。
+
+2. 抽象方法
+
+    - 定义：在抽象类中声明但不实现的方法，以分号结束
+    - 要求：所有非抽象子类必须实现所有父类抽象方法，否则子类也必须声明为 abstract
+
+3. 使用场景
+
+    - 适用于定义一组相关类的公共行为，同时允许各子类有不同实现
+    - 示例：UI 控件类（UIControl）定义抽象的 render() 方法，具体控件（如 TextBox、CheckBox）实现自己的渲染逻辑
+
+**代码示例**
+
+1. 案例引入，UIControl 作为抽象概念，不应直接实例化，只能用其子类（如 TextBox、CheckBox）的实例替代。
+
+    ```java
+    public class Main {
+        public static void main(String[] args) {
+            UIControl[] controls = {new UIControl(), new TextBox(), new CheckBox()};
+            for (UIControl control : controls)
+                control.render(); // 根据实际对象类型动态调用各自的 render 方法，避免IF判断
+        }
+    }
+    ```
+
+2. 将 UIControl.java 修改为抽象类， render()修改为抽象方法
+
+    ```java
+    public abstract class UIControl {
+
+    	private boolean isEnabled = true;
+
+        public abstract void render();
+
+    	...
+
+    }
+    ```
+
+    - 描述：UIControl 类声明为 abstract，包含抽象方法 render() 用于强制子类提供渲染实现
+
+3. 子类实现抽象方法
+
+    ```java
+    public class CheckBox extends UIControl {
+        @Override
+        public void render() {
+            // 实现 CheckBox 的渲染逻辑
+            System.out.println("Rendering CheckBox...");
+        }
+    }
+    ```
+
+    - 描述：CheckBox 类继承 UIControl 并实现抽象方法 render()，满足编译要求；如果未实现 render()，则 CheckBox 必须声明为 abstract。
+
+## Final
+
+> 简述：`final` 关键字用于声明不可修改的类、方法或常量。`final` 类无法被继承，`final` 方法无法被重写。它们通常用于确保类的实现不被改变，保证类的行为不被意外修改。`final` 还可以用于声明常量。
+
+**知识树**
+
+1. final 类
+
+    - 定义：声明为 `final` 的类不能被继承。
+    - 作用：防止其他类对该类进行继承，确保该类的行为和实现不被修改。
+    - 使用场景：通常用于防止类的扩展，尤其是在类的设计已非常具体，无法被进一步修改时。
+
+2. final 方法
+
+    - 定义：声明为 `final` 的方法不能在子类中被重写。
+    - 作用：确保某些方法的实现不被子类修改，保证方法的行为一致。
+    - 使用场景：适用于方法的实现涉及特定逻辑，改变该逻辑会导致不可预知的行为时。
+
+3. 设计考虑
+    - `final` 类和方法的使用应谨慎，因为它们限制了继承和多态的使用，但在某些情况下（如类的行为已完全确定），可以避免被继承或修改。
+
+**代码示例**
+
+1. final 类示例
+
+    ```java
+    public final class CheckBox {
+        private boolean isChecked = false;
+
+        public void toggle() {
+            isChecked = !isChecked;
+        }
+
+        public boolean isChecked() {
+            return isChecked;
+        }
+    }
+
+    // 下面的代码会导致编译错误，因为 CheckBox 类是 final
+    // public class MyCheckBox extends CheckBox {} // 编译错误
+    ```
+
+    - 描述：`CheckBox` 类被声明为 `final`，因此无法继承，确保该类的实现不被修改。
+
+2. final 方法示例
+
+    ```java
+    public class UIControl {
+        public final void enable() {
+            // 启用控制逻辑
+            System.out.println("Control enabled.");
+        }
+    }
+
+    public class CheckBox extends UIControl {
+        // 下面的代码会导致编译错误，因为 enable() 方法是 final
+        // @Override
+        // public void enable() { } // 编译错误
+    }
+    ```
+
+    - 描述：`UIControl` 类中的 `enable()` 方法被声明为 `final`，因此不能在 `CheckBox` 类中重写，保证了该方法的实现不可修改。
+
+## 避免过度继承
+
+> 简述：继承提供了代码复用和多态行为，但过度使用继承可能导致紧密耦合和复杂的类层级，增加代码维护和重构的难度。应当谨慎使用继承，避免创建过深的继承层次。
+
+**知识树**
+
+1. 继承的优点
+
+    - 代码复用：通过继承可以重用父类的属性和方法，避免重复代码。
+    - 多态：子类可以继承父类的行为，并根据需要进行修改。
+
+2. 继承的风险
+
+    - 深层次继承：深层继承会导致类之间紧密耦合，修改一个类可能导致许多相关类的修改或重编译。
+    - 不必要的继承：如果某些属性或行为不适合继承，可能会污染类层次结构，导致不必要的复杂性。
+    - 不灵活性：当类层级复杂时，修改父类会影响到大量子类，降低代码的灵活性和可维护性。
+
+3. 避免过度继承的策略
+
+    - 合理设计类层级，避免不必要的深层继承。
+    - 简化继承关系：避免冗余的子类，通过添加必要的字段或方法来实现所需功能。
+    - 使用组合替代继承（Java 中存在组合的概念，这里不过多引入）。
+
+**代码示例**
+
+1. 错误的继承设计（过深的继承层次）
+
+    ```java
+    Entity
+        ├── User
+        │     ├──Instructor
+        │     │       ├──RegularInstructor
+        │     │       └──PremiumInstructor
+        │     └─Student
+        └── Course
+    ```
+
+    - 描述：在该设计中，`User` 类和 `Course` 类与 `Entity` 类紧密耦合。如果 `Entity` 类发生变化（例如构造函数的变动），所有继承了该类的子类都需要修改和重新部署。这增加了系统的复杂度和维护成本。
+
+2. 简化继承设计
+
+    - 若 Instructor 和 Student 的重复代码不多，将其单独定义避免耦合
+    - PremiumInstructor 和 RegularInstructor 使用字段区分，只保留 Instructor
+    - 最后只剩下 Instructor、Student、Course 三个类
+
+## 多重继承与
+
+> 简述：Java 设计选择不支持多重继承，以避免多重继承带来的复杂性。多重继承可能导致不明确的行为和复杂的类关系，这种设计决策旨在保持语言的简洁性和健壮性。
+
+**知识树**
+
+1. 多重继承的定义
+
+    - 多重继承指的是一个类可以同时继承多个父类，继承多个父类的属性和方法。
+    - C++和 Python 等语言支持多重继承，但 Java 设计者选择不支持这一特性。
+
+2. 多重继承的复杂性
+
+    - 当多个父类定义了相同签名但不同实现的方法时，不清楚应该继承哪一个实现。例如，类 A 和类 B 都定义了一个相同的方法`toString()`，但实现不同，类 C 继承时无法决定使用哪一实现。
+    - 类 A 和类 B 如果都有一个名为`game`的字段，类 C 应该继承哪个字段也是不明确的。
+
+3. Java 的设计决策
+
+    - Java 选择不支持多重继承，以避免这些复杂性和潜在的模糊性。
+    - Java 中，所有类都直接或间接继承自`Object`类。即使是复杂的类层次结构，最终也会从`Object`类继承，而`Object`类本身并没有多重继承问题。
+    - Java 采用接口来弥补多重继承的需求，一个类可以实现多个接口，但只能继承一个类，避免了多重继承带来的问题。
+
+# 接口
+
+# ---
