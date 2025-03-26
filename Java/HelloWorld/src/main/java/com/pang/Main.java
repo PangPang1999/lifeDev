@@ -2,9 +2,16 @@ package com.pang;
 
 public class Main {
     public static void main(String[] args) {
-        UIControl[] controls = {new UIControl(), new TextBox(), new CheckBox()};
-        for (UIControl control : controls)
-            control.render(); // 根据实际对象类型动态调用各自的 render 方法，避免IF判断
+        var calculator1 = new TaxCalculator2024(200_000);
+        var calculator2 = new TaxCalculator2025(200_000);
+
+        // var taxReport = new TaxReport(calculator);
+        var taxReport = new TaxReport();
+        // taxReport.setCalculator(calculator1);
+        taxReport.show(calculator1);
+
+        // taxReport.setCalculator(calculator2);
+        taxReport.show(calculator2);
     }
 }
 

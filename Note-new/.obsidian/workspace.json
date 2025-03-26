@@ -145,7 +145,7 @@
               "state": {
                 "file": "Java.md",
                 "followCursor": true,
-                "showSearch": false,
+                "showSearch": true,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
@@ -171,9 +171,9 @@
   },
   "active": "2bd66e13abd0c281",
   "lastOpenFiles": [
+    "Java回顾（非Moth版本）.md",
     "JavaScript.md",
     "Java.md",
-    "Java回顾（非Moth版本）.md",
     "es6-tooling-webpack/dist/index.html",
     "es6-tooling-webpack/dist/bundle.js",
     "es6-tooling-webpack/dist",
