@@ -68,7 +68,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
+    "project.structure.last.edited": "Project",
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.41379312",
     "settings.editor.selected.configurable": "preferences.sourceCode",
@@ -106,7 +106,8 @@
       <updated>1724286046209</updated>
       <workItem from="1724286048446" duration="173000" />
       <workItem from="1742448582494" duration="57521000" />
-      <workItem from="1742811804537" duration="26438000" />
+      <workItem from="1742811804537" duration="27879000" />
+      <workItem from="1742958580541" duration="8118000" />
     </task>
     <servers />
   </component>

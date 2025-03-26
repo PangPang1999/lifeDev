@@ -148,21 +148,22 @@
 
 ## 开发环境
 
-> 简述：搭建 Java 开发环境需安装 JDK 和 IDEA，配置环境变量后进行验证。
+> 简述：搭建 Java 开发环境需安装 JDK 和 IDEA，配置环境变量后进行验证。这里使用的语言级别是 JDK12，使用的 JDK 版本是 17（持久版本）
 
 **知识树**
 
-1. 安装 Java（JDK8/17）课程使用的是 JDK12 `brew install --cask zulu@17`
+1. 安装 Java（JDK17）
 
-    - 使用 Homebrew 安装 JDK：
+    - 使用 Homebrew 安装 JDK
         ```bash
-        brew install --cask zulu@8
+        brew install --cask zulu@17
         ```
     - 配置 Java 环境变量，host 目录下，在`.zprofile` 中添加以下代码
         ```bash
-        export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
+        export JAVA_HOME=$(/usr/libexec/java_home -v 17)
         export PATH=$JAVA_HOME/bin:$PATH
         ```
+        - `Command + Shift + .`显示隐藏文件
     - 刷新环境变量：
         ```bash
         source ~/.zprofile
@@ -172,6 +173,8 @@
         java -version
         javac -version
         ```
+    - 若使用 JDK8
+        - 将按照命令中的`@17`替换为`@8`，将配置环境变量命令中的`17`替换为 `1.8`（Java 8 在内部版本号上仍然用 `1.8` 来表示）
 
 2. 安装 IDEA
 
@@ -195,7 +198,7 @@
         - 参数列表：定义方法的输入
         - 方法体：实现具体逻辑
 
-2. Main 方法
+2. `main` 方法
 
     - 概念：程序启动的入口，执行程序时首先执行`main`内的代码。
 
@@ -265,7 +268,7 @@
 
 ## 第一个程序
 
-> 简述：Java 程序通过 类 组织代码，`main` 方法作为程序入口，`System.out.println` 用于输出文本。IDEA 提供高效的开发环境，包 (`package`) 用于管理类。
+> 简述：Java 程序通过 类 组织代码，`main` 方法作为程序入口。IDEA 提供高效的开发环境，使用包 (`package`) 管理类。
 
 **知识树**
 
@@ -282,7 +285,7 @@
     - `package`：每个文件上面都有包地址，代表类属于哪个包。
     - `;`：Java 程序中，每一个声明之后都需要有`;`
     - `static`：后续再学习，这里只需要记住，每一个 `main` 方法都需要使用 `static` 修饰
-    - `String[] args`：接收参数。
+    - `String[] args`：用于接收在命令行中运行程序时传递的参数。将在下一节讲述。
     - `//`：代表单行注释
 
 3. `System.out.println("Hello World!")`
@@ -292,7 +295,11 @@
     - `printlin`：属于 `PrintStream` 中的一个方法
     - `" "`：文本数据比如`Hello World`，需要使用`""`将其包裹
 
-4. 快捷键
+4. 启动按钮
+
+    - 在编译器中的启动，其实是一个编译加执行的步骤，将在下一节讲述
+
+5. 快捷键
 
     - control+R 运行程序
     - psvm 输出语句
@@ -311,46 +318,79 @@
 
 ## 执行过程
 
-> 简述：Java 程序的执行分为 编译（Compilation） 和 运行（Execution） 两个阶段。Java 代码首先由 Java 编译器 转换为 字节码（Bytecode），然后由 Java 虚拟机（JVM） 解释并转换为底层操作系统可执行的机器码，使 Java 具备跨平台能力。
+> 简述：Java 程序运行分为两大阶段：编译（Compilation）和运行（Execution）。在编译阶段，源代码被转换为平台无关的字节码（Bytecode）；在运行阶段，Java 虚拟机（JVM） 将字节码转换为当前平台的机器码执行程序，从而实现跨平台特性。
 
 **知识树**
 
 1. 编译（Compilation）
 
-    - 概念：Java 代码需要转换为 字节码（`.class` 文件） 才能执行。
+    - 概念：将 Java 源代码转换为字节码（`.class` 文件）。
     - 工具：`javac`（Java 编译器），随 JDK（Java Development Kit） 提供。
     - 过程：
-        1. 使用 `javac` 命令编译 `.java` 文件。
-        2. 生成 字节码（`.class` 文件），可在任何支持 Java 的环境下运行。
+        1. 使用 `javac` 编译 `.java` 文件。
+        2. 生成字节码文件，可在任何支持 JVM 的平台上运行。
 
 2. 字节码（Bytecode）
 
-    - 概念：Java 代码编译后形成的 中间代码，不是机器码。
+    - 概念：Java 编译后生成的中间代码，不是直接的机器码。
     - 特点：
         - 平台无关：可在 Windows、macOS、Linux 等系统运行。
-        - 需由 JVM 解析执行。
+        - 需由 JVM 解释
 
 3. 运行（Execution）
 
-    - 概念：JVM 将 字节码 转换为 本地机器码，执行 Java 程序。
-    - Java 虚拟机（JVM）：解释/编译 Java 字节码，使其可在不同操作系统运行。
+    - 概念：JVM 将字节码转换为本地机器码，并执行程序。
+    - 机制：逐条翻译字节码为机器指令。
 
 4. 手动编译与运行 Java 程序
 
-    1. 编译：
-        - 右击 `Main.java` 文件，点击在终端中打开
-        - 使用 `javac` 编译 Java 文件，生成 `Main.class`（字节码文件）。
+    1. 编译 `Main.java`：
+        - 复制文件路径（如：`src/main/java/com/pang/Main.java`）。
+        - 执行命令：
             ```sh
-            javac Main.java
+            javac src/main/java/com/pang/Main.java
             ```
-        - 终端输入 ls，能看到最初的 `Main.java` 文件以及生成的 `Main.class` 文件
-    2. 运行：
-        - 终端输入两次`cd ..`来到 com 的父级目录
-        - 使用 `java` 命令执行字节码， JVM 解析字节码，转换为机器码并运行。这里的路径与最初的包名有关，这里的 `Main` 指的是编译后生成的 `class` 文件
+        - 验证：使用命令检查生成的 `Main.class` 文件。
+            ```sh
+            ls src/main/java/com/pang/
+            ```
+    2. 运行 `Main.java`：
+        - 在 `com` 目录的父级目录打开终端。
+        - 执行命令：
             ```sh
             java com.pang.Main
             ```
-        - 输出 `Hello, World!`。
+        - 注意：使用完整包路径的类全限定名运行，不要在命令中添加 `.class` 后缀。
+        - 示例输出：`Hello, World!`
+
+5. 全项目编译与运行
+
+    - 说明
+        - 启动按钮背后的操作本质上是命令行操作，不仅仅编译单个 `Main.java` 文件，而是对整个项目重新编译，并指定输出目录。
+    - 步骤：
+        1. 编译
+            - 执行以下命令，将所有 Java 文件编译到指定目录：
+                ```sh
+                javac -d target/classes $(find src/main/java -name "*.java")
+                ```
+            - 参数说明：`-d` 用于指定输出路径，将生成的字节码文件存放于 `target/classes` 目录。
+        2. 运行
+            - 执行以下命令，通过指定类路径来运行主类：
+                ```sh
+                java -cp target/classes com.pang.Main
+                ```
+            - 参数说明：`-cp` 用于指定类路径，确保 JVM 能找到所需的类文件。
+    - 参数传递示例：
+        - 如果需要传递参数（例如 `hello` 和 `World`），可按如下方式操作：
+            ```sh
+            javac -d target/classes $(find src/main/java -name "*.java")
+            java -cp target/classes com.pang.Main hello World
+            ```
+        - 示例代码（在 `Main.java` 中）：
+            ```java
+            System.out.println(args[0] + args[1]);
+            ```
+        - 预期输出：`helloWorld`
 
 ## Java 历史
 
@@ -361,7 +401,7 @@
 
 ## 变量与变量命名
 
-> 简述：变量是用于动态存储数据的内存空间标识符，Java 中每个变量必须声明明确的数据类型，并遵循 camelCase 命名规范。
+> 简述：变量是用于动态存储数据的内存空间标识符，Java 中每个变量必须声明准确的数据类型，并遵循 camelCase 命名规范。
 
 **知识树**
 
@@ -382,8 +422,8 @@
 
 4. 变量值的修改与复制
 
-    - 修改变量值：可重新赋值
-    - 变量间赋值：复制变量值
+    - 修改变量值：通过赋予新值来更新变量
+    - 变量间赋值：将一个变量的值复制给另一个变量
 
 5. 命名规范
 
@@ -391,6 +431,10 @@
     - 驼峰命名法：如 `myAge`
     - 推荐单行单变量声明
     - 最佳实践：变量名应具有描述性
+
+6. 最佳实践
+
+    - 可以在一行声明多个变量，但为了更清晰，建议分开声明。
 
 **代码示例**
 
@@ -445,33 +489,42 @@
 
 **知识树**
 
-1. 引用类型定义
+1.  引用类型定义
 
     - 除基本类型外的数据类型
 
-2. 内存管理
+2.  内存管理
 
-    - 引用类型：用`new`分配内存，JRE 自动释放
+    - 引用类型：用`new`分配内存，JRE 自动释放（垃圾回收机制，后续讲）
     - JRE：`Java Runtime Environment`，即 Java 运行环境
 
-3. 声明方式
+3.  声明方式
 
     - 格式：`类名 对象名 = new 类名();`
+    - 包引入：
+        - java.lang 包中的所有类（如 `Object`、`String`、`Integer`、`Double`、`Math`、`System` 等）默认自动导入，无需手动引入，这些类后续讲解。
+        - 其他包中的类，例如 `java.util.Date`，需手动导入（IDEA 通常会自动提示并导入）。
 
-4. 自动导包
+4.  引用类型输出
 
-    - IDEA 自动导入包，解决类重名冲突需手动指定完整路径
+    - 默认调用 `Object` 的 `toString` 方法，输出格式为“类全限定名@内存地址”，内存地址即哈希码
+    - 部分类（如 `Date`、`String`）重写了 `toString` 方法，输出更具语义
 
 **代码示例**
 
-1. 引用类型示例
+1.  引用类型示例
 
     ```java
-    import java.util.Date;
+    Object obj = new Object();
+    System.out.println(obj);// java.lang.Object@1be6f5c3
 
     Date now = new Date();
-    System.out.println(now);
+    System.out.println(now);// 输出当前时间
     ```
+
+    - IDEA 会自动提示并导入 `Date` 包
+    - `Object` 类未重写 `toString` 方法，因此输出默认格式
+    - `Date` 类重写了 `toString` 方法，显示具体日期信息
 
 ## 基本类型 vs 引用类型
 
@@ -528,13 +581,12 @@
     - 长度：调用 `length()` 方法获取字符数
     - 查找：利用 `indexOf()` 定位子串或字符首次出现位置（索引从 0 开始）
     - 替换：通过 `replace()` 方法返回替换后的新字符串
-    - 大小写转换：使用 `toLowerCase()` 和 `toUpperCase()`
-    - 去除空白：用 `trim()` 删除首尾多余空格
+    - 大小写转换：使用 `toLowerCase()` 和 `toUpperCase()`返回转换后的新字符串
+    - 去除空白：用 `trim()` 删除首尾多余空格返回转换后的新字符串
 
 4. 字符串不可变性
 
-    - 创建后不可修改，所有改变操作均返回新字符串
-    - 有助于线程安全及内存管理
+    - **创建后不可修改**，所有改变操作均返回新字符串
 
 **代码示例**
 
@@ -614,9 +666,9 @@
 4. 字符串中常见问题及解决方法：
 
     - 路径字符串：
-        - Windows 路径含有`\`，需用`\\`表示。
+        - Windows 路径含有 `\` ，需用 `\\` 表示。
     - 字符串内引号：
-        - 双引号需用`\"`表示。
+        - 双引号需用 `\"` 表示。
 
 **代码示例**
 
@@ -669,7 +721,7 @@
 1. 数组概念
 
     - 存储相同数据类型的连续内存区域
-    - 固定长度，创建后不能动态增减，若需要动态增减，则使用 Collection 集合（后续将讲到）
+    - **固定长度，创建后不能动态增减**，若需要动态增减，则使用 Collection 集合（后续将讲到）
 
 2. 数组地址
 
@@ -722,7 +774,7 @@
     System.out.println(items3); // 输出 items3 的内存地址，与 items2 相同
     ```
 
-    - 说明：说明数组变量保存的是数组对象的地址，相同赋值时地址一致。
+    - 说明：输出数组默认输出其内存地址，相同赋值时地址一致。
 
 3. 数组打印
 
@@ -734,7 +786,7 @@
     System.out.println(Arrays.toString(numbers));
     ```
 
-    - 说明：直接打印数组对象只会显示内存地址，使用 Arrays.toString 才能直观显示数组内容。
+    - 说明：直接打印数组对象只会显示内存地址，使用 `Arrays.toString()` 才能直观显示数组内容。
 
 4. 数组的基本方法
 
@@ -747,7 +799,7 @@
     System.out.println("数组长度: " + numbers.length);
     ```
 
-    - 说明：展示直接初始化、数组排序、以及使用 length 属性获取数组长度的示例。
+    - 说明：展示直接初始化、数组排序、以及使用 `length` 属性获取数组长度的示例。
 
 ## 多维数组
 
@@ -835,7 +887,6 @@
     ```java
     final float PI = 3.14F;
     // PI = 3.1415F; // 编译错误：无法修改 final 常量
-    float area = PI * 2 * 2; // 使用常量 PI 计算圆面积
     ```
 
 2. 常量命名规范
@@ -915,7 +966,7 @@
 
 3. 括号的作用
 
-    - 括号具有最高优先级，可强制先计算括号内表达式
+    - 括号具有最高优先级，强制先计算括号内表达式
     - 示例：`(a + b) * c` 与 `a + (b * c)` 的结果不同
 
 4. 实际应用
@@ -954,26 +1005,25 @@
 1. 隐式转换（Implicit casting）
 
     - 自动进行，不需要额外标记
-    - 适用于从较小类型转换到较大类型（如 short → int、int → long、int → double）
-    - 原因：不会丢失数据或精度
+    - 适用于从较小或低精度类型转换为较大或高精度类型（如 int → long、float → double）
+    - 会导致数据丢失
 
-2. 显式转换
+2. 显式转换（Explicit casting）
 
-    - 手动指定转换，使用括号语法，如 `(目标类型)变量`
-    - 用于可能丢失数据或精度的转换（例如 double → int）
-    - 程序员必须确认转换安全，否则可能出现数据截断
+    - 程序员使用 `(目标类型)` 强制指定转换
+    - 常用于将较大或高精度类型转换为较小或低精度类型（如 double → int），可能会丢失精度或截断数据（字节数量不同）
+    - 需谨慎使用，确保数据范围符合预期
 
 3. 数字与字符串转换
 
-    - 字符串转换为数字：利用包装类方法，如 `Integer.parseInt(字符串)`、`Double.parseDouble(字符串)`
-    - 数字转换为字符串：使用 `String.valueOf(数字)` 或 `"" + 数字`
+    - 数字转字符串：使用 String.valueOf(数字) 或通过字符串拼接实现
+    - 字符串转数字：利用包装类提供的解析方法，如 `Integer.parseInt(字符串)` 或 `Double.parseDouble(字符串)`
     - 注意：直接转换不兼容类型会抛出异常
 
 4. 转换原则
 
-    - 自动转换在不引起数据损失时优先使用
-    - 强制转换需明确风险，确保类型兼容性（只适用于数值类型之间）
-    - 对于用户输入数据，经常需要将字符串解析为数值类型进行运算
+    - 在安全的前提下，优先采用隐式转换，保持代码简洁
+    - 显式转换要明确风险，确保类型兼容和数据正确
 
 **代码示例**
 
@@ -1001,7 +1051,7 @@
     ```java
     double x = 1.1;
     int y = (int) x + 2;
-    System.out.println(y);// 3.1
+    System.out.println(y);// 3
 
     String s = "1.1";
     double m = Double.parseDouble(s);
@@ -1022,7 +1072,7 @@
 1. Math 类概述
 
     - 定义：位于 java.lang 包的工具类，提供数学计算功能
-    - 静态方法：无需实例化，直接调用
+    - 调用：不能实例化（实例化方法被设为了私有），直接调用
 
 2. 常用方法
 
@@ -1077,7 +1127,7 @@
 
 **知识树**
 
-1. NumberFormat 类概述
+1. `NumberFormat` 类概述
 
     - 定义：位于 java.text 包的抽象类，用于格式化和解析数字
     - 特点：抽象类不能直接实例化，需要通过它的工厂方法获取实例
@@ -1111,28 +1161,28 @@
 
     ```java
     NumberFormat currencyPercent = NumberFormat.getPercentInstance();
-    result = currencyPercent.format(0.1);
-    System.out.println(result);// 10%
+    String result2 = currencyPercent.format(0.1);
+    System.out.println(result2);// 10%
 
     // 链式编程
-    result = NumberFormat.getPercentInstance().format(0.99);
-    System.out.println(result);
+    String result3 = NumberFormat.getPercentInstance().format(0.99);
+    System.out.println(result3);
     ```
 
 ## 用户输入与 Scanner
 
-> 简述：Scanner 类用于读取用户输入数据，可指定输入源（如终端、文件等），并提供多种读取方法（如 next()、nextLine()、nextInt() 等）来获取不同类型的数据，同时可利用 trim() 方法清理多余空白。
+> 简述：`Scanner` 类用于读取用户输入数据，可指定输入源（如终端、文件等），并提供多种读取方法（如 `next()`、`nextLine()`、`nextInt()` 等）来获取不同类型的数据，同时可利用 `trim()` 方法清理多余空白。
 
 **知识树**
 
-1. Scanner 类概述
+1. `Scanner` 类概述
 
-    - 定义在 java.util 包中
+    - 定义在 `java.util` 包中
     - 用于从各种输入源（如 System.in、文件）读取数据
 
 2. 输入源的指定
 
-    - 构造方法中传入输入流（如 System.in）
+    - 构造方法中传入输入流（如 `System.in`）
     - 可根据需求读取键盘输入或文件数据
 
 3. 常用读取方法
@@ -1186,7 +1236,7 @@
 ## Ex: 抵押贷款计算器
 
 > **要求**：  
-> 编写一个程序，要求用户输入贷款本金、年利率及贷款年限，然后计算出每月还款金额，并以货币格式显示。计算前了解贷款计算方式：https://www.wikihow.com/Calculate-Mortgage-Payments
+> 编写一个程序，要求用户输入贷款本金、年利率及贷款年限，然后计算出每月还款金额，并以货币格式显示。此计算前了解贷款计算方式：https://www.wikihow.com/Calculate-Mortgage-Payments
 >
 > **示例**：
 >
@@ -1211,30 +1261,34 @@
 
 - 代码示例：
 
-    ```js
-    final byte MONTHS_IN_YEAR = 12;
-    final byte PERCENTAGE = 100;
+    ```java
+    public class Main {
+      public static void main(String[] args) {
+          final byte MONTHS_IN_YEAR = 12;
+          final byte PERCENTAGE = 100;
 
-    Scanner scanner = new Scanner(System.in);
+          Scanner scanner = new Scanner(System.in);
 
-    System.out.print("Principal: ");
-    int principal = scanner.nextInt();// 数额
+          System.out.print("Principal: ");
+          int principal = scanner.nextInt();// 数额
 
-    System.out.print("Annual Interest Rate:");
-    float annualInterestRate = scanner.nextFloat() / PERCENTAGE;// 利率
-    float monthlyInterestRate = annualInterestRate / MONTHS_IN_YEAR;
-    System.out.print("Period(Years):");
-    byte periodYear = scanner.nextByte();// 分期年数
-    int periodMonth = periodYear * MONTHS_IN_YEAR;
+          System.out.print("Annual Interest Rate:");
+          float annualInterestRate = scanner.nextDouble() / PERCENTAGE;// 利率
+          float monthlyInterestRate = annualInterestRate / MONTHS_IN_YEAR;
+          System.out.print("Period(Years):");
+          byte periodYear = scanner.nextByte();// 分期年数
+          int periodMonth = periodYear * MONTHS_IN_YEAR;
 
 
-    double monthlyMortgage = principal
-    		* monthlyInterestRate * Math.pow(1 + monthlyInterestRate, periodMonth)
-    		/ (Math.pow(1 + monthlyInterestRate, periodMonth) - 1);
+          double monthlyMortgage = principal
+                  - monthlyInterestRate * Math.pow(1 + monthlyInterestRate, periodMonth)
+                  / (Math.pow(1 + monthlyInterestRate, periodMonth) - 1);
 
-    String monthlyMortgageFormatted = NumberFormat.getCurrencyInstance().format(monthlyMortgage);
+          String monthlyMortgageFormatted = NumberFormat.getCurrencyInstance().format(monthlyMortgage);
 
-    System.out.println("Monthly mortgage: " + monthlyMortgageFormatted);
+          System.out.println("Monthly mortgage: " + monthlyMortgageFormatted);
+      }
+    }
     ```
 
 # Control Flow
@@ -1298,21 +1352,21 @@
 
     - 比较字符串内容，而非引用地址
 
-2. 字符串池
+2. `==` 与 `equals()` 区别
+
+    - `==` 检查是否为同一对象引用
+    - `equals()` 检查对象内容是否相同
+
+3. 字符串池
 
     - Java 自动维护的内存区域，用于存储常量字符串
     - 相同字面量自动共享对象（引用地址）
 
-3. 字符串池使用场景
+4. 字符串池使用场景
 
     - 应用于缓存、日志、数据库查询结果等，降低内存开销
     - 重复字符串可调用 `intern()` 共享对象
     - 注意：过度使用 intern() 可能引起内存不足（**OutOfMemoryError**）
-
-4. `==` 与 `equals()` 区别
-
-    - `==` 检查是否为同一对象引用
-    - `equals()` 检查对象内容是否相同
 
 **代码示例**
 
@@ -1333,29 +1387,29 @@
     String a = "hello";
     String b = "hello";
     String c = new String("hello");
-    System.out.println(a == b); // true: 同一常量池对象
-    System.out.println(a == c); // false: c 为新对象
+    System.out.println(a == b); // true: a 和 b 都指向常量池中相同的 "hello" 对象
+    System.out.println(a == c); // false: new String() 在堆中创建了新对象，与常量池中的 "hello" 不同
 
     String m = "hello" + " world";
     String n = "hello world";
-    System.out.println(m == n); // true: 编译器优化，结果为常量
+    System.out.println(m == n); // true: 编译期优化将 m 直接转换为常量 "hello world"，与 n 引用同一对象
 
     String s1 = "hello";
     String s2 = " world";
     String s3 = s1 + s2;
     String s4 = "hello world";
-    System.out.println(s3 == s4); // false: 动态拼接生成新对象
+    System.out.println(s3 == s4); // false: s3 是运行时动态拼接生成的新对象，不在常量池中，与 s4 不同
 
     String x = "hello";
-    String y = new String("hello").intern(); // 手动加入字符串池
-    System.out.println(x == y); // true: y 经 intern() 后与 x 相同
+    String y = new String("hello").intern(); // intern() 方法将堆中的 "hello" 加入常量池，并返回该常量池中的对象
+    System.out.println(x == y); // true: x 和 y 都引用常量池中的 "hello" 对象
     ```
 
     - 说明：演示字符串池机制及 intern() 方法的作用，使动态生成的字符串共享常量池对象。
 
 ## 逻辑运算符
 
-> 简述：逻辑运算符用于组合多个布尔表达式，生成一个整体的布尔结果。它们包括与、或、非，并支持短路求值，常用于条件判断和流程控制。
+> 简述：逻辑运算符用于组合或反转布尔表达式，从而生成一个综合的布尔结果（true 或 false），常用于条件判断和流程控制。
 
 **知识树**
 
@@ -1375,10 +1429,7 @@
         - `&&`：当第一个表达式为 false 时，不再计算后续条件， `&`计算所有条件
         - `||`：当第一个表达式为 true 时，不再计算后续条件，`|`计算所有条件
     - 使用括号明确运算顺序，避免逻辑混淆
-
-4. 实际应用
-    - 用于实现复杂逻辑判断，如权限验证、贷款资格评估等
-    - 通过合理命名和组合表达式，提高代码可读性和维护性
+    - 一般场景下只使用短路计算
 
 **代码示例**
 
@@ -1947,7 +1998,7 @@
     }
     while (true) {
     	System.out.print("Annual Interest Rate:");
-    	float annualInterestRate = scanner.nextFloat() / PERCENTAGE;// 利率
+    	float annualInterestRate = scanner.nextDouble() / PERCENTAGE;// 利率
     	if (annualInterestRate >= 0 && annualInterestRate <= 30) {
     		monthlyInterestRate = annualInterestRate / MONTHS_IN_YEAR;
     		break;
@@ -2090,7 +2141,7 @@
             }
             while (true) {
                 System.out.print("Annual Interest Rate:");
-                annualInterestRate = scanner.nextFloat();// 利率
+                annualInterestRate = scanner.nextDouble();// 利率
                 if (annualInterestRate >= 0 && annualInterestRate <= 30)
                     break;
                 System.out.print("Enter a value between 1 and 30");
@@ -2163,7 +2214,7 @@
     	double value;
     	while (true) {
     		System.out.print(prompt);
-    		value = scanner.nextFloat();
+    		value = scanner.nextDouble();
     		if (value >= min && value <= max) break;
     		System.out.print("Enter a value between " + min + " and " + max);
     	}
@@ -2264,7 +2315,7 @@ public class Main {
         double value;
         while (true) {
             System.out.print(prompt);
-            value = scanner.nextFloat();
+            value = scanner.nextDouble();
             if (value >= min && value <= max) break;
             System.out.print("Enter a value between " + min + " and " + max);
         }
@@ -2360,7 +2411,7 @@ public class Main {
           double value;
           while (true) {
               System.out.print(prompt);
-              value = scanner.nextFloat();
+              value = scanner.nextDouble();
               if (value >= min && value <= max) break;
               System.out.print("Enter a value between " + min + " and " + max);
           }
@@ -3673,7 +3724,7 @@ public class Main {
           double value;
           while (true) {
               System.out.print(prompt);
-              value = scanner.nextFloat();
+              value = scanner.nextDouble();
               if (value >= min && value <= max) break;
               System.out.print("Enter a value between " + min + " and " + max);
           }
@@ -5045,6 +5096,6 @@ public class Main {
 
 简述：接口当一个存在过多的方法时，修改其中一个方法比如参数，引用这个接口的类都需要改动。正确的做法是将接口文件切分成一个个职责清晰的小文件。
 
-
 ## EX
+
 # ---

@@ -13,6 +13,20 @@
             "state": {
               "type": "markdown",
               "state": {
+                "file": "JavaScript.md",
+                "mode": "source",
+                "source": true
+              },
+              "icon": "lucide-file",
+              "title": "JavaScript"
+            }
+          },
+          {
+            "id": "5507159ed25da4c5",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
                 "file": "Java.md",
                 "mode": "source",
                 "source": true
@@ -21,7 +35,8 @@
               "title": "Java"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -169,11 +184,12 @@
       "command-palette:打开命令面板": false
     }
   },
-  "active": "2bd66e13abd0c281",
+  "active": "5507159ed25da4c5",
   "lastOpenFiles": [
-    "Java回顾（非Moth版本）.md",
     "JavaScript.md",
     "Java.md",
+    "未命名.md",
+    "Java回顾（非Moth版本）.md",
     "es6-tooling-webpack/dist/index.html",
     "es6-tooling-webpack/dist/bundle.js",
     "es6-tooling-webpack/dist",
@@ -206,7 +222,6 @@
     "es6-tooling-webpack/node_modules/@babel/plugin-transform-arrow-functions/README.md",
     "es6-tooling-webpack/node_modules/@babel/plugin-transform-async-generator-functions/README.md",
     "es6-tooling-webpack/node_modules/@babel/plugin-transform-block-scoped-functions/README.md",
-    "es6-tooling-webpack/node_modules/@babel/plugin-transform-block-scoping/README.md",
     "es6-tooling-webpack/node_modules/renderkid/docs/images/usage.png",
     "es6-tooling-webpack/node_modules/renderkid/docs/images/display.png",
     "es6-tooling-webpack/node_modules/renderkid/docs/images/bullets-1.png",
