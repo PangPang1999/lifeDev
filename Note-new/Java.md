@@ -446,6 +446,15 @@
     int newAge = age; // 复制
     ```
 
+2. 作用域
+
+    ```java
+    {
+    	int age = 30;
+    }
+    System.out.println(age);// 无法获取
+    ```
+
 ## 基本类型
 
 > 简述：Java 中的数据类型分为基本数据类型（primitive types）和引用数据类型（reference types）。基本数据类型用于存储简单的数值，而引用数据类型用于存储复杂对象。
@@ -1233,7 +1242,7 @@
 
     - 说明： `next()` 只读取单个单词，`nextLine()` 可读取整行，用 `trim()` 可清除多余空格。
 
-## Ex: 抵押贷款计算器
+## Ex: 贷款计算
 
 > **要求**：  
 > 编写一个程序，要求用户输入贷款本金、年利率及贷款年限，然后计算出每月还款金额，并以货币格式显示。此计算前了解贷款计算方式：https://www.wikihow.com/Calculate-Mortgage-Payments
@@ -1366,7 +1375,7 @@
 
     - 应用于缓存、日志、数据库查询结果等，降低内存开销
     - 重复字符串可调用 `intern()` 共享对象
-    - 注意：过度使用 intern() 可能引起内存不足（**OutOfMemoryError**）
+    - 注意：过度使用 `intern()` 可能引起内存不足（**OutOfMemoryError**）
 
 **代码示例**
 
@@ -1405,31 +1414,41 @@
     System.out.println(x == y); // true: x 和 y 都引用常量池中的 "hello" 对象
     ```
 
-    - 说明：演示字符串池机制及 intern() 方法的作用，使动态生成的字符串共享常量池对象。
+    - 说明：演示字符串池机制及 `intern()` 方法的作用，使动态生成的字符串共享常量池对象。
 
 ## 逻辑运算符
 
-> 简述：逻辑运算符用于组合或反转布尔表达式，从而生成一个综合的布尔结果（true 或 false），常用于条件判断和流程控制。
+> 简述：逻辑运算符用于组合或反转布尔表达式，从而生成一个综合的布尔结果（`true` 或 `false`），常用于条件判断和流程控制。
 
 **知识树**
 
 1. 逻辑运算符概念
 
-    - 用于组合或反转布尔表达式，输出 true 或 false
+    - 用于组合多个布尔表达式或反转其逻辑值，最终返回 `true` 或 `false`。
 
 2. 基本逻辑运算符
 
-    - 与（AND）：`&&`（或 `&`），所有条件为 true 时返回 true‘
-    - 或（OR）：`||`（或 `|`），至少一个条件为 true 时返回 true
-    - 非（NOT）：`!`，反转布尔值
+    - 与（AND）
+        - 符号：`&&`（短路求值）或 `&`（全量求值）
+        - 规则：仅当所有参与表达式均为 `true` 时，结果为 `true`。
+            - `&&`：采用短路求值，一旦遇到 false，后续表达式将不再计算。
+            - `&`：不进行短路处理，会计算所有表达式。
+    - 或（OR）
+        - 符号：`||`（短路求值）或 `|`（全量求值）
+        - 规则：只要至少有一个表达式为 `true`，结果即为 `true`。
+            - `||`：采用短路求值，一旦遇到 `true`，后续表达式将不再计算。
+            - `|`：不进行短路处理，会计算所有表达式。
+    - 非（NOT）
+        - 符号：`!`
+        - 规则：将布尔值取反，即 `true` 变 `false`，`false` 变 `true`。
 
 3. 运算顺序与短路求值
 
+    - 运算顺序：
+        - 通常情况下，非运算符的优先级最高，其次是与运算符，最后是或运算符。
+        - 为避免歧义和确保代码可读性，建议使用括号明确表达式的计算顺序。
     - 短路求值：
-        - `&&`：当第一个表达式为 false 时，不再计算后续条件， `&`计算所有条件
-        - `||`：当第一个表达式为 true 时，不再计算后续条件，`|`计算所有条件
-    - 使用括号明确运算顺序，避免逻辑混淆
-    - 一般场景下只使用短路计算
+        - 短路求值不仅提升了运行效率，还可防止某些情况下可能发生的错误（例如，避免在第一个表达式判断失败后继续执行可能导致异常的操作）。
 
 **代码示例**
 
@@ -1458,7 +1477,7 @@
 
 ## if 语句
 
-> 简述：if 语句根据条件判断控制程序流程，支持多分支（`if`、`else if`、`else`）来执行不同代码块，便于处理多种情形。
+> 简述：`if` 语句根据条件判断控制程序流程，支持多分支（`if`、`else if`、`else`）来执行不同代码块，便于处理多种情形。
 
 **知识树**
 
@@ -1476,9 +1495,6 @@
 
     - 多条语句须用花括号 `{}` 包裹
     - 单条语句可省略花括号
-
-4. 格式与层级
-    - `if`、`else if`、`else` 应处于同一缩进层级，保持代码整洁
 
 **代码示例**
 
@@ -1515,40 +1531,23 @@
 
 ## if 与布尔值的优化
 
-> 简述：通过合理的变量声明与布尔表达式赋值，可以简化 if 语句结构，消除冗余的条件分支，提高代码的清晰度和可维护性。
+> 简述：通过恰当的变量声明和直接赋值布尔表达式，可精简 `if` 语句结构，消除冗余分支，从而提高代码的清晰度和可维护性。
 
 **知识树**
 
-1. 变量作用域与声明
-
-    - 变量必须在代码块内声明，作用域仅限于其所在块
-    - 避免在 if 块中声明临时变量后，试图在外部使用
-
-2. if 语句冗余问题
+1. if 语句冗余问题
 
     - 使用 if-else 分支设置布尔变量往往过于冗长
     - 初始值设定可避免不必要的 else 分支
 
-3. 直接赋值技巧
+2. 直接赋值技巧
 
     - 将布尔表达式直接赋值给变量，简化逻辑
     - 表达式用括号包裹提高可读性
 
 **代码示例**
 
-1. 变量作用域错误示例
-
-    ```java
-    // 错误示例：变量在 if 块内声明，外部无法访问
-    if (income > 100_000) {
-        boolean hasHighIncome = true;
-    }
-    System.out.println(hasHighIncome); // 编译错误：无法解析符号 hasHighIncome
-    ```
-
-    - 说明：展示变量声明在局部代码块内导致的作用域问题。
-
-2. if 语句冗余问题
+1. if 语句冗余问题
 
     ```java
     int income = 120_000;
@@ -1560,7 +1559,7 @@
     System.out.println(hasHighIncome);
     ```
 
-3. 简化 if 语句的优化示例
+2. 简化 if 语句的优化示例
 
     ```java
     // 优化示例：直接将布尔表达式赋值给变量
@@ -1665,6 +1664,7 @@
     - `default` 分支在所有 `case` 不匹配时执行，可选但推荐
 
 4. 应用场景与注意事项
+
     - 适用于枚举型条件的判断，如用户角色、状态码等
     - 注意数据类型匹配，避免编译错误
     - 与 `if-else` 比较：当分支较多时，switch 更简洁明了
@@ -1729,8 +1729,8 @@
 > 3. **代码设计讨论**
 >     - **判断顺序**：必须将复合条件放在前面，避免先判断单条件导致复合情况被提前捕捉，从而遗漏 "fizz buzz" 的输出。
 >     - **DRY 原则与可读性**：虽然可通过嵌套 if-else 结构减少重复条件判断，但会增加代码嵌套层次，使得代码难以阅读。因此，采用平铺结构虽然有轻微重复，但更直观易懂。
->
-> **代码**
+
+**代码**
 
 - 代码示例
 
@@ -1879,28 +1879,19 @@
         ```
     - 循环体后必须以分号结束
 
-4. 应用场景
-
-    - 用户交互：如持续提示输入直至获得特定响应
-    - 初始化操作：在条件判断前需要先执行一次的逻辑
-
 **代码示例**
 
-1. 用户输入示例
+1. 计数示例
 
     ```java
-    Scanner scanner = new Scanner(System.in);  // 在循环外创建 Scanner 对象
-    String input = "quit";// 即便input一开始就是quit，也会执行一遍
+    int count = 100;
     do {
-    	System.out.print("请输入内容（输入 quit 退出）：");
-    	input = scanner.next();  // 读取单个ω token
-    	// 输出用户输入（echo）
-    	System.out.println("你输入了: " + input);
-    } while (!input.toLowerCase().equals("quit"));
-    scanner.close();
+    	System.out.println("Count is: " + count);
+    	count++;
+    } while (count <= 5);
     ```
 
-    - 说明：通过 `do while` 循环确保用户至少输入一次内容，使用 `toLowerCase()` 和 `trim()` 统一输入格式，直到用户输入 "quit" 时退出。
+    - 即便 `count` 为 100，仍然执行一次
 
 ## for-each 循环
 
@@ -1927,10 +1918,6 @@
 
     - 仅支持正向遍历，无法获取当前元素的索引
     - 与传统 for 循环相比，适合只需元素值的场景
-
-5. 实际应用
-
-    - 常用于数据遍历、集合迭代和简单处理
     - 当需要索引或反向遍历时，仍需使用 for 循环
 
 **代码示例**
@@ -1955,7 +1942,7 @@
 
     - 说明：演示增强的 for 循环，直接遍历数组元素，无需索引管理，代码更简洁。
 
-## Ex: 贷款计算-带输入验证
+## Ex: 贷款计算补充输入验证
 
 > **要求**：扩展抵押贷款计算器，要求用户输入贷款本金、年利率及贷款年限。对每个输入添加基本的错误处理和验证，若输入不合法则持续提示，直到用户输入有效数据为止。
 >
@@ -1979,51 +1966,55 @@
 - 代码示例
 
     ```java
-    final byte MONTHS_IN_YEAR = 12;
-    final byte PERCENTAGE = 100;
+    public class Main {
+        public static void main(String[] args) {
+            final byte MONTHS_IN_YEAR = 12;
+            final byte PERCENTAGE = 100;
 
-    int principal = 0;
-    float monthlyInterestRate = 0;
-    int periodMonth = 0;
+            int principal = 0;
+            float monthlyInterestRate = 0;
+            int periodMonth = 0;
 
-    Scanner scanner = new Scanner(System.in);
+            Scanner scanner = new Scanner(System.in);
 
-    while (true) {
-    	System.out.print("Principal: ");
-    	principal = scanner.nextInt();// 数额
-    	if (principal >= 1000 || principal <= 1_000_000) {
-    		break;
-    	}
-    	System.out.print("Enter a value between 1000 and 1_000_000");
+            while (true) {
+                System.out.print("Principal: ");
+                principal = scanner.nextInt();// 数额
+                if (principal >= 1000 || principal <= 1_000_000) {
+                    break;
+                }
+                System.out.print("Enter a value between 1000 and 1_000_000");
+            }
+            while (true) {
+                System.out.print("Annual Interest Rate:");
+                float annualInterestRate = scanner.nextDouble() / PERCENTAGE;// 利率
+                if (annualInterestRate >= 0 && annualInterestRate <= 30) {
+                    monthlyInterestRate = annualInterestRate / MONTHS_IN_YEAR;
+                    break;
+                }
+                System.out.print("Enter a value between 1 and 30");
+
+            }
+
+            while (true) {
+                System.out.print("Period(Years):");
+                byte periodYear = scanner.nextByte();// 分期年数
+                if (periodYear >= 0 && periodYear <= 30) {
+                    periodMonth = periodYear * MONTHS_IN_YEAR;
+                    break;
+                }
+                System.out.print("Enter a value between 1 and 30");
+            }
+
+            double monthlyMortgage = principal
+                    - monthlyInterestRate * Math.pow(1 + monthlyInterestRate, periodMonth)
+                    / (Math.pow(1 + monthlyInterestRate, periodMonth) - 1);
+
+            String monthlyMortgageFormatted = NumberFormat.getCurrencyInstance().format(monthlyMortgage);
+
+            System.out.println("Monthly mortgage: " + monthlyMortgageFormatted);
+        }
     }
-    while (true) {
-    	System.out.print("Annual Interest Rate:");
-    	float annualInterestRate = scanner.nextDouble() / PERCENTAGE;// 利率
-    	if (annualInterestRate >= 0 && annualInterestRate <= 30) {
-    		monthlyInterestRate = annualInterestRate / MONTHS_IN_YEAR;
-    		break;
-    	}
-    	System.out.print("Enter a value between 1 and 30");
-
-    }
-
-    while (true) {
-    	System.out.print("Period(Years):");
-    	byte periodYear = scanner.nextByte();// 分期年数
-    	if (periodYear >= 0 && periodYear <= 30) {
-    		periodMonth = periodYear * MONTHS_IN_YEAR;
-    		break;
-    	}
-    	System.out.print("Enter a value between 1 and 30");
-    }
-
-    double monthlyMortgage = principal
-    		* monthlyInterestRate * Math.pow(1 + monthlyInterestRate, periodMonth)
-    		/ (Math.pow(1 + monthlyInterestRate, periodMonth) - 1);
-
-    String monthlyMortgageFormatted = NumberFormat.getCurrencyInstance().format(monthlyMortgage);
-
-    System.out.println("Monthly mortgage: " + monthlyMortgageFormatted);
     ```
 
 # Clean Coding
@@ -2062,7 +2053,7 @@
 
 2. 方法的定义
 
-    - 访问修饰符：public、private 等决定可见性，pulic 意味着方法可以从 lclass 外部访问，具体用法后续讲解。
+    - 访问修饰符：public、private 等决定可见性，pulic 意味着方法可以从 class 外部访问，具体用法后续讲解，当前默认声明为 public 便可。
     - static 关键字：声明方法属于类，具体用法后续讲解。
     - 返回类型：void 或具体数据类型，声明方法返回的数据
     - 方法名：使用 camelCase 命名，描述其功能
