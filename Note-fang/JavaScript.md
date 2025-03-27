@@ -3303,6 +3303,93 @@ console.log(circle.radius); // 输出：10
     ```
 
 
+## 可枚举属性和可迭代属性
+
+> 简述：探讨 JavaScript 中对象属性的两大维度——可枚举性与可迭代性，解析它们的定义、获取方式及应用场景，揭示如何利用内置方法和协议实现数据遍历与操作。
+
+**知识树**
+
+1. 可枚举属性
+    
+    - 定义：对象中属性描述符的 enumerable 为 true 的属性
+    - 获取方式：
+        - for...in（遍历自身及原型链上可枚举属性，需要 hasOwnProperty 过滤）
+        - Object.keys()（返回对象自身所有可枚举属性的键数组）
+        - Object.values()（返回对应值数组）
+        - Object.entries()（返回键值对数组）
+        - JSON.stringify()（序列化时仅处理可枚举属性）
+        - Object.assign()（复制自身可枚举属性，进行浅拷贝）
+2. 可迭代属性（可迭代对象）
+    
+    - 定义：实现了 Symbol.iterator 方法的对象，遵循迭代器协议
+    - 典型对象：
+        - Array、String、Map、Set、TypedArray
+        - arguments、NodeList、HTMLCollection（依赖环境实现）
+    - 获取方式：
+        - for...of（自动调用 [Symbol.iterator] 进行迭代）
+        - 扩展运算符（...iterable 展开为数组元素）
+        - Array.from()（将任意可迭代对象转为数组）
+        - Promise.all() 等接受可迭代对象作为参数
+3. 区别与联系
+    
+    - 可枚举属性侧重于对象属性的“存在性”和“可见性”，主要用于属性遍历与复制；
+    - 可迭代对象则侧重于序列数据的遍历，必须实现迭代器接口（Symbol.iterator）；
+    - 交集示例：数组既具有可枚举的数字索引（Object.keys、for...in）又实现了迭代器（for...of、...扩展）。
+4. 扩展与应用
+    
+    - 转换：利用 Array.from() 或扩展运算符将可迭代对象转换为数组，再使用数组方法（map、forEach 等）；
+    - 自定义：可通过定义 [Symbol.iterator] 使普通对象变为可迭代对象；
+    - 注意：for...in 遍历可枚举属性时可能会遍历继承属性，需谨慎使用。
+
+**代码示例**
+
+1. 获取对象的可枚举属性
+    
+    ```js
+    const obj = { a: 1, b: 2, c: 3 };
+    // for...in 遍历所有可枚举属性（需过滤继承属性）
+    for (let key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        console.log(key, obj[key]);
+      }
+    }
+    console.log(Object.keys(obj));      // ["a", "b", "c"]
+    console.log(Object.values(obj));    // [1, 2, 3]
+    console.log(Object.entries(obj));   // [["a",1],["b",2],["c",3]]
+    // Object.assign 复制自身可枚举属性（浅拷贝）
+    const target = {};
+    Object.assign(target, obj);
+    console.log(target);                // { a: 1, b: 2, c: 3 }
+    ```
+    
+    - 说明：展示了不同方法获取和操作对象的可枚举属性，注意 for...in 会遍历原型链属性。
+2. 遍历可迭代对象
+    
+    ```js
+    const arr = [10, 20, 30];
+    // for...of 直接遍历数组（内置迭代器）
+    for (const value of arr) {
+      console.log(value);
+    }
+    const str = "hello";
+    // for...of 遍历字符串每个字符
+    for (const char of str) {
+      console.log(char);
+    }
+    const set = new Set([1, 2, 3]);
+    // 扩展运算符将 Set 转为数组
+    console.log([...set]);             // [1, 2, 3]
+    const map = new Map([["a", 1], ["b", 2]]);
+    // for...of 遍历 Map 的键值对
+    for (const [key, value] of map) {
+      console.log(key, value);
+    }
+    // Array.from 将可迭代对象转换为数组
+    console.log(Array.from(str));      // ["h", "e", "l", "l", "o"]
+    ```
+    
+    - 说明：所有可迭代对象因实现 Symbol.iterator 均支持 for...of、扩展运算符和 Array.from 等方法，便于数据转换和遍历。
+
 
 **为什么普通对象不能被遍历**
 + 可迭代对象：必须实现 Symbol.iterator 方法，这样才能被 for-of 循环遍历
@@ -3337,9 +3424,8 @@ console.log(circle.radius); // 输出：10
 	    ```
 	    
 
----
 
-1. Object.keys
+2. Object.keys
 
 	- **用途**：  
 	    返回对象自身所有**可枚举**属性的键名组成的数组。
@@ -3365,10 +3451,7 @@ console.log(circle.radius); // 输出：10
 	    }
 	    ```
 	    
-
----
-
- 1. Object.values
+3. Object.values
 	
 	- **用途**：  
 	    返回对象自身所有**可枚举**属性值组成的数组。
@@ -3390,9 +3473,7 @@ console.log(circle.radius); // 输出：10
 	    ```
 	    
 
----
-
-1. Object.entries
+4. Object.entries
 	
 	- **用途**：  
 	    返回一个数组，其中的每个元素都是一个 `[key, value]` 的数组，表示对象自身的可枚举属性键值对。
@@ -3414,9 +3495,7 @@ console.log(circle.radius); // 输出：10
 	    ```
 	    
 
----
-
-1. 总结对比
+5. 总结对比
 
 	- **for-in 循环**
 	    
@@ -7143,6 +7222,9 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     ```js
     function Circle(radius) {
     	this.radius = radius;
+    	this.draw = function () {
+    	console.log("Drawing a circle with radius " + this.radius);
+    };
     }
     
     Circle.prototype.move = function () {
