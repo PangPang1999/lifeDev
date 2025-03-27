@@ -1,80 +1,20 @@
 package com.pang;
 
-import java.text.NumberFormat;
-import java.util.Scanner;
 
 public class Main {
-    final static byte MONTHS_IN_YEAR = 12;
-    final static byte PERCENTAGE = 100;
-
     public static void main(String[] args) {
+        var employee1 = new Employee(20_000);
+        var employee2 = new Employee(30_000);
+        var employee3 = new Employee(50_000);
+        // 通过类名访问静态字段
+        System.out.println(Employee.numberOfEmployees);// 输出 3
 
-        int principal = 0;
-        float annualInterestRate = 0;
-        byte periodYear = 0;
+        var employee4 = new Employee(20_000);
+        var employee5 = new Employee(30_000);
+        var employee6 = new Employee(50_000);
+        // 通过类名访问静态方法
+        System.out.println(employee6.getNumberOfEmployees());// 输出6
 
-        Scanner scanner = new Scanner(System.in);
-
-        principal = (int) readNumber("Principal: ", 1000, 1_000_000);
-        annualInterestRate = (float) readNumber("Annual Interest Rate: ", 1, 30);
-        periodYear = (byte) readNumber("Period Year: ", 1, 30);
-
-        double monthlyMortgage = caculateMortgage(principal, annualInterestRate, periodYear);
-
-        String monthlyMortgageFormatted = NumberFormat.getCurrencyInstance().format(monthlyMortgage);
-        System.out.println("\nMortgage");
-        System.out.println("---------");
-        System.out.println("Monthly Payment: " + monthlyMortgageFormatted);
-        System.out.println("\nPayment Schedule");
-        System.out.println("----------------");
-        for (short month = 1; month <= periodYear * MONTHS_IN_YEAR; month++) {
-            double balance = caculateBalance(principal, annualInterestRate, periodYear, month);
-            System.out.println(NumberFormat.getCurrencyInstance().format(balance));
-
-        }
-    }
-
-    public static double readNumber(String prompt, double min, double max) {
-        Scanner scanner = new Scanner(System.in);
-        double value;
-        while (true) {
-            System.out.print(prompt);
-            value = scanner.nextDouble();
-            if (value >= min && value <= max) break;
-            System.out.print("Enter a value between " + min + " and " + max);
-        }
-        return value;
-    }
-
-    public static double caculateMortgage(
-            int principal,
-            float annualInterestRate,
-            byte periodYear) {
-
-        float monthlyInterestRate = annualInterestRate / MONTHS_IN_YEAR / PERCENTAGE;
-        int periodMonth = periodYear * MONTHS_IN_YEAR;
-
-        double monthlyMortgage = principal
-                - monthlyInterestRate * Math.pow(1 + monthlyInterestRate, periodMonth)
-                / (Math.pow(1 + monthlyInterestRate, periodMonth) - 1);
-
-        return monthlyMortgage;
-    }
-
-    public static double caculateBalance(
-            int principal,
-            float annualInterestRate,
-            byte periodYear,
-            short paymentsMade) {
-
-        float monthlyInterestRate = annualInterestRate / MONTHS_IN_YEAR / PERCENTAGE;
-        int periodMonth = periodYear * MONTHS_IN_YEAR;
-
-        double banlance = principal *
-                (Math.pow((1 + monthlyInterestRate), periodMonth)
-                        - Math.pow(1 + monthlyInterestRate, paymentsMade))
-                / (Math.pow(1 + monthlyInterestRate, periodMonth) - 1);
-
-        return banlance;
+        // 通过对象调用实例方法
     }
 }

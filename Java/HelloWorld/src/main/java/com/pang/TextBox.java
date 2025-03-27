@@ -9,6 +9,9 @@ public class TextBox extends UIControl {
         System.out.println("Render TextBox");
     }
 
+    public TextBox() {
+    }
+
     public void setText(String text) {
         this.text = text;
     }
