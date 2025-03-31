@@ -1,6 +1,6 @@
 package com.pang;
 
-public interface UIWidget extends Draggeable, Resizable {
+public interface UIWidget extends Draggable, Resizable {
 
     void render();
 }

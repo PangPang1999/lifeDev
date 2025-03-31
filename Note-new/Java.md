@@ -31,6 +31,7 @@
 
 - 基础
 
+    - `Common+B` 快速跳转
     - 同步修改多个语句: shift+F6（额外按住左下角的 🌍）
     - 切换文件：control+tab
     - 上下移动代码：option+shift+上下
@@ -4603,31 +4604,438 @@
 
 ## 接口
 
-> 简述：接口解耦、提升可扩展性，提供灵活模块化设计。它定义类所需的能力，而非具体实现，降低耦合度，增强系统可维护性和可替换性。
+> 简述：接口（Interface）是一种面向对象的设计机制，它定义了一组行为契约，规定了实现者必须提供哪些方法，而不涉及具体的实现细节。接口关注的是“做什么”，而非“怎么做”，通过这种抽象层次的隔离，实现了解耦、多态和灵活扩展
 
 **知识树**
 
-1. 接口的定义与目的
+1. 接口定义与目的
 
-    - 定义类应具备的方法签名和行为，不能有实现。
-    - 促进松耦合设计，提升扩展性和维护性。
-    - 指定“做什么”，类实现“如何做”。
+    - 定义：接口通过关键字 interface 定义，实现类通过 implements 接口，实现其声明的方法。
+    - 概念：一种纯抽象类型，仅包含方法签名和常量（默认均为 public static final）。
+    - 扩展：从 Java 8 起，可包含默认方法和静态方法（不推荐使用）。
 
-2. 解耦与松耦合
+2. 设计目的
 
-    - 松耦合：类间依赖最小化，修改一个类不会影响另一个。
-    - 耦合：类间依赖关系，松耦合减少依赖。
-    - 接口使类只依赖接口定义，不关心具体实现，降低影响。
+    - 统一规范：为不同类提供一致的行为标准，确保相同接口实现能一致调用。
+    - 解耦替换：依赖于抽象而非具体实现，增强模块之间的解耦性和灵活替换能力。
 
-3. 编程与接口
+3. 继承与实现规则
 
-    - 编程依赖接口而非实现，增强替换和扩展能力。
-    - 系统维护无需修改依赖接口的代码，只需替换实现。
+    - 类与接口：类仅支持单继承，但可实现多个接口；接口之间允许多重继承。
+    - 无实现冲突：接口只定义行为，不涉及实现细节，避免多实现冲突。
 
 4. 接口与现实生活的类比
 
-    - **充电器接口**：你可以使用任何符合接口规范的充电器，而不必担心它的具体实现（如品牌和型号）。
-    - **餐厅与厨师**：你只关心厨房里的厨师是否具备烹饪能力（接口），不关心他们是谁（具体实现）。
+    - 充电器示例：任何符合接口规范的充电器都可通用，无需关注品牌或内部构造。
+    - 餐厅与厨师：只关心厨师是否具备烹饪能力（接口），而非其具体身份（实现）。
+
+5. 接口实现示例
+
+    - 创建创建 TaxCalculator2024 类、TaxCalculator2025 类，用于计算这两年的税收标准
+    - 创建 TaxReport 类，用于输出结果
+    - 版本迭代问题：
+        - 若 TaxReport 中直接引用 TaxCalculator2024，当税收标准迭代（如更新到 2025）时，需修改 TaxReport，增加维护成本。
+    - 解决方案：
+        - 创建税收接口 TaxCalculator，写下计算方法
+        - 让 TaxCalculator2024/2025 实现（Implement）TaxCalculator
+        - 在 TaxReport 中，使用最常见的构造函数进行依赖注入，当税收标准迭代时，不再影响 TaxReport
+
+6. 快捷键
+
+    - 勾选接口名，control+T，提取接口
+
+**代码示例**
+
+7. 未使用接口的情况
+
+    - TaxCalculator2024 类
+
+        ```java
+        public class TaxCalculator2024 {
+
+        	private double taxableIncome;
+
+        	public TaxCalculator2024(double taxableIncome) {
+        		this.taxableIncome = taxableIncome;
+        	}
+
+        	public double calculateTax() {
+        		return taxableIncome * 0.3;
+        	}
+        }
+        ```
+
+    - TaxCalculator2025 类
+
+        ```java
+        public class TaxCalculator2025 {
+
+        	private double taxableIncome;
+
+        	public TaxCalculator2025(double taxableIncome) {
+        		this.taxableIncome = taxableIncome;
+        	}
+
+        	public double calculateTax() {
+        		return taxableIncome * 0.5;
+        	}
+        }
+        ```
+
+    - TaxReport 类
+
+        ```java
+        public class TaxReport {
+
+            private TaxCalculator2024 calculator;
+
+            public TaxReport(double taxableIncome) {
+                // 传统方式，类负责创建自身所依赖的对象
+                this.calculator = new TaxCalculator2024(taxableIncome);
+            }
+
+            public void show() {
+                var tax = calculator.calculateTax();
+                System.out.println("Tax: " + tax);
+            }
+        }
+        ```
+
+8. 使用接口
+
+    - 创建接口 TaxCalculator
+
+        ```java
+        public interface TaxCalculator {
+            double calculateTax();
+        }
+        ```
+
+    - TaxCalculator2024 类 实现接口 TaxCalculator
+
+        ```java
+        public class TaxCalculator2024 implements TaxCalculator {
+
+            private double taxableIncome;
+
+            public TaxCalculator2024(double taxableIncome) {
+                this.taxableIncome = taxableIncome;
+            }
+
+            @Override
+            public double calculateTax() {
+                return taxableIncome * 0.3;
+            }
+        }
+        ```
+
+    - TaxCalculator2025 类 实现接口 TaxCalculator
+
+        ```java
+        public class TaxCalculator2025 implements TaxCalculator {
+
+        	private double taxableIncome;
+
+        	public TaxCalculator2025(double taxableIncome) {
+        		this.taxableIncome = taxableIncome;
+        	}
+
+        	public double calculateTax() {
+        		return taxableIncome * 0.5;
+        	}
+        }
+        ```
+
+    - TaxReport 类在迭代时不再需要更改
+
+        ```java
+        public class TaxReport {
+
+            private TaxCalculator calculator;
+
+            public TaxReport(TaxCalculator calculator) {
+                this.calculator = calculator;
+            }
+
+            public void show() {
+                var tax = calculator.calculateTax();
+                System.out.println("Tax: " + tax);
+            }
+        }
+        ```
+
+## 依赖注入
+
+> 简述：依赖注入（DI）是一种软件设计模式，其核心思想是将对象所依赖的资源由外部传入，而非在内部自行创建。这样不仅降低了模块间的耦合度，也大幅提升了代码的可测试性和可维护性。
+
+**知识树**
+
+1. 依赖注入基本概念
+
+    - 定义：通过外部提供依赖对象，实现模块间的解耦。
+    - 目的：使得类不再负责依赖对象的创建，从而降低耦合度和增强模块的独立性。
+
+2. 控制反转（IoC）原理
+
+    - 概念：传统编程中，类负责创建自身所依赖的对象；而在 IoC 中，这一责任交给外部容器或调用者。
+    - 关系：依赖注入是实现 IoC 的一种常见方式，二者共同推动了松耦合设计的实现。
+
+3. DI 实现方式
+
+    - 构造器注入（主要）：
+        - 通过构造函数传递依赖，保证对象在创建时即拥有所有必需依赖。
+    - Setter 方法注入：
+        - 通过公开的 setter 方法提供依赖，适用于依赖可选或需要在对象生命周期中变更的场景。
+    - Method 注入：
+        - 通过在具体方法中直接使用构造函数，本质和 setter 注入一样
+    - 接口注入（补充）：
+        - 通过实现特定接口，由调用者注入依赖，较为少见。
+        - 通俗来说，就是在实现接口的过程中，额外套一层接口
+
+4. 懒汉式
+    - 下面具体使用对象的过程为“简单懒汉式”，即在需要时才实例化，但有时候需要使用某个类的对象很多次，这时候需要使用到框架比如 Spring，Spring 框架默认采用的是”饿汉式单例模式“，即在容器启动时就初始化所有单例 bean，而不是在第一次使用时才创建它们。
+
+**代码示例**
+
+1. 构造器注入
+
+    - TaxReport 类中 造器注入 TaxCalculator
+
+        ```java
+          public class TaxReport {
+
+              private TaxCalculator calculator;
+
+        	// 构造器注入
+              public TaxReport(TaxCalculator calculator) {
+                  this.calculator = calculator;
+              }
+
+              public void show() {
+                  var tax = calculator.calculateTax();
+                  System.out.println("Tax: " + tax);
+              }
+          }
+        ```
+
+    - Main 中具体使用（懒汉式使用）
+
+        ```java
+        public class Main {
+            public static void main(String[] args) {
+                var calculator = new TaxCalculator2024(200_000);
+                var taxReport = new TaxReport(calculator);
+                taxReport.show();
+            }
+        }
+        ```
+
+2. Setter 方法注入
+
+    - TaxReport 类中 Setter 方法注入 TaxCalculator
+
+        ```java
+        public class TaxReport {
+
+            private TaxCalculator calculator;
+
+            public void show() {
+                var tax = calculator.calculateTax();
+                System.out.println("Tax: " + tax);
+            }
+
+        	//  Setter 方法注入
+            public void setCalculator(TaxCalculator calculator) {
+                this.calculator = calculator;
+            }
+        }
+        ```
+
+    - Main 中具体使用（懒汉式使用）
+
+        ```java
+        public class Main {
+            public static void main(String[] args) {
+                var calculator1 = new TaxCalculator2024(200_000);
+                var calculator2 = new TaxCalculator2025(200_000);
+
+                // var taxReport = new TaxReport(calculator);
+                var taxReport = new TaxReport();
+                taxReport.setCalculator(calculator1);
+                taxReport.show();
+
+                taxReport.setCalculator(calculator2);
+                taxReport.show();
+            }
+        }
+        ```
+
+3. Method 注入（直接在具体方法中使用构造器）
+
+    - TaxReport 类 具体方法中 注入 TaxCalculator
+
+        ```java
+        public class TaxReport {
+
+            private TaxCalculator calculator;
+
+        	//  Method 注入
+            public void show(TaxCalculator calculator) {
+                var tax = calculator.calculateTax();
+                System.out.println("Tax: " + tax);
+            }
+        }
+        ```
+
+    - Main 中具体使用（懒汉式使用）
+
+        ```java
+        public class Main {
+            public static void main(String[] args) {
+                var calculator1 = new TaxCalculator2024(200_000);
+                var calculator2 = new TaxCalculator2025(200_000);
+
+                var taxReport = new TaxReport();
+                taxReport.show(calculator1);
+
+                taxReport.show(calculator2);
+            }
+        }
+        ```
+
+## 接口分离法则
+
+> 简述：接口分离法则（ISP：Interface Segregation Principle）是面向对象设计中 SOLID 原则的其中之一，它强调客户端不应被强迫依赖于它不使用的方法。换句话说，应当将臃肿的大接口拆分成多个更小、更具体的接口，使每个接口只对特定的客户端暴露它真正需要的方法，以提升系统的灵活性和可维护性。
+
+**知识树**
+
+1. 本质
+
+    - 接口的职责应单一且明确
+    - 客户端与接口之间的契约越简洁越好
+    - 避免"胖接口"（Fat Interface）现象
+    - 客户端：依赖接口进行功能调用的模块或类。
+
+2. 为什么需要接口分离法则
+
+    - 降低系统耦合度
+    - 提高接口复用性
+    - 提升代码可读性与可维护性
+    - 减少客户端冗余代码和实现负担
+
+3. 如何正确实施接口分离法则
+
+    - 根据使用者视角设计接口，而非实现视角
+    - 在接口膨胀时，拆分接口为更小更明确的接口
+    - 提取公共方法至独立接口以提高复用性
+
+4. 接口分离示例
+    - 创建一个接口 UIWidget，里面定义 3 个方法 render，drag，resize
+    - 创建一个类 Dragger，实现 UIWidget
+    - 问题：
+        - Dragger 必须实现 UIWidget 中所有方法，但 Dragger 仅需使用 drag 相关的方法
+        - 如果修改了 Dragger 使用不到的方法，Dragger 也需要跟着更改，增加了维护成本
+
+**代码示例**
+
+1. 未拆分接口的情况（UIWidget 接口）
+
+    ```java
+    public interface UIWidget {
+
+    	void render();
+
+    	void drag();
+
+    	void resize();
+    }
+    ```
+
+    - 如果增加方法`drag(int x, int y)`，那么所有 UIWidget 实现类中必须添加这个方法的实现
+
+2. 拆分接口（使用 control+T 拆分）
+
+    - Draggable 接口
+
+        ```java
+        public interface Draggable {
+
+            void drag();
+
+            void drag(int x, int y);
+        }
+        ```
+
+    - Resizable 接口
+
+        ```java
+        public interface Resizable {
+
+          void resize();
+        }
+        ```
+
+    - UIWidget 接口
+
+        ```java
+        public interface UIWidget extends Draggable, Resizable {
+
+          void render();
+        }
+        ```
+
+## 接口特性
+
+> 简述：接口从 JDK1.0 起仅定义行为契约，但随着 Java 版本升级引入了常量字段、静态方法和私有方法，这些新增特性虽提供了便利和复用，但也引发了对接口应保持纯抽象性的争议。
+
+**知识树**
+
+1. 常量字段（JDK1.0）
+
+    - 定义：接口中声明的常量自动为 public static final
+    - 缺点：将常量与接口绑定，可能限制设计的灵活性
+
+2. 静态方法（JDK8.0）
+
+    - 定义：允许在接口中定义具体实现的静态方法
+    - 缺点：静态方法属于接口自身，可能在未来更改，违背“只定义契约”的初衷
+
+3. 私有方法（JDK9.0）
+
+    - 定义：接口可包含私有方法以封装默认方法中共用的辅助逻辑
+    - 缺点：暴露具体实现细节，可能增加维护复杂度
+
+4. 设计争议与最佳实践
+    - 争议：新增实现细节使接口从纯抽象“契约”转变为混合类型
+    - 建议：谨慎使用静态和私有方法，确保接口主要用于定义行为，而非承担过多实现责任
+
+## 接口与抽象类
+
+> 简述：接口和抽象类都是定义行为契约的工具，但它们各有侧重。接口强调纯粹的行为声明和松耦合，而抽象类则允许部分实现以便代码复用。随着 Java 版本的演进，接口也引入了静态和私有方法，这虽然增加了灵活性，但也引发了设计上的争议。
+
+**知识树**
+
+1. 基本定义
+
+    - 接口：只包含方法声明和常量，不提供实现（早期 Java）；用于定义行为契约。
+    - 抽象类：可包含抽象方法和具体实现，用于代码复用和部分实现共享。
+
+2. 设计目的
+
+    - 接口：建立松耦合、可扩展和易于测试的系统，强调“做什么”。
+    - 抽象类：提供基础实现，简化多个子类的共同代码，强调“如何做”。
+
+3. Java 新特性对接口的影响
+
+    - 静态方法：允许在接口中定义具体实现，但改变了接口的纯契约特性。
+    - 私有方法：用于封装默认方法中的共用逻辑，同样引入实现细节。
+    - 争议：滥用这些特性可能导致接口变得臃肿，不再纯粹。
+
+4. 使用场景与建议
+    - 当仅需定义行为而无实现时，使用接口；当需要共享部分实现时，使用抽象类。
+    - 避免用接口实现多重继承，保持设计清晰、耦合低。
+
+# ---
 
 ## 引入示例
 
@@ -4902,4 +5310,215 @@
 
 ## EX
 
-# ---
+## 接口分离法则详解
+
+> 简述：接口分离法则是一项设计原则，其核心思想是将大而全的接口拆分成多个小而专一的接口，使客户端只需依赖于它实际需要的接口。这不仅降低了系统耦合度，还提升了代码的灵活性与可维护性，对初学者来说，它提醒我们设计时要精简职责，避免强制实现无关的方法。
+
+**知识树**
+
+1. 定义与基本概念
+
+    - 接口：定义一组方法的规范，用于描述类应实现的功能。
+    - 客户端：依赖接口进行功能调用的模块或类。
+
+2. 原则核心
+
+    - 不强迫客户端依赖不需要的方法。
+    - 倡导使用多个细粒度、专一化的接口替代一个庞大接口。
+
+3. 设计动机与优势：
+
+    - 降低耦合性：客户端只与自己需要的接口发生依赖，减少无关依赖带来的风险。
+    - 提高灵活性：系统更容易扩展与维护，修改小接口对其他模块的影响较小。
+
+4. 实现方式与应用场景
+    - 接口拆分：将功能复杂的接口按职责划分成多个小接口。
+    - 角色接口设计：根据不同角色或使用场景，提供相应的接口实现，满足各自的需求。
+
+**代码示例**
+
+1. 未遵循接口分离法则（大而全的接口）
+
+    ```java
+    public interface MultifunctionDevice {
+        void print();
+        void scan();
+        void fax();
+    }
+
+    public class OldPrinter implements MultifunctionDevice {
+        public void print() {
+            System.out.println("打印文件...");
+        }
+        public void scan() {
+            // 不支持扫描，可能抛出异常或留空
+            throw new UnsupportedOperationException("扫描功能未实现");
+        }
+        public void fax() {
+            // 不支持传真，同上
+            throw new UnsupportedOperationException("传真功能未实现");
+        }
+    }
+    ```
+
+    - 描述：在这个示例中，`MultifunctionDevice` 定义了打印、扫描和传真三个功能，但对于只需要打印功能的 `OldPrinter` 类来说，实现扫描和传真方法既多余又容易引起问题。
+
+2. 遵循接口分离法则（细化后的接口）
+
+    ```java
+    public interface Printer {
+        void print();
+    }
+
+    public interface Scanner {
+        void scan();
+    }
+
+    public interface Fax {
+        void fax();
+    }
+
+    public class BasicPrinter implements Printer {
+        public void print() {
+            System.out.println("打印文件...");
+        }
+    }
+    ```
+
+    - 描述：此处将原有接口拆分为 `Printer`、`Scanner` 和 `Fax` 三个独立接口，`BasicPrinter` 类仅实现 `Printer` 接口，专注于打印功能，不需要关心其他无关功能，从而符合接口分离法则。
+
+## 接口分离法则（ISP：Interface Segregation Principle）
+
+> 简述：  
+> 接口分离法则（ISP）是面向对象设计中 SOLID 原则的其中之一，它强调客户端不应被强迫依赖于它不使用的方法。换句话说，应当将臃肿的大接口拆分成多个更小、更具体的接口，使每个接口只对特定的客户端暴露它真正需要的方法，以提升系统的灵活性和可维护性。
+
+**知识树**
+
+1. 接口分离法则的本质
+    - 接口的职责应单一且明确
+    - 客户端与接口之间的契约越简洁越好
+    - 避免"胖接口"（Fat Interface）现象
+2. 为什么需要接口分离法则
+    - 降低系统耦合度
+    - 提高接口复用性
+    - 提升代码可读性与可维护性
+    - 减少客户端冗余代码和实现负担
+3. 如何正确实施接口分离法则
+    - 根据使用者视角设计接口，而非实现视角
+    - 在接口膨胀时，拆分接口为更小更明确的接口
+    - 提取公共方法至独立接口以提高复用性
+4. 常见误区与注意点：
+    - 接口过于细碎，导致接口数量爆炸
+    - 未考虑未来需求，接口抽象不合理
+    - 未及时重构臃肿接口，产生历史负担
+
+**代码示例**
+
+1. 违背接口分离法则的案例（胖接口）
+
+```java
+// 胖接口示例，不同的客户端使用时都需要实现不需要的方法
+public interface Device {
+    void print();
+    void scan();
+    void fax();
+}
+
+public class OldPrinter implements Device {
+
+    @Override
+    public void print() {
+        System.out.println("打印功能");
+    }
+
+    @Override
+    public void scan() {
+        // 此打印机没有扫描功能，却被迫实现空方法
+        throw new UnsupportedOperationException("扫描功能不支持");
+    }
+
+    @Override
+    public void fax() {
+        // 此打印机没有传真功能，却被迫实现空方法
+        throw new UnsupportedOperationException("传真功能不支持");
+    }
+}
+```
+
+- 上述代码的问题在于：客户端`OldPrinter`被迫实现了不需要的接口方法，导致冗余代码和违反职责单一原则。
+
+2. 符合接口分离法则的案例（接口职责明确细分）
+
+```java
+// 将大接口拆分为多个职责明确的小接口
+public interface Printer {
+    void print();
+}
+
+public interface Scanner {
+    void scan();
+}
+
+public interface Fax {
+    void fax();
+}
+
+// 客户端根据实际需要灵活实现接口
+public class SimplePrinter implements Printer {
+    @Override
+    public void print() {
+        System.out.println("打印功能实现");
+    }
+}
+
+// 支持扫描与打印的设备
+public class MultiFunctionPrinter implements Printer, Scanner {
+
+    @Override
+    public void print() {
+        System.out.println("打印功能实现");
+    }
+
+    @Override
+    public void scan() {
+        System.out.println("扫描功能实现");
+    }
+}
+```
+
+- 上述示例清晰地体现了 ISP 的精髓，通过接口拆分，使客户端只依赖必要的方法，实现接口职责明确，显著提高了代码的可维护性和灵活性。
+
+**对接口分离法则的本质洞察与深度理解**
+
+- **核心思想的哲学本质**  
+     接口分离法则本质上是关注“接口与客户端关系”的哲学思考。它鼓励从“接口提供者”的视角转变为“接口消费者”的视角，避免单纯追求接口实现的便利性，而忽略接口使用时的成本。  
+     接口的作用在于“屏蔽细节”，但接口设计过于粗粒度，就会导致接口的“实现负担”被转嫁到客户端，增加了理解成本、使用成本和维护成本。
+
+- **技术设计与架构决策层面的思考**  
+     ISP 强调接口设计时应当从实际需求与使用场景出发，而非想象或推测未来可能的需求。这避免了过度抽象和不切实际的设计，使接口定义更贴合实际业务与真实需求。同时，它在代码规模增大时，推动开发者主动拆分庞大接口，从而主动推动架构的演进与优化。
+
+- **对设计模式与原则相互关系的深度理解**  
+     ISP 不仅独立发挥作用，也与单一职责原则（SRP）紧密相连，两个原则相辅相成。SRP 强调一个类应当只有一个变化原因，而 ISP 则强调接口应只暴露给客户端真正需要的功能，两者都是通过职责分离实现低耦合和高内聚。
+
+- **批判性与创造性思考**  
+     实际开发中，接口分离法则的落地常遇到过犹不及的难题：
+
+    1. 接口过于细碎，导致接口数量爆炸，增加复杂性。
+    2. 接口抽象程度过高或过低，都可能使未来维护成本提高。
+
+    要避免这种情况，我们必须批判性地审视当前需求，并进行创造性思考：
+
+    - **适度聚合**：在接口过于碎片化时，思考是否有必要重新聚合，使接口保持适当粒度。
+    - **前瞻性抽象**：在接口设计时，适度考虑未来潜在变化，通过高质量的抽象平衡现在和未来需求。
+    - **阶段性重构**：允许接口的渐进式演化，在不同阶段灵活进行接口拆分或聚合。
+
+- **最佳实践建议**  
+     在实际项目中，推荐以下步骤保证接口设计合适：
+    1. **以使用者为中心进行接口设计**：明确接口使用场景、目标和客户端真正需求。
+    2. **实施阶段性接口重构**：接口膨胀时及时进行接口拆分。
+    3. **平衡抽象和细节**：避免接口抽象过度或过于具体，保持弹性，允许未来可扩展。
+    4. **定期接口评审**：审视接口粒度、使用频率与职责划分，持续改进接口设计。
+
+---
+
+接口分离法则并非简单的“接口切割”，而是一种深度的思想转变和设计哲学，它驱动着程序设计从实现导向转向需求导向，真正实现系统的高度解耦与灵活扩展。
