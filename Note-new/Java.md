@@ -53,98 +53,6 @@
     2.  **初始化成员变量**  
         默认构造函数有时会在成员变量声明时使用初始化表达式进行初始化，而你自己写的带参数构造函数如果没有做额外的初始化，成员变量就会保持它们的默认值。确保你在构造函数中对必要的变量进行了正确的初始化。
 
-# 异常
-
-## 异常处理概述
-
-> 简述：异常是程序中错误事件的标志，Java 使用异常机制来处理这些错误。在异常发生时，程序会抛出一个异常对象，包含错误信息并帮助开发者定位问题。通过适当的异常处理，我们能够更好地控制程序的流程和错误。
-
-**知识树**
-
-1. 异常的基本概念
-
-    - 异常是程序运行过程中发生的错误事件。
-    - 异常在 Java 中是通过`Throwable`类及其子类（如`Exception`和`Error`）来表示的。
-
-2. 异常的种类
-
-    - **检查异常（Checked Exception）**：编译时必须处理的异常，通常是程序外部原因导致的错误，例如`IOException`。
-    - **非检查异常（Unchecked Exception）**：运行时错误，通常由程序内部逻辑错误导致，例如`NullPointerException`、`ArrayIndexOutOfBoundsException`。
-    - **Error**：表示严重问题，通常不能恢复的错误，如`OutOfMemoryError`。
-
-3. 异常的堆栈跟踪
-
-    - 异常发生时，Java 会生成堆栈跟踪（stack trace），显示异常发生的调用链。
-    - 堆栈跟踪帮助开发者定位代码中的错误来源。
-
-4. 异常处理机制
-    - **throwing**：当异常发生时，方法会抛出异常，告知调用者发生了什么问题。
-    - **handling**：调用者通过`try-catch`块捕获并处理异常，防止程序崩溃。
-
-**代码示例**
-
-1. **NullPointerException 示例**
-
-    ```java
-    package exceptions;
-
-    public class ExceptionsDemo {
-        public static void show() {
-            sayHello(null);  // 传递 null，触发 NullPointerException
-        }
-
-        public static void sayHello(String name) {
-            System.out.println(name.toUpperCase());  // 抛出异常
-        }
-
-        public static void main(String[] args) {
-            ExceptionsDemo.show();  // 调用示例方法
-        }
-    }
-    ```
-
-    - 描述：当`null`传递给`sayHello`方法时，调用`toUpperCase()`会抛出`NullPointerException`。
-
-2. **堆栈跟踪输出示例**
-
-    ```
-    Exception in thread "main" java.lang.NullPointerException
-        at exceptions.ExceptionsDemo.sayHello(ExceptionsDemo.java:9)
-        at exceptions.ExceptionsDemo.show(ExceptionsDemo.java:5)
-        at exceptions.ExceptionsDemo.main(ExceptionsDemo.java:13)
-    ```
-
-    - 描述：堆栈跟踪显示了异常发生的具体位置，帮助开发者快速定位错误。
-
-3. **处理异常示例**
-
-    ```java
-    package exceptions;
-
-    public class ExceptionsDemo {
-        public static void show() {
-            try {
-                sayHello(null);  // 捕获 NullPointerException
-            } catch (NullPointerException e) {
-                System.out.println("Caught exception: " + e.getMessage());
-            }
-        }
-
-        public static void sayHello(String name) {
-            if (name == null) {
-                throw new NullPointerException("Name cannot be null");
-            }
-            System.out.println(name.toUpperCase());
-        }
-
-        public static void main(String[] args) {
-            ExceptionsDemo.show();  // 调用示例方法，处理异常
-        }
-    }
-    ```
-
-    - 描述：使用`try-catch`块捕获并处理`NullPointerException`，防止程序崩溃，并打印自定义错误信息。
-
 # Start
 
 ## 开发环境
@@ -4600,7 +4508,7 @@
     - Java 中，所有类都直接或间接继承自`Object`类。即使是复杂的类层次结构，最终也会从`Object`类继承，而`Object`类本身并没有多重继承问题。
     - Java 采用接口来弥补多重继承的需求，一个类可以实现多个接口，但只能继承一个类，避免了多重继承带来的问题。
 
-# Implement
+# Interfaces
 
 ## 接口
 
@@ -5035,490 +4943,627 @@
     - 当仅需定义行为而无实现时，使用接口；当需要共享部分实现时，使用抽象类。
     - 避免用接口实现多重继承，保持设计清晰、耦合低。
 
-# ---
+# Exceptions
 
-## 引入示例
+## 异常
 
-> 简述：引入一个税收示例，此示例展示了紧耦合的情况，当 TaxCalculator 的计算逻辑发生变化时，依赖它的 TaxReport 类也需要同步修改，带来维护上的困难。
-
-**代码引入**
-
-1. 创建 TaxCalculator 类，用于计算税收
-2. 创建 TaxReport ，用于输出结果，TaxReport 中使用了 TaxCalculator，即 TaxReport 依赖于 TaxCalculator
-3. 如果 TaxCalculator 的计算过程发生改变，比如额外加上 exemption 参数，TaxReport 将会出现异常，需要同步修改它，此外每年的税收规则都可能会变化，如果依赖于 TaxCalculator 的类过多，修改计算规则时，需要修改的地方将越来越多
-
-**代码示例**
-
-1. 创建 TaxCalculator 类，用于计算税收
-
-    ```java
-    public class TaxCalculator {
-
-        private double taxableIncome;
-
-        public TaxCalculator(double taxableIncome) {
-            this.taxableIncome = taxableIncome;
-        }
-
-        public double calculateTax() {
-            return taxableIncome * 0.3;
-        }
-    }
-    ```
-
-2. 创建 TaxReport ，用于输出结果
-
-    ```java
-    public class TaxReport {
-
-        private TaxCalculator calculator;
-
-        public TaxReport(double taxableIncome) {
-            this.calculator = new TaxCalculator(taxableIncome);
-        }
-
-        public void show() {
-            var tax = calculator.calculateTax();
-            System.out.println("Tax: " + tax);
-        }
-    }
-    ```
-
-3. 调用示例
-
-    ```java
-    public class Main {
-        public static void main(String[] args) {
-            var report = new TaxReport(200_000);
-            // var report = new TaxReport();
-            report.show();
-        }
-    }
-    ```
-
-## 使用接口
-
-> 简述：在税收示例的基础上改变，若税收规则改变，同时希望保留之前的税收类，这时可以创建一个税收计算接口，每年的税收类都引用这个接口并实现接口中的方法。
+> 简述：异常是程序中错误事件的标志，Java 使用异常机制来处理这些错误。在异常发生时，程序会抛出一个异常对象，包含错误信息并帮助开发者定位问题。
 
 **知识树**
 
-1. 接口中的方法默认为 public 和 abstract
-2. 接口不能有具体实现，这一点与抽象类相似
-3. 类可以实现多个接口，只能继承一个类，这两者可以同步进行
+1. 异常的基本概念
 
-**修改思路**
+    - 异常是程序运行过程中发生的错误事件。
 
-1. 将之前的税收类改为 TaxCalculator2024
-2. 创建税收接口 TaxCalculator，写下计算方法
-3. 让 TaxCalculator2024 实现（Implement）TaxCalculator，并重写接口中的方法，若方法名相同，需要加上@Override
-4. 此时 TaxReport 中，依旧使用了实例化了 TaxCalculator2024，这仍然有些耦合
+2. 异常的堆栈跟踪
 
-代码示例
+    - 异常发生时，Java 会生成堆栈跟踪（stack trace），逆序显示异常发生的调用链。
+    - Java 运行时会在当前方法中寻找处理这个异常的异常处理器，如果没有找到，会回到前一个方法继续寻找
 
-1. 修改后的 TaxCalculator2024
+**代码示例**
+
+1. **NullPointerException 示例**
 
     ```java
-    public class TaxCalculator2024 implements TaxCalculator {
+    public class ExceptionsDemo {
+      public static void show() {
+    	  sayHello(null);
+      }
 
-        private double taxableIncome;
-
-        public TaxCalculator2024(double taxableIncome) {
-            this.taxableIncome = taxableIncome;
-        }
-
-        @Override
-        public double calculateTax() {
-            return taxableIncome * 0.3;
-        }
+      public static void sayHello(String name) {
+    	  System.out.println(name.toUpperCase());
+      }
     }
     ```
 
-2. 创建的的 TaxCalculator 接口
+    - 描述：创建 exceptions 包，创建 `ExcptionsDemo` 类，并在 Main 中调用 `show()`方法。当`null`传递给`sayHello`方法时，调用`toUpperCase()`会抛出`NullPointerException`。
 
-    ```java
-    public interface TaxCalculator {
-        double calculateTax();
-    }
+2. **堆栈跟踪输出示例**
+
+    ```
+    Exception in thread "main" java.lang.NullPointerException: Cannot invoke "String.toUpperCase()" because "name" is null
+    	at com.pang.exceptions.ExceptionsDemo.sayHello(ExceptionsDemo.java:9)
+    	at com.pang.exceptions.ExceptionsDemo.show(ExceptionsDemo.java:5)
+    	at com.pang.Main.main(Main.java:7)
     ```
 
-3. 同步修改后的 TaxReport
+    - 描述：堆栈跟踪显示了异常发生的具体位置，帮助开发者快速定位错误。
 
-    ```java
-    public class TaxReport {
+## 种类
 
-        private TaxCalculator2024 calculator;
-
-        public TaxReport(double taxableIncome) {
-            this.calculator = new TaxCalculator2024(taxableIncome);
-        }
-
-        public void show() {
-            var tax = calculator.calculateTax();
-            System.out.println("Tax: " + tax);
-        }
-    }
-    ```
-
-## 依赖注入
-
-> 简述：在 TaxReport 中，依旧创建了 TaxCalculator2024 对象，使用 TaxCalculator2024 和创建 TaxCalculator2024 的对象，是两种概念，我们应该只使用它，而不是创建它的对象。我们希望将创建这个依赖项的责任从 Report 类中移除，并将它交给另一个类。我们将有这个类来为 Report 类提供 Calculator 对象。这就是我们所说的依赖注入（Dependency injection）。其他类将通过注入依赖来传递这个对象。
+> 简述：Java 异常分三种：受检异常（Checked Exceptions）、非受检异常（Unchecked Exceptions，也称运行时异常）、错误（Errors）。异常是程序运行中发生的异常事件，影响程序的正常流程。
 
 **知识树**
 
-1. 依赖注入的三种方式
-    - 构造器注入（Constructor Injection）
-    - Setter Injection
-    - Method Injection
+1. 受检异常（Checked Exceptions）
 
-## 构造器注入
+    - 编译时强制检查，开发者必须显式处理
+    - 常见于程序外部问题，如文件缺失、网络异常等
+    - 代表：`FileNotFoundException`、`IOException`
 
-> 简述：在 TaxReport 中，修改构造器，将私有字段从“类引用”更改为将参数修改为“接口引用”。修改计算规则时，无需再更改 TaxReport。本节使用单独调用方式为简单懒汉式，即在需要时才实例化，但有时候需要使用某个类的对象很多次，这时候需要使用到框架比如 Spring，Spring 框架默认采用的是饿汉式单例模式，即在容器启动时就初始化所有单例 bean，而不是在第一次使用时才创建它们。
+2. 非受检异常（Unchecked Exceptions / Runtime Exceptions）
 
-**代码示例**
+    - 编译时不强制检查，程序运行时才暴露
+    - 通常为程序员的代码逻辑错误导致
+    - 代表：
+        - `NullPointerException`（空引用调用方法）
+        - `ArithmeticException`（数学运算错误，如除零）
+        - `IllegalArgumentException`（非法参数传入方法）
+        - `IndexOutOfBoundsException`（访问数组或列表时索引非法）
+        - `IllegalStateException`（对象状态错误时调用方法）
+    - 处理方式：
+        - 通过代码逻辑严密性、代码审查与单元测试预防，而非捕获处理
 
-1. 修改过的 TaxReport
+3. 错误（Errors）
 
-    ```java
-    public class TaxReport {
+    - 程序无法处理的严重问题，通常源于环境或系统资源问题
+    - 代表：
+        - `StackOverflowError`（栈空间耗尽）
+        - `OutOfMemoryError`（内存不足）
+    - 处理方式：
+        - 通常不可恢复，应避免捕获，由开发者定位根本原因修复，如代码无限递归或 JVM 配置错误
 
-        private TaxCalculator calculator;
+## 层次结构
 
-        public TaxReport(TaxCalculator calculator) {
-            this.calculator = calculator;
-        }
-
-        public void show() {
-            var tax = calculator.calculateTax();
-            System.out.println("Tax: " + tax);
-        }
-    }
-    ```
-
-2. 懒汉式使用
-
-    ```java
-    public class Main {
-        public static void main(String[] args) {
-            var calculator = new TaxCalculator2024(200_000);
-            var taxReport = new TaxReport(calculator);
-            taxReport.show();
-        }
-    }
-    ```
-
-## Setter 注入
-
-> 简述：除了构造器注入，还有 setter 注入的方式，setter 注入的好处是可以在程序运行时修改依赖，创建 TaxCalculator2025
-
-**代码示例**
-
-1. 修改后的 TaxReport
-
-    ```java
-    public class TaxReport {
-
-        private TaxCalculator calculator;
-
-        public void show() {
-            var tax = calculator.calculateTax();
-            System.out.println("Tax: " + tax);
-        }
-
-        public void setCalculator(TaxCalculator calculator) {
-            this.calculator = calculator;
-        }
-    }
-    ```
-
-2. 新创建的 TaxCalculator2025
-
-    ```java
-    public class TaxCalculator2025 implements TaxCalculator {
-
-        private double taxableIncome;
-        private double exemptTax = 60000;
-
-        public TaxCalculator2025(double taxableIncome) {
-            this.taxableIncome = taxableIncome - exemptTax;
-        }
-
-        @Override
-        public double calculateTax() {
-            return taxableIncome * 0.3;
-        }
-    }
-    ```
-
-3. 使用 setter
-
-    ```java
-    public class Main {
-        public static void main(String[] args) {
-            var calculator1 = new TaxCalculator2024(200_000);
-            var calculator2 = new TaxCalculator2025(200_000);
-
-            // var taxReport = new TaxReport(calculator);
-            var taxReport = new TaxReport();
-            taxReport.setCalculator(calculator1);
-            taxReport.show();
-
-            taxReport.setCalculator(calculator2);
-            taxReport.show();
-        }
-    }
-    ```
-
-## Method 注入
-
-简述：直接在具体方法中使用构造器，而非构造函数和 setter 中
-
-**代码示例**
-
-1. 修改后的 TaxReport
-
-    ```java
-    public class TaxReport {
-
-        private TaxCalculator calculator;
-
-        public void show(TaxCalculator calculator) {
-            var tax = calculator.calculateTax();
-            System.out.println("Tax: " + tax);
-        }
-    }
-    ```
-
-2. 使用 方法注入
-
-    ```java
-    public class Main {
-        public static void main(String[] args) {
-            var calculator1 = new TaxCalculator2024(200_000);
-            var calculator2 = new TaxCalculator2025(200_000);
-
-            var taxReport = new TaxReport();
-            taxReport.show(calculator1);
-
-            taxReport.show(calculator2);
-        }
-    }
-    ```
-
-## 接口分离法则
-
-简述：接口当一个存在过多的方法时，修改其中一个方法比如参数，引用这个接口的类都需要改动。正确的做法是将接口文件切分成一个个职责清晰的小文件。
-
-## EX
-
-## 接口分离法则详解
-
-> 简述：接口分离法则是一项设计原则，其核心思想是将大而全的接口拆分成多个小而专一的接口，使客户端只需依赖于它实际需要的接口。这不仅降低了系统耦合度，还提升了代码的灵活性与可维护性，对初学者来说，它提醒我们设计时要精简职责，避免强制实现无关的方法。
+> 简述：Java 的异常机制通过一个类层次结构实现，所有异常和错误继承自`Throwable`类，它定义了异常共有特征，如错误信息（message）和堆栈跟踪（stack trace）。
 
 **知识树**
 
-1. 定义与基本概念
+1. 结构图
 
-    - 接口：定义一组方法的规范，用于描述类应实现的功能。
-    - 客户端：依赖接口进行功能调用的模块或类。
-
-2. 原则核心
-
-    - 不强迫客户端依赖不需要的方法。
-    - 倡导使用多个细粒度、专一化的接口替代一个庞大接口。
-
-3. 设计动机与优势：
-
-    - 降低耦合性：客户端只与自己需要的接口发生依赖，减少无关依赖带来的风险。
-    - 提高灵活性：系统更容易扩展与维护，修改小接口对其他模块的影响较小。
-
-4. 实现方式与应用场景
-    - 接口拆分：将功能复杂的接口按职责划分成多个小接口。
-    - 角色接口设计：根据不同角色或使用场景，提供相应的接口实现，满足各自的需求。
-
-**代码示例**
-
-1. 未遵循接口分离法则（大而全的接口）
-
-    ```java
-    public interface MultifunctionDevice {
-        void print();
-        void scan();
-        void fax();
-    }
-
-    public class OldPrinter implements MultifunctionDevice {
-        public void print() {
-            System.out.println("打印文件...");
-        }
-        public void scan() {
-            // 不支持扫描，可能抛出异常或留空
-            throw new UnsupportedOperationException("扫描功能未实现");
-        }
-        public void fax() {
-            // 不支持传真，同上
-            throw new UnsupportedOperationException("传真功能未实现");
-        }
-    }
+    ```txt
+    Throwable
+    ├── Error
+    └── Exception
+    	└── RuntimeException
     ```
 
-    - 描述：在这个示例中，`MultifunctionDevice` 定义了打印、扫描和传真三个功能，但对于只需要打印功能的 `OldPrinter` 类来说，实现扫描和传真方法既多余又容易引起问题。
+2. **Throwable 类**
 
-2. 遵循接口分离法则（细化后的接口）
+    - Java 所有异常和错误的根类
+    - 提供异常通用特征：
+        - 异常信息（error message）
+        - 堆栈跟踪（stack trace）
 
-    ```java
-    public interface Printer {
-        void print();
-    }
+3. **异常类型判断规则**
 
-    public interface Scanner {
-        void scan();
-    }
+    - 从`RuntimeException`继承的为**非受检异常**（运行时异常）
+    - 从`Exception`继承但未从`RuntimeException`继承的为**受检异常**
+    - 所有从`Error`继承的类均视为程序不可处理的**错误**
 
-    public interface Fax {
-        void fax();
-    }
+4. 示例 `NullPointerException`
 
-    public class BasicPrinter implements Printer {
-        public void print() {
-            System.out.println("打印文件...");
-        }
-    }
+    ```txt
+    java.lang.Object
+    └── java.lang.Throwable
+    	└── java.lang.Exception
+    	    	└── java.lang.RuntimeException
+    	    	    	└── java.lang.NullPointerException
     ```
 
-    - 描述：此处将原有接口拆分为 `Printer`、`Scanner` 和 `Fax` 三个独立接口，`BasicPrinter` 类仅实现 `Printer` 接口，专注于打印功能，不需要关心其他无关功能，从而符合接口分离法则。
+    - 官方文档：https://docs.oracle.com/javase/8/docs/api/java/lang/NullPointerException.html
 
-## 接口分离法则（ISP：Interface Segregation Principle）
+## 捕获异常
 
-> 简述：  
-> 接口分离法则（ISP）是面向对象设计中 SOLID 原则的其中之一，它强调客户端不应被强迫依赖于它不使用的方法。换句话说，应当将臃肿的大接口拆分成多个更小、更具体的接口，使每个接口只对特定的客户端暴露它真正需要的方法，以提升系统的灵活性和可维护性。
+> 简述：捕获异常是 Java 中处理程序运行时可能出现的异常情况，避免程序崩溃的一种机制。通过使用 `try-catch` 结构，程序可以安全地处理异常，增强程序稳定性。
 
 **知识树**
 
-1. 接口分离法则的本质
-    - 接口的职责应单一且明确
-    - 客户端与接口之间的契约越简洁越好
-    - 避免"胖接口"（Fat Interface）现象
-2. 为什么需要接口分离法则
-    - 降低系统耦合度
-    - 提高接口复用性
-    - 提升代码可读性与可维护性
-    - 减少客户端冗余代码和实现负担
-3. 如何正确实施接口分离法则
-    - 根据使用者视角设计接口，而非实现视角
-    - 在接口膨胀时，拆分接口为更小更明确的接口
-    - 提取公共方法至独立接口以提高复用性
-4. 常见误区与注意点：
-    - 接口过于细碎，导致接口数量爆炸
-    - 未考虑未来需求，接口抽象不合理
-    - 未及时重构臃肿接口，产生历史负担
+1. `FileReader`补充
+
+    - `FileReader` 在读取文件时可能抛出受检查异常（`FileNotFoundException`）。
+    - 异常原因包括文件不存在、权限不足、路径错误等。
+    - 受检查异常必须显式捕获或声明，否则程序无法通过编译。
+
+2. `try-catch` 结构
+
+    - `try` 块：放置可能产生异常的代码。
+    - `catch` 块：捕获并处理对应类型的异常。
+    - 使用 IDE（如 IntelliJ IDEA、Eclipse）可自动快速生成 `try-catch` 结构。
+
+3. 捕获多个异常
+
+    - 多个独立 `catch` 块：分别捕获处理不同类型的异常。
+    - 合并异常捕获：使用竖线 `|` 一次捕获多个异常。
+    - 异常类型之间存在继承关系时，应先捕获子类异常，再捕获父类异常，否则编译器报错。
 
 **代码示例**
 
-1. 违背接口分离法则的案例（胖接口）
+1. 基本捕获异常
 
-```java
-// 胖接口示例，不同的客户端使用时都需要实现不需要的方法
-public interface Device {
-    void print();
-    void scan();
-    void fax();
-}
-
-public class OldPrinter implements Device {
-
-    @Override
-    public void print() {
-        System.out.println("打印功能");
+    ```java
+    public class ExceptionsDemo {
+        public static void show() {
+            try {
+    			var reader = new FileReader("file.txt");
+    			System.out.println("File opened");
+            } catch (FileNotFoundException e) {
+                System.out.println(e.getMessage());
+            }
+        }
     }
+    ```
 
-    @Override
-    public void scan() {
-        // 此打印机没有扫描功能，却被迫实现空方法
-        throw new UnsupportedOperationException("扫描功能不支持");
+    - 描述：这里的 `e` 是 `FileNotFoundException` 的实例，执行`new FileReader("file.txt");`后，之间跳转到 `catch` 代码块
+
+2. 多个异常分别捕获
+
+    ```java
+    public class ExceptionsDemo {
+        public static void show() {
+            try {
+                var reader = new FileReader("file.txt");
+                var value = reader.read();
+                new SimpleDateFormat().parse("");
+            } catch (FileNotFoundException e) {
+                System.out.println(e.getMessage());
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            } catch (ParseException e) {
+                System.out.println(e.getMessage());
+            }
+        }
     }
+    ```
 
-    @Override
-    public void fax() {
-        // 此打印机没有传真功能，却被迫实现空方法
-        throw new UnsupportedOperationException("传真功能不支持");
+    - 描述：每个异常单独捕获和处理，明确指出每个异常类型的具体原因，便于调试。
+    - `FileReader` 需要捕获 `FileNotFoundException`，`FileNotFoundException`是 `IOException`的子类
+    - `read()` 方法需要捕获 `IOException`
+    - `parse()` 方法需要捕获 `ParseException`
+
+3. 合并捕获多个异常
+
+    ```java
+    public class ExceptionsDemo {
+        public static void show() {
+            try {
+                var reader = new FileReader("file.txt");
+                var value = reader.read();
+                new SimpleDateFormat().parse("");
+            }
+            catch (IOException| ParseException e){
+                e.printStackTrace();
+            }
+        }
     }
-}
-```
+    ```
 
-- 上述代码的问题在于：客户端`OldPrinter`被迫实现了不需要的接口方法，导致冗余代码和违反职责单一原则。
+## Finally 与资源释放
 
-2. 符合接口分离法则的案例（接口职责明确细分）
+> 简述：异常处理过程中，确保资源（如文件句柄、数据库连接等）始终正确释放的重要方法，避免因异常导致资源泄露。
 
-```java
-// 将大接口拆分为多个职责明确的小接口
-public interface Printer {
-    void print();
-}
+**知识树**
 
-public interface Scanner {
-    void scan();
-}
+1. 资源泄露
 
-public interface Fax {
-    void fax();
-}
+    - 定义：资源（文件、数据库连接、网络连接）使用后未及时释放，导致资源耗尽。
+    - 危害：其他进程或应用无法获取资源，影响系统稳定。
 
-// 客户端根据实际需要灵活实现接口
-public class SimplePrinter implements Printer {
-    @Override
-    public void print() {
-        System.out.println("打印功能实现");
+2. finally 块
+
+    - 定义：`try-catch` 结构后额外定义的代码块，用于执行清理操作。
+    - 特性：`finally` 块始终执行，无论异常是否发生。
+    - finally 块的执行逻辑
+
+        ```java
+        try {
+            // 执行正常代码
+        } catch (Exception e) {
+            // 异常处理
+        } finally {
+            // 无论有无异常，此处代码始终执行
+        }
+        ```
+
+3. 变量作用域问题
+
+    - 问题：`try` 块内声明的变量无法在 `finally` 块内访问。
+    - 解决方案：在 `try` 块外提前声明变量，并初始化为 `null`。
+
+4. close 方法异常处理
+    - 问题：资源释放方法本身可能抛出异常（如 IOException）。
+    - 解决方案：在 finally 块中嵌套 try-catch 处理 close 方法异常。
+
+**代码示例**
+
+1. 正确资源释放模式
+
+    ```java
+    public class ExceptionsDemo {
+        public static void show() {
+            FileReader reader = null;
+            try {
+                reader = new FileReader("file.txt");
+                var value = reader.read();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
     }
-}
+    ```
 
-// 支持扫描与打印的设备
-public class MultiFunctionPrinter implements Printer, Scanner {
+## try-with-resources 语句
 
-    @Override
-    public void print() {
-        System.out.println("打印功能实现");
+> 简述：try-with-resources 是 Java 中一种简洁安全的资源管理语法，可自动释放外部资源（如文件、数据库连接），无需显式调用 close 方法。
+
+**知识树**
+
+1. 基本概念
+
+    - 自动管理外部资源，避免显式关闭资源
+    - 提高代码安全性和简洁性
+    - 等同于上面通过 Finally 释放资源的形式，但是更简洁
+
+2. 语法结构
+
+    - 在 `try` 后使用括号声明并初始化资源
+    - 资源在 `try` 结束时自动关闭
+
+3. 自动关闭的原理
+
+    - 编译器自动添加 `finally` 块关闭资源
+    - 要求资源实现 `AutoCloseable` 接口
+
+4. `AutoCloseable` 接口
+
+    - 定义了 `close()` 方法
+    - 所有使用 try-with-resources 的类必须实现此接口
+
+5. 多资源管理
+
+    - 支持在 `try()` 中声明多个资源
+    - 多个资源以分号分隔
+
+**代码示例**
+
+1. 单资源管理
+
+    ```java
+    public class ExceptionsDemo {
+        public static void show() {
+            try (
+                    var reader = new FileReader("file.txt")
+            ) {
+                var value = reader.read();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
+    ```
 
-    @Override
-    public void scan() {
-        System.out.println("扫描功能实现");
+    - 资源 reader 在 try 结束后自动关闭
+
+2. 多资源管理
+
+    ```java
+        try (
+                var reader = new FileReader("file.txt");
+                var writer = new FileWriter("output.txt")
+        ) {
+            var value = reader.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    ```
+
+    - reader 和 writer 均会在 try 结束时自动关闭
+
+## 抛出异常与重新抛出
+
+> 简述：异常抛出（throwing exceptions）指程序主动创建并抛出异常对象，提示调用方发生了意外情况或错误。防御性编程（defensive programming）则是在程序中进行主动的验证输入数据，提前发现并抛出异常，避免潜在严重问题的编程技巧。重新抛出异常可以将异常交由调用者统一处理，进而实现集中异常管理。
+
+**知识树**
+
+1.  异常的抛出（throw）
+
+    - 主动创建并抛出异常对象，用于告知调用者发生了错误
+    - 常用语法：`throw new 异常类型(错误描述)`
+
+2.  防御性编程
+
+    - 通过校验参数有效性提前发现问题
+    - 避免程序在后续运行中出现更严重的问题
+    - 防御性编程适用于库或框架开发；
+    - 在应用内部应，代码之间应该保持一定的信任度，只在 应用边界处（接收外部用户或系统输入）需严格校验，避免过度校验
+
+3.  受检异常与非受检异常
+
+    - 非受检异常不需要在方法签名上显式声明，也不强制要求在代码中捕获。
+    - 受检异常必须要么在方法中捕获（`try-catch`），要么在方法签名上通过 `throws` 声明传递给调用者。
+
+4.  重新抛出
+
+    - 场景：当前方法无法处理，需要调用方统一处理
+    - 方式：在捕获处重新抛出异常
+
+5.  通用异常处理策略：
+
+        - 捕获顶级异常(Throwable或Exception)
+        - 统一显示友好的用户提示信息
+
+**代码示例**
+
+1.  非受检异常的抛出
+
+    ```java
+    public class Account {
+    	public void deposit(float value) {
+    		if(value < 0)
+    			throw new IllegalArgumentException();
+    	}
     }
-}
-```
+    ```
 
-- 上述示例清晰地体现了 ISP 的精髓，通过接口拆分，使客户端只依赖必要的方法，实现接口职责明确，显著提高了代码的可维护性和灵活性。
+    - 描述：创建 `Account` 并在 `ExceptionsDemo` 中调用并传入`-1`
 
-**对接口分离法则的本质洞察与深度理解**
+2.  受检异常的声明与抛出
 
-- **核心思想的哲学本质**  
-     接口分离法则本质上是关注“接口与客户端关系”的哲学思考。它鼓励从“接口提供者”的视角转变为“接口消费者”的视角，避免单纯追求接口实现的便利性，而忽略接口使用时的成本。  
-     接口的作用在于“屏蔽细节”，但接口设计过于粗粒度，就会导致接口的“实现负担”被转嫁到客户端，增加了理解成本、使用成本和维护成本。
+    - 需要在方法签名中声明异常，调用者必须处理或继续声明
 
-- **技术设计与架构决策层面的思考**  
-     ISP 强调接口设计时应当从实际需求与使用场景出发，而非想象或推测未来可能的需求。这避免了过度抽象和不切实际的设计，使接口定义更贴合实际业务与真实需求。同时，它在代码规模增大时，推动开发者主动拆分庞大接口，从而主动推动架构的演进与优化。
+        ```java
+        public class Account {
+            public void deposit(float value) throws IOException {
+                if(value < 0)
+                    throw new IOException();
+            }
+        }
+        ```
 
-- **对设计模式与原则相互关系的深度理解**  
-     ISP 不仅独立发挥作用，也与单一职责原则（SRP）紧密相连，两个原则相辅相成。SRP 强调一个类应当只有一个变化原因，而 ISP 则强调接口应只暴露给客户端真正需要的功能，两者都是通过职责分离实现低耦合和高内聚。
+    - 在调用处处理
 
-- **批判性与创造性思考**  
-     实际开发中，接口分离法则的落地常遇到过犹不及的难题：
+        ```java
+        public class ExceptionsDemo {
+            public static void show() {
+                var account = new Account();
+                try {
+                    account.deposit(-1);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        ```
 
-    1. 接口过于细碎，导致接口数量爆炸，增加复杂性。
-    2. 接口抽象程度过高或过低，都可能使未来维护成本提高。
+3.  重新抛出异常
 
-    要避免这种情况，我们必须批判性地审视当前需求，并进行创造性思考：
+    - 在捕获处重新抛出
 
-    - **适度聚合**：在接口过于碎片化时，思考是否有必要重新聚合，使接口保持适当粒度。
-    - **前瞻性抽象**：在接口设计时，适度考虑未来潜在变化，通过高质量的抽象平衡现在和未来需求。
-    - **阶段性重构**：允许接口的渐进式演化，在不同阶段灵活进行接口拆分或聚合。
+        ```java
+        public class ExceptionsDemo {
+            public static void show() throws IOException {
+                var account = new Account();
+                try {
+                    account.deposit(-1);
+                } catch (IOException e) {
+                    System.out.println("Logging");
+                    throw new IOException();
+                }
+            }
+        }
+        ```
 
-- **最佳实践建议**  
-     在实际项目中，推荐以下步骤保证接口设计合适：
-    1. **以使用者为中心进行接口设计**：明确接口使用场景、目标和客户端真正需求。
-    2. **实施阶段性接口重构**：接口膨胀时及时进行接口拆分。
-    3. **平衡抽象和细节**：避免接口抽象过度或过于具体，保持弹性，允许未来可扩展。
-    4. **定期接口评审**：审视接口粒度、使用频率与职责划分，持续改进接口设计。
+    - 集中处理异常
 
----
+        ```java
+        public class Main {
+          public static void main(String[] args) {
+              try {
+                  ExceptionsDemo.show();
+              } catch (Throwable e) {
+                  System.out.println("An unexpected error occurred.");
+              }
+          }
+        }
+        ```
 
-接口分离法则并非简单的“接口切割”，而是一种深度的思想转变和设计哲学，它驱动着程序设计从实现导向转向需求导向，真正实现系统的高度解耦与灵活扩展。
+## 自定义异常
+
+> 简述：自定义异常（Custom Exceptions）是 Java 开发中针对特定业务场景创建的专用异常类，通常用于明确描述应用程序领域中特殊的问题，使代码逻辑更加清晰、易维护。
+
+**知识树**
+
+1. 自定义异常的命名规范
+
+    - 使用`Exception`作为类名后缀
+    - 类名应清晰描述异常原因
+
+2. 自定义异常的分类
+
+    - 检查型异常（Checked Exception）：继承 Exception，必须显式处理，用于需要开发者预期并能恢复的异常场景
+    - 非检查型异常（Unchecked Exception）：继承`RuntimeException`，通常表示编程错误，不强制显式处理
+
+3. 创建自定义异常的步骤：
+
+    - 创建异常类继承`Exception`（检查型）或`RuntimeException`（非检查型）
+    - 提供构造方法，允许自定义异常信息
+    - 可选提供默认异常信息
+
+**代码示例**
+
+1. 创建检查型自定义异常
+
+    ```java
+    public class InsufficientFundsException extends Exception {
+        // 默认构造方法
+        public InsufficientFundsException() {
+            super("Insufficient funds in your account");
+        }
+
+        // 接受自定义消息的构造方法
+        public InsufficientFundsException(String message) {
+            super(message);
+        }
+    }
+    ```
+
+2. 抛出自定义异常
+
+    ```java
+    public class Account {
+        private float balance;
+
+        public void deposit(float value) throws IOException {
+            if (value < 0)
+                throw new IOException();
+        }
+
+    	// 抛出自定义异常
+        public void withdraw(float value) throws InsufficientFundsException {
+            if (value > balance)
+                throw new InsufficientFundsException();
+        }
+    }
+    ```
+
+3. 处理自定义异常
+
+    ```java
+    public class ExceptionsDemo {
+        public static void show() throws IOException {
+            var account = new Account();
+            try {
+                account.withdraw(10);
+            } catch (InsufficientFundsException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+    }
+    ```
+
+    - 描述：异常时，控制台输出`Insufficient funds in your account`
+
+## 异常链
+
+> 简述： 异常链（Chaining Exceptions）是将特定异常包装在更通用异常中的技术，以明确异常发生的根本原因，便于统一管理和排查。
+
+**知识树**
+
+1. 异常链概念
+
+    - 将原始异常包装进更通用的异常中。
+    - 用于在异常发生时保留底层原因，便于后续排查。
+
+2. 实现异常链的方法
+
+    - 方式一：使用`initCause(Throwable cause)`方法指定原始异常。
+    - 方式二：使用异常构造函数传入原始异常，更简洁，推荐使用。
+
+**代码示例**
+
+1. 使用 initCause 实现异常链
+
+    - 创建异常类（更通用的异常）
+
+        ```java
+        // 自定义通用异常
+        public class AccountException extends Exception {
+        }
+        ```
+
+    - 在抛出异常处进行包装
+
+        ```java
+        public class Account {
+            private float balance;
+
+            public void deposit(float value) throws IOException {
+                if (value < 0)
+                    throw new IOException();
+            }
+
+            public void withdraw(float value) throws AccountException {
+                if (value > balance) {
+                    var fundsException = new InsufficientFundsException();
+                    var accountException = new AccountException(new InsufficientFundsException());
+                    accountException.initCause(fundsException);
+                    throw accountException;
+                }
+            }
+        }
+        ```
+
+    - 处理捕获异常处
+
+        ```java
+        public class ExceptionsDemo {
+            public static void show() throws IOException {
+                var account = new Account();
+                try {
+                    account.withdraw(10);
+                } catch (AccountException e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+        }
+        ```
+
+2. 使用异常构造函数简化
+
+    - 异常类中创建构造函数
+
+        ```java
+        // 自定义通用异常
+        public class AccountException extends Exception {
+          public AccountException(Exception cause) {
+              super(cause);
+          }
+        }
+        ```
+
+    - 通过构造函数简化
+
+        ```java
+        public class Account {
+            private float balance;
+
+            public void deposit(float value) throws IOException {
+                if (value < 0)
+                    throw new IOException();
+            }
+
+            public void withdraw(float value) throws AccountException {
+                if (value > balance) {
+        	        // 简化后
+                    throw new AccountException(new InsufficientFundsException());
+                }
+            }
+        }
+        ```
+
+# Generics
+
+--
+异常
+种类
+处理
+自定义
