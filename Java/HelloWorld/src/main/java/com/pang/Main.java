@@ -1,15 +1,13 @@
 package com.pang;
 
-import com.pang.exceptions.ExceptionsDemo;
-
-import java.io.IOException;
+import com.pang.generics.*;
 
 public class Main {
     public static void main(String[] args) {
-        try {
-            ExceptionsDemo.show();
-        } catch (Throwable e) {
-            System.out.println("An unexpected error occurred.");
-        }
+        var instructors = new GenericList<Instructor>();
+        var users = new GenericList<User>();
+
+        Utils.printUsers(users);
+        // Utils.printUsers(instructors); // 报错
     }
 }

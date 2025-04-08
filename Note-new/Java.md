@@ -30,17 +30,17 @@
     - 类中批量管理字段: 选中类的字段，右键 Refactor——Encapsulate Field，该方式生成的 set/get 也为 public
 
 - 基础
-
-    - `Common+B` 快速跳转
-    - 同步修改多个语句: shift+F6（额外按住左下角的 🌍）
-    - 切换文件：control+tab
-    - 上下移动代码：option+shift+上下
-    - 运行程序: control+R
-    - 调试程序: control+D
-    - 复制粘贴所在行: Commond+D
-    - 生成 set/get 等: Commond+N，，默认为 public
-    - 输出语句: psvm
-    - 注释：command+/
+    - `Common+1` 展开/关闭左侧栏
+        - `Common+B` 快速跳转
+        - 同步修改多个语句: shift+F6（额外按住左下角的 🌍）
+        - 切换文件：control+tab
+        - 上下移动代码：option+shift+上下
+        - 运行程序: control+R
+        - 调试程序: control+D
+        - 复制粘贴所在行: Commond+D
+        - 生成 set/get 等: Commond+N，，默认为 public
+        - 输出语句: psvm
+        - 注释：command+/
 
 # Note
 
@@ -5562,8 +5562,712 @@
 
 # Generics
 
---
-异常
-种类
-处理
-自定义
+## 需求引入
+
+> 简述：用一个基础 List 类存储整型时，若想存储其他类型（如用户、字符串），会产生代码重复或类型不安全等问题。为了解决这类问题，需要引入泛型。
+
+**知识树**
+
+1. 普通列表的局限
+
+    - 只能固定存储某种类型（如 `int[]`），无法复用。
+    - 若要存储其他类型（如 User），需创建新类，代码冗余。
+
+2. 使用 `Object[]` 的问题
+
+    - 存储多类型时需强制类型转换，代码冗余且不安全。
+    - 运行期可能出现 `ClassCastException`，**无法在编译期发现错误**。
+    - 下一节将使用泛型解决这些问题
+
+3. 创建示例
+
+    - 创建 generics 包，创建 List 类，创建 User 类，UserList 类
+
+** 代码示例**
+
+1. 固定类型的 List（整型示例）
+
+    ```java
+    public class List {
+        private  int[] items = new int[10];
+        private int count;
+
+        public void add(int item) {
+            items[count++] = item;
+        }
+
+        public int get(int index) {
+            return items[index];
+        }
+    }
+    ```
+
+    - 存在局限：只能存储 `int`。
+
+2. 存储 User
+
+    ```java
+    public class UserList {
+        private User[] users = new User[10];
+        private int count;
+
+        public void add(User user) {
+            users[count++] = user;
+        }
+
+        public User get(int index) {
+            return users[index];
+        }
+    }
+    ```
+
+    - 存在局限：代码过于重复，而且只能存储 User
+
+3. 变更固定类型的 List 的 `int[]` 为 `Object[]`
+
+    ```java
+    public class List {
+        private  Object[] items = new Object[10];
+        private int count;
+
+        public void add(Object item) {
+            items[count++] = item;
+        }
+
+        public Object get(int index) {
+            return items[index];
+        }
+    }
+    ```
+
+    - 优点：可存储任意对象类型。
+    - 缺点：需要强制类型转换，易出现运行期异常。
+
+4. 使用`Object[]`类型的 List
+
+    ```java
+    public class Main {
+        public static void main(String[] args) {
+            var list = new List();
+            list.add(1);// 1 是原始类型，自动转换为引用类型 Integer.valueOf(1)
+            list.add("2");
+            list.add(new User());
+
+            int number = (int)list.get(0);// list.get(0) 为引用类型，需要强制转换
+            // int number2 = (int)list.get(1);// list.get(1) 为String类型，强制转换会报错
+
+        }
+    }
+    ```
+
+## 泛型
+
+> 简述：通过在类或方法中引入类型参数（如 `<T>`），可在编译期强制类型检查，避免重复编写多种类型的集合，并减少显式类型转换带来的错误。
+
+**知识树**
+
+1. 泛型类的定义
+
+    - 在类名后使用 `<T>` 声明类型参数，用于指定要存储或处理的具体类型。
+    - 通常用 `T` 表示类型，若是集合类也可用 `E`（代表 Element）。
+
+2. 特点
+
+    - 编译时类型安全，可在编译期检查类型一致性，预防运行时 `ClassCastException`。
+    - 省去显式强制转换，令代码更简洁。
+
+3. 补充
+
+    - `private T[] items = (T[]) new Object[10];` 的写法：由于无法直接实例化一个 `T` 类型数组，只能先创建 `Object[]` 并再转换为 `T[]`。
+
+**代码示例**
+
+1.  自定义泛型列表
+
+    ```java
+    public class GenericList<T> {
+        private T[] items = (T[])new Object[10];
+        private int count;
+
+        public void add(T item) {
+            items[count++] = item;
+        }
+
+        public T get(int index) {
+            return items[index];
+        }
+    }
+    ```
+
+    - 通过 `<T>` 声明类型参数，存储任意类型对象。
+
+2.  使用泛型列表
+
+    ```java
+
+    public class Main {
+    public static void main(String[] args) {
+    // var intList = new GenericList<Integer>();// 可以使用该写法
+    GenericList<Integer> intList = new GenericList<>();
+    intList.add(1);
+    intList.add(2);
+    int number = intList.get(0); // 无需强制转换，类型已经确定
+
+            GenericList<User> users = new GenericList<>();
+            users.add(new User());
+            User user = users.get(0); // 无需强制转换
+        }
+
+    }
+    ```
+
+    - 无需为不同类型编写不同的列表类。
+
+## 泛型与引用类型
+
+> 简述：在创建泛型实例时，只能使用引用类型作为类型参数。如果需要处理原始类型（如 `int`、`boolean`），必须使用对应的包装类（如 `Integer`、`Boolean` 等），并借助自动装箱与拆箱机制实现原始类型与包装类型的相互转换。
+
+**知识树**
+
+1. 泛型类型参数限制
+
+    - 只能使用引用类型（如 `User`、`String`、`Integer` 等），不能使用原始类型（如 `int`、`boolean`）。
+
+2. 包装类（Wrapper Classes）
+
+    - 原始类型都有对应的包装类，如 `int`→`Integer`、`boolean`→`Boolean`、`float`→`Float` 等。
+
+3. 自动装箱（Boxing）与自动拆箱（Unboxing）
+
+    - 装箱：将原始类型自动转换成其包装类对象，如 `1`→`Integer.valueOf(1)`。
+    - 拆箱：将包装类对象的值自动提取回原始类型，如 `Integer.valueOf(1)`→`1`。
+
+4. 使用包装类在泛型中存储原始类型
+
+    - 借助自动装箱与拆箱机制，可像使用原始类型一样对泛型进行读写；其底层实际上是包装类的操作。
+
+**代码示例**
+
+1. 存储整型数字（使用 `Integer` 替代 `int`）
+
+    ```java
+    public class Main {
+        public static void main(String[] args) {
+            GenericList<Integer> numbers = new GenericList<>();
+            numbers.add(1);       // 自动装箱：1 -> Integer.valueOf(1)
+            numbers.add(2);
+
+            int first = numbers.get(0); // 自动拆箱：Integer.valueOf(1) -> 1
+            System.out.println(first);
+        }
+    }
+    ```
+
+    - 对 `numbers.add(1)` 的调用编译后自动转换为 `numbers.add(Integer.valueOf(1))`。
+
+## 泛型约束
+
+> 简述： 在 Java 泛型中，类型参数可以添加约束（限制），以确保泛型类或方法仅适用于满足特定条件的类型，增强类型安全性，避免运行时类型错误。
+
+**知识树**
+
+1. 类型参数约束：
+
+    - 作用：限制泛型类型参数的具体类型，确保安全性、避免类型错误。
+    - 语法：`<T extends 约束类型>`
+
+2. 约束的类型：
+
+    - 类约束：
+        - 约束为特定类时，类型参数必须为该类或其子类。
+        - 语法示例：`<T extends Number>`
+    - 接口约束：
+        - 约束为接口时，类型参数必须实现指定接口。
+        - 语法示例：`<T extends Comparable>`
+    - 多重约束：
+        - 可以同时限制类型为多个接口或类的组合。
+        - 语法示例：`<T extends 接口1 & 接口2>`
+        - 注：最多只能有一个类约束，多个接口约束通过`&`连接。
+
+3. `Number`
+
+    - 描述：Number 是 Java 中数字类型的基类
+
+**代码示例**
+
+1. 类约束示例：
+
+    - 添加 Number 约束
+
+        ```java
+        public class GenericList<T extends Number> {
+            // 仅允许 Number 类及其子类，如Integer、Double等
+            private T[] items = (T[])new Object[10];
+            private int count;
+
+            public void add(T item) {
+                items[count++] = item;
+            }
+
+            public T get(int index) {
+                return items[index];
+            }
+        }
+        ```
+
+    - 使用
+
+        ```java
+        public class Main {
+            public static void main(String[] args) {
+                GenericList<Integer> integers = new GenericList<>();
+
+                // 编译错误，String不是Number子类
+                // GenericList<String> strings = new GenericList<>();
+            }
+        }
+        ```
+
+2. 接口约束与多重约束示例：
+
+    - 添加 Comparable 和 Cloneable 约束
+
+        ```java
+        public class GenericList<T extends Comparable & Cloneable> {
+            // T必须同时实现Comparable和Cloneable接口
+            private T[] items = (T[])new Object[10];
+            private int count;
+
+            public void add(T item) {
+                items[count++] = item;
+            }
+
+            public T get(int index) {
+                return items[index];
+            }
+        }
+
+
+        // 示例类：
+        public class User implements Comparable<User>, Cloneable {
+            private String username;
+
+            @Override
+            public int compareTo(User other) {
+                return username.compareTo(other.username);
+            }
+
+            @Override
+            protected Object clone() throws CloneNotSupportedException {
+                return super.clone();
+            }
+        }
+
+        // 使用：
+        GenericList<User> users = new GenericList<>();
+        // 若User未实现两个接口则编译错误
+        ```
+
+    - 类必须实现对应接口才能使用，否则编译前报错
+        ```java
+        public class User implements Comparable ,Cloneable{
+            @Override
+            public int compareTo(Object o) {
+                // 重写逻辑;
+            }
+        }
+        ```
+    - 使用
+
+        ```java
+        public class Main {
+            public static void main(String[] args) {
+              GenericList<User> users = new GenericList<>();
+            }
+        }
+        ```
+
+## 泛型擦除
+
+> 简述： 泛型擦除（Type Erasure）是 Java 编译器对泛型的一种实现方式，编译时会将泛型类型参数替换为具体类型或接口，使得运行时并不存在泛型信息，仅在编译期提供类型安全检查。
+
+**知识树**
+
+1. 基本概念
+
+    - 泛型仅在编译时存在，运行时类型参数被擦除。
+    - 通过擦除实现类型安全，避免运行时类型错误。
+
+2. 类型擦除机制
+
+    - 无约束类型参数 (`<T>`)
+        - 编译后替换为 `Object` 类型。
+    - 单一约束类型参数 (`<T extends Number>` 或 `<T extends Comparable>`)
+        - 编译后替换为约束指定的类型（如 `Number` 或 `Comparable`）。
+    - 多接口约束参数 (`<T extends Comparable & Cloneable>`)
+        - 编译后替换为最左侧的接口类型。
+        - 注意：若同时存在类和接口约束，类必须放在首位。
+
+3. 擦除效果
+
+    - 字节码中不包含泛型信息。
+    - 运行时无法区分具体的泛型类型参数。
+
+4. 项目构建与字节码查看
+
+    - 构建项目：通过菜单 `Build -> Build Project` 或快捷键 Command+F9（Mac）。
+    - 查看字节码：在项目中选择目标文件，点击菜单 `View -> Show ByteCode`。
+
+**代码示例**
+
+1.  无约束类型擦除示例：
+
+    ```java
+    public class GenericList<T> {
+        private T[] items = (T[])new Object[10];
+        private int count;
+
+        public void add(T item) {
+            items[count++] = item;
+        }
+
+        public T get(int index) {
+            return items[index];
+        }
+    }
+    ```
+
+    - 描述：（重新）构建后，查看该文件字节码，T 被替换为 Object
+
+2.  单一约束擦除示例：
+
+    ```java
+    public class GenericList<T extends Number> {
+        private T[] items = (T[])new Object[10];
+        private int count;
+
+        public void add(T item) {
+            items[count++] = item;
+        }
+
+        public T get(int index) {
+            return items[index];
+        }
+    }
+    ```
+
+    - 描述：（重新）构建后，查看该文件字节码，T 被替换为 Number
+
+3.  多接口约束擦除示例：
+
+    ```java
+    public class GenericList<T extends Comparable & Cloneable> {
+        private T[] items = (T[])new Object[10];
+        private int count;
+
+        public void add(T item) {
+            items[count++] = item;
+        }
+
+        public T get(int index) {
+            return items[index];
+        }
+    }
+    ```
+
+    - 描述：（重新）构建后，查看该文件字节码，T 被替换为 Comparable
+
+## Comparable 接口
+
+> 简述：`Comparable` 是 Java 提供的泛型接口，用于定义对象的排序规则。实现该接口后，可通过比较对象间的大小，进行排序等操作。
+
+**知识树**
+
+1. Comparable 接口
+
+    - 用于定义对象之间的**自然排序**（natural ordering）。
+    - 适用于排序、搜索和有序集合操作。
+
+2. 核心方法
+
+    - 唯一方法：compareTo(T o)
+    - 说明：实现后必须重写方法，提供对象间比较逻辑，以确定排序顺序。
+
+3. 泛型实现
+
+    - 实现方式：`implements Comparable<T>`，其中 T 为当前类类型，比如 User
+    - 使用泛型：
+        - 增强类型安全，避免运行时强制类型转换。
+        - 未指定泛型时参数为 Object，存在安全隐患。
+
+4. `compareTo()` 返回值意义
+
+    - 负整数：当前对象小于参数对象。
+    - 0：当前对象等于参数对象。
+    - 正整数：当前对象大于参数对象。
+
+**代码示例**
+
+1. 未指定泛型类型实现 Comparable 接口
+
+    ```java
+    public class User implements Comparable {
+
+    	// 未指定时，compareTo方法中比较Object实例
+        @Override
+        public int compareTo(Object o) {
+            return 0;
+        }
+    }
+    ```
+
+2. 指定泛型类型实现 Comparable 接口
+
+    ```java
+    public class User implements Comparable<User> {
+        private int points;
+
+        public User(int points) {
+            this.points = points;
+        }
+
+        @Override
+        public int compareTo(User o) {
+            // this < o -> -1（负整数即可）
+            // this == o -> 0
+            // this > o -> 1（正整数即可）
+            return points - o.points;
+        }
+    }
+    ```
+
+3. 使用 Comparable 接口进行对象比较：
+
+    ```java
+    public class Main {
+        public static void main(String[] args) {
+            var user1 = new User(10);
+            var user2 = new User(20);
+
+            // 只能使用compareTo方法，不能使用运算符
+            int result = user1.compareTo(user2);
+
+            if (result < 0)
+                System.out.println("user1 < user2");
+            else if (result == 0)
+                System.out.println("user1 = user2");
+            else
+                System.out.println("user1 > user2");
+
+        }
+    }
+    ```
+
+## 泛型方法
+
+> 简述：泛型方法允许在普通类中定义带有独立泛型参数的方法，从而以类型安全的方式处理各种数据类型，避免了为不同数据创建多个重载方法的冗余，并在编译时提供类型检查。
+
+**知识树**
+
+1. 泛型方法定义
+
+    - 位置：在方法的修饰符后、返回类型前声明泛型参数。
+    - 格式：`public static <T> 返回类型 方法名(参数列表) { ... }`
+    - 补充：返回类型有时也为 T
+
+2. 泛型方法的优势
+
+    - 无需创建泛型类即可实现通用方法。
+    - 编译期间确定类型，避免显式类型转换和运行时异常。
+
+3. 泛型方法与约束
+
+    - 可使用 `extends` 限定泛型参数，确保类型满足特定条件。
+    - 示例：`<T extends Comparable<T>>` 表示 T 类型必须实现 `Comparable` 接口。
+
+4. 创建示例
+
+    - 创建 Utils 方法，使用泛型定义比较方法
+
+**代码示例**
+
+1. 泛型方法定义与实现
+
+    ```java
+    public class Utils {
+        // 常规 比较方法
+        // public static int max(int first, int second) {
+        //     return first > second ? first : second;
+        // }
+
+        // 泛型 比较方法，使用compareTo
+        public static <T extends Comparable<T>> T max(T first, T second) {
+            return (first.compareTo(second) > 0) ? first : second;
+        }
+    }
+    ```
+
+2. 泛型方法调用示例：
+
+    ```java
+    public class Main {
+        public static void main(String[] args) {
+
+            var maxInt = Utils.max(1, 3);
+            System.out.println(maxInt);
+
+            var maxUser = Utils.max(new User(10), new User(20));
+            System.out.println(maxUser);
+        }
+    }
+    ```
+
+    - 描述：比较对象（User）时，默认得到的是哈希值，需要重写 toString 查看效果
+
+## 多类型参数
+
+> 简述：使用多个泛型参数（如 K 和 V）可以设计灵活且类型安全的工具方法和数据结构，增强代码复用性，并由编译器在编译时确保类型正确性。同时，由于 Java 泛型不支持原始类型，自动装箱机制会在需要时发挥作用。
+
+**知识树**
+
+1. 核心概念:
+
+    - 泛型支持使用多个类型参数，提高复用性与灵活性。
+    - 注意：Java 泛型不支持原始类型，必须使用相应的包装类。
+
+2. 方法中的多类型参数
+
+    - 在方法声明中，泛型参数在返回类型前声明，例如 `<K, V>`。
+    - 常用约定：`K` 代表键（Key），`V` 代表值（Value），但命名可自定义。
+
+3. 类中的多类型参数
+
+    - 类可以声明多个泛型参数，使得其成员变量和方法能同时处理多种数据类型。
+    - 例：设计一个键值对类 `KeyValuePair<K, V>`，利用泛型实现通用的数据结构。
+
+**代码示例**
+
+1. 泛型方法示例：打印键值对
+
+    ```java
+    public class Utils {
+
+        public static <K , V> void print(K key, V value) {
+            System.out.println(key + ": " + value);
+        }
+    }
+    ```
+
+2. 键值对类
+
+    ```java
+    public class KeyValuePair<K,V> {
+        public K key;
+        public V value;
+        public KeyValuePair(K key, V value) {}
+    }
+    ```
+
+## 泛型通配符与继承
+
+> 简述：泛型通配符解决了泛型不变性问题，使得方法可以接收基类及其子类组成的集合。利用 `? extends Base` 限定只读集合，而 `? super Base` 则允许安全写入，从而在继承体系中灵活且类型安全地处理集合数据。
+
+**知识树**
+
+1. 泛型不变性问题
+
+    - 泛型类不能直接接受其子类的实例。
+    - 例如：接受`GenericList<User>`的方法，不能接受`GenericList<Instructor>`，这在编译期会引发类型不匹配错误，即使 Instructor 是 User 的子类。
+
+2. 通配符的作用
+
+    - Wildcards (`?`) 用于表示未知类型，增加类型灵活性。
+    - `? extends Base`
+        - 限定集合元素为 Base 或其子类型。
+        - 只允许读取操作：可以安全地将读取的元素赋值给 Base 类型变量，但禁止添加元素（除 null）。
+    - `? super Base`
+        - 限定集合元素为 Base 或其父类型。
+        - 允许写入操作：可以添加 Base 类型或其子类的实例，但读取时只能取回 Object 类型。
+
+3. 捕获转换
+
+    - 编译器在使用通配符时生成匿名“捕获”类型（capture of ?），以确保内部类型安全。
+    - 开发者无法直接操作捕获类型，只能依赖编译器的类型检查。
+
+4. 创建示例
+
+    - 创建 Instructor 类继承 User 类，并实现构造方法
+    - 在 Utils 类中，创建 printUsers 方法
+
+**代码示例**
+
+1. 泛型不变性问题
+
+    - 创建 Instructor 类继承 User 类
+
+        ```java
+        public class Instructor extends User{
+            public Instructor(int points) {
+                super(points);
+            }
+        }
+        ```
+
+    - User 方法中创建打印方法
+
+        ```java
+        public class Utils {
+
+            // 可以使用子类套入
+            public static void printUser(User user) {
+                System.out.println(user);
+            }
+
+            // 无法使用User的子类
+            public static void printUsers(GenericList<User> users) {
+                // 打印逻辑
+            }
+        }
+        ```
+
+    - `printUsers()` 方法无法接受 `GenericList<Instructor>`
+
+        ```java
+        public class Main {
+            public static void main(String[] args) {
+                var instructors = new GenericList<Instructor>();
+                var users = new GenericList<User>();
+
+                Utils.printUsers(users);
+                // Utils.printUsers(instructors); // 报错
+            }
+        }
+        ```
+
+2. 使用通配符解决泛型不变性
+
+    ```java
+    public class Utils {
+
+    		// 通配符：？
+        public static void printUsers(GenericList<?> users) {
+            // 打印逻辑
+        }
+    }
+    ```
+
+    - 描述：此时不限制`GenericList<T>`中 T 的类型
+
+3. 继承与通配符应用实例
+
+    ```java
+    public class Utils {
+
+    		// 限制`GenericList<T>`中T的类型为Use或其子类，只可读，extend改为super之后可操作，如add
+        public static void printUsers(GenericList<? extends User> users) {
+            // 打印逻辑
+        }
+    }
+    ```
+
+# ----

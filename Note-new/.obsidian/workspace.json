@@ -4,25 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "6a703a8bbd711b3d",
+        "id": "a9f72fb6e3e0ef1a",
         "type": "tabs",
         "children": [
           {
-            "id": "2bd66e13abd0c281",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "JavaScript.md",
-                "mode": "source",
-                "source": true
-              },
-              "icon": "lucide-file",
-              "title": "JavaScript"
-            }
-          },
-          {
-            "id": "5507159ed25da4c5",
+            "id": "76448d243b651db0",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -35,8 +21,7 @@
               "title": "Java"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -172,7 +157,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 238.5
+    "width": 213.5
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -184,11 +169,11 @@
       "command-palette:打开命令面板": false
     }
   },
-  "active": "5507159ed25da4c5",
+  "active": "76448d243b651db0",
   "lastOpenFiles": [
-    "JavaScript.md",
-    "Java.md",
     "未命名.md",
+    "Java.md",
+    "JavaScript.md",
     "Java回顾（非Moth版本）.md",
     "es6-tooling-webpack/dist/index.html",
     "es6-tooling-webpack/dist/bundle.js",
