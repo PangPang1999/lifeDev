@@ -6263,9 +6263,16 @@
     ```java
     public class Utils {
 
-    		// 限制`GenericList<T>`中T的类型为Use或其子类，只可读，extend改为super之后可操作，如add
+    	// 限制`GenericList<T>`中T的类型为Use或其子类，只可读，extend改为super之后可操作，如add
         public static void printUsers(GenericList<? extends User> users) {
-            // 打印逻辑
+
+            //extend 时
+            User x = users.get(0);//只允许读操作
+
+            //super 时
+            // Object x = users.get(0);//读操作只允许返回Object
+            // users.add(new User(10));//允许写入操作
+    		// users.add(new Instructor(10));//允许写入操作
         }
     }
     ```

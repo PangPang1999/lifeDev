@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "a9f72fb6e3e0ef1a",
+        "id": "a3754bcd15cd6175",
         "type": "tabs",
         "children": [
           {
-            "id": "76448d243b651db0",
+            "id": "4e18f46b064aedc8",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -157,7 +157,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 213.5
+    "width": 213.5,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -169,10 +170,10 @@
       "command-palette:打开命令面板": false
     }
   },
-  "active": "76448d243b651db0",
+  "active": "4e18f46b064aedc8",
   "lastOpenFiles": [
-    "未命名.md",
     "Java.md",
+    "未命名.md",
     "JavaScript.md",
     "Java回顾（非Moth版本）.md",
     "es6-tooling-webpack/dist/index.html",
