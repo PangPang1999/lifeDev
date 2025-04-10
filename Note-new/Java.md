@@ -1,3 +1,7 @@
+# 可能补充
+
+**集合：多线程集合、线程安全集合**
+
 # 特质
 
 - 在类中进行二次参数校验，不必每一次创建实例都进行数据校验
@@ -6277,4 +6281,71 @@
     }
     ```
 
+# 集合
+
+## 集合概览
+
+**知识树**
+
+> 简述：Java 集合框架提供了一组接口和实现类，允许我们高效地存储、访问和操作数据。集合框架包括多种类型，如`List`、`Set`、`Queue`和`Map`，用于不同的应用场景。这里暂不涉及多线程相关集合，相关内容将在多线程章节中讨论。
+
+1. `Iterable`
+
+    - 类型：接口 (interface)
+    - 概念：集合类层次结构的最顶层接口。所有可迭代集合（如`List`、`Set`、`Queue`）的基接口。实现了`Iterable`接口的类可以使用`forEach`方法进行元素遍历。
+
+2. `Collection`
+
+    - 类型：接口 (interface)
+    - 概念：扩展了`Iterable`接口，并添加了额外的功能，如元素的添加、删除和查找等。它代表了一种可以包含多个对象的容器。
+
+3. `List`
+
+    - 类型：接口 (interface)
+    - 概念：表示一个有序的集合，允许通过索引访问元素。集合中的元素可能重复。常用实现类有`ArrayList`、`LinkedList`等。
+
+4. `Set`
+
+    - 类型：接口 (interface)
+    - 概念：表示一个不允许有重复元素的集合。常用实现类有`HashSet`、`LinkedHashSet`、`TreeSet`等。
+
+5. `Queue`
+
+    - 类型：接口 (interface)
+    - 概念：扩展了`Collection`接口，提供了额外的操作来处理元素队列。常用实现类有`PriorityQueue`、`LinkedList`等。
+
+6. `Map`
+
+    - 类型：接口 (interface)
+    - 概念：表示键值对的映射集合。常用实现类有`HashMap`、`LinkedHashMap`、`TreeMap`等。
+
+**结构**
+
+1.  大致结构
+
+    ```
+    Iterable
+     ├── Collection
+     │    ├── List
+     │    │     ├── *ArrayList
+     │    │     ├── *LinkedList
+     │    │     └── *Stack
+     │    ├── Set
+     │    │     ├── *HashSet
+     │    │     ├── *LinkedHashSet
+     │    │     └── *TreeSet
+     │    └── Queue
+     │          ├── *PriorityQueue
+     │          └── *LinkedList
+     └── Map
+          ├── *HashMap
+          ├── *LinkedHashMap
+          └── *TreeMap
+    ```
+
+    - 描述：未带`*`的是接口，带`*`的是接口的具体实现类
+
+
+
 # ----
+
