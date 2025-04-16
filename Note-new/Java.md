@@ -6623,7 +6623,7 @@
 
 4. 补充
 
-    - 练习前删除之前自己创建的 List 类，使用`java.util.list`
+    - 练习前可能需要删除之前自己创建的 List 类，使用`java.util.list`
 
 **代码示例**
 
@@ -6787,3 +6787,91 @@
         	}
         }
         ```
+
+## Queue 接口
+
+> 简述：Queue 接口表示有序集合，用于管理按照一定顺序排列的元素，主要应用于任务调度、数据流处理等场景。它继承自 Collection 接口，并提供了如添加、检测、删除等专用操作。它有许多子接口和实现类，不同的子接口有不同的特性都比较少用。常见的实现类有 ArrayDeque 和 PriorityQueue
+
+**知识树**
+
+1. Queue 接口概述
+
+    - 定义：继承自 Collection，表示一个按照一定顺序处理元素的集合
+    - 特性：常遵循先进先出 (FIFO) 规则，但也有特定实现支持优先级排序
+
+2. 常用实现类
+
+    - ArrayDeque：双端队列，可从两端添加和删除元素，通常用于普通队列场景
+    - PriorityQueue：基于元素优先级排序的队列，适用于需要按照优先级处理任务的场景
+
+3. 核心操作方法
+
+    - 添加元素：
+        - `add(E e)`：添加元素失败时抛异常
+        - `offer(E e)`：添加失败时返回 false
+    - 检查（并返回）队首元素：
+        - `peek()`：队空时返回 null
+        - `element()`：队空时抛异常
+    - 删除（并返回）元素：
+        - `remove()`：删除队首元素，队空时抛异常
+        - `poll()`：删除队首元素，队空时返回 null
+
+4. 泛型与迭代支持
+
+    - 泛型应用：`Queue<E>` 保证类型安全，避免强制类型转换
+    - Iterable 继承：所有 Queue 实现均可使用 for-each 遍历
+
+**代码示例**
+
+1. 使用 ArrayDeque 实现基本队列操作
+
+    ```java
+    public class QueueDemo {
+        public static void main(String[] args) {
+            Queue<String> queue = new ArrayDeque<>();
+            // 添加元素到队尾
+            queue.add("C");
+            queue.add("A");
+            queue.add("B");
+            // 使用 offer 方法安全添加元素
+            queue.offer("D");
+
+            // 查看队首元素（不移除）
+            System.out.println("Queue peek: " + queue.peek());
+            // 删除队首元素
+            System.out.println("Removed: " + queue.remove());
+            // 打印整个队列
+            System.out.println("Queue: " + queue);
+        }
+    }
+    ```
+
+    - 描述：通过 ArrayDeque 展示了队列的常用方法：add/offer、peek 与 remove。
+
+2. 使用 PriorityQueue 实现基于优先级的排序
+
+    ```java
+    public class PriorityQueueDemo {
+        public static void main(String[] args) {
+            Queue<String> priorityQueue = new PriorityQueue<>();
+            // 根据字符串的自然顺序排序
+            priorityQueue.add("D");
+            priorityQueue.add("C");
+            priorityQueue.add("A");
+            priorityQueue.add("B");
+
+            System.out.println("Priority Queue: " + priorityQueue);
+            // 删除队首元素观察排序结果
+            System.out.println("Removed: " + priorityQueue.poll());
+            System.out.println("Priority Queue after poll: " + priorityQueue);
+            // 删除队首元素观察排序结果
+            System.out.println("Removed: " + priorityQueue.poll());
+            System.out.println("Priority Queue after poll: " + priorityQueue);
+            // 删除队首元素观察排序结果
+            System.out.println("Removed: " + priorityQueue.poll());
+            System.out.println("Priority Queue after poll: " + priorityQueue);
+        }
+    }
+    ```
+
+    - 描述：调用 poll() 或 peek() 时，总是能得到优先级最高（或最低）的元素。直接使用迭代器遍历 PriorityQueue 或调用 toString()，得到的顺序仅反映了堆的内部数组结构，并非完全排序。
