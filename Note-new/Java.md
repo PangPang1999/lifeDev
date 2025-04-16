@@ -4556,9 +4556,14 @@
 
     - 勾选接口名，control+T，提取接口
 
+7. 静态类型与动态类型
+
+    - 假设 B 实现类，实现了 A 接口，使用`A a = new B();`
+    - a 只是一个引用变量，它的静态类型（声明类型）是 A，但动态类型（运行时真实类型）是 B。
+
 **代码示例**
 
-7. 未使用接口的情况
+1. 未使用接口的情况
 
     - TaxCalculator2024 类
 
@@ -4613,7 +4618,7 @@
         }
         ```
 
-8. 使用接口
+2. 使用接口
 
     - 创建接口 TaxCalculator
 
@@ -6345,7 +6350,238 @@
 
     - 描述：未带`*`的是接口，带`*`的是接口的具体实现类
 
+## `Iterable` 基接口
 
+> 简述：`Iterable` 是 Java 中所有可迭代集合的基础接口，提供核心方法 `iterator()`。只有实现了该接口并定义了 `iterator()` 方法的类，才能使用 `for-each` 循环遍历元素。`for-each` 本质是调用 `iterator()` 方法获得一个 `Iterator` 实例，后续调用实例的 `hasNext()` 和 `next()` 方法进行遍历。
 
-# ----
+**知识树**
 
+1. `Iterable` 接口
+    - 核心方法：`iterator()`（必须实现），返回 `Iterator` 接口类型的引用
+    - 默认方法：`forEach()`、`spliterator()`（有默认实现，可不重写）
+2. `Iterator` 接口
+    - 必须实现方法：
+        - `hasNext()`：判断是否存在下一个元素，返回布尔值
+        - `next()`：获取下一个元素，返回元素值
+    - 默认方法：
+        - `remove()`：从集合中移除当前元素（可选实现，默认抛异常）
+        - `forEachRemaining()`：对剩余元素执行指定操作
+3. `for-each` 循环原理
+    - 本质为通过 `iterator()` 获得迭代器进行循环遍历
+4. 问题与解决方案
+    - 问题：自定义集合类未实现 `Iterable` 接口，无法使用 `for-each` 循环。
+    - 不良方案：暴露集合底层实现（如数组），造成耦合风险。
+    - 正确方案：实现 `Iterable` 接口，通过标准接口遍历集合，确保封装和可扩展性。
+
+**代码示例**
+
+1. GenericList 使用 for-each 问题和初步解决
+
+    - 未实现 `Iterable` 接口的集合类使用 `for-each`（报错）
+
+        ```java
+        public class Main {
+            public static void main(String[] args) {
+                var list = new GenericList<String>();
+                list.add("a");
+                list.add("b");
+        		for(var item: list) // 编译错误：GenericList 未实现 Iterable 接口
+                    System.out.println(item);
+            }
+        }
+        ```
+
+    - 暴露底层实现（不推荐）
+
+        ```java
+        public class GenericList<T> {
+            public T[] items = (T[])new Object[10]; // 暴露为 public，破坏封装
+            private int count;
+
+            public void add(T item) {
+                items[count++] = item;
+            }
+
+            public T get(int index) {
+                return items[index];
+            }
+        }
+        ```
+
+    - 访问底层数组，耦合严重，因为数组（底层是 ArrayList）实现了 Iterable 接口
+
+        ```java
+        public class Main {
+            public static void main(String[] args) {
+                var list = new GenericList<String>();
+                list.add("a");
+                list.add("b");
+                for(var item: list.items) // 直接访问底层数组，耦合严重
+                    System.out.println(item);
+            }
+        }
+        ```
+
+2. 正确实现 `Iterable` 接口，支持 `for-each` 循环（推荐）
+
+    - 自定义集合类实现 `Iterable` 接口，并重写 `iterator()` 方法。
+
+        ```java
+        public class GenericList<T> implements Iterable<T> {
+            private T[] items = (T[]) new Object[10];
+            private int count;
+
+            public void add(T item) {
+                items[count++] = item;
+            }
+
+            public T get(int index) {
+                return items[index];
+            }
+
+            @Override
+            public Iterator<T> iterator() {
+                return new ListIterator();
+            }
+
+            private class ListIterator implements Iterator<T> {
+                private int currentIndex;
+
+                @Override
+                public boolean hasNext() {
+                    return currentIndex < count;
+                }
+
+                @Override
+                public T next() {
+                    return items[currentIndex++];
+                }
+            }
+        }
+        ```
+
+    - 使用 `for-each` 遍历自定义集合类
+
+        ```java
+        public class Main {
+            public static void main(String[] args) {
+                var list = new GenericList<String>();
+                list.add("a");
+                list.add("b");
+                for (var item : list)
+                    System.out.println(item);
+            }
+        }
+        ```
+
+    - `for-each` 本质（字节码反编译后真实执行流程）
+
+        ```java
+        public class Main {
+            public static void main(String[] args) {
+                var list = new GenericList<String>();
+                list.add("a");
+                list.add("b");
+
+                Iterator<String> iterator = list.iterator();
+                while (iterator.hasNext()) {
+                    var current = iterator.next();
+                    System.out.println(current);
+                }
+            }
+        }
+        ```
+
+## `Collection` 接口
+
+> 简述：`Collection` 是 Java 集合框架的根接口，定义了一组用于存储、访问和操作元素的标准方法。它继承自 `Iterable` 接口，因此所有集合都支持增强型 for 循环遍历。集合接口提供了增删查、判断、清空及转换为数组等基础操作，是各种数据结构（如列表、集合、队列）的通用协议。
+> **知识树**
+
+1. Collection
+
+    - 类型：接口（interface）
+    - 泛型约定：`E` 表示元素类型
+    - 继承关系：继承自 `Iterable<E>`，支持迭代遍历（for-each）
+
+2. 基本操作
+
+    - 添加元素
+        - 单个添加：`add(E e)`，添加单一元素，成功返回 `true`
+        - 批量添加：`addAll(Collection<? extends E> c)`，添加另一个集合的所有元素
+    - 删除元素
+        - 单个删除：`remove(Object o)`，删除指定元素首次出现的位置
+        - 批量删除：`removeAll(Collection<?> c)`，删除存在于指定集合中的所有元素
+    - 查询元素
+        - 判断存在：`contains(Object o)`，检查集合中是否包含指定元素
+        - 判断包含全部：`containsAll(Collection<?> c)`，检查是否包含指定集合的所有元素
+    - 集合状态
+        - 获取大小：`size()`，返回元素数量
+        - 判空操作：`isEmpty()`，判断集合是否为空
+        - 清空操作：`clear()`，移除所有元素
+    - 集合转换
+        - 转数组：`toArray()` 返回 `Object[]` 数组
+        - 转类型数组：`toArray(T[] a)` 返回指定类型数组
+
+3. 常见实现类
+    - List 类
+        - `ArrayList`、`LinkedList`
+    - Set 类
+        - `HashSet`、`TreeSet`
+    - Queue 类
+        - `PriorityQueue`
+    - 数据结构章节展开
+
+**代码示例**
+
+1. ArrayList 示例
+
+    ```java
+    public class CollectionsDemo {
+        public static void show() {
+            Collection<String> collection = new ArrayList<>();
+
+            // 单个添加元素
+            collection.add("a");
+            collection.add("b");
+            collection.add("c");
+
+            // 批量添加元素
+            Collections.addAll(collection, "d", "e");
+
+            // 删除单个元素
+            collection.remove("a");
+
+            // 判断元素存在
+            boolean hasB = collection.contains("b");
+
+            // 获取集合大小
+            int size = collection.size();
+
+            // 转换为 Object[] 数组
+            Object[] objectArray = collection.toArray();
+
+            // 转换为指定类型数组
+            String[] stringArray = collection.toArray(new String[0]);
+
+            // 遍历集合
+            for (var item : collection)
+                System.out.println(item);
+
+            // 清空集合
+            collection.clear();
+
+            // 判断集合是否为空
+            boolean isEmpty = collection.isEmpty();
+
+            Collection<String> other = new ArrayList<String>();
+            // 将整个 list 添加到 other
+            other.addAll(collection);
+
+            System.out.println("包含'b': " + hasB);
+            System.out.println("集合大小: " + size);
+            System.out.println("是否为空: " + isEmpty);
+            System.out.println("collection == other: " + (collection == other));// false
+            System.out.println("collection equals other: " + (collection.equals(other)));//true
+        }
+    }
+    ```
