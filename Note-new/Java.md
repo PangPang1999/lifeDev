@@ -229,7 +229,7 @@
     }
     ```
 
-## 执行过程
+## Java 执行过程
 
 > 简述：Java 程序运行分为两大阶段：编译（Compilation）和运行（Execution）。在编译阶段，源代码被转换为平台无关的字节码（Bytecode）；在运行阶段，Java 虚拟机（JVM） 将字节码转换为当前平台的机器码执行程序，从而实现跨平台特性。
 
@@ -6669,3 +6669,121 @@
         }
     }
     ```
+
+## Comparator 接口
+
+> 简述：`Comparator` 是一个函数式接口，提供自定义排序逻辑，独立于对象的自然顺序。通过实现 `compare(T o1, T o2)` 方法，能够灵活定义不同排序规则，增强代码扩展性和复用性。
+
+**知识树**
+
+1. Comparator 接口
+
+    - 类型：泛型接口 (`Comparator<T>`)
+    - 功能：定义两个对象的自定义排序规则（独立于自然排序）
+
+2. 核心方法
+
+    - `compare(T o1, T o2)`
+        - 返回负数：`o1 < o2`
+        - 返回零：`o1 == o2`
+        - 返回正数：`o1 > o2`
+
+3. 与 `Comparable` 接口对比
+
+    - `Comparable`
+        - 在类内定义排序规则（自然排序）
+        - 排序方式单一，不易更改
+    - `Comparator`
+        - 在类外定义排序规则（自定义排序）
+        - 支持多种排序方式，灵活切换
+
+**代码示例**
+
+1. 使用 `Comparable`（自然排序，类内部定义） ，创建 Customer 类
+
+    ```java
+    public class Customer implements Comparable<Customer> {
+        private String name;
+
+        public Customer(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public int compareTo(Customer other) {
+            return name.compareTo(other.name);
+        }
+
+        @Override
+        public String toString() {
+            return "Customer{name='" + name + "'}";
+        }
+    }
+    ```
+
+    - 排序时无需传入额外参数，直接使用集合排序方法即可。
+
+2. 自定义 EmailComparator 实现 Comparator 接口
+
+    - 在 Customer 中加入邮箱字段
+
+        ```java
+        package com.pang.generics;
+
+        public class Customer implements Comparable<Customer> {
+            private String name;
+            private String email;
+
+            public Customer(String name, String email) {
+                this.name = name;
+                this.email = email;
+            }
+
+            public String getEmail() {
+                return email;
+            }
+
+            @Override
+            public String toString() {
+                return "Customer{" +
+                        "name='" + name + '\'' +
+                        ", email='" + email + '\'' +
+                        '}';
+            }
+
+            @Override
+            public int compareTo(Customer o) {
+                return name.compareTo(o.name);// 调用String的compareTo方法
+            }
+        }
+
+        ```
+
+    - 自定义比较器 `EmailComparator`
+
+        ```java
+        public class EmailComparator implements Comparator<Customer> {
+          @Override
+          public int compare(Customer o1, Customer o2) {
+        		// 使用 String.compareTo() 比较两个客户的邮箱
+              return o1.getEmail().compareTo(o2.getEmail());
+          }
+        }
+        ```
+
+    - 在主类中使用 Comparator 进行排序
+
+        ```java
+        public class Main {
+        	public static void main(String[] args) {
+        		List<Customer> customers = new ArrayList<>();
+        		customers.add(new Customer("Alice", "cc@example.com"));
+        		customers.add(new Customer("Bob", "bb@example.com"));
+        		customers.add(new Customer("Charlie", "aa@example.com"));
+
+        		// 使用 EmailComparator 按邮箱排序
+        		Collections.sort(customers, new EmailComparator());
+        		System.out.println(customers);
+        	}
+        }
+        ```
