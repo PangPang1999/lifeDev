@@ -6533,7 +6533,7 @@
 
 **代码示例**
 
-1. ArrayList 示例
+1. ArrayList 示例，创建 `CollectionsDemo` 类，并在 `Main` 中调用该类的静态方法`show()`
 
     ```java
     public class CollectionsDemo {
@@ -6582,6 +6582,90 @@
             System.out.println("是否为空: " + isEmpty);
             System.out.println("collection == other: " + (collection == other));// false
             System.out.println("collection equals other: " + (collection.equals(other)));//true
+        }
+    }
+    ```
+
+## List 接口
+
+> 简述：`List` 接口继承自 `Collection` 接口，代表一种有序集合（序列），可包含重复元素，支持索引访问和精细的增删改查操作。通过泛型机制提供类型安全。
+
+**知识树**
+
+1. `List` 接口
+
+    - 定义：有序、可重复的元素序列，元素位置通过整数索引标识
+    - 特性：允许重复、元素位置固定但可修改
+
+2. 常用方法
+
+    - 添加元素：
+        - `add(E e)`：尾部追加元素
+        - `add(int index, E e)`：在指定索引位置插入元素
+        - `addAll(Collection<? extends E> c)`：尾部追加多个元素
+    - 访问与修改：
+        - `get(int index)`：返回指定位置元素
+        - `set(int index, E e)`：修改指定位置元素，返回旧值
+    - 删除元素：
+        - `remove(int index)`：删除并返回指定位置元素
+        - `remove(Object o)`：删除首个匹配元素，返回是否删除成功
+    - 查询元素：
+        - `indexOf(Object o)`：首次出现的位置索引，不存在返回 -1
+        - `lastIndexOf(Object o)`：最后一次出现的位置索引，不存在返回 -1
+    - 子列表操作：
+        - `subList(int fromIndex, int toIndex)`：返回指定范围的子列表视图（含头不含尾）
+
+3. 常见实现类
+
+    - `ArrayList`（数组实现，高效随机访问）
+    - `LinkedList`（链表实现，高效插入删除）
+    - 根据读取需求以及线程安全做取舍，后续讲解
+
+4. 补充
+
+    - 练习前删除之前自己创建的 List 类，使用`java.util.list`
+
+**代码示例**
+
+1. ArrayList 基本操作示例，创建 `ListDemo` 类，并在 `Main` 中调用该类的静态方法`show()`
+
+    ```java
+    public class ListDemo {
+        public static void show() {
+            List<String> list = new ArrayList<>();
+
+            // 添加元素
+            list.add("a");
+            list.add("b");
+            list.add("c");
+
+            // 指定索引插入元素
+            list.add(0, "!");
+
+            // 批量添加元素
+            Collections.addAll(list, "d", "e", "a");
+
+            // 修改元素
+            list.set(0, "g");
+
+            // 删除元素
+            list.remove(0);          // 根据索引删除
+            list.remove("c");        // 根据内容删除
+
+            // 查找元素位置
+            int firstB = list.indexOf("b");        // 首次出现的位置
+            int lastA = list.lastIndexOf("a");     // 最后一次出现的位置
+
+            // 获取子列表（[fromIndex, toIndex)）
+            List<String> subList = list.subList(1, 3);
+
+            // 遍历打印结果
+            for (String item : list)
+                System.out.println(item);
+
+            System.out.println("第一个'b'的位置：" + firstB);
+            System.out.println("最后一个'a'的位置：" + lastA);
+            System.out.println("子列表：" + subList);
         }
     }
     ```

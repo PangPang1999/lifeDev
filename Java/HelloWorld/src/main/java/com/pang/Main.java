@@ -4,6 +4,6 @@ import com.pang.generics.*;
 
 public class Main {
     public static void main(String[] args) {
-        CollectionsDemo.show();
+        ListDemo.show();
     }
 }
