@@ -6962,20 +6962,93 @@
 
 ## Hash Table
 
-> 简述：哈希表利用哈希函数将键映射到数组索引，实现平均 O(1) 的插入、查找和删除。通过冲突处理和动态扩容，保持高效性能。
+> 简述：哈希表是一种数据结构，通过哈希函数实现键（Key）到索引（Index）的映射，以平均 O(1)的复杂度高效进行插入、查找和删除操作。性能取决于哈希函数质量及冲突处理方法。
 
 **知识树**
 
-1.  ArrayList vs 哈希表
+1. 哈希表概念
 
-    - ArrayList：基于动态数组；按索引访问 O(1)，按值查找 O(n)。
-    - 哈希表：基于哈希映射；平均 O(1)，最坏 O(n)。
+    - 基于哈希函数将键映射到数组索引位置。
+    - 平均操作时间复杂度为 O(1)。
 
-2.  哈希冲突解决
+2. ArrayList vs Hash Table
 
-    - 后续章节讲解
+    - ArrayList：
+        - 按索引访问：O(1)
+        - 按值查找：O(n)
+    - 哈希表：
+        - 按键访问：平均 O(1)，最坏 O(n)
 
-3.  使用选择
+3. 哈希冲突（Collision）处理
 
-    - HashTable 由于效率低已经被弃用，常用 HashMap、或基于 HashMap 的 HashSet，或在保持 O(1) 查找的同时，保留插入或访问顺序的 LinkedHashMap；
+    - 后续专门章节详细介绍。
 
+4. Java 中的哈希表选择
+    - `Hashtable`：（线程）安全，性能差，已弃用。
+    - 推荐使用：`HashMap`（无序高效）、`LinkedHashMap`（有序高效），`HashSet`（基于`HashMap`）
+
+## Map 接口
+
+> 简述：`Map`是以键值对（Key-Value）形式存储数据的接口。键唯一对应值，可实现快速查询、插入、删除等操作。`Map`不属于`Collection`，但提供集合形式的访问方法。
+
+**知识树**
+
+1. Map 概念
+
+    - 定义：将不可重复的键映射到任意值的结构
+    - 特性：键唯一、值可重复；支持快速随机访问
+
+2. 核心方法
+
+    - 添加与更新
+        - `put(K key, V value)`：插入或更新。
+        - `putIfAbsent(K key, V value)`：键不存在时才插入。
+    - 查询
+        - `get(K key)`：根据键获取值，未找到返回 null。
+        - `getOrDefault(K key, V default)`：未找到返回默认值。
+        - `containsKey(K key)`：判断键是否存在。
+    - 删除与替换
+        - `remove(K key)`：删除指定键值对。
+        - `replace(K key, V value)`：仅更新已有键的值。
+    - 集合视图
+        - `keySet()`：所有键集合。
+        - `values()`：所有值集合。
+        - `entrySet()`：所有键值对集合，便于遍历。
+
+3. 常用实现
+
+    - `HashMap`：基于哈希表，无顺序保证，性能最优
+    - `LinkedHashMap`：保留插入顺序
+    - `TreeMap`：基于红黑树，键按自然或自定义顺序排序
+
+**代码示例**
+
+1. 基本键值操作，假设需要通过邮箱查找顾客
+
+    ```java
+    public class MapDemo {
+        public static void show() {
+            var c1 = new Customer("a","e1");
+            var c2 = new Customer("b","e2");
+
+            Map<String,Customer> map = new HashMap<>();
+            map.put(c1.getEmail(),c1);
+            map.put(c2.getEmail(),c2);
+
+            var customer = map.get("e1");//查询键为e1的值
+
+            var unknow = new Customer("Unknown","");
+            var customer2 = map.getOrDefault("e10",unknow);// 若查找不到返回默认值方法
+
+            var ifContainE10 = map.containsKey("e10");// 查找是否存在
+
+            var replace = map.replace("e1", new Customer("a++", "e1"));
+
+            // for(var item: map) Map本身不可遍历，可以通过方法遍历键、值，或者键值对
+            for(var item : map.keySet()){}// 遍历键
+            for(var item : map.values()){}// 遍历值
+            for(var item : map.entrySet()){}// 遍历键值对
+        }
+    }
+
+    ```
