@@ -6790,36 +6790,31 @@
 
 ## Queue 接口
 
-> 简述：Queue 接口表示有序集合，用于管理按照一定顺序排列的元素，主要应用于任务调度、数据流处理等场景。它继承自 Collection 接口，并提供了如添加、检测、删除等专用操作。它有许多子接口和实现类，不同的子接口有不同的特性都比较少用。常见的实现类有 ArrayDeque 和 PriorityQueue
+> 简述：`Queue` 接口表示用于存储按特定顺序处理元素的集合，常应用于任务排队、事件处理等场景。继承自 `Collection` 接口，定义了针对队列头尾操作的方法，通常遵循先进先出（FIFO）规则，但特殊实现类可支持优先级排序。
 
 **知识树**
 
 1. Queue 接口概述
 
-    - 定义：继承自 Collection，表示一个按照一定顺序处理元素的集合
-    - 特性：常遵循先进先出 (FIFO) 规则，但也有特定实现支持优先级排序
+    - 继承关系：继承自 `Collection` 接口
+    - 特性：一般为 FIFO（先进先出）；某些实现类支持优先级排序
 
-2. 常用实现类
+2. 常用方法
+
+    - 添加元素
+        - `add(E e)`：插入失败时抛异常
+        - `offer(E e)`：插入失败时返回 `false`
+    - 检索（不移除）队首元素
+        - `element()`：队列空时抛异常
+        - `peek()`：队列空时返回 `null`
+    - 移除（并返回）队首元素
+        - `remove()`：队列空时抛异常
+        - `poll()`：队列空时返回 `null`
+
+3. 常用实现类
 
     - ArrayDeque：双端队列，可从两端添加和删除元素，通常用于普通队列场景
     - PriorityQueue：基于元素优先级排序的队列，适用于需要按照优先级处理任务的场景
-
-3. 核心操作方法
-
-    - 添加元素：
-        - `add(E e)`：添加元素失败时抛异常
-        - `offer(E e)`：添加失败时返回 false
-    - 检查（并返回）队首元素：
-        - `peek()`：队空时返回 null
-        - `element()`：队空时抛异常
-    - 删除（并返回）元素：
-        - `remove()`：删除队首元素，队空时抛异常
-        - `poll()`：删除队首元素，队空时返回 null
-
-4. 泛型与迭代支持
-
-    - 泛型应用：`Queue<E>` 保证类型安全，避免强制类型转换
-    - Iterable 继承：所有 Queue 实现均可使用 for-each 遍历
 
 **代码示例**
 
@@ -6875,3 +6870,112 @@
     ```
 
     - 描述：调用 poll() 或 peek() 时，总是能得到优先级最高（或最低）的元素。直接使用迭代器遍历 PriorityQueue 或调用 toString()，得到的顺序仅反映了堆的内部数组结构，并非完全排序。
+
+## Set 接口
+
+> 简述：`Set` 表示无重复元素集合，继承自 `Collection` 接口。不保证元素顺序，具体顺序依赖实现类（如哈希、插入顺序或自然排序）。主要用于确保元素唯一性以及执行集合运算（并集、交集、差集）。
+
+**知识树**
+
+1. Set 接口概述
+
+    - 特性：不允许重复元素
+    - 顺序：取决于实现类，可能无序或有序（插入或自然顺序）
+
+2. 常用方法（继承自 Collection）
+
+    - 添加元素：`add(E e)`
+    - 删除元素：`remove(Object o)`
+    - 查询元素：`contains(Object o)`
+
+3. 集合运算（使用 Collection 方法实现）
+
+    - 并集：`addAll(Collection<?>)` ——（把另一个集合的所有元素加进来）
+        - 可以并入 List，也可以并入 Set
+    - 交集：`retainAll(Collection<?>)` —— （只保留同时存在于两个集合的元素）
+    - 差集：`removeAll(Collection<?>)` —— （从本集合中移除也在另一个集合里的元素）
+    - 包含：`containsAll(Collection<?>)` —— 判断本集合是否包含另一个集合的全部元素
+
+4. 常见实现类及特点
+
+    - `HashSet`：无序，哈希表实现，高效查找
+    - `LinkedHashSet`：有序（插入顺序），哈希表+链表
+    - `TreeSet`：有序（自然排序），红黑树实现，元素必须实现 `Comparable` 或提供 `Comparator`
+
+5. 补充
+    - 在 Java 标准库里，Set 只是对 Collection 做了以下“契约”层面的补充，而并未新增方法。
+    - 集合运算对于 List 也可以使用，但是 List 支持重复元素，结果集不准确
+
+**代码示例**
+
+1. 基本 Set 操作与集合运算
+
+    ```java
+    public class SetDemo {
+        public static void show(){
+            Set<String> set = new HashSet<>();
+            set.add("x");
+            set.add("y");
+            set.add("z");
+            set.add("z");
+            System.out.println(set);// z 只有一个
+
+            Collection<String> collection = new ArrayList<>();
+            Collections.addAll(collection, "a", "b", "c");
+            Set<String> set1 = new HashSet<>(collection);// 并入 List 集合
+            System.out.println(set1);
+
+            Set<String> set2 = new HashSet<>(Arrays.asList("b", "c", "d"));// 并入 List 集合
+            System.out.println(set2);
+
+            // 并集
+            Set<String> union = new HashSet<>(set1);
+            union.addAll(set2);
+            System.out.println("并集：" + union);
+
+            // 交集
+            Set<String> intersection = new HashSet<>(set1);
+            intersection.retainAll(set2);
+            System.out.println("交集：" + intersection);
+
+            // 差集
+            Set<String> difference = new HashSet<>(set1);
+            difference.removeAll(set2);
+            System.out.println("差集：" + difference);
+        }
+    }
+    ```
+
+2. `TreeSet` 自然排序示例（要求元素实现 Comparable）
+
+    ```java
+    public class TreeSetDemo {
+        public static void main(String[] args) {
+            Set<Integer> treeSet = new TreeSet<>();
+            treeSet.add(3);
+            treeSet.add(1);
+            treeSet.add(2);
+            System.out.println(treeSet); // 输出自然排序后的元素 [1, 2, 3]
+        }
+    }
+    ```
+
+## Hash Table
+
+> 简述：哈希表利用哈希函数将键映射到数组索引，实现平均 O(1) 的插入、查找和删除。通过冲突处理和动态扩容，保持高效性能。
+
+**知识树**
+
+1.  ArrayList vs 哈希表
+
+    - ArrayList：基于动态数组；按索引访问 O(1)，按值查找 O(n)。
+    - 哈希表：基于哈希映射；平均 O(1)，最坏 O(n)。
+
+2.  哈希冲突解决
+
+    - 后续章节讲解
+
+3.  使用选择
+
+    - HashTable 由于效率低已经被弃用，常用 HashMap、或基于 HashMap 的 HashSet，或在保持 O(1) 查找的同时，保留插入或访问顺序的 LinkedHashMap；
+
