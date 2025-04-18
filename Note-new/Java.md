@@ -7353,3 +7353,93 @@ Predicates
     - 方法签名：`boolean test(T t)`
     - 功能：对参数进行条件判断，返回布尔值，常用于过滤或验证。
 
+## Consumer
+
+> 简述：`Consumer` 接口是 Java 中的函数式接口，接收一个参数并不返回任何值。它常用于需要对传入对象执行操作而不需要返回结果的场景。`Consumer` 支持链式调用，允许多个 `Consumer` 通过 `andThen` 方法组合，适合函数式编程风格。
+> Link: https://docs.oracle.com/javase/8/docs/api/java/util/function/Consumer.html
+
+**知识树**
+
+1. 概念
+
+    - 函数式接口，可以使用 Lambda 表达式
+    - 两个方法
+        - `accept(T t)`，提供绑定操作，无返回值
+        - `andThen(Consumer<? super T> after)`提供链式操作，接收`Consumer<T>`，是默认实现
+
+2. `forEach` 方法
+
+    - `Iterable` 中定义，`forEach` 方法接受一个 `Consumer` 引用，遍历集合中的元素，并依次执行该 `Consumer` 引用中的 `accept` 方法。
+
+3. 链式 `Consumer`
+
+    - 通过 `andThen` 方法将多个 `Consumer` 引用链接在一起，按顺序执行多个操作。
+
+**代码示例**
+
+1. 使用 `Consumer`
+
+    ```java
+    public class LambdasDemo {
+
+        public static void show() {
+            List<Integer> list = List.of(1, 2, 3);
+
+            for (var item : list) {
+                System.out.println(item);
+            }
+
+            // 使用匿名类实现 Consumer 接口的 accept 方法，打印每个传入的值
+            Consumer<Integer> consumer = new Consumer<Integer>() {
+                @Override
+                public void accept(Integer i) {
+                    System.out.println(i);
+                }
+            };
+
+            // Lambda简化版，将 System.out 对象的 println 方法绑定到接口的accept方法上，最后得到一个Consumer的引用
+            Consumer<Integer> c = i -> System.out.println(i);
+            // 对遍历的每一个对象都执行Consumer引用的accept方法，也就是打印传入的值
+            list.forEach(consumer);
+
+            // 将上述的步骤合成一步，也就是下面的代码
+            list.forEach(item -> System.out.println(item));
+
+            // 进一步简化
+            // 将 System.out 对象的 println 方法绑定到接口的accept方法上，对遍历的每一个对象都执行Consumer引用的accept方法
+            list.forEach(System.out::println);
+        }
+    }
+    ```
+
+    - 展示如何使用匿名内部类和 Lambda 表达式实现 `Consumer` 接口，并通过 `forEach` 方法遍历集合。
+
+2. 链式 `Consumer`
+
+    ```java
+    public class LambdasDemo {
+
+        public static void show() {
+            List<String> list = List.of("a", "b", "c");
+
+    		// 定义两个 Consumer，实现打印和大写转换
+            Consumer<String> print = i -> System.out.println(i);
+            Consumer<String> printUpperCase = i -> System.out.println(i.toUpperCase());
+
+    		// 使用 andThen 进行链式调用，依次执行两个 Consumer
+            list.forEach(print.andThen(printUpperCase));
+    		// 输出：a A b B c C
+
+
+            // 补充
+            Consumer<String> a = i -> System.out.println("AAA");
+            Consumer<String> b = i -> System.out.println("BBB");
+            Consumer<String> c = i -> System.out.println("CCC");
+            // list.forEach(a.andThen(b).andThen(c)); // 效果相同
+            list.forEach(a.andThen(b.andThen(c))); // 该写法更具备可读性，因为它直接表现了函数的组合关系，符合从左到右的顺序。
+        }
+    }
+    ```
+
+    - 通过 `andThen` 方法将多个 `Consumer` 引用串联，确保按顺序执行每个操作。
+
