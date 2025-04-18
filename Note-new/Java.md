@@ -7192,3 +7192,56 @@ Predicates
     }
     ```
 
+## 变量与 this
+
+> 简述：在 Lambda 表达式中，可以访问方法中的局部变量以及类中的成员变量。Lambda 表达式中的 `this` 指向当前类的实例，而匿名内部类中的 `this` 指向匿名内部类的实例。
+
+**知识树**
+
+1. Lambda 表达式
+
+    - 可以访问方法中的局部变量（前提是这些变量是 `final` 或者是有效的）。
+    - `this` 指向外部类的实例。
+
+2. 匿名内部类
+
+    - 在匿名内部类中，`this` 指向的是匿名内部类的实例，而不是外部类的实例。
+
+**代码示例**
+
+1. 静态方法中访问变量
+
+    ```java
+    public class LambdasDemo {
+
+        public static String prefix = "-";
+
+        public static void show() {
+            String suffix = "-";
+
+            greet(message -> System.out.println(prefix + message + suffix));
+        }
+
+        public static void greet(Printer printer) {
+            printer.print("Hello World");
+        }
+    }
+    ```
+
+2. 非静态方法中 `this` 的使用
+
+    ```java
+    public class LambdasDemo {
+
+        public String prefix = "-";
+
+        public void show() {
+            greet(message -> System.out.println(this.prefix + message));
+        }
+
+        public static void greet(Printer printer) {
+            printer.print("Hello World");
+        }
+    }
+    ```
+
