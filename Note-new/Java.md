@@ -7443,3 +7443,50 @@ Predicates
 
     - 通过 `andThen` 方法将多个 `Consumer` 引用串联，确保按顺序执行每个操作。
 
+## Supplier 接口
+
+> 简述：Supplier 接口与 Consumer 接口相反，前者是“提供值”的接口，而后者是“消费值”的接口。Supplier 的作用是提供一个值，它包含一个抽象方法 `get()`，返回一个指定类型的值。
+
+**知识树**
+
+1. Supplier 接口概述
+
+    - Supplier 是一个函数式接口，用于提供类型为 `T` 的值。
+    - `get()` 方法是唯一的抽象方法，用于返回类型 `T` 的值。
+
+2. 懒惰求值（Lazy Evaluation）
+
+    - 该接口中的值不会在定义时立即生成，而是直到显式调用时才会生成。这意味着 `get()` 方法并不会在声明时执行，而是直到调用 `get()` 时才计算返回值。
+
+3. Primitive Specializations
+
+    - 为了避免自动装箱和拆箱的性能损失，Java 提供了 `DoubleSupplier`、`IntSupplier`、`LongSupplier` 和 `BooleanSupplier` 等原始数据类型的专用接口。
+    - 这些接口直接操作原始类型，避免了包装类的使用，提高了性能。
+
+**代码示例**
+
+1. Supplier 示例
+
+    ```java
+    public class LambdasDemo {
+
+        public static void show() {
+
+            // 使用匿名类实现 Supplier 接口的 get 方法，使用Math类的random方法
+            Supplier<Double> supplier = new Supplier<Double>() {
+                @Override
+                public Double get() {
+                    return Math.random();
+                }
+            };
+
+            // 将 Math 类的 random 方法绑定到接口引用 s 的get方法上
+            // 只有当s调用get方法时，xxxxx，xxx懒加载
+            Supplier<Double> s = Math::random;
+
+            System.out.println(s.get());
+        }
+    }
+    ```
+
+    - `s.get()` 只有在显式调用时才会返回新的随机值，体现了懒惰求值的特性。
