@@ -7052,3 +7052,143 @@
     }
 
     ```
+
+# Lambda
+
+lambda expression
+Functional Interface
+Consumers
+SUppliers
+Functions
+Predicates
+
+## 函数式接口
+
+> 简述：函数式接口（Functional Interface）是只包含一个抽象方法（Single Abstract Method, SAM）的接口，可作为 Lambda 表达式或方法引用的目标类型。接口中可包含任意多个 default、static 方法及继承自 Object 的方法，它们均不计入抽象方法计数。
+
+**知识树**
+
+1. 函数式接口基础
+
+    - SAM：仅一个抽象方法。
+    - `@FunctionalInterface`：可选注解，编译时强制检查接口是否仅含一个抽象方法。
+
+2. 演示过程
+
+    - 通过函数式接口的引入，逐步过渡到使用匿名内部类（Anonymous Inner Classes），并进一步使用 Lambda 表达式简化代码。
+
+**代码示例**
+
+1. 函数式接口使用
+
+    - 定义一个接口 `Printer`，包含一个打印方法：
+
+        ```java
+        public interface Printer {
+            void print(String message);
+        }
+        ```
+
+    - 创建接口实现类：
+
+        ```java
+        public class ConsolePrinter implements Printer{
+            @Override
+            public void print(String message) {
+                System.out.println(message);
+            }
+        }
+        ```
+
+    - 使用实现类的实例调用方法：
+
+        ```java
+        public class LambdasDemo {
+            public static void show(){
+                greet(new ConsolePrinter());
+            }
+
+            public static void greet(Printer printer){
+                printer.print("Hello World");
+            }
+        }
+        ```
+
+    - Main 中使用`LambdasDemo.show()`查看运行结果
+
+## 匿名内部类
+
+> 简述：匿名内部类是没有类名的类，它可以在方法调用处直接创建并实现接口或继承类，常用于简化代码。
+
+**知识树**
+
+1. 匿名内部类
+
+    - 语法：在方法调用时，通过 `new` 关键字创建接口实例并实现唯一的抽象方法。
+
+**代码示例**
+
+2. 匿名内部类的使用
+
+    ```java
+    public class LambdasDemo {
+        public static void show(){
+            greet(new Printer() {
+                @Override
+                public void print(String message) {
+                    System.out.println(message);
+                }
+            });
+        }
+
+        public static void greet(Printer printer){
+            printer.print("Hello World");
+        }
+    }
+    ```
+
+## Lambda 简化匿名内部类
+
+> 简述：Lambda 表达式提供了一种简化匿名内部类的写法，使得代码更加简洁和易读。
+
+**知识树**
+
+1. Lambda 表达式
+
+    - 语法：`(参数列表) -> { 方法体 }`。
+    - 简化规则：可以省略参数类型，单个参数时可以省略括号，单条语句时可以省略花括号和 `return`。
+
+**代码示例**
+
+1. 使用 Lambda 表达式
+
+    ```java
+    public class LambdasDemo {
+        public static void show() {
+
+            // 匿名内部类使用
+            greet(new Printer() {
+                @Override
+                public void print(String message) {
+                    System.out.println(message);
+                }
+            });
+
+            // Lambda 表达式基本使用
+            greet((String message) -> {
+                System.out.println(message);
+            });
+
+            // 单个参数时可省略括号，单条语句可省略花括号
+            greet(message -> System.out.println(message));
+
+            // 赋值给变量
+            Printer printer = message -> System.out.println(message);
+        }
+
+        public static void greet(Printer printer) {
+            printer.print("Hello World");
+        }
+    }
+    ```
+
