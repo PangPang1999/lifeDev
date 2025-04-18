@@ -7245,3 +7245,86 @@ Predicates
     }
     ```
 
+## 方法引用
+
+> 简述：方法引用（Method Reference）使用 `::` 运算符，将已有方法或构造器作为函数式接口的实现，进一步简化 Lambda 表达式。引用时不写参数和括号，目标函数签名需与接口抽象方法匹配。
+
+**知识树**
+
+1. 方法引用基础
+
+    - 语法：`持有者::方法名`
+    - 持有者可以是类名（静态方法）、特定对象（实例方法）或类名加 `new`（构造器）。
+    - 目标类型：函数式接口，抽象方法签名与被引用方法完全一致。
+
+2. 静态方法引用
+
+    - 格式：`ClassName::staticMethod`
+    - 将类的静态方法直接作为实现。
+
+3. 特定对象的实例方法引用
+
+    - 格式：`instance::instanceMethod`
+    - 引用某个对象的实例方法，如 `System.out::println`。
+
+4. 构造器引用
+    - 格式：`ClassName::new`
+    - 将构造器作为函数式接口（如 `Supplier`、`Function`、`Consumer` 等）的实现，用于创建新实例。
+
+**代码示例**
+
+1. 静态方法引用
+
+    ```java
+    public class LambdasDemo {
+
+        public static void targetMethod(String x) {
+        }
+
+        public static void show() {
+
+            // 匿名内部类使用
+            // greet(new Printer() {
+            //     @Override
+            //     public void print(String message) {
+            //         System.out.println(message);
+            //     }
+            // });
+
+            // Lambdas表达式
+            // greet(message -> System.out.println(message));
+
+            // Lambdas方法引用表达式
+            // 方法引用：将 System.out 对象的 println 方法绑定为 Printer.print 的实现
+            greet(System.out::println);
+            // 方法引用：将 LambdasDemo 类的 targetMethod 方法绑定为 Printer.print 的实现
+            greet(LambdasDemo::targetMethod);
+        }
+
+        public static void greet(Printer printer) {
+            printer.print("Hello World");
+        }
+    }
+    ```
+
+    - 将 `System.out` 对象的 `println` 方法绑定为 `Printer.print` 的实现
+
+2. 构造器引用
+
+    ```java
+    public class LambdasDemo {
+
+        public LambdasDemo(String msg) {
+        }
+
+        public static void show() {
+            // 方法引用：将 LambdasDemo 类的 构造函数 方法绑定为 Printer.print 的实现
+            greet(LambdasDemo::new);
+        }
+
+        public static void greet(Printer printer) {
+            printer.print("Hello World");
+        }
+    }
+    ```
+
