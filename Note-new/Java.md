@@ -7446,6 +7446,7 @@ Predicates
 ## Supplier 接口
 
 > 简述：Supplier 接口与 Consumer 接口相反，前者是“提供值”的接口，而后者是“消费值”的接口。Supplier 的作用是提供一个值，它包含一个抽象方法 `get()`，返回一个指定类型的值。
+> Link: https://docs.oracle.com/javase/8/docs/api/java/util/function/Supplier.html
 
 **知识树**
 
@@ -7490,3 +7491,83 @@ Predicates
     ```
 
     - `s.get()` 只有在显式调用时才会返回新的随机值，体现了懒惰求值的特性。
+
+## Function 接口
+
+> 简述：`Function` 接口是 Java 中的函数式接口，表示接收一个参数并返回一个结果的函数操作。支持 lambda 表达式和方法引用。
+> Link: https://docs.oracle.com/javase/8/docs/api/java/util/function/Function.html
+
+**知识树**
+
+1. `Function` 接口
+
+    - 适用于接收一个输入参数并返回一个结果的操作。
+    - 常用于数据转换等场景。
+
+2. 核心方法
+
+    - `apply(T t)`：唯一的抽象方法，接收类型为 `T` 的参数并返回类型为 `R` 的结果。
+    - `andThen()`：将当前函数的结果作为输入，应用另一个函数（返回新结果）。
+    - `compose()`：先应用另一个函数，再应用当前函数。
+    - `identity()`：直接返回输入的参数，不做任何处理。
+
+3. 链式操作
+
+    - 可以使用 `andThen()` 或 `compose()` 组合多个 `Function` 接口，支持函数的链式调用。
+
+4. 专用化版本
+
+    - `IntFunction<R>`、`LongFunction<R>`、`DoubleFunction<R>`：针对基本数据类型的专用接口。
+    - 例如，`IntFunction<R>` 接受一个 `int` 类型的参数并返回一个类型为 `R` 的结果。
+
+**代码示例**
+
+1. 使用 `Function` 接口进行字符串长度计算
+
+    ```java
+    public class LambdasDemo {
+        public static void show() {
+            // 使用匿名类实现 Function 接口的 apply 方法，拿到字符串，返回字符串的长度
+            Function<String, Integer> function = new Function<String, Integer>() {
+                @Override
+                public Integer apply(String str) {
+                    return str.length();
+                }
+            };
+
+            // 使用 lambda 简化实现
+            Function<String, Integer> f = str -> str.length();
+
+            var length = f.apply("abc");
+            System.out.println(length);  // 输出: 3
+        }
+    }
+    ```
+
+    - 描述：这里我们使用了 `Function<String, Integer>` 接口，接受一个 `String` 类型的参数，返回其长度作为 `Integer`。
+
+2. 使用 `Function` 接口链式调用
+
+    ```java
+    public class LambdasDemo {
+
+        public static void show() {
+            // "key:value"
+            // first: "key=value"
+            // second: "{key=value}"
+            Function<String, String> replaceColon = str -> str.replace(":","=");
+            Function<String, String> addBraces = str -> "{" + str + "}";
+
+            // andThen: 先replaceColon，再addBraces
+            var result = replaceColon.andThen(addBraces).apply("key:value");
+            // compose：在addBraces之前，先replaceColon
+            var result2 = addBraces.compose(replaceColon).apply("key:value");
+
+            System.out.println(result2);
+
+            // 另外一种方式
+            var compose = replaceColon.andThen(addBraces);
+            System.out.println(compose.apply("key:value"));
+        }
+    }
+    ```
