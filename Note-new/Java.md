@@ -7055,13 +7055,6 @@
 
 # Lambda
 
-lambda expression
-Functional Interface
-Consumers
-SUppliers
-Functions
-Predicates
-
 ## 函数式接口
 
 > 简述：函数式接口（Functional Interface）是只包含一个抽象方法（Single Abstract Method, SAM）的接口，可作为 Lambda 表达式或方法引用的目标类型。接口中可包含任意多个 default、static 方法及继承自 Object 的方法，它们均不计入抽象方法计数。
@@ -7700,7 +7693,7 @@ Predicates
 
     - 描述：定义一个 `BinaryOperator<Integer>`，使用 `apply()` 方法进行两个整数的加法运算。并通过 `andThen()` 方法，将 `BinaryOperator` 与 `Function` 组合，先进行加法操作，再对结果进行平方处理。
 
-## UnaryOperator 接口
+## 接口
 
 > 简述：`UnaryOperator` 接口是 Java 中的一种函数式接口，用于处理单一类型的输入参数并返回同一类型的结果。它是 `Function<T, T>` 接口的特化版本，适用于执行对单一输入值的操作，如增量、平方等。
 
@@ -7750,3 +7743,87 @@ Predicates
     ```
 
     - 描述：通过 `andThen()` 方法，首先对数值进行增量操作，再对结果进行平方操作。
+
+# Streams
+
+• Overview of Streams
+• Mapping
+• Filtering
+• Slicing
+• Sorting
+• Reducing
+• Collectors
+
+## 命令式&函数式编程
+
+> 简述：命令式编程和函数式编程是两种常见的编程范式。命令式编程专注于指令的顺序和如何实现任务，而函数式编程则关注于描述任务的本质，通过表达“做了什么”来实现功能。Java 中的 Stream API 为函数式编程提供了一个简洁的实现方式，使得数据处理可以通过声明式方式进行，提升了代码的可读性与简洁性。
+
+**知识树**
+
+1. 命令式编程
+
+    - 专注于如何实现任务，代码逻辑依赖于明确的步骤和顺序。
+
+2. 函数式（声明式）编程
+
+    - 关注于任务本身，描述“做了什么”，而不是如何做。
+
+3. `stream()`
+
+    - 意义：使数据操作以声明式方式进行处理，代码更简洁、更具可读性。
+    - 作用：返回一个 Stream 对象，Stream 表示一系列的元素，和集合不同，Stream 的目的在于处理数据，而不是存储数据。Stream 提供了一系列有用的操作方法，如 `filter()`、`count()` 等。
+    - 常用方法示例：
+        - `filter()`: 接收一个 `Predicate` 对象，筛选 Stream 中符合条件的元素。
+        - `count()`: 统计 Stream 中符合条件的元素数量。
+
+4. 示例引入
+
+    - 创建 `Movie` 类，创建 `StreamsDemo` 类，结合 `Stream` API 进行声明式编程，统计喜欢超过 10 个的电影个数
+
+**代码示例**
+
+1. 统计喜欢超过 10 个的电影个数
+
+    - 创建 `Movie` 类
+
+        ```java
+        public class Movie {
+
+            private String title;
+            private int likes;
+
+            public Movie(String title, int likes) {
+                this.title = title;
+                this.likes = likes;
+            }
+
+            public int getLikes() {
+                return likes;
+            }
+        }
+        ```
+
+    - 创建 `StreamsDemo` 类，使用命令式和声明式方式统计喜欢超过 10 个的电影数量
+
+        ```java
+        public class StreamsDemo {
+            public static void show() {
+                List<Movie> movies = List.of(
+                        new Movie("a", 10),
+                        new Movie("b", 15),
+                        new Movie("c", 20)
+                );
+
+                // Imperative Programming
+                int count = 0;
+                for (var movie : movies)
+                    if (movie.getLikes() > 10)
+                        count++;
+
+                var count1 = movies.stream()
+                        .filter(movie -> movie.getLikes() > 10)
+                        .count();
+            }
+        }
+        ```
+
