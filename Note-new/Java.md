@@ -7920,3 +7920,63 @@
     - 使用`Stream.iterate()` 方法生成无限流，并使用 `limit()` 限制流的大小。
 
 ## Map
+
+> 简述：`map` 和 `flatMap` 是 Java Stream API 中常用的函数式方法，常用于对集合元素进行转换和扁平化处理。`map` 用于将元素转换为另一种类型，而 `flatMap` 则用于将元素转换为多个元素并展平流中的嵌套结构。
+
+**知识树**
+
+1. `map` 方法
+
+    - 作用：接收一个 Function 接口的引用，流中的每一个元素执行引用中的 apply 方法。将流中的每个元素应用给定的函数，转换为另一个对象，返回一个新的流，元素类型是应用函数后的结果。
+
+2. `flatMap` 方法
+
+    - 用途：将流中的每个元素映射为多个元素，并将这些元素“扁平化”成一个单一的流。
+    - 返回类型：返回一个扁平化的流，元素类型是从多个流中提取的元素。
+
+3. 专用化版本
+
+    `mapToInt`、`mapToDouble` 和 `mapToLong`
+
+    - 用途：这类方法用于映射到原始类型流（`int`、`double`、`long`）。
+    - 返回类型：返回原始类型的流，如 `IntStream`、`DoubleStream`、`LongStream`。
+
+**代码示例**
+
+1. 使用 `map` 方法将对象转换为属性值
+
+    ```java
+    public class StreamsDemo {
+        public static void show() {
+            List<Movie> movies = List.of(
+                    new Movie("a", 10),
+                    new Movie("b", 15),
+                    new Movie("c", 20)
+            );
+
+            movies.stream()
+                    .map(movie -> movie.getTitle())
+                    .forEach(System.out::println);
+        }
+    }
+    ```
+
+    - 描述：通过 `map` 方法，我们从电影对象的流中提取每个电影的标题，返回一个包含标题的字符串流。
+
+2. 使用 `flatMap` 方法将嵌套的流展平
+
+    ```java
+    public class StreamsDemo {
+        public static void show() {
+            // 使用两个list创建stream
+            var stream = Stream.of(List.of(1, 2, 3), List.of(4, 5, 6));
+            // 将stream中的list转为流并返回，合成一个stream
+            stream
+                    .flatMap(list -> list.stream())
+                    .forEach(System.out::println);
+        }
+    }
+    ```
+
+    - 描述：通过 `flatMap`，我们将包含多个列表的流展平为单一的整数流。
+

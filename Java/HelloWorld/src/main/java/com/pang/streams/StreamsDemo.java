@@ -7,11 +7,14 @@ import java.util.stream.Stream;
 
 public class StreamsDemo {
     public static void show() {
-        //无限流
-        // Stream.iterate(1,n->n+1).forEach(System.out::println);
-        // 限制10次
-        Stream.iterate(1,n->n+1)
-                .limit(10)
-                .forEach(System.out::println);
+        List<Movie> movies = List.of(
+                new Movie("a", 10),
+                new Movie("b", 15),
+                new Movie("c", 20)
+        );
+
+        movies.stream()
+                .filter(movie -> movie.getLikes() > 10)
+                .forEach(m -> System.out.println(m.getTitle()));
     }
 }
