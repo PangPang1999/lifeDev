@@ -7057,22 +7057,24 @@
 
 ## 函数式接口
 
-> 简述：函数式接口（Functional Interface）是只包含一个抽象方法（Single Abstract Method, SAM）的接口，可作为 Lambda 表达式或方法引用的目标类型。接口中可包含任意多个 default、static 方法及继承自 Object 的方法，它们均不计入抽象方法计数。
+> 简述：函数式接口（Functional Interface）是指包含一个抽象方法的接口，作为 Lambda 表达式或方法引用的目标类型。接口可以包含任意数量的 `default` 或 `static` 方法，以及继承自 `Object` 的方法，但这些不计入抽象方法的数量。
 
 **知识树**
 
 1. 函数式接口基础
 
-    - SAM：仅一个抽象方法。
-    - `@FunctionalInterface`：可选注解，编译时强制检查接口是否仅含一个抽象方法。
+2. 函数式接口基础
 
-2. 演示过程
+    - SAM（Single Abstract Method）：接口仅包含一个抽象方法。
+    - `@FunctionalInterface`：可选的注解，确保接口仅包含一个抽象方法。
 
-    - 通过函数式接口的引入，逐步过渡到使用匿名内部类（Anonymous Inner Classes），并进一步使用 Lambda 表达式简化代码。
+3. 演示过程
+
+    - 从函数式接口的引入开始，逐步过渡到使用匿名内部类（Anonymous Inner Classes），然后进一步通过 Lambda 表达式简化代码。
 
 **代码示例**
 
-1. 函数式接口使用
+1. 函数式接口原始方式使用
 
     - 定义一个接口 `Printer`，包含一个打印方法：
 
@@ -7107,25 +7109,24 @@
         }
         ```
 
-    - Main 中使用`LambdasDemo.show()`查看运行结果
-
 ## 匿名内部类
 
-> 简述：匿名内部类是没有类名的类，它可以在方法调用处直接创建并实现接口或继承类，常用于简化代码。
+> 简述：匿名内部类是在方法调用时直接创建并实现接口的类，没有类名。它常用于简化代码，避免创建冗长的类。
 
 **知识树**
 
 1. 匿名内部类
 
-    - 语法：在方法调用时，通过 `new` 关键字创建接口实例并实现唯一的抽象方法。
+    - 语法：通过 `new` 关键字在方法调用时直接创建接口的匿名实现类，并实现唯一的抽象方法。
 
 **代码示例**
 
-2. 匿名内部类的使用
+1. 匿名内部类的使用
 
     ```java
     public class LambdasDemo {
-        public static void show(){
+        public static void show() {
+            // 创建匿名内部类并实现接口的抽象方法
             greet(new Printer() {
                 @Override
                 public void print(String message) {
@@ -7134,7 +7135,7 @@
             });
         }
 
-        public static void greet(Printer printer){
+        public static void greet(Printer printer) {
             printer.print("Hello World");
         }
     }
@@ -7142,14 +7143,24 @@
 
 ## Lambda 简化匿名内部类
 
-> 简述：Lambda 表达式提供了一种简化匿名内部类的写法，使得代码更加简洁和易读。
+> 简述：Lambda 表达式提供了一种简化匿名内部类的写法，使得代码更加简洁和易读，仅适用于函数式接口，即仅有一个抽象方法的类
 
 **知识树**
 
 1. Lambda 表达式
 
     - 语法：`(参数列表) -> { 方法体 }`。
-    - 简化规则：可以省略参数类型，单个参数时可以省略括号，单条语句时可以省略花括号和 `return`。
+        - `参数列表`：指定传入参数的类型和名称。如果参数类型可以通过上下文推断，类型可以省略。
+        - `->`：Lambda 表达式的箭头符号，分隔了参数列表和方法体。
+        - `方法体`：包含实现的具体逻辑，可以是单行的简洁形式，也可以是多行的复杂逻辑。
+    - 概念：
+        - 相当于是一个依赖于 JVM 动态生成的实现接口的对象，效率略微提高，这与匿名内部类不同，只需记住优先使用 Lambda 表达式
+    - 使用限制：
+        - 仅适用于函数式接口，即接口中仅包含一个抽象方法（可以包含多个默认方法和静态方法）。这种限制确保了 Lambda 表达式能够明确地映射到接口的一个方法上。
+
+2. 再次简化
+
+    - 通过 `::` 操作符和方法引用，Lambda 表达式的使用可以进一步简化，将在后续内容中详细介绍。
 
 **代码示例**
 
@@ -7167,16 +7178,19 @@
                 }
             });
 
-            // Lambda 表达式基本使用
-            greet((String message) -> {
-                System.out.println(message);
-            });
+    		// Lambda 表达式的基本使用，仅适用于函数式接口（只有一个抽象方法的类）
+    		greet((String message) -> {
+    			System.out.println(message);
+    		});
 
             // 单个参数时可省略括号，单条语句可省略花括号
             greet(message -> System.out.println(message));
 
-            // 赋值给变量
+            // printer 变量指向了一个 依赖于 JVM 动态生成的实现接口的对象
             Printer printer = message -> System.out.println(message);
+
+            // 传入引用
+            greet(printer);
         }
 
         public static void greet(Printer printer) {
@@ -7288,9 +7302,10 @@
             // greet(message -> System.out.println(message));
 
             // Lambdas方法引用表达式
-            // 方法引用：将 System.out 对象的 println 方法绑定为 Printer.print 的实现
+            // 将 System.out 对象的 println 方法作为 Printer.print 方法的实现，
+            // 并将其作为一个 Printer 接口的实例传递给 greet 方法。
             greet(System.out::println);
-            // 方法引用：将 LambdasDemo 类的 targetMethod 方法绑定为 Printer.print 的实现
+            // 将 LambdasDemo 类的 targetMethod 方法作为 Printer.print 的实现...
             greet(LambdasDemo::targetMethod);
         }
 
@@ -7300,7 +7315,7 @@
     }
     ```
 
-    - 将 `System.out` 对象的 `println` 方法绑定为 `Printer.print` 的实现
+    - 将 `System.out` 对象的 `println` 方法作为 `Printer.print` 方法的实现，并将其作为一个 `Printer` 接口的实例传递给 `greet` 方法。`targetMethod`方法同理。
 
 2. 构造器引用
 
@@ -7311,7 +7326,8 @@
         }
 
         public static void show() {
-            // 方法引用：将 LambdasDemo 类的 构造函数 方法绑定为 Printer.print 的实现
+            // 方法引用：将 LambdasDemo 类的 构造函数 方法作为 Printer.print 的实现
+            // 并将其作为一个 Printer 接口的实例传递给 greet 方法。
             greet(LambdasDemo::new);
         }
 
@@ -7693,7 +7709,7 @@
 
     - 描述：定义一个 `BinaryOperator<Integer>`，使用 `apply()` 方法进行两个整数的加法运算。并通过 `andThen()` 方法，将 `BinaryOperator` 与 `Function` 组合，先进行加法操作，再对结果进行平方处理。
 
-## 接口
+## UnaryOperator 接口
 
 > 简述：`UnaryOperator` 接口是 Java 中的一种函数式接口，用于处理单一类型的输入参数并返回同一类型的结果。它是 `Function<T, T>` 接口的特化版本，适用于执行对单一输入值的操作，如增量、平方等。
 
@@ -7992,27 +8008,157 @@
 
 2. 中间&终止方法
 
-	- 流中的方法分为中间方法和终止方法，中间方法会返回一个管道以供流的继续执行，终止方法没有返回值，需要放在链的最后
-	- 中间方法如：map、filter
-	- 终止方法如：forEach、count
+    - 流中的方法分为中间方法和终止方法，中间方法会返回一个管道以供流的继续执行，终止方法没有返回值，需要放在链的最后
+    - 中间方法如：map、filter
+    - 终止方法如：forEach、count
 
 **代码示例**
 
 1. 筛选
 
-	```java
-	public class StreamsDemo {
-	    public static void show() {
-	        List<Movie> movies = List.of(
-	                new Movie("a", 10),
-	                new Movie("b", 15),
-	                new Movie("c", 20)
-	        );
-	
-	        movies.stream()
-	                .filter(movie -> movie.getLikes() > 10)
-	                .forEach(m -> System.out.println(m.getTitle()));
-	    }
-	}
-	```
+    ```java
+    public class StreamsDemo {
+        public static void show() {
+            List<Movie> movies = List.of(
+                    new Movie("a", 10),
+                    new Movie("b", 15),
+                    new Movie("c", 20)
+            );
 
+            movies.stream()
+                    .filter(movie -> movie.getLikes() > 10)
+                    .forEach(m -> System.out.println(m.getTitle()));
+        }
+    }
+    ```
+
+## Slicing
+
+> 简述：在 Java 中，Stream 提供了几种方法来操作和切片流数据。常用的方法包括 `limit`、`skip`、`takeWhile` 和 `dropWhile`，它们可以用于实现数据的分页、过滤和条件性处理。通过这些方法，我们能够精确地控制流中的元素处理。
+
+**知识树**
+
+1. `limit` 方法
+
+    - 用途：限制流中的元素个数。
+    - 使用场景：常用于获取流中的前 N 个元素。
+
+2. `skip` 方法
+
+    - 用途：跳过流中的前 N 个元素。
+    - 使用场景：常用于数据分页，跳过已展示的数据。
+
+3. `takeWhile` 方法
+
+    - 用途：基于给定的条件（Predicate），连续获取流中的元素，直到条件不再满足。
+    - 使用场景：常用于基于条件筛选流中前续元素。
+
+4. `dropWhile` 方法
+
+    - 用途：跳过流中连续满足条件的元素，直到条件不再满足。
+    - 使用场景：常用于基于条件丢弃流中前续元素。
+
+5. 分页操作
+    - 使用 `skip` 和 `limit` 配合实现分页功能。例如，`skip(page-1 * pageSize)` 和 `limit(pageSize)`。
+
+**代码示例**
+
+1. 使用 `limit` 限制流中的元素数量
+
+    ```java
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> movies = List.of("Movie A", "Movie B", "Movie C", "Movie D", "Movie E");
+
+            // 取前两个电影
+            movies.stream()
+                  .limit(2)  // 限制为前两项
+                  .forEach(System.out::println);
+        }
+    }
+    ```
+
+    - 描述：使用 `limit` 方法获取前两个电影，并打印它们。
+
+2. 使用 `skip` 跳过流中的前 N 个元素
+
+    ```java
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> movies = List.of("Movie A", "Movie B", "Movie C", "Movie D", "Movie E");
+
+            // 跳过前两个电影
+            movies.stream()
+                  .skip(2)  // 跳过前两项
+                  .forEach(System.out::println);
+        }
+    }
+    ```
+
+    - 描述：使用 `skip` 方法跳过前两个电影，输出剩余的电影。
+
+3. 使用 `takeWhile` 根据条件过滤流中的元素
+
+    ```java
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> movies = List.of("Movie A", "Movie B", "Movie C", "Movie D", "Movie E");
+
+            // 获取所有以 'Movie' 开头的电影，直到不再匹配
+            movies.stream()
+                  .takeWhile(movie -> movie.startsWith("Movie"))  // 条件：电影名以 'Movie' 开头
+                  .forEach(System.out::println);
+        }
+    }
+    ```
+
+    - 描述：使用 `takeWhile` 方法筛选所有名称以 "Movie" 开头的电影，直到条件不再满足。
+
+4. 使用 `dropWhile` 跳过符合条件的元素，直到条件不满足
+
+    ```java
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> movies = List.of("Movie A", "Movie B", "Movie C", "Movie D", "Movie E");
+
+            // 跳过所有以 'Movie' 开头的电影，直到遇到不以 'Movie' 开头的电影
+            movies.stream()
+                  .dropWhile(movie -> movie.startsWith("Movie"))  // 跳过符合条件的项
+                  .forEach(System.out::println);
+        }
+    }
+    ```
+
+    - 描述：使用 `dropWhile` 方法跳过所有符合条件（电影名以 "Movie" 开头）的电影，直到遇到第一个不符合条件的元素。
+
+5. 使用 `skip` 和 `limit` 方法实现分页
+
+    ```java
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> movies = List.of("Movie A", "Movie B", "Movie C", "Movie D", "Movie E");
+
+            int page = 2;  // 当前页
+            int pageSize = 2;  // 每页显示的电影数量
+
+            movies.stream()
+                  .skip((page - 1) * pageSize)  // 跳过前面所有页的数据
+                  .limit(pageSize)  // 限制当前页显示的电影数量
+                  .forEach(System.out::println);
+        }
+    }
+    ```
+
+    - 描述：通过 `skip` 和 `limit` 方法实现分页，获取当前页的电影数据。
+
+# ---

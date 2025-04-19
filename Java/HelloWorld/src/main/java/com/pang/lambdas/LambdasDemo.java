@@ -4,20 +4,33 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
 public class LambdasDemo {
-
     public static void show() {
-        // 定义 BinaryOperator，用于加法
-        BinaryOperator<Integer> add = (a, b) -> a + b;
 
-        // 使用 apply 方法进行加法运算
-        int result = add.apply(3, 4);
-        System.out.println(result);  // 输出: 7
+        // 匿名内部类使用
+        greet(new Printer() {
+            @Override
+            public void print(String message) {
+                System.out.println(message);
+            }
+        });
 
-        // 定义 Function，用于平方
-        Function<Integer, Integer> square = a -> a * a;
+        // Lambda 表达式基本使用，仅适用于函数式接口（仅有一个抽象方法的类）
+        // greet()括号内视为Pointer接口引用
+        greet((String message) -> {
+            System.out.println(message);
+        });
 
-        // 组合操作：先加法后平方
-        int result2 = add.andThen(square).apply(3, 4);
-        System.out.println(result2);  // 输出: 49
+        // 单个参数时可省略括号，单条语句可省略花括号
+        greet(message -> System.out.println(message));
+
+        // 接收引用，该引用的唯一抽象方法已被实现，即打印
+        Printer printer = message -> System.out.println(message);
+
+        // 传入引用
+        greet(printer);
+    }
+
+    public static void greet(Printer printer) {
+        printer.print("Hello World");
     }
 }
