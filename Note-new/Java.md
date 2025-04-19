@@ -7980,3 +7980,39 @@
 
     - 描述：通过 `flatMap`，我们将包含多个列表的流展平为单一的整数流。
 
+## Filter 与 终止
+
+> 简述：在 Java 中，Stream API 提供了流式处理数据的能力。filter 方法用于从流中筛选符合条件的元素
+
+**知识树**
+
+1. 过滤（filter 方法）
+
+    - 作用：接收一个 Predicate 接口的引用，流中的每一个元素执行引用中的 test 方法，返回一个新的流，包含符合条件的元素。
+
+2. 中间&终止方法
+
+	- 流中的方法分为中间方法和终止方法，中间方法会返回一个管道以供流的继续执行，终止方法没有返回值，需要放在链的最后
+	- 中间方法如：map、filter
+	- 终止方法如：forEach、count
+
+**代码示例**
+
+1. 筛选
+
+	```java
+	public class StreamsDemo {
+	    public static void show() {
+	        List<Movie> movies = List.of(
+	                new Movie("a", 10),
+	                new Movie("b", 15),
+	                new Movie("c", 20)
+	        );
+	
+	        movies.stream()
+	                .filter(movie -> movie.getLikes() > 10)
+	                .forEach(m -> System.out.println(m.getTitle()));
+	    }
+	}
+	```
+
