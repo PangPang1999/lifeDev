@@ -7827,3 +7827,96 @@
         }
         ```
 
+## Stream 的创建与操作
+
+> 简述： Java 中的 Stream 提供了一种声明式的数据处理方式，允许通过流的方式对数据进行处理。Stream 支持从集合、数组及任意数量的对象创建流，并可以生成有限流或无限流。通过流操作，可以进行数据转换、过滤、映射等操作，并且支持惰性求值，这意味着流的元素只有在实际消费时才会被生成，从而提高性能。
+
+**知识树**
+
+1. 从集合创建流
+
+    - `.stream()`：集合对象的引用，调用`.stream()`方法，创建 Stream 对象。
+
+2. 从数组创建流
+
+    - `Arrays.stream()`：传入数组，创建 Stream 对象。
+
+3. 从任意数量的对象创建流
+
+    - `Stream.of()`：传入任意类型、数量多对象，创建 Stream 对象。
+
+4. 生成无限流
+
+    - `Stream.generate()`
+        - 需要传入一个 Supplier，并无限调用这个生产者，从而创建无限流，支持惰性加载。
+    - `Stream.iterate()`
+        - 传入初始值和一个操作单一值的函数，通过初始值和变换操作生成无限流。
+
+5. 有限流
+
+    - 通过 `limit()` 方法限制生成的流的大小。
+
+6. 惰性求值
+
+    - 流的元素在被实际消费时才会被生成，这种机制可以优化性能。
+
+**代码示例**
+
+1. 从集合创建流
+
+    ```java
+    // list.stream() 返回一个Stream对象
+    var list = new ArrayList<>();
+    list.stream();
+    ```
+
+    - 通过 `stream()` 方法从集合创建流。
+
+2. 从数组创建流
+
+    ```java
+    //  Arrays.stream(numbers) 返回一个Stream对象
+    int[] numbers = {1, 2, 3};
+    Arrays.stream(numbers);
+    ```
+
+    - 使用 `Arrays.stream()` 方法从数组创建流。
+
+3. 从任意数量的对象创建流
+
+    ```java
+    // 使用任意参数和对象创建 Stream对象
+    Stream.of(1, 2, 3, false, numbers);
+    ```
+
+    - 通过 `Stream.of()` 方法从多个对象创建流。
+
+4. `Stream.generate()` 生成无限流与限制
+
+    ```java
+    var streams = Stream.generate(() -> Math.random());
+
+    // 无限流
+    // streams.forEach(System.out::println);
+    // 限制10次
+    streams
+    		.limit(10)
+    		.forEach(System.out::println);
+    ```
+
+    - 使用 `Stream.generate()` 方法生成无限流，并使用 `limit()` 限制流的大小。
+
+5. `Stream.iterate()` 生成无限流与限制
+
+    ```java
+        //无限流
+        // Stream.iterate(1,n->n+1).forEach(System.out::println);
+        // 限制10次
+        Stream.iterate(1,n->n+1)
+                .limit(10)
+                .forEach(System.out::println);
+    ```
+
+    - 使用`Stream.iterate()` 方法生成无限流，并使用 `limit()` 限制流的大小。
+
+## Map
