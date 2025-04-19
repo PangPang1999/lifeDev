@@ -1,25 +1,23 @@
 package com.pang.lambdas;
 
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
 public class LambdasDemo {
 
     public static void show() {
-        // "key:value"
-        // first: "key=value"
-        // second: "{key=value}"
-        Function<String, String> replaceColon = str -> str.replace(":","=");
-        Function<String, String> addBraces = str -> "{" + str + "}";
+        // 定义 BinaryOperator，用于加法
+        BinaryOperator<Integer> add = (a, b) -> a + b;
 
-        // andThen: 先replaceColon，再addBraces
-        var result = replaceColon.andThen(addBraces).apply("key:value");
-        // compose：在addBraces之前，先replaceColon
-        var result2 = addBraces.compose(replaceColon).apply("key:value");
+        // 使用 apply 方法进行加法运算
+        int result = add.apply(3, 4);
+        System.out.println(result);  // 输出: 7
 
-        System.out.println(result2);
+        // 定义 Function，用于平方
+        Function<Integer, Integer> square = a -> a * a;
 
-        // 另外一种方式
-        var compose = replaceColon.andThen(addBraces);
-        System.out.println(compose.apply("key:value"));
+        // 组合操作：先加法后平方
+        int result2 = add.andThen(square).apply(3, 4);
+        System.out.println(result2);  // 输出: 49
     }
 }

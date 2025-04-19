@@ -7571,3 +7571,182 @@ Predicates
         }
     }
     ```
+
+## Predicate 接口
+
+> 简述：`Predicate` 接口是 Java 中的一个函数式接口，通常用于处理布尔条件。它接收一个输入参数并返回一个布尔值，常用于数据筛选、验证等场景。
+> Link: https://docs.oracle.com/javase/8/docs/api/java/util/function/Predicate.html
+
+**知识树**
+
+1. `Predicate` 接口
+
+    - 接收一个类型为 `T` 的参数，返回一个 `Boolean` 类型的结果。
+    - 常用于根据某些条件判断对象是否符合要求，广泛应用于过滤和验证操作。
+
+2. 核心方法
+
+    - `test(T t)`：唯一的抽象方法，用于检查给定的对象是否满足某些条件，返回 `true` 或 `false`。
+    - `and()`：组合多个 `Predicate`，执行逻辑与操作（`&&`）。
+    - `or()`：组合多个 `Predicate`，执行逻辑或操作（`||`）。
+    - `negate()`：返回一个新 `Predicate`，对原条件进行取反操作。
+    - `isEqual()`：用于比较两个对象是否相等。
+
+3. 链式操作
+
+    - `and()`、`or()`、`negate()` 可链式组合，允许构建复杂的布尔判断。
+
+4. 专用化版本
+
+    - `IntPredicate`、`LongPredicate`、`DoublePredicate`：针对基本数据类型的专用接口，分别接受 `int`、`long` 和 `double` 类型的参数。
+
+**代码示例**
+
+1. 使用 `Predicate` 检查字符串长度是否大于五
+
+    ```java
+    import java.util.function.Predicate;
+
+    public class LambdasDemo {
+        public static void show() {
+            // 定义 Predicate，用于检查字符串长度是否大于五
+            Predicate<String> isLongerThanFive = str -> str.length() > 5;
+
+            // 使用 test 方法验证
+            var result = isLongerThanFive.test("sky");
+            System.out.println(result);  // 输出: false
+        }
+    }
+    ```
+
+    - 描述：定义一个 `Predicate<String>`，通过 `test()` 方法检查字符串的长度是否大于五。
+
+2. 组合多个 `Predicate` 进行逻辑操作
+
+    ```java
+    public class LambdasDemo {
+        public static void show() {
+            // 定义两个 Predicate
+            Predicate<String> hasLeftBrace = str -> str.startsWith("{");
+            Predicate<String> hasRightBrace = str -> str.endsWith("}");
+
+            // 使用 and() 组合两个 Predicate，表示同时满足左右大括号的条件
+            Predicate<String> hasLeftAndRightBraces = hasLeftBrace.and(hasRightBrace);
+
+            // 使用 or() 组合两个 Predicate，表示满足任一条件
+            Predicate<String> hasLeftOrRightBraces = hasLeftBrace.or(hasRightBrace);
+
+            // 使用 negate() 取反操作
+            Predicate<String> doesNotHaveLeftBrace = hasLeftBrace.negate();
+
+            System.out.println(hasLeftAndRightBraces.test("{key:value}"));  // 输出: true
+            System.out.println(hasLeftOrRightBraces.test("key:value"));    // 输出: false
+            System.out.println(doesNotHaveLeftBrace.test("{key:value}")); // 输出: false
+        }
+    }
+    ```
+
+    - 描述：演示了如何使用 `and()`、`or()` 和 `negate()` 方法组合 `Predicate`，构建复杂的布尔条件。
+
+## BinaryOperator 接口
+
+> 简述：`BinaryOperator` 接口是 Java 中的一种函数式接口，专门用于处理两个相同类型的输入参数并返回一个相同类型的结果。它是 `BiFunction` 接口的特化版本，常用于二元操作（如加法、乘法等）。
+
+**知识树**
+
+1. `BinaryOperator` 接口
+
+    - 扩展了 `BiFunction<T, T, T>` 接口，用于接收两个相同类型的输入参数并返回一个同类型的结果。
+    - 主要用于表示二元操作，例如加法、减法、乘法等。
+
+2. 核心方法
+
+    - `apply(T t, T u)`：接收两个参数并返回一个结果，执行特定的二元操作。
+    - `identity()`：返回一个始终返回相同参数的 `BinaryOperator`，用于表示默认值（常用于累加器）。
+
+3. 专用化版本
+
+    - `IntBinaryOperator`、`LongBinaryOperator`、`DoubleBinaryOperator`：分别针对 `int`、`long` 和 `double` 基本数据类型的专用接口。
+
+4. 组合与应用
+
+    - `andThen()`：将另一个操作应用于结果，可以进行组合操作。
+    - 适合用于链式调用和组合计算。
+
+**代码示例**
+
+1. 使用 `BinaryOperator` 进行加法操作
+
+    ```java
+    public class LambdasDemo {
+
+        public static void show() {
+            // 定义 BinaryOperator，用于加法
+            BinaryOperator<Integer> add = (a, b) -> a + b;
+
+            // 使用 apply 方法进行加法运算
+            int result = add.apply(3, 4);
+            System.out.println(result);  // 输出: 7
+
+            // 定义 Function，用于平方
+            Function<Integer, Integer> square = a -> a * a;
+
+            // 组合操作：先加法后平方
+            int result2 = add.andThen(square).apply(3, 4);
+            System.out.println(result2);  // 输出: 49
+        }
+    }
+    ```
+
+    - 描述：定义一个 `BinaryOperator<Integer>`，使用 `apply()` 方法进行两个整数的加法运算。并通过 `andThen()` 方法，将 `BinaryOperator` 与 `Function` 组合，先进行加法操作，再对结果进行平方处理。
+
+## UnaryOperator 接口
+
+> 简述：`UnaryOperator` 接口是 Java 中的一种函数式接口，用于处理单一类型的输入参数并返回同一类型的结果。它是 `Function<T, T>` 接口的特化版本，适用于执行对单一输入值的操作，如增量、平方等。
+
+**知识树**
+
+1. `UnaryOperator` 接口
+
+    - 扩展自 `Function<T, T>` 接口，接收一个类型为 `T` 的输入参数，并返回一个同类型的结果。
+    - 用于描述对单一输入类型进行转换的操作，常见应用如数据转换、增量、平方等。
+
+2. 核心方法
+
+    - `apply(T t)`：接收一个参数并返回一个同类型的结果，执行特定操作。
+    - `identity()`：返回一个始终返回相同输入的操作，常用于表示默认操作。
+
+3. 专用化版本
+
+    - `IntUnaryOperator`、`LongUnaryOperator`、`DoubleUnaryOperator`：分别针对 `int`、`long` 和 `double` 基本数据类型的专用接口。
+
+4. 组合与应用
+
+    - `andThen()`：可以将其他操作链接到当前操作后，以便在执行时组合多个函数。
+
+**代码示例**
+
+1. 使用 `UnaryOperator` 进行增量并平方操作
+
+    ```java
+    import java.util.function.UnaryOperator;
+
+    public class UnaryOperatorExample {
+        public static void main(String[] args) {
+            // 定义 UnaryOperator，用于增量
+            UnaryOperator<Integer> increment = n -> n + 1;
+
+            // 定义 UnaryOperator，用于平方
+            UnaryOperator<Integer> square = x -> x * x;
+
+            // 将增量和平方操作链式组合
+            UnaryOperator<Integer> incrementAndSquare = increment.andThen(square);
+
+            // 使用 apply 方法进行增量后平方操作
+            int result = incrementAndSquare.apply(1);
+            System.out.println(result);  // 输出: 4
+        }
+    }
+    ```
+
+    - 描述：通过 `andThen()` 方法，首先对数值进行增量操作，再对结果进行平方操作。
