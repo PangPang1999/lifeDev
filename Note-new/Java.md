@@ -7339,66 +7339,65 @@
 
 ## 预定义函数式接口概述
 
-> 简述：Java 在 `java.util.function` 包中预定义了四大函数式接口——消费者（Consumer）、供应者（Supplier）、函数（Function）和断言（Predicate），分别用于消费数据、生成数据、映射转换和条件判断，为 Lambda 表达式提供标准目标类型。
+> 简述：Java 在`java.util.function`包中预定义了四大核心函数式接口，分别用于数据消费、数据提供、数据转换及条件判断，为 Lambda 表达式提供统一的目标类型。
 
 **知识树**
 
 1. `Consumer<T>` 消费者
 
-    - 方法签名：`void accept(T t)`
-    - 功能：接受单个参数，无返回值，用于处理或消费数据。
+    - 方法：`void accept(T t)`
+    - 功能：消费一个参数，无返回值。
 
 2. `Supplier<T>` 供应者
 
-    - 方法签名：`T get()`
-    - 功能：无参数，返回一个结果，用于按需或延迟生成数据。
+    - 方法：`T get()`
+    - 功能：提供一个结果，无输入参数。
 
 3. `Function<T, R>` 函数
 
-    - 方法签名：`R apply(T t)`
-    - 功能：接受一个参数并返回另一个类型的结果，用于数据映射或转换。
+    - 方法：`R apply(T t)`
+    - 功能：将输入参数映射为另一类型输出。
 
 4. `Predicate<T>` 断言
-    - 方法签名：`boolean test(T t)`
-    - 功能：对参数进行条件判断，返回布尔值，常用于过滤或验证。
+    - 方法：`boolean test(T t)`
+    - 功能：判断参数是否满足条件。
 
-## Consumer
+## Consumer 接口
 
-> 简述：`Consumer` 接口是 Java 中的函数式接口，接收一个参数并不返回任何值。它常用于需要对传入对象执行操作而不需要返回结果的场景。`Consumer` 支持链式调用，允许多个 `Consumer` 通过 `andThen` 方法组合，适合函数式编程风格。
+> 简述：`Consumer`接口用于消费数据，不返回结果。支持链式调用，通过`andThen`方法组合多个消费动作。
 > Link: https://docs.oracle.com/javase/8/docs/api/java/util/function/Consumer.html
 
 **知识树**
 
-1. 概念
+1. 核心方法
 
-    - 函数式接口，可以使用 Lambda 表达式
-    - 两个方法
-        - `accept(T t)`，提供绑定操作，无返回值
-        - `andThen(Consumer<? super T> after)`提供链式操作，接收`Consumer<T>`，是默认实现
+    - `accept(T t)`：处理单个输入数据，无返回值。
+    - `andThen(Consumer<? super T> after)`：链式调用多个`Consumer`。
 
-2. `forEach` 方法
+2. 应用场景
+
+    - 遍历集合，执行统一操作（如打印元素）。
+    - 链式组合，顺序执行多个数据处理步骤。
+
+3. `forEach` 方法
 
     - `Iterable` 中定义，`forEach` 方法接受一个 `Consumer` 引用，遍历集合中的元素，并依次执行该 `Consumer` 引用中的 `accept` 方法。
 
-3. 链式 `Consumer`
-
-    - 通过 `andThen` 方法将多个 `Consumer` 引用链接在一起，按顺序执行多个操作。
-
 **代码示例**
 
-1. 使用 `Consumer`
+1. `Consumer` 基本用法
 
     ```java
     public class LambdasDemo {
-
         public static void show() {
             List<Integer> list = List.of(1, 2, 3);
 
+            // 传统方式遍历
             for (var item : list) {
                 System.out.println(item);
             }
 
-            // 使用匿名类实现 Consumer 接口的 accept 方法，打印每个传入的值
+            // 创建匿名内部类，实现 Consumer 接口的 accept 方法，打印每个传入的值
             Consumer<Integer> consumer = new Consumer<Integer>() {
                 @Override
                 public void accept(Integer i) {
@@ -7406,16 +7405,17 @@
                 }
             };
 
-            // Lambda简化版，将 System.out 对象的 println 方法绑定到接口的accept方法上，最后得到一个Consumer的引用
+            // 通过 lambda 表达式实例化了一个 Consumer<Integer> 的函数式接口
             Consumer<Integer> c = i -> System.out.println(i);
-            // 对遍历的每一个对象都执行Consumer引用的accept方法，也就是打印传入的值
-            list.forEach(consumer);
 
-            // 将上述的步骤合成一步，也就是下面的代码
+            // c 引用的是 JVM 在运行时通过 invokedynamic 生成的、实现了 Consumer 接口的函数式对象
+            // 调用 Iterable.forEach，内部对列表中的每个元素执行 c.accept(e)，也就是打印该元素
+            list.forEach(c);
+
+            // 将前两步的步骤合成一步，也就是下面的代码
             list.forEach(item -> System.out.println(item));
 
-            // 进一步简化
-            // 将 System.out 对象的 println 方法绑定到接口的accept方法上，对遍历的每一个对象都执行Consumer引用的accept方法
+            // 方法引用实现Consumer（更简洁）
             list.forEach(System.out::println);
         }
     }
@@ -7427,7 +7427,6 @@
 
     ```java
     public class LambdasDemo {
-
         public static void show() {
             List<String> list = List.of("a", "b", "c");
 
@@ -7438,14 +7437,6 @@
     		// 使用 andThen 进行链式调用，依次执行两个 Consumer
             list.forEach(print.andThen(printUpperCase));
     		// 输出：a A b B c C
-
-
-            // 补充
-            Consumer<String> a = i -> System.out.println("AAA");
-            Consumer<String> b = i -> System.out.println("BBB");
-            Consumer<String> c = i -> System.out.println("CCC");
-            // list.forEach(a.andThen(b).andThen(c)); // 效果相同
-            list.forEach(a.andThen(b.andThen(c))); // 该写法更具备可读性，因为它直接表现了函数的组合关系，符合从左到右的顺序。
         }
     }
     ```
@@ -7454,24 +7445,26 @@
 
 ## Supplier 接口
 
-> 简述：Supplier 接口与 Consumer 接口相反，前者是“提供值”的接口，而后者是“消费值”的接口。Supplier 的作用是提供一个值，它包含一个抽象方法 `get()`，返回一个指定类型的值。
+> 简述：Supplier 是一个无输入、返回类型为 T 的函数式接口，用于延迟生成或提供值。
 > Link: https://docs.oracle.com/javase/8/docs/api/java/util/function/Supplier.html
 
 **知识树**
 
-1. Supplier 接口概述
+1. 核心方法
 
-    - Supplier 是一个函数式接口，用于提供类型为 `T` 的值。
-    - `get()` 方法是唯一的抽象方法，用于返回类型 `T` 的值。
+    - `T get()`：返回类型为 T 的结果。
 
-2. 懒惰求值（Lazy Evaluation）
+2. 懒惰求值
 
-    - 该接口中的值不会在定义时立即生成，而是直到显式调用时才会生成。这意味着 `get()` 方法并不会在声明时执行，而是直到调用 `get()` 时才计算返回值。
+    - Supplier 在声明时不执行计算，只有在调用 `get()` 时才生成并返回值。
 
-3. Primitive Specializations
+3. 原始类型专化
 
-    - 为了避免自动装箱和拆箱的性能损失，Java 提供了 `DoubleSupplier`、`IntSupplier`、`LongSupplier` 和 `BooleanSupplier` 等原始数据类型的专用接口。
-    - 这些接口直接操作原始类型，避免了包装类的使用，提高了性能。
+    - 为了避免自动装箱和拆箱的性能损失，Java 提供了接口直接操作原始类型的专用接口，提高了性能，避免包装类的使用。如：`DoubleSupplier`、`IntSupplier`、`LongSupplier` 和 `BooleanSupplier`
+
+4. 应用场景
+
+    - 延迟生成随机数、时间戳、配置读取或其他耗时/依赖外部状态的值。
 
 **代码示例**
 
@@ -7503,30 +7496,25 @@
 
 ## Function 接口
 
-> 简述：`Function` 接口是 Java 中的函数式接口，表示接收一个参数并返回一个结果的函数操作。支持 lambda 表达式和方法引用。
+> 简述：`Function` 接口用于接收一个参数并返回一个结果的函数操作。通过`andThen`或 `compose()`方法组合多个消费动作。
 > Link: https://docs.oracle.com/javase/8/docs/api/java/util/function/Function.html
 
 **知识树**
 
-1. `Function` 接口
-
-    - 适用于接收一个输入参数并返回一个结果的操作。
-    - 常用于数据转换等场景。
-
-2. 核心方法
+1. 核心方法
 
     - `apply(T t)`：唯一的抽象方法，接收类型为 `T` 的参数并返回类型为 `R` 的结果。
     - `andThen()`：将当前函数的结果作为输入，应用另一个函数（返回新结果）。
     - `compose()`：先应用另一个函数，再应用当前函数。
     - `identity()`：直接返回输入的参数，不做任何处理。
 
-3. 链式操作
+2. 链式操作
 
     - 可以使用 `andThen()` 或 `compose()` 组合多个 `Function` 接口，支持函数的链式调用。
 
-4. 专用化版本
+3. 原始类型专化
 
-    - `IntFunction<R>`、`LongFunction<R>`、`DoubleFunction<R>`：针对基本数据类型的专用接口。
+    - 为了避免自动装箱和拆箱的性能损失，Java 提供了接口直接操作原始类型的专用接口。如：`IntFunction<R>`、`LongFunction<R>`、`DoubleFunction<R>`
     - 例如，`IntFunction<R>` 接受一个 `int` 类型的参数并返回一个类型为 `R` 的结果。
 
 **代码示例**
@@ -7553,7 +7541,7 @@
     }
     ```
 
-    - 描述：这里我们使用了 `Function<String, Integer>` 接口，接受一个 `String` 类型的参数，返回其长度作为 `Integer`。
+    - 描述：使用了 `Function<String, Integer>` 接口，接受一个 `String` 类型的参数，返回其长度作为 `Integer`。
 
 2. 使用 `Function` 接口链式调用
 
@@ -7583,17 +7571,12 @@
 
 ## Predicate 接口
 
-> 简述：`Predicate` 接口是 Java 中的一个函数式接口，通常用于处理布尔条件。它接收一个输入参数并返回一个布尔值，常用于数据筛选、验证等场景。
+> 简述：`Predicate` 接口接收一个输入参数并返回一个布尔值，常用于数据筛选、验证等场景。
 > Link: https://docs.oracle.com/javase/8/docs/api/java/util/function/Predicate.html
 
 **知识树**
 
-1. `Predicate` 接口
-
-    - 接收一个类型为 `T` 的参数，返回一个 `Boolean` 类型的结果。
-    - 常用于根据某些条件判断对象是否符合要求，广泛应用于过滤和验证操作。
-
-2. 核心方法
+1. 核心方法
 
     - `test(T t)`：唯一的抽象方法，用于检查给定的对象是否满足某些条件，返回 `true` 或 `false`。
     - `and()`：组合多个 `Predicate`，执行逻辑与操作（`&&`）。
@@ -7601,13 +7584,13 @@
     - `negate()`：返回一个新 `Predicate`，对原条件进行取反操作。
     - `isEqual()`：用于比较两个对象是否相等。
 
-3. 链式操作
+2. 链式操作
 
     - `and()`、`or()`、`negate()` 可链式组合，允许构建复杂的布尔判断。
 
-4. 专用化版本
+3. 原始类型专化
 
-    - `IntPredicate`、`LongPredicate`、`DoublePredicate`：针对基本数据类型的专用接口，分别接受 `int`、`long` 和 `double` 类型的参数。
+    - 为了避免自动装箱和拆箱的性能损失，Java 提供了接口直接操作原始类型的专用接口，如 `IntPredicate`、`LongPredicate`、`DoublePredicate`。
 
 **代码示例**
 
@@ -7655,32 +7638,25 @@
     }
     ```
 
-    - 描述：演示了如何使用 `and()`、`or()` 和 `negate()` 方法组合 `Predicate`，构建复杂的布尔条件。
+    - 描述：演示如何使用 `and()`、`or()` 和 `negate()` 方法组合 `Predicate`，构建复杂的布尔条件。
 
 ## BinaryOperator 接口
 
-> 简述：`BinaryOperator` 接口是 Java 中的一种函数式接口，专门用于处理两个相同类型的输入参数并返回一个相同类型的结果。它是 `BiFunction` 接口的特化版本，常用于二元操作（如加法、乘法等）。
+> 简述：`BinaryOperator` 接口专门用于处理两个相同类型的输入参数并返回一个相同类型的结果。它是 `BiFunction` 接口的特化版本，常用于二元操作（如加法、乘法等）。
 
 **知识树**
 
-1. `BinaryOperator` 接口
+1. 核心方法
 
-    - 扩展了 `BiFunction<T, T, T>` 接口，用于接收两个相同类型的输入参数并返回一个同类型的结果。
-    - 主要用于表示二元操作，例如加法、减法、乘法等。
+    - `maxBy()`&`minBy()`
+        - 根据传入的 `Comparator` 比较两个参数，返回“较大”/较小的那个
+    - 继承自父类方法
+        - `apply(T t, T u)`：唯一的抽象方法，接收两个参数并返回一个结果，执行特定的二元操作。
+        - `andThen()`可将另一个操作应用于结果，进行组合操作。
 
-2. 核心方法
+2. 原始类型专化
 
-    - `apply(T t, T u)`：接收两个参数并返回一个结果，执行特定的二元操作。
-    - `identity()`：返回一个始终返回相同参数的 `BinaryOperator`，用于表示默认值（常用于累加器）。
-
-3. 专用化版本
-
-    - `IntBinaryOperator`、`LongBinaryOperator`、`DoubleBinaryOperator`：分别针对 `int`、`long` 和 `double` 基本数据类型的专用接口。
-
-4. 组合与应用
-
-    - `andThen()`：将另一个操作应用于结果，可以进行组合操作。
-    - 适合用于链式调用和组合计算。
+    - 为了避免自动装箱和拆箱的性能损失，Java 提供了接口直接操作原始类型的专用接口如：`IntBinaryOperator`、`LongBinaryOperator`、`DoubleBinaryOperator`。
 
 **代码示例**
 
@@ -7711,25 +7687,22 @@
 
 ## UnaryOperator 接口
 
-> 简述：`UnaryOperator` 接口是 Java 中的一种函数式接口，用于处理单一类型的输入参数并返回同一类型的结果。它是 `Function<T, T>` 接口的特化版本，适用于执行对单一输入值的操作，如增量、平方等。
+> 简述：`UnaryOperator` 接口用于处理单一类型的输入参数并返回同一类型的结果。它是 `Function<T, T>` 接口的特化版本，适用于执行对单一输入值的操作，如增量、平方等。
 
 **知识树**
 
-1. `UnaryOperator` 接口
+1. 核心方法
 
-    - 扩展自 `Function<T, T>` 接口，接收一个类型为 `T` 的输入参数，并返回一个同类型的结果。
-    - 用于描述对单一输入类型进行转换的操作，常见应用如数据转换、增量、平方等。
-
-2. 核心方法
-
-    - `apply(T t)`：接收一个参数并返回一个同类型的结果，执行特定操作。
     - `identity()`：返回一个始终返回相同输入的操作，常用于表示默认操作。
+    - 继承自父类方法
+        - `apply(T t, T u)`：唯一的抽象方法，接收两个参数并返回一个结果，执行特定的二元操作。
+        - `andThen()`\`compose()`可将另一个操作应用于结果，进行组合操作。
 
-3. 专用化版本
+2. 专用化版本
 
     - `IntUnaryOperator`、`LongUnaryOperator`、`DoubleUnaryOperator`：分别针对 `int`、`long` 和 `double` 基本数据类型的专用接口。
 
-4. 组合与应用
+3. 组合与应用
 
     - `andThen()`：可以将其他操作链接到当前操作后，以便在执行时组合多个函数。
 

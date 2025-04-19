@@ -38,11 +38,11 @@
         ]
       },
       {
-        "id": "052da8f70e3f0ddc",
+        "id": "4858eed32bb58ef1",
         "type": "tabs",
         "children": [
           {
-            "id": "dd5c45232cf2371e",
+            "id": "f6b2573c242c1855",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -203,7 +203,7 @@
       "command-palette:打开命令面板": false
     }
   },
-  "active": "dd5c45232cf2371e",
+  "active": "f6b2573c242c1855",
   "lastOpenFiles": [
     "Java回顾（非Moth版本）.md",
     "Java.md",

@@ -1,36 +1,38 @@
 package com.pang.lambdas;
 
+import java.util.List;
 import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class LambdasDemo {
     public static void show() {
+        List<Integer> list = List.of(1, 2, 3);
 
-        // 匿名内部类使用
-        greet(new Printer() {
+        // 传统方式遍历
+        for (var item : list) {
+            System.out.println(item);
+        }
+
+        // 创建匿名内部类，实现 Consumer 接口的 accept 方法，打印每个传入的值
+        Consumer<Integer> consumer = new Consumer<Integer>() {
             @Override
-            public void print(String message) {
-                System.out.println(message);
+            public void accept(Integer i) {
+                System.out.println(i);
             }
-        });
+        };
 
-        // Lambda 表达式基本使用，仅适用于函数式接口（仅有一个抽象方法的类）
-        // greet()括号内视为Pointer接口引用
-        greet((String message) -> {
-            System.out.println(message);
-        });
+        // 通过 lambda 表达式实例化了一个 Consumer<Integer> 的函数式接口
+        Consumer<Integer> c = i -> System.out.println(i);
 
-        // 单个参数时可省略括号，单条语句可省略花括号
-        greet(message -> System.out.println(message));
+        // c 引用的是 JVM 在运行时通过 invokedynamic 生成的、实现了 Consumer 接口的函数式对象
+        // 调用 Iterable.forEach，内部对列表中的每个元素执行 c.accept(e)，也就是打印该元素
+        list.forEach(c);
 
-        // 接收引用，该引用的唯一抽象方法已被实现，即打印
-        Printer printer = message -> System.out.println(message);
+        // 将前两步的步骤合成一步，也就是下面的代码
+        list.forEach(item -> System.out.println(item));
 
-        // 传入引用
-        greet(printer);
-    }
-
-    public static void greet(Printer printer) {
-        printer.print("Hello World");
+        // 方法引用实现Consumer（更简洁）
+        list.forEach(System.out::println);
     }
 }
