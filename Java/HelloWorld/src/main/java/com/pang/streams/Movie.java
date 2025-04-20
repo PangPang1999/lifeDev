@@ -1,6 +1,9 @@
 package com.pang.streams;
 
-public class Movie {
+import java.io.Serializable;
+import java.util.Iterator;
+
+public class Movie{
 
     private String title;
     private int likes;
@@ -25,4 +28,5 @@ public class Movie {
                 ", likes=" + likes +
                 '}';
     }
+
 }

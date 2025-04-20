@@ -2,6 +2,7 @@ package com.pang.streams;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -14,16 +15,11 @@ public class StreamsDemo {
                 new Movie("d", 10)
         );
 
-        // limit 截取前两个
-        // movies.stream().limit(2).forEach(System.out::println);
-
-        // skip 跳过前两个
-        // movies.stream().skip(2).forEach(System.out::println);
-
-        // takeWhile 不满足时停止，即使后续有元素满足条件也不会被筛选
-        // movies.stream().takeWhile(movie -> movie.getLikes() < 20).forEach(System.out::println);
-
-        // dropWhile 不满足时开始筛选，即使后续有元素满足条件也不会被筛选，即使后续有元素满足条件也会被筛选
-        movies.stream().dropWhile(movie -> movie.getLikes() < 20).forEach(System.out::println);
+        movies.stream()
+                .filter(m -> m.getLikes() > 10)
+                .peek(m -> System.out.println("filter+: " + m.getTitle()))  // 调试：过滤后元素
+                .map(Movie::getTitle)
+                .peek(title -> System.out.println("mapped: " + title))  // 调试：映射后标题
+                .forEach(System.out::println);
     }
 }

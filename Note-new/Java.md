@@ -5988,7 +5988,7 @@
 
 ## Comparable 接口
 
-> 简述：`Comparable` 是 Java 提供的泛型接口，用于定义对象的排序规则。实现该接口后，可通过比较对象间的大小，进行排序等操作。
+> 简述：`Comparable` 是 Java 提供的泛型接口，用于定义对象的排序规则。实现该接口后，可通过比较对象间的大小，进行排序等操作。类必须实现 Comparable 接口，或者在方法中传入比较器 Comparator，才可以对类的实例进行 sort()排序操作。Comparator 内容在下一节讲解
 
 **知识树**
 
@@ -5999,7 +5999,7 @@
 
 2. 核心方法
 
-    - 唯一方法：compareTo(T o)
+    - 唯一方法：`compareTo(T o)`
     - 说明：实现后必须重写方法，提供对象间比较逻辑，以确定排序顺序。
 
 3. 泛型实现
@@ -6071,6 +6071,125 @@
         }
     }
     ```
+
+## Comparator 接口
+
+> 简述：`Comparator` 是一个函数式接口，提供自定义排序逻辑，独立于对象的自然顺序。通过实现 `compare(T o1, T o2)` 方法，能够灵活定义不同排序规则，增强代码扩展性和复用性。
+> 类必须实现 Comparable 接口，或者在方法中传入比较器 Comparator，才可以对类的实例进行 sort()排序操作。
+
+**知识树**
+
+1. Comparator 接口
+
+    - 类型：泛型接口 (`Comparator<T>`)
+    - 功能：定义两个对象的自定义排序规则（独立于自然排序）
+
+2. 核心方法
+
+    - `compare(T o1, T o2)`
+        - 返回负数：`o1 < o2`
+        - 返回零：`o1 == o2`
+        - 返回正数：`o1 > o2`
+
+3. 与 `Comparable` 接口对比
+
+    - `Comparable`
+        - 在类内定义排序规则（自然排序）
+        - 排序方式单一，不易更改
+    - `Comparator`
+        - 在类外定义排序规则（自定义排序）
+        - 支持多种排序方式，灵活切换
+
+**代码示例**
+
+1. 使用 `Comparable`（自然排序，类内部定义） ，创建 Customer 类
+
+    ```java
+    public class Customer implements Comparable<Customer> {
+        private String name;
+
+        public Customer(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public int compareTo(Customer other) {
+            return name.compareTo(other.name);
+        }
+
+        @Override
+        public String toString() {
+            return "Customer{name='" + name + "'}";
+        }
+    }
+    ```
+
+    - 排序时无需传入额外参数，直接使用集合排序方法即可。
+
+2. 自定义 EmailComparator 实现 Comparator 接口
+
+    - 在 Customer 中加入邮箱字段
+
+        ```java
+        package com.pang.generics;
+
+        public class Customer implements Comparable<Customer> {
+            private String name;
+            private String email;
+
+            public Customer(String name, String email) {
+                this.name = name;
+                this.email = email;
+            }
+
+            public String getEmail() {
+                return email;
+            }
+
+            @Override
+            public String toString() {
+                return "Customer{" +
+                        "name='" + name + '\'' +
+                        ", email='" + email + '\'' +
+                        '}';
+            }
+
+            @Override
+            public int compareTo(Customer o) {
+                return name.compareTo(o.name);// 调用String的compareTo方法
+            }
+        }
+
+        ```
+
+    - 自定义比较器 `EmailComparator`
+
+        ```java
+        public class EmailComparator implements Comparator<Customer> {
+          @Override
+          public int compare(Customer o1, Customer o2) {
+        		// 使用 String.compareTo() 比较两个客户的邮箱
+              return o1.getEmail().compareTo(o2.getEmail());
+          }
+        }
+        ```
+
+    - 在主类中使用 Comparator 进行排序
+
+        ```java
+        public class Main {
+        	public static void main(String[] args) {
+        		List<Customer> customers = new ArrayList<>();
+        		customers.add(new Customer("Alice", "cc@example.com"));
+        		customers.add(new Customer("Bob", "bb@example.com"));
+        		customers.add(new Customer("Charlie", "aa@example.com"));
+
+        		// 使用 EmailComparator 按邮箱排序
+        		Collections.sort(customers, new EmailComparator());
+        		System.out.println(customers);
+        	}
+        }
+        ```
 
 ## 泛型方法
 
@@ -6670,124 +6789,6 @@
     }
     ```
 
-## Comparator 接口
-
-> 简述：`Comparator` 是一个函数式接口，提供自定义排序逻辑，独立于对象的自然顺序。通过实现 `compare(T o1, T o2)` 方法，能够灵活定义不同排序规则，增强代码扩展性和复用性。
-
-**知识树**
-
-1. Comparator 接口
-
-    - 类型：泛型接口 (`Comparator<T>`)
-    - 功能：定义两个对象的自定义排序规则（独立于自然排序）
-
-2. 核心方法
-
-    - `compare(T o1, T o2)`
-        - 返回负数：`o1 < o2`
-        - 返回零：`o1 == o2`
-        - 返回正数：`o1 > o2`
-
-3. 与 `Comparable` 接口对比
-
-    - `Comparable`
-        - 在类内定义排序规则（自然排序）
-        - 排序方式单一，不易更改
-    - `Comparator`
-        - 在类外定义排序规则（自定义排序）
-        - 支持多种排序方式，灵活切换
-
-**代码示例**
-
-1. 使用 `Comparable`（自然排序，类内部定义） ，创建 Customer 类
-
-    ```java
-    public class Customer implements Comparable<Customer> {
-        private String name;
-
-        public Customer(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public int compareTo(Customer other) {
-            return name.compareTo(other.name);
-        }
-
-        @Override
-        public String toString() {
-            return "Customer{name='" + name + "'}";
-        }
-    }
-    ```
-
-    - 排序时无需传入额外参数，直接使用集合排序方法即可。
-
-2. 自定义 EmailComparator 实现 Comparator 接口
-
-    - 在 Customer 中加入邮箱字段
-
-        ```java
-        package com.pang.generics;
-
-        public class Customer implements Comparable<Customer> {
-            private String name;
-            private String email;
-
-            public Customer(String name, String email) {
-                this.name = name;
-                this.email = email;
-            }
-
-            public String getEmail() {
-                return email;
-            }
-
-            @Override
-            public String toString() {
-                return "Customer{" +
-                        "name='" + name + '\'' +
-                        ", email='" + email + '\'' +
-                        '}';
-            }
-
-            @Override
-            public int compareTo(Customer o) {
-                return name.compareTo(o.name);// 调用String的compareTo方法
-            }
-        }
-
-        ```
-
-    - 自定义比较器 `EmailComparator`
-
-        ```java
-        public class EmailComparator implements Comparator<Customer> {
-          @Override
-          public int compare(Customer o1, Customer o2) {
-        		// 使用 String.compareTo() 比较两个客户的邮箱
-              return o1.getEmail().compareTo(o2.getEmail());
-          }
-        }
-        ```
-
-    - 在主类中使用 Comparator 进行排序
-
-        ```java
-        public class Main {
-        	public static void main(String[] args) {
-        		List<Customer> customers = new ArrayList<>();
-        		customers.add(new Customer("Alice", "cc@example.com"));
-        		customers.add(new Customer("Bob", "bb@example.com"));
-        		customers.add(new Customer("Charlie", "aa@example.com"));
-
-        		// 使用 EmailComparator 按邮箱排序
-        		Collections.sort(customers, new EmailComparator());
-        		System.out.println(customers);
-        	}
-        }
-        ```
-
 ## Queue 接口
 
 > 简述：`Queue` 接口表示用于存储按特定顺序处理元素的集合，常应用于任务排队、事件处理等场景。继承自 `Collection` 接口，定义了针对队列头尾操作的方法，通常遵循先进先出（FIFO）规则，但特殊实现类可支持优先级排序。
@@ -7025,33 +7026,60 @@
 
 1. 基本键值操作，假设需要通过邮箱查找顾客
 
-    ```java
-    public class MapDemo {
-        public static void show() {
-            var c1 = new Customer("a","e1");
-            var c2 = new Customer("b","e2");
+    - 创建顾客类
 
-            Map<String,Customer> map = new HashMap<>();
-            map.put(c1.getEmail(),c1);
-            map.put(c2.getEmail(),c2);
+        ```java
+        public class Customer {
+            private String name;
+            private String email;
 
-            var customer = map.get("e1");//查询键为e1的值
+            public Customer(String name, String email) {
+                this.name = name;
+                this.email = email;
+            }
 
-            var unknow = new Customer("Unknown","");
-            var customer2 = map.getOrDefault("e10",unknow);// 若查找不到返回默认值方法
+            public String getEmail() {
+                return email;
+            }
 
-            var ifContainE10 = map.containsKey("e10");// 查找是否存在
-
-            var replace = map.replace("e1", new Customer("a++", "e1"));
-
-            // for(var item: map) Map本身不可遍历，可以通过方法遍历键、值，或者键值对
-            for(var item : map.keySet()){}// 遍历键
-            for(var item : map.values()){}// 遍历值
-            for(var item : map.entrySet()){}// 遍历键值对
+            @Override
+            public String toString() {
+                return "Customer{" +
+                        "name='" + name + '\'' +
+                        ", email='" + email + '\'' +
+                        '}';
+            }
         }
-    }
+        ```
 
-    ```
+    - 键值操作
+
+        ```java
+        public class MapDemo {
+            public static void show() {
+                var c1 = new Customer("a","e1");
+                var c2 = new Customer("b","e2");
+
+                Map<String,Customer> map = new HashMap<>();
+                map.put(c1.getEmail(),c1);
+                map.put(c2.getEmail(),c2);
+
+                var customer = map.get("e1");//查询键为e1的值
+
+                var unknow = new Customer("Unknown","");
+                var customer2 = map.getOrDefault("e10",unknow);// 若查找不到返回默认值方法
+
+                var ifContainE10 = map.containsKey("e10");// 查找是否存在
+
+                var replace = map.replace("e1", new Customer("a++", "e1"));
+
+                // for(var item: map) Map本身不可遍历，可以通过方法遍历键、值，或者键值对
+                for(var item : map.keySet()){}// 遍历键
+                for(var item : map.values()){}// 遍历值
+                for(var item : map.entrySet()){}// 遍历键值对
+            }
+        }
+        ```
 
 # Lambda
 
@@ -7850,7 +7878,6 @@
     - 终端操作（Terminal）：触发执行并返回结果。
         - 例如：`count()`、`forEach()`
 
-
 **代码示例**
 
 1. 从集合创建流
@@ -8015,6 +8042,7 @@
     - 使用场景：常用于数据分页，跳过已展示的数据。
 
 3. 分页操作
+
     - 使用 `skip` 和 `limit` 配合能实现分页功能。
     - 例如，`skip(page-1 * pageSize)` 配合 `limit(pageSize)`。
 
@@ -8028,34 +8056,34 @@
     - 用途：跳过流中连续满足条件的元素，直到条件不再满足。
     - 使用场景：常用于基于条件丢弃流中前续元素。
 
-
 **代码示例**
 
 1. 使用 方法
 
     ```java
-	public class StreamsDemo {
-	    public static void show() {
-	        List<Movie> movies = List.of(
-	                new Movie("a", 10),
-	                new Movie("b", 15),
-	                new Movie("c", 20),
-	                new Movie("d", 10)
-	        );
-	
-	        // limit 截取前两个
-	        // movies.stream().limit(2).forEach(System.out::println);
-	
-	        // skip 跳过前两个
-	        // movies.stream().skip(2).forEach(System.out::println);
-	
-	        // takeWhile 不满足时停止，即使后续有元素满足条件也不会被筛选
-	        // movies.stream().takeWhile(movie -> movie.getLikes() < 20).forEach(System.out::println);
-	
-	        // dropWhile 不满足时开始筛选，即使后续有元素满足条件也不会被筛选，即使后续有元素满足条件也会被筛选
-	        movies.stream().dropWhile(movie -> movie.getLikes() < 20).forEach(System.out::println);
-	    }
-	}
+    public class StreamsDemo {
+        public static void show() {
+            List<Movie> movies = List.of(
+                    new Movie("a", 10),
+                    new Movie("b", 15),
+                    new Movie("c", 20),
+                    new Movie("d", 10)
+            );
+
+            // limit 截取前两个
+            // movies.stream().limit(2).forEach(System.out::println);
+
+            // skip 跳过前两个
+            // movies.stream().skip(2).forEach(System.out::println);
+
+            // takeWhile 不满足时停止，即使后续有元素满足条件也不会被筛选
+            // movies.stream().takeWhile(movie -> movie.getLikes() < 20).forEach(System.out::println);
+
+            // dropWhile 不满足时开始筛选，即使后续有元素满足条件也不会被筛选，即使后续有元素满足条件也会被筛选
+            movies.stream().dropWhile(movie -> movie.getLikes() < 20).forEach(System.out::println);
+        }
+    }
     ```
+
 
 # ---
