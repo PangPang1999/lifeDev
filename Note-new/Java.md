@@ -8331,5 +8331,84 @@
     }
     ```
 
+## `Reduce`
+
+> 简述：`reduce` 通过指定的二元运算符将流中的多个元素合并为一个结果，如求和、求最大值等。它是 Stream API 中的终端操作
+> 补充：和 JS 的 `reduce()` 方法相似
+
+**知识树**
+
+1. `BinaryOperator`
+
+    - 专门用于处理两个相同类型的输入参数并返回一个相同类型的结果，在 Lambda 章节已介绍
+
+2. `reduce` 方法
+
+    - `reuduce(binaryOperator)：
+        - 直接提供计算方法
+        - 返回类型：`Optional<T>`，因为流可能为空。
+    - `reuduce(identity, binaryOperator)：`
+        - 提供初始值和计算方法，这种情况，则即使流为空，也会返回该初始值
+        - 返回类型：同初始值
+
+3. `Optional` 类型
+
+    - `Optional`是容器类型，表示可能包含或不包含值，如果流为空，`reduce` 返回一个空的 `Optional`。
+    - 使用 `get` 方获取容器中的值。
+    - 使用 `orElse` 方法提供默认值，避免空值错误。
+
+**代码示例**
+
+1. 基本归约操作（求和）
+
+    ```java
+    public class StreamsDemo {
+        public static void show() {
+            List<Movie> movies = List.of(
+                    new Movie("a", 10),
+                    new Movie("b", 15),
+                    new Movie("c", 20),
+                    new Movie("d", 10)
+            );
+
+            // 统计所有喜欢
+            Optional<Integer> sum = movies.stream()
+                    .map(movie -> movie.getLikes())
+                    .reduce(Integer::sum); // 使用方法引用简化
+                    // .reduce((a, b) -> a + b);
+
+            System.out.println(sum.orElse(0));
+        }
+    }
+    ```
+
+    - 描述：使用 `map` 将每个电影的喜欢数提取出来，得到一个 `Integer` 类型的流。使用 `reduce` 对流中的数字进行累加。
+
+2. 带有初始值的 `reduce` 操作
+
+    ```java
+    public class StreamsDemo {
+        public static void show() {
+            List<Movie> movies = List.of(
+                    new Movie("a", 10),
+                    new Movie("b", 15),
+                    new Movie("c", 20),
+                    new Movie("d", 10)
+            );
+
+            // 统计所有喜欢
+            int sum = movies.stream()
+                    .map(movie -> movie.getLikes())
+                    .reduce(0, Integer::sum); // 使用方法引用简化
+                     // .reduce((a, b) -> a + b);
+
+            System.out.println(sum);
+        }
+    }
+    ```
+
+    - 描述：使用 `0` 作为初始值，流中的每个元素将与该初始值进行累加。因为使用了初始值，所以 `reduce` 直接返回一个 `int` 类型的结果。
+
+
 
 # ---
