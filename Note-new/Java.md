@@ -7873,10 +7873,28 @@
 
 3. 中间&终端操作：
 
-    - 中间操作（Intermediate）：不改变源，返回新的流，调用时才执行返回结果（惰性）。
-        - 例如`filter()`、`map()`
-    - 终端操作（Terminal）：触发执行并返回结果。
-        - 例如：`count()`、`forEach()`
+    - 中间操作（Intermediate）
+        - 不改变源，返回新的流，调用时才执行返回结果（惰性）。
+    - 终端操作（Terminal）
+        - 触发执行并返回结果，在流的最后执行。其中一部份方法细分为 Reducer 类型。
+    - 中间操作方法：
+        - `map()`/`flatMap()`
+        - `filter()`
+        - `limit()`/`ship()`
+        - `sorted()`
+        - `distinct()`
+        - `peek()`
+    - 终端操作方法
+        - `forEach()`
+        - `count()`
+        - `anyMatch(predicate)`
+        - `allMatch(predicate)`
+        - `noneMatch(predicate)`
+        - `findFirst()`
+        - `findAny()`
+        - `max(comparator)`
+        - `min(comparator)`
+    - 将在后续章节依次介绍这些方法。
 
 **代码示例**
 
@@ -8200,13 +8218,13 @@
 
 ## Peek
 
-> 简述：`peek` 是 `Stream` 的中间操作，接受一个 `Consumer<T>`，用于在流水线中窥视（打印、日志）元素，便于调试，不改变流本身。
+> 简述：`peek` 是 `Stream` 的中间操作，用于在流水线中窥视（打印、日志）元素，便于调试，不改变流本身。
 
 **知识树**
 
 1. 定义
 
-    - `Stream<T> peek(Consumer<? super T> action)`：中间操作，返回新的流。
+    - `peek()` 是一个中间操作，接受一个 `Consumer` 对象，对流中的每个元素执行操作，并返回一个新流。它用于调试或查看元素，且不会修改流的内容或影响最终结果。
 
 2. 应用场景
 
@@ -8241,5 +8259,77 @@
     ```
 
     - `peek` 不改变元素，仅在终端操作前观察中间结果。
+
+## Reducer
+
+> 简述：`Reducer` 操作是 Stream API 中的终端操作，它将流中的元素归约为单个结果。这些操作通常用于聚合、查找、计数等功能，能够从一个数据流中提取特定的结果。`Reducer` 操作包括 `count`、`match`、`find`、`max`、`min` 等，都是通过特定的规则或条件对流进行处理并生成最终结果。
+
+**知识树**
+
+1. `count()`
+
+    - 计算流中元素的数量。
+    - 返回：`long` 类型。
+
+2. `match` 操作
+
+    - `anyMatch(Predicate)`：判断流中是否有任何元素满足给定条件。
+    - `allMatch(Predicate)`：判断流中是否所有元素都满足给定条件。
+    - `noneMatch(Predicate)`：判断流中是否没有任何元素满足给定条件。
+    - 返回：布尔值。
+
+3. `Optional` 类型
+
+    - `Optional` 为`find` 操作中避免空指针异常使用，将在后续学习
+    - `Optional`是容器类型，表示可能包含或不包含值
+    - 使用 `get` 方获取容器中的值。
+
+4. `find` 操作
+
+    - `findFirst()`：返回流中的第一个元素。
+    - `findAny()`：返回流中的任意元素。
+    - 返回：`Optional<T>`。
+
+5. `max` 和 `min` 操作
+
+    - `max(Comparator)`：返回流中最大的元素。
+    - `min(Comparator)`：返回流中最小的元素。
+    - 返回：`Optional<T>`，其中 `T` 是流中元素的类型。
+
+**代码示例**
+
+1. 基本操作
+
+    ```java
+    public class StreamsDemo {
+        public static void show() {
+            List<Movie> movies = List.of(
+                    new Movie("a", 10),
+                    new Movie("b", 15),
+                    new Movie("c", 20),
+                    new Movie("d", 10)
+            );
+
+            // 计数
+            var result1 = movies.stream()
+                    .count();
+
+            // match
+            var result2 = movies.stream()
+                    .allMatch(movie -> movie.getLikes() > 20);
+
+            // find
+            var result3 = movies.stream()
+                    .findFirst()
+                    .get();
+
+            // max
+            movies.stream()
+                    .max(Comparator.comparing(Movie::getLikes))
+                    .get();
+        }
+    }
+    ```
+
 
 # ---

@@ -1,9 +1,6 @@
 package com.pang.streams;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class StreamsDemo {
@@ -15,11 +12,12 @@ public class StreamsDemo {
                 new Movie("d", 10)
         );
 
-        movies.stream()
-                .filter(m -> m.getLikes() > 10)
-                .peek(m -> System.out.println("filter+: " + m.getTitle()))  // 调试：过滤后元素
-                .map(Movie::getTitle)
-                .peek(title -> System.out.println("mapped: " + title))  // 调试：映射后标题
-                .forEach(System.out::println);
+        // 统计所有喜欢
+        int sum = movies.stream()
+                .map(movie -> movie.getLikes())
+                .reduce(0, Integer::sum); // 使用方法引用简化
+                 // .reduce((a, b) -> a + b);
+
+        System.out.println(sum);
     }
 }
