@@ -36,26 +36,6 @@
             }
           }
         ]
-      },
-      {
-        "id": "4858eed32bb58ef1",
-        "type": "tabs",
-        "children": [
-          {
-            "id": "f6b2573c242c1855",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Java.md",
-                "mode": "source",
-                "source": true
-              },
-              "icon": "lucide-file",
-              "title": "Java"
-            }
-          }
-        ]
       }
     ],
     "direction": "vertical"
@@ -203,7 +183,7 @@
       "command-palette:打开命令面板": false
     }
   },
-  "active": "f6b2573c242c1855",
+  "active": "4e18f46b064aedc8",
   "lastOpenFiles": [
     "Java回顾（非Moth版本）.md",
     "Java.md",

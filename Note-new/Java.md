@@ -7700,7 +7700,7 @@
 
 2. 专用化版本
 
-    - `IntUnaryOperator`、`LongUnaryOperator`、`DoubleUnaryOperator`：分别针对 `int`、`long` 和 `double` 基本数据类型的专用接口。
+    - 为了避免自动装箱和拆箱的性能损失，Java 提供了接口直接操作原始类型的专用接口如：`IntUnaryOperator`、`LongUnaryOperator`、`DoubleUnaryOperator`
 
 3. 组合与应用
 
@@ -7745,29 +7745,30 @@
 
 ## 命令式&函数式编程
 
-> 简述：命令式编程和函数式编程是两种常见的编程范式。命令式编程专注于指令的顺序和如何实现任务，而函数式编程则关注于描述任务的本质，通过表达“做了什么”来实现功能。Java 中的 Stream API 为函数式编程提供了一个简洁的实现方式，使得数据处理可以通过声明式方式进行，提升了代码的可读性与简洁性。
+> 简述：命令式编程通过显式步骤和可变状态实现“如何做”；函数式编程则用表达式和组合操作描述“做了什么”。
 
 **知识树**
 
-1. 命令式编程
+1. 编程范式
 
-    - 专注于如何实现任务，代码逻辑依赖于明确的步骤和顺序。
+    - 命令式（Imperative）：
+        - 通过循环、条件和可变变量显式控制执行流程，聚焦“How”。
+    - 声明式/函数式（Declarative/Functional）：
+        - 用函数（Lambda）描述数据转换和过滤，不关心内部状态的变化，描述“What”。
 
-2. 函数式（声明式）编程
+2. `Stream` 流
 
-    - 关注于任务本身，描述“做了什么”，而不是如何做。
+    - 来源：集合、数组等调用创建方法
+    - 概念：
+        - 通过集合或数组等创建 Stream 流，即 Stream 接口的引用，流 表示一系列的元素
+        - Stream 流的目的在于处理数据，而不是存储数据，这与集合不同，。
+    - 方法示例：
+        - `filter()`: 接收一个 `Predicate` 对象，让流中的每一个元素执行`Predicate` 对象中的 `test()`方法，筛选符合条件的元素。
+        - `count()`: 统计 Stream 中当前的元素数量。
 
-3. `stream()`
+3. 示例引入
 
-    - 意义：使数据操作以声明式方式进行处理，代码更简洁、更具可读性。
-    - 作用：返回一个 Stream 对象，Stream 表示一系列的元素，和集合不同，Stream 的目的在于处理数据，而不是存储数据。Stream 提供了一系列有用的操作方法，如 `filter()`、`count()` 等。
-    - 常用方法示例：
-        - `filter()`: 接收一个 `Predicate` 对象，筛选 Stream 中符合条件的元素。
-        - `count()`: 统计 Stream 中符合条件的元素数量。
-
-4. 示例引入
-
-    - 创建 `Movie` 类，创建 `StreamsDemo` 类，结合 `Stream` API 进行声明式编程，统计喜欢超过 10 个的电影个数
+    - 创建 `Movie` 类，创建 `StreamsDemo` 类，通过数组 list 调用`stream()`方法创建 stream 对象，结合 `Stream` API 进行声明式编程，统计喜欢超过 10 个的电影个数。
 
 **代码示例**
 
@@ -7809,9 +7810,11 @@
                     if (movie.getLikes() > 10)
                         count++;
 
-                var count1 = movies.stream()
-                        .filter(movie -> movie.getLikes() > 10)
-                        .count();
+        		// Declarative (Functional) Programming
+        		// 通过数组list调用`stream()`方法创建stream对象
+        		var count1 = movies.stream()
+        			.filter(movie -> movie.getLikes() > 10)
+        			.count();
             }
         }
         ```
@@ -7822,32 +7825,31 @@
 
 **知识树**
 
-1. 从集合创建流
+1. 创建流
 
-    - `.stream()`：集合对象的引用，调用`.stream()`方法，创建 Stream 对象。
+    - 集合方式
+        - `.stream()`：集合对象的引用，调用`.stream()`方法，创建 Stream 对象。
+    - 数组方式
+        - `Arrays.stream()`：传入数组，创建 Stream 对象。
+    - 任意对象创建
+        - `Stream.of()`：传入任意类型、数量多对象，创建 Stream 对象。
 
-2. 从数组创建流
-
-    - `Arrays.stream()`：传入数组，创建 Stream 对象。
-
-3. 从任意数量的对象创建流
-
-    - `Stream.of()`：传入任意类型、数量多对象，创建 Stream 对象。
-
-4. 生成无限流
+2. 无限流
 
     - `Stream.generate()`
-        - 需要传入一个 Supplier，并无限调用这个生产者，从而创建无限流，支持惰性加载。
+        - 传入一个 Supplier，并无限调用这个生产者，创建无限流，支持惰性加载。
     - `Stream.iterate()`
         - 传入初始值和一个操作单一值的函数，通过初始值和变换操作生成无限流。
+    - 限制长度
+        - 通过 `limit()` 方法限制生成的流的大小。
 
-5. 有限流
+3. 中间&终端操作：
 
-    - 通过 `limit()` 方法限制生成的流的大小。
+    - 中间操作（Intermediate）：不改变源，返回新的流，调用时才执行返回结果（惰性）。
+        - 例如`filter()`、`map()`
+    - 终端操作（Terminal）：触发执行并返回结果。
+        - 例如：`count()`、`forEach()`
 
-6. 惰性求值
-
-    - 流的元素在被实际消费时才会被生成，这种机制可以优化性能。
 
 **代码示例**
 
@@ -7910,13 +7912,13 @@
 
 ## Map
 
-> 简述：`map` 和 `flatMap` 是 Java Stream API 中常用的函数式方法，常用于对集合元素进行转换和扁平化处理。`map` 用于将元素转换为另一种类型，而 `flatMap` 则用于将元素转换为多个元素并展平流中的嵌套结构。
+> 简述：`map` 和 `flatMap` 常用于对集合元素进行转换和扁平化处理。`map` 用于将元素转换为另一种类型，而 `flatMap` 则用于将元素转换为多个元素并展平流中的嵌套结构。
 
 **知识树**
 
 1. `map` 方法
 
-    - 作用：接收一个 Function 接口的引用，流中的每一个元素执行引用中的 apply 方法。将流中的每个元素应用给定的函数，转换为另一个对象，返回一个新的流，元素类型是应用函数后的结果。
+    - 作用：接收一个 `Function` 接口的引用，流中的每一个元素执行引用中的 `apply()` 方法。将流中的每个元素应用给定的函数，转换为另一个对象，返回一个新的流，元素类型是应用函数后的结果。
 
 2. `flatMap` 方法
 
@@ -7926,9 +7928,6 @@
 3. 专用化版本
 
     `mapToInt`、`mapToDouble` 和 `mapToLong`
-
-    - 用途：这类方法用于映射到原始类型流（`int`、`double`、`long`）。
-    - 返回类型：返回原始类型的流，如 `IntStream`、`DoubleStream`、`LongStream`。
 
 **代码示例**
 
@@ -7950,7 +7949,7 @@
     }
     ```
 
-    - 描述：通过 `map` 方法，我们从电影对象的流中提取每个电影的标题，返回一个包含标题的字符串流。
+    - 描述：通过 `map` 方法，从电影对象的流中提取每个电影的标题，返回一个包含标题的字符串流。
 
 2. 使用 `flatMap` 方法将嵌套的流展平
 
@@ -7967,9 +7966,9 @@
     }
     ```
 
-    - 描述：通过 `flatMap`，我们将包含多个列表的流展平为单一的整数流。
+    - 描述：通过 `flatMap`，将包含多个列表的流展平为单一的整数流。
 
-## Filter 与 终止
+## Filter
 
 > 简述：在 Java 中，Stream API 提供了流式处理数据的能力。filter 方法用于从流中筛选符合条件的元素
 
@@ -7978,12 +7977,6 @@
 1. 过滤（filter 方法）
 
     - 作用：接收一个 Predicate 接口的引用，流中的每一个元素执行引用中的 test 方法，返回一个新的流，包含符合条件的元素。
-
-2. 中间&终止方法
-
-    - 流中的方法分为中间方法和终止方法，中间方法会返回一个管道以供流的继续执行，终止方法没有返回值，需要放在链的最后
-    - 中间方法如：map、filter
-    - 终止方法如：forEach、count
 
 **代码示例**
 
@@ -8007,7 +8000,7 @@
 
 ## Slicing
 
-> 简述：在 Java 中，Stream 提供了几种方法来操作和切片流数据。常用的方法包括 `limit`、`skip`、`takeWhile` 和 `dropWhile`，它们可以用于实现数据的分页、过滤和条件性处理。通过这些方法，我们能够精确地控制流中的元素处理。
+> 简述：常用的操作和切片流数据方法有四种， `limit`、`skip`、`takeWhile` 和 `dropWhile`，它们可以用于实现数据的分页、过滤和条件性处理。通过这些方法，我们能够精确地控制流中的元素处理。
 
 **知识树**
 
@@ -8021,117 +8014,48 @@
     - 用途：跳过流中的前 N 个元素。
     - 使用场景：常用于数据分页，跳过已展示的数据。
 
-3. `takeWhile` 方法
+3. 分页操作
+    - 使用 `skip` 和 `limit` 配合能实现分页功能。
+    - 例如，`skip(page-1 * pageSize)` 配合 `limit(pageSize)`。
+
+4. `takeWhile` 方法
 
     - 用途：基于给定的条件（Predicate），连续获取流中的元素，直到条件不再满足。
     - 使用场景：常用于基于条件筛选流中前续元素。
 
-4. `dropWhile` 方法
+5. `dropWhile` 方法
 
     - 用途：跳过流中连续满足条件的元素，直到条件不再满足。
     - 使用场景：常用于基于条件丢弃流中前续元素。
 
-5. 分页操作
-    - 使用 `skip` 和 `limit` 配合实现分页功能。例如，`skip(page-1 * pageSize)` 和 `limit(pageSize)`。
 
 **代码示例**
 
-1. 使用 `limit` 限制流中的元素数量
+1. 使用 方法
 
     ```java
-    import java.util.List;
-
-    public class Main {
-        public static void main(String[] args) {
-            List<String> movies = List.of("Movie A", "Movie B", "Movie C", "Movie D", "Movie E");
-
-            // 取前两个电影
-            movies.stream()
-                  .limit(2)  // 限制为前两项
-                  .forEach(System.out::println);
-        }
-    }
+	public class StreamsDemo {
+	    public static void show() {
+	        List<Movie> movies = List.of(
+	                new Movie("a", 10),
+	                new Movie("b", 15),
+	                new Movie("c", 20),
+	                new Movie("d", 10)
+	        );
+	
+	        // limit 截取前两个
+	        // movies.stream().limit(2).forEach(System.out::println);
+	
+	        // skip 跳过前两个
+	        // movies.stream().skip(2).forEach(System.out::println);
+	
+	        // takeWhile 不满足时停止，即使后续有元素满足条件也不会被筛选
+	        // movies.stream().takeWhile(movie -> movie.getLikes() < 20).forEach(System.out::println);
+	
+	        // dropWhile 不满足时开始筛选，即使后续有元素满足条件也不会被筛选，即使后续有元素满足条件也会被筛选
+	        movies.stream().dropWhile(movie -> movie.getLikes() < 20).forEach(System.out::println);
+	    }
+	}
     ```
-
-    - 描述：使用 `limit` 方法获取前两个电影，并打印它们。
-
-2. 使用 `skip` 跳过流中的前 N 个元素
-
-    ```java
-    import java.util.List;
-
-    public class Main {
-        public static void main(String[] args) {
-            List<String> movies = List.of("Movie A", "Movie B", "Movie C", "Movie D", "Movie E");
-
-            // 跳过前两个电影
-            movies.stream()
-                  .skip(2)  // 跳过前两项
-                  .forEach(System.out::println);
-        }
-    }
-    ```
-
-    - 描述：使用 `skip` 方法跳过前两个电影，输出剩余的电影。
-
-3. 使用 `takeWhile` 根据条件过滤流中的元素
-
-    ```java
-    import java.util.List;
-
-    public class Main {
-        public static void main(String[] args) {
-            List<String> movies = List.of("Movie A", "Movie B", "Movie C", "Movie D", "Movie E");
-
-            // 获取所有以 'Movie' 开头的电影，直到不再匹配
-            movies.stream()
-                  .takeWhile(movie -> movie.startsWith("Movie"))  // 条件：电影名以 'Movie' 开头
-                  .forEach(System.out::println);
-        }
-    }
-    ```
-
-    - 描述：使用 `takeWhile` 方法筛选所有名称以 "Movie" 开头的电影，直到条件不再满足。
-
-4. 使用 `dropWhile` 跳过符合条件的元素，直到条件不满足
-
-    ```java
-    import java.util.List;
-
-    public class Main {
-        public static void main(String[] args) {
-            List<String> movies = List.of("Movie A", "Movie B", "Movie C", "Movie D", "Movie E");
-
-            // 跳过所有以 'Movie' 开头的电影，直到遇到不以 'Movie' 开头的电影
-            movies.stream()
-                  .dropWhile(movie -> movie.startsWith("Movie"))  // 跳过符合条件的项
-                  .forEach(System.out::println);
-        }
-    }
-    ```
-
-    - 描述：使用 `dropWhile` 方法跳过所有符合条件（电影名以 "Movie" 开头）的电影，直到遇到第一个不符合条件的元素。
-
-5. 使用 `skip` 和 `limit` 方法实现分页
-
-    ```java
-    import java.util.List;
-
-    public class Main {
-        public static void main(String[] args) {
-            List<String> movies = List.of("Movie A", "Movie B", "Movie C", "Movie D", "Movie E");
-
-            int page = 2;  // 当前页
-            int pageSize = 2;  // 每页显示的电影数量
-
-            movies.stream()
-                  .skip((page - 1) * pageSize)  // 跳过前面所有页的数据
-                  .limit(pageSize)  // 限制当前页显示的电影数量
-                  .forEach(System.out::println);
-        }
-    }
-    ```
-
-    - 描述：通过 `skip` 和 `limit` 方法实现分页，获取当前页的电影数据。
 
 # ---
