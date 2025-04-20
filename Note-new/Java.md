@@ -8085,5 +8085,161 @@
     }
     ```
 
+## Sort
+
+> 简述：`sorted`  是  `Stream`  的惰性中间操作，依据自然顺序或指定  `Comparator`  重新排列元素，返回有序新流且不改动源数据。
+
+**知识树**
+
+1. 自然顺序
+
+    - 元素实现  `Comparable`  后，可直接  `stream.sorted()`。
+
+2. 自定义顺序（`Comparator`）
+
+    - `stream.sorted(Comparator)`  按比较器规则升序。
+    - 匿名内部类创建比较器，例如：
+        ```java
+        .sorted(new Comparator<Movie>() {
+        	@Override
+        	public int compare(Movie a, Movie b) {
+        		return a.getTitle().compareTo(b.getTitle());
+        	}
+        })
+        ```
+    - Lambda 表达式创建比较器。例如：
+        ```java
+        .sorted((a,b)->a.getTitle().compareTo(b.getTitle()))
+        ```
+    - 反序：`.reversed()`
+
+3. 方法引用
+
+    - comparing 方法
+        - Comparator 中存在一个静态方法 comparing，它接收一个提取 key 的函数，然后返回一个按该字段排序的 Comparator。
+    - 使用 comparing 简化 Lambda 表达式
+        ```java
+        .sorted(Comparator.comparing(Movie::getTitle))
+        ```
+
+4. 多级排序
+
+    - 链式：`.thenComparing(...)`，实现主键‑次键排序
+
+**代码示例**
+
+1. 实现排序
+
+    ```java
+    public class StreamsDemo {
+        public static void show() {
+            List<Movie> movies = List.of(
+                    new Movie("a", 10),
+                    new Movie("b", 15),
+                    new Movie("c", 20),
+                    new Movie("d", 10)
+            );
+
+
+
+            // 自然排序方式，需要Movies类实现Comparable接口
+            // movies.stream()
+            //         .sorted()
+            //         .forEach(System.out::println);
+
+            // 传入比较器方式：匿名内部类
+            // movies.stream()
+            //         .sorted(new Comparator<Movie>() {
+            //             @Override
+            //             public int compare(Movie a, Movie b) {
+            //                 return a.getTitle().compareTo(b.getTitle());
+            //             }
+            //         })
+            //         .forEach(System.out::println);
+
+            // 传入比较器方式：Lambda表达式方法引用
+            movies.stream()
+                    .sorted(Comparator.comparing(Movie::getTitle))
+                    .forEach(System.out::println);
+        }
+    }
+    ```
+
+## Distinct
+
+> 简述： `distinct()`，是 `Stream` 的中间操作，用于去除重复元素；它依据元素的  `equals`/`hashCode`  实现判断唯一性，最终得到不重复的数据序列。
+
+**知识树**
+
+1. 去重 `distinct()`
+
+    - 基于对象的  `equals` / `hashCode`  判定；在无序流中常用，若元素很多应关注内存压力。
+    - 位置：常置于所有映射后、终端操作前。
+
+**代码示例**
+
+1. 收集唯一喜欢数量的列表
+
+    ```java
+    public class StreamsDemo {
+        public static void show() {
+            List<Movie> movies = List.of(
+                    new Movie("a", 10),
+                    new Movie("b", 15),
+                    new Movie("c", 20),
+                    new Movie("d", 10)
+            );
+
+            movies.stream()
+                    .map(Movie::getLikes)
+                    .distinct()
+                    .forEach(System.out::println);
+        }
+    }
+    ```
+
+## Peek
+
+> 简述：`peek` 是 `Stream` 的中间操作，接受一个 `Consumer<T>`，用于在流水线中窥视（打印、日志）元素，便于调试，不改变流本身。
+
+**知识树**
+
+1. 定义
+
+    - `Stream<T> peek(Consumer<? super T> action)`：中间操作，返回新的流。
+
+2. 应用场景
+
+    - 调试流中数据、记录日志、性能监控。
+
+3. 链式使用
+
+    - 可与 `filter`、`map` 等中间操作无缝组合。
+
+**代码示例**
+
+1. 在管道中调试数据流
+
+    ```java
+    public class StreamsDemo {
+        public static void show() {
+            List<Movie> movies = List.of(
+                    new Movie("a", 10),
+                    new Movie("b", 15),
+                    new Movie("c", 20),
+                    new Movie("d", 10)
+            );
+
+            movies.stream()
+                    .filter(m -> m.getLikes() > 10)
+                    .peek(m -> System.out.println("filter+: " + m.getTitle()))
+                    .map(Movie::getTitle)
+                    .peek(title -> System.out.println("mapped: " + title))
+                    .forEach(System.out::println);
+        }
+    }
+    ```
+
+    - `peek` 不改变元素，仅在终端操作前观察中间结果。
 
 # ---
