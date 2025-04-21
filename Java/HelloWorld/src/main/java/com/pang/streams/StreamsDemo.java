@@ -1,23 +1,19 @@
 package com.pang.streams;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class StreamsDemo {
     public static void show() {
-        List<Movie> movies = List.of(
-                new Movie("a", 10),
-                new Movie("b", 15),
-                new Movie("c", 20),
-                new Movie("d", 10)
-        );
+        // 使用of创建
+        // IntStream.of(1, 2, 3, 4, 5).forEach(System.out::println);
 
-        // 统计所有喜欢
-        int sum = movies.stream()
-                .map(movie -> movie.getLikes())
-                .reduce(0, Integer::sum); // 使用方法引用简化
-                 // .reduce((a, b) -> a + b);
+        // range 创建（不含最后一位）-专用方法
+        // IntStream.range(1, 10).forEach(System.out::println);//输出1-9
 
-        System.out.println(sum);
+        // rangeClosed 创建（含最后一位）-专用方法
+        IntStream.rangeClosed(1, 10).forEach(System.out::println);//输出1-10
     }
 }

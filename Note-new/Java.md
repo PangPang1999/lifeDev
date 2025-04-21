@@ -12,6 +12,7 @@
 - var——JDK10
     - 自动推断变量类型，避免显式声明数据类型，使代码更简洁。
     - 仅用于局部变量（方法内部），不能用于字段、方法参数或返回值。
+    - 按住 control+shift+P 查看具体类型（Mac）
 - List.of()——JDK9
     - 快速创建不可变列表（列表内容不能修改）。
     - 避免 Arrays.asList() 的缺陷（Arrays.asList() 支持修改元素，但不能调整大小）。
@@ -8409,6 +8410,105 @@
 
     - 描述：使用 `0` 作为初始值，流中的每个元素将与该初始值进行累加。因为使用了初始值，所以 `reduce` 直接返回一个 `int` 类型的结果。
 
+## Collectors
 
+> 简述：`Collectors` 提供了多种用于将流的元素收集到不同数据结构中的方法。通过 `collect` 方法，流中的元素可以被汇总到集合、映射、求和等常见数据结构中。
+
+**知识树**
+
+1. `collect()` 方法
+
+    - `collect()` 是 Stream API 的终端操作，用于将流的元素收集到指定的数据结构中。它通过接收一个`Collector` 对象来完成操作。
+
+2. `Collector` 类
+
+    - `Collector` 接口与 `Stream`
+        - `Collector` 接口有许多方法可以返回一个 `Collector` 对象，这些对象作为流的终端操作工具，用于将流的元素累积到某种数据结构或进行聚合操作。
+    - 方法示例
+        - `Collectors.toList()`：将流的元素收集到 `List` 中。
+        - `Collectors.toSet()`：将流的元素收集到 `Set` 中。
+        - `Collectors.toMap()`：将流的元素收集到 `Map` 中。
+        - `Collectors.summingInt()`：对流中的整数进行求和。
+        - `Collectors.summingDouble()`：对流中的小数进行求和。
+        - `Collectors.averagingInt()`：计算流中整数的平均值。
+        - `Collectors.joining()`：将流中的字符串连接起来。
+        - `Collectors.summarizingInt()`：统计流中整数的最大值、最小值、总和、平均值等。
+
+**代码示例**
+
+1. 将流收集到 `List` 中
+
+    ```java
+    public class StreamsDemo {
+        public static void show() {
+            List<Movie> movies = List.of(
+                    new Movie("a", 10),
+                    new Movie("b", 15),
+                    new Movie("c", 20),
+                    new Movie("d", 10)
+            );
+
+            // 将流收集到 List/Set/Map 中
+            var result = movies.stream()
+                    .filter(movie -> movie.getLikes()>10)
+                    .collect(Collectors.toList());
+                    // .collect(Collectors.toSet());
+                    //.collect(Collectors.toMap(Movie::getTitle, Movie::getLikes));
+
+            System.out.println(result);
+        }
+    }
+    ```
+
+2. `Function.identity()` 补充
+
+    ```java
+    public class StreamsDemo {
+        public static void show() {
+            List<Movie> movies = List.of(
+                    new Movie("a", 10),
+                    new Movie("b", 15),
+                    new Movie("c", 20),
+                    new Movie("d", 10)
+            );
+
+            // 将流收集到 Map 中
+            var result = movies.stream()
+                    .filter(movie -> movie.getLikes() > 10)
+                    .collect(Collectors.toMap(Movie::getTitle, Function.identity()));
+
+            System.out.println(result);
+        }
+    }
+    ```
+
+    - 描述：这里`toMap()`的第二个参数为对象本身，`filter()`后流中为 `Movie` 对象，这里`Function.identity()`的意思是将每个 `Movie` 对象本身作为 `Map` 中的值
+
+3. 求值/拼接
+
+    ```java
+    public class StreamsDemo {
+        public static void show() {
+            List<Movie> movies = List.of(
+                    new Movie("a", 10),
+                    new Movie("b", 15),
+                    new Movie("c", 20),
+                    new Movie("d", 10)
+            );
+
+            // 求整数和/统计各个值
+            var result1 = movies.stream()
+                    .filter(movie -> movie.getLikes() > 10)
+                    .collect(Collectors.summingInt(Movie::getLikes));
+                    // .collect(Collectors.summarizingInt(Movie::getLikes));
+
+
+            // 拼接
+            var result2 = movies.stream()
+                    .map(Movie::getTitle)
+                    .collect(Collectors.joining("-"));
+        }
+    }
+    ```
 
 # ---
