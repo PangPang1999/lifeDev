@@ -8658,5 +8658,40 @@
 
     - 描述：使用 `partitioningBy` 根据电影喜欢数是否大于 10 进行分区
 
+## 基本类型流
+
+> 简述：Java 提供了针对基本数据类型的基本类型流（primitive type stream） ，这些流类型在处理原始类型数据时更加高效，并且提供了专属的操作方法，优化了流处理性能。
+
+**知识树**
+
+1. 专用流类型
+
+    - 如 IntStream、LongStream 和 DoubleStream
+
+2. 专用方法
+
+    - `IntStream.range(int startInclusive, int endExclusive)`：
+        - 创建一个从 `startInclusive` 到 `endExclusive`（不包括 `endExclusive`）的整数流。
+    - `IntStream.rangeClosed(int startInclusive, int endInclusive)`：
+        - 创建一个从 `startInclusive` 到 `endInclusive`（包括 `endInclusive`）的整数流。
+
+**代码示例**
+
+1. IntStream 创建流
+
+    ```java
+    public class StreamsDemo {
+        public static void show() {
+            // 使用of创建
+            // IntStream.of(1, 2, 3, 4, 5).forEach(System.out::println);
+
+            // range 创建（不含最后一位）-专用方法
+            // IntStream.range(1, 10).forEach(System.out::println);//输出1-9
+
+            // rangeClosed 创建（含最后一位）-专用方法
+            IntStream.rangeClosed(1, 10).forEach(System.out::println);//输出1-10
+        }
+    }
+    ```
 
 # ---
