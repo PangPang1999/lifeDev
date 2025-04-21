@@ -8613,5 +8613,50 @@
         }
         ```
 
+## Partition
+
+> 简述：`partitioningBy`用于将流中的元素根据给定的条件（一个 `Predicate`）分为两个组，返回一个 `Map<Boolean, List<T>>`，其中键是布尔值，值是满足条件或不满足条件的元素集合。
+
+**知识树**
+
+1. `partitioningBy` 方法
+
+    - `partitioningBy(Predicate<T>)`：
+        - 基于给定的条件将流中的元素分为两个组，返回一个 `Map<Boolean, List<T>>`，其中 `true` 键对应满足条件的元素，`false` 键对应不满足条件的元素。
+    - `partitioningBy(Predicate<T>, Collector<T, A, D>)`：
+        - 除了分组外，还可以对每个分组中的元素进行汇总操作，如求和、计数等。使用第二个参数指定 `Collector`，可以对每个分组执行操作（如：`map()`、`count()`）。
+
+**代码示例**
+
+1. 按条件分区电影
+
+    ```java
+    public class StreamsDemo {
+        public static void show() {
+            List<Movie> movies = List.of(
+                    new Movie("a", 10, Genre.THRILLER),
+                    new Movie("b", 15, Genre.ACTION),
+                    new Movie("c", 20, Genre.ACTION),
+                    new Movie("d", 10, Genre.COMEDY)
+            );
+
+
+            // 按条件分区电影
+            var result = movies.stream()
+                    .collect(Collectors.partitioningBy(m -> m.getLikes() > 20));
+
+            // 按条件分区电影，并对结果进行处理
+            var result2 = movies.stream()
+                    .collect(Collectors.groupingBy(
+                            m -> m.getLikes() > 20,
+                            Collectors.mapping(
+                                    Movie::getTitle,
+                                    Collectors.joining(","))));
+        }
+    }
+    ```
+
+    - 描述：使用 `partitioningBy` 根据电影喜欢数是否大于 10 进行分区
+
 
 # ---
