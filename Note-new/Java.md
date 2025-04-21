@@ -8511,4 +8511,107 @@
     }
     ```
 
+## Group
+
+> 简述：`groupingBy`用于根据某个属性或条件对数据进行分组，它将流中的元素按照分组的条件分类，并将结果收集到一个 `Map` 中，键为分组依据，值为该分组中的元素集合。
+
+**知识树**
+
+1. `groupingBy` 方法
+
+    - `groupingBy(Function<T, K>)`：
+        - 按某一属性将流中的元素分组，返回一个 `Map<K, List<T>>`，其中 `K` 是分组的依据，`List<T>` 是每个分组中的元素。
+    - `groupingBy(Function<T, K>, Collector<T, A, D>)`：
+        - 除了分组外，还可以对每个分组中的元素进行汇总操作，如求和、计数等。使用第二个参数指定 `Collector`，可以对每个分组执行操作（如：`map()`、`count()`）。
+
+2. 引入示例
+
+    - 创建“类型”枚举类，并在 Movie 类中加入“类型”参数，使用 Stream 根据类型进行分组
+
+**代码示例**
+
+1. **按 `genre` 对电影进行分组**
+
+    - 创建“类型”枚举类
+
+        ```java
+        public enum Genre {
+            COMEDY,
+            ACTION,
+            THRILLER,
+        }
+        ```
+
+    - Movie 中加入“类型”参数
+
+        ```java
+        package com.pang.streams;
+
+        import java.io.Serializable;
+        import java.util.Iterator;
+
+        public class Movie{
+
+            private String title;
+            private int likes;
+            private Genre genre;
+
+            public Movie(String title, int likes, Genre genre) {
+                this.title = title;
+                this.likes = likes;
+                this.genre = genre;
+            }
+
+            public Genre getGenre() {
+                return genre;
+            }
+            public int getLikes() {
+                return likes;
+            }
+
+            public String getTitle() {
+                return title;
+            }
+
+            @Override
+            public String toString() {
+                return "Movie{" +
+                        "title='" + title + '\'' +
+                        ", likes=" + likes +
+                        '}';
+            }
+        }
+        ```
+
+    - 根据类型进行分组
+
+        ```java
+        public class StreamsDemo {
+          public static void show() {
+        	  List<Movie> movies = List.of(
+        			  new Movie("a", 10, Genre.THRILLER),
+        			  new Movie("b", 15, Genre.ACTION),
+        			  new Movie("c", 20, Genre.ACTION),
+        			  new Movie("d", 10, Genre.COMEDY)
+        	  );
+
+        	  // 根据类型分组
+        	  Map<Genre, List<Movie>> collect = movies.stream()
+        			  .collect(Collectors.groupingBy(Movie::getGenre));
+
+
+        	  // 根据类型分组，并对结果进行处理
+        	  var collect2 = movies.stream()
+        			  .collect(Collectors.groupingBy(
+        					  Movie::getGenre,
+        					  Collectors.mapping(
+        							  Movie::getTitle,
+        							  Collectors.joining(","))));
+
+        	  System.out.println(collect2);
+          }
+        }
+        ```
+
+
 # ---
