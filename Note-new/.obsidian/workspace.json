@@ -50,26 +50,6 @@
             }
           }
         ]
-      },
-      {
-        "id": "9af88ee37f27e428",
-        "type": "tabs",
-        "children": [
-          {
-            "id": "9c7ea8b7ebf210d0",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Java.md",
-                "mode": "source",
-                "source": true
-              },
-              "icon": "lucide-file",
-              "title": "Java"
-            }
-          }
-        ]
       }
     ],
     "direction": "vertical"
