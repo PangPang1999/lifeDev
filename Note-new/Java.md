@@ -8769,5 +8769,129 @@ Atomic objects
 
     - 描述：显示有 2 个线程正在使用，一个是 Main 主线程，一个是垃圾回收线程，可用线程随机器不同所有所不同
 
+## 创建&开启线程
+
+> 简述：Java 中的多线程编程通过 `Thread` 类和 `Runnable` 接口来实现。`Thread` 类提供了多种构造器用于创建线程，`Runnable` 接口则通过实现任务的方式让线程执行具体操作。
+
+**知识树**
+
+1. Thread 类
+
+    - Thread 类是 Java 中创建和控制线程的主要类，实现 Runnable 接口的 `run()` 方法，但是 Thread 类中的 `run()`方法的作用的调用传入对象（Runnable 对象）的 `run()` 方法。
+
+2. Thread 构造器
+
+    - `Thread()` 构造器：
+        - 创建一个新的线程对象，但不指定线程执行的任务。
+    - `Thread(Runnable target)` 构造器：
+        - 创建一个新的线程对象，并指定一个 `Runnable` 对象来定义线程执行的任务。
+    - `Thread(String name)` 构造器：
+        - 创建一个新的线程对象，并指定线程的名称。
+    - `Thread(Runnable target, String name)` 构造器：
+        - 创建一个新的线程对象，并指定线程执行的任务（通过 `Runnable` 对象），同时指定线程名称。
+    - 其他构造器：如带有“指定线程组”参数的构造器等。
+
+3. Runnable 接口
+
+    - `Runnable` 是一个函数式接口，其 `run()` 方法定义了线程执行的具体任务。通过实现 `Runnable` 接口可以将任务与线程分离。
+
+4. 创建与启动线程：
+
+    - 通过传入 `Runnable` 对象来创建线程：可以通过实现 `Runnable` 接口（包括匿名内部类或 Lambda 表达式），并将其传递给 `Thread` 构造器。然后调用 `Thread` 对象的 `start()` 方法来启动线程，`start()` 方法会调用 `Thread` 类的 `run()` 方法，进而调用 `Runnable` 对象的 `run()` 方法。
+
+    - 创建自定义类继承 `Thread` 类并重写 `run()` 方法：通过继承 `Thread` 类并重写 `run()` 方法，实例化自定义类对象并调用 `start()` 方法启动线程，`start()` 方法会调用重写的 `run()` 方法。
+
+5. 多线程
+
+    - 线程之间是并发执行的，不保证执行顺序，操作系统调度决定了各个线程的执行时机和切换。
+
+**代码示例**
+
+1. 实现 `Runnable` 接口创建线程
+
+    - 创建 `DownloadFileTask` 类实现 `Runnable` 接口：
+
+        ```java
+        public class DownloadFileTask implements Runnable {
+            @Override
+            public void run() {
+                System.out.println("Download a file" + Thread.currentThread().getName());
+            }
+        }
+        ```
+
+    - 创建线程并启动：
+
+        ```java
+        public class Main {
+            public static void main(String[] args) {
+                System.out.println(Thread.currentThread().getName());
+
+        		Thread thread = new Thread(new DownloadFileTask());
+        		thread.start();
+            }
+        }
+        ```
+
+        - 描述：程序输出两个线程名称，一个是 `main` 主线程，一个是由 `DownloadFileTask` 创建的子线程（如 `Thread-0`）。
+
+2. Lambda 表达式创建（`Runnable`）
+
+    ```java
+    public class Main {
+    	public static void main(String[] args) {
+    		System.out.println(Thread.currentThread().getName());
+    		Thread thread = new Thread(
+    				() -> System.out.println(
+    						"Download a file" + Thread.currentThread().getName()));
+    		thread.start();
+    	}
+    }
+    ```
+
+3. 多线程
+
+    ```java
+    public class Main {
+        public static void main(String[] args) {
+            System.out.println(Thread.currentThread().getName());
+            for (int i = 0; i < 10; i++) {
+                Thread thread = new Thread(() -> System.out.println("Download a file" + Thread.currentThread().getName()));
+                thread.start();
+            }
+        }
+    }
+    ```
+
+    - 描述：通过 `for` 循环创建 10 个线程，并发执行。每个线程输出下载文件的操作，体现了多线程并发执行的特点。
+
+4. 自定义类继承 Thread 创建线程
+
+    - 创建自定义类
+
+        ```java
+        public class MyThread extends Thread {
+            @Override
+            public void run() {
+                System.out.println("MyThread.run"+Thread.currentThread().getName());
+            }
+        }
+        ```
+
+    - 使用自定义类创建线程
+
+        ```java
+        public class Main {
+            public static void main(String[] args) {
+                System.out.println(Thread.currentThread().getName());
+
+                for (int i = 0; i < 10; i++) {
+                    MyThread myThread = new MyThread();
+                    myThread.start();
+                }
+            }
+        }
+        ```
+
 
 # ---
