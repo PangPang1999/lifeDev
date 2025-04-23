@@ -8935,3 +8935,70 @@ Atomic objects
 
     - 描述：启动后线程并发执行，并在 5 秒后几乎一同执行完。
 
+## Join 方法
+
+> 简述：通过使用 `Thread.join()` 方法，可以使当前线程等待另一个线程完成任务。假设有两个线程 `ThreadA` 和 `ThreadB`，其中 `ThreadA` 调用了 `ThreadB.join()`，那么 `ThreadA` 会等待 `ThreadB` 完成执行后，才会继续执行。
+
+**知识树**
+
+1. `Thread.join()` 方法：
+
+    - `join()` 方法使当前线程等待另一个线程完成后再继续执行。它会阻塞当前线程，直到被调用的线程执行完毕。
+    - `join()` 会抛出 `InterruptedException`，需要捕获并处理。
+
+2. 线程同步问题：
+
+    - 使用 `join()` 方法时，当前线程会被阻塞，这意味着它无法执行其他操作，直到目标线程完成。这在某些应用中（如 UI 应用）可能导致界面冻结。稍后介绍解决方案。
+
+**代码示例**
+
+1. 下载结束后使用 `join()` 方法插入检查操作
+
+    ```java
+    public class Main {
+        public static void main(String[] args) {
+
+            // 创建线程1：下载并自动播放音乐
+            Thread thread = new Thread(() -> {
+                System.out.println("Download a music" + Thread.currentThread().getName());
+                try {
+                    // 模拟下载时间
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                System.out.println("Download completed" + Thread.currentThread().getName());
+
+                // 创建线程2：下载后进行检查
+                Thread checkThread = new Thread(() -> {
+                    System.out.println("Checking " + Thread.currentThread().getName());
+                    try {
+                        // 模拟检查时间
+                        Thread.sleep(3000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println("Checked " + Thread.currentThread().getName());
+                });
+
+                // 启动检查线程
+                checkThread.start();
+
+                try {
+                    // 等待检查线程完成，确保下载后进行检查
+                    checkThread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                // 检查完成后播放音乐
+                System.out.println("Playing " + Thread.currentThread().getName());
+            });
+
+            thread.start();
+        }
+    }
+    ```
+
+    - 描述：线程 1 为下载后自动播放音乐，线程 2 在下载完成后创建并阻塞线程 1，执行完检查操作后，线程 1 继续执行。
+
