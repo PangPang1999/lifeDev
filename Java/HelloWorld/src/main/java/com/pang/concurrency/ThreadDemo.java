@@ -1,27 +1,18 @@
 package com.pang.concurrency;
 
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ThreadDemo {
     public static void show() {
-        var status = new DownloadStatus();
-
         List<Thread> threads = new ArrayList<>();
+        List<DownloadFileTask> tasks = new ArrayList<>();
 
         for (int i = 0; i < 10; i++) {
-            var thread = new Thread(() -> {
-                System.out.println("Downloading a file: " + Thread.currentThread().getName());
+            var task = new DownloadFileTask();
+            tasks.add(task);
 
-                for (int j = 0; j < 10_000; j++) {
-                    if (Thread.currentThread().isInterrupted()) return;
-                    // System.out.println("Downloading byte " + j);
-                    status.increaseTotalBytes();
-                }
-
-                System.out.println("Download complete: "+Thread.currentThread().getName());
-            });
+            var thread = new Thread(task);
             thread.start();
             threads.add(thread);
         }
@@ -34,6 +25,10 @@ public class ThreadDemo {
             }
         }
 
-        System.out.println(status.getTotalBytes());
+        var totalBytes = tasks.stream()
+                .map(t -> t.getStatus().getTotalBytes())
+                .reduce(Integer::sum);
+
+        System.out.println(totalBytes);
     }
 }

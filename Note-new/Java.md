@@ -8793,7 +8793,7 @@ Atomic objects
 
 3. Runnable 接口
 
-    - `Runnable` 是一个函数式接口，其 `run()` 方法定义了线程执行的具体任务。通过实现 `Runnable` 接口可以将任务与线程分离。
+    - `Runnable` 是一个函数式接口，其 `run()` 方法定义了线程执行的具体任务。通过实现 `Runnable` 接口可以将任务与线程分离。**本节以该方式为主**。
 
 4. 创建与启动线程：
 
@@ -8807,7 +8807,7 @@ Atomic objects
 
 **代码示例**
 
-1. 实现 `Runnable` 接口创建线程
+1. 实现 `Runnable` 接口创建线程（本节以该方式为主）
 
     - 创建 `DownloadFileTask` 类实现 `Runnable` 接口：
 
@@ -8913,6 +8913,39 @@ Atomic objects
 
 1. 使用 `Thread.sleep()` 模拟下载任务
 
+    - `DownloadFileTask` 中修改 `run()` 方法，加入 `sleep()`
+
+        ```java
+        public class DownloadFileTask implements Runnable {
+            @Override
+            public void run() {
+                System.out.println("Download a file" + Thread.currentThread().getName());
+                try {
+                    // 模拟下载花费5秒
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                System.out.println("Download completed" + Thread.currentThread().getName());
+            }
+        }
+        ```
+
+    - Main 中启用线程
+
+        ```java
+        public class Main {
+            public static void main(String[] args) {
+                for (int i = 0; i < 10; i++) {
+                    Thread thread = new Thread(new DownloadFileTask());
+                    thread.start();
+                }
+            }
+        }
+        ```
+
+2. Lambda 表达式方式
+
     ```java
     public class Main {
         public static void main(String[] args) {
@@ -8953,6 +8986,64 @@ Atomic objects
 **代码示例**
 
 1. 下载结束后使用 `join()` 方法插入检查操作
+
+    - `DownloadFileTask` 中修改 `run()` 方法
+
+        ```java
+        public class DownloadFileTask implements Runnable {
+          @Override
+          public void run() {
+              System.out.println("Download a music" + Thread.currentThread().getName());
+              try {
+                  // 模拟下载时间
+                  Thread.sleep(3000);
+              } catch (InterruptedException e) {
+                  throw new RuntimeException(e);
+              }
+              System.out.println("Download completed" + Thread.currentThread().getName());
+
+              // 创建线程2：下载后进行检查
+              Thread checkThread = new Thread(() -> {
+                  System.out.println("Checking " + Thread.currentThread().getName());
+                  try {
+                      // 模拟检查时间
+                      Thread.sleep(3000);
+                  } catch (InterruptedException e) {
+                      e.printStackTrace();
+                  }
+                  System.out.println("Checked " + Thread.currentThread().getName());
+              });
+
+              // 启动检查线程
+              checkThread.start();
+
+              try {
+                  // 等待检查线程完成，确保下载后进行检查
+                  checkThread.join();
+              } catch (InterruptedException e) {
+                  e.printStackTrace();
+              }
+
+              // 检查完成后播放音乐
+              System.out.println("Playing " + Thread.currentThread().getName());
+          }
+        }
+        ```
+
+    - Main 中启用线程
+
+        ```java
+        public class Main {
+          public static void main(String[] args) {
+              Thread thread = new Thread(new DownloadFileTask());
+              thread.start();
+          }
+        }
+        ```
+
+        - 描述：线程 1 为下载后自动播放音乐，线程 2 在下载完成后创建并阻塞线程 1，执行完检查操作后，线程 1 继续执行。
+
+2. Lambda 表达式方式
 
     ```java
     public class Main {
@@ -9000,8 +9091,6 @@ Atomic objects
     }
     ```
 
-    - 描述：线程 1 为下载后自动播放音乐，线程 2 在下载完成后创建并阻塞线程 1，执行完检查操作后，线程 1 继续执行。
-
 ## Interrupt 方法
 
 > 简述：在多线程编程中，有时需要提供取消任务的能力，尤其是在处理长时间运行的任务时。通过 `Thread.interrupt()` 方法，主线程可以请求子线程中断其执行，但中断并不会立即强制终止线程的操作。子线程需要定期检查中断标志，并根据需要响应该请求。
@@ -9025,7 +9114,49 @@ Atomic objects
 
 **代码示例**
 
-1. 使用 `Thread.interrupt()` 请求中断下载任务
+1.  使用 `Thread.interrupt()` 请求中断下载任务
+
+    - `DownloadFileTask` 中修改 `run()` 方法
+
+        ```java
+        public class DownloadFileTask implements Runnable {
+            @Override
+            public void run() {
+                System.out.println("Download a music" + Thread.currentThread().getName());
+                for (int i = 0; i < Integer.MAX_VALUE; i++) {
+                    // 监控 打断标志 的状态
+                    if(Thread.interrupted()) return;
+
+                    System.out.println("Downloading byte " + i);
+                }
+                System.out.println("Download completed" + Thread.currentThread().getName());
+            }
+        }
+        ```
+
+    - Main 中启用线程
+
+        ```java
+        public class Main {
+            public static void main(String[] args) {
+                Thread thread = new Thread(new DownloadFileTask());
+                thread.start();
+
+                // 假设开始下载1秒后取消下载
+                try {
+                    // 主线程休眠
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
+                // 发送打断请求，非强制停止
+                thread.interrupt();
+            }
+        }
+        ```
+
+2.  Lambda 表达式方式
 
     ```java
     public class Main {
@@ -9101,64 +9232,115 @@ Atomic objects
 
 **代码示例**
 
-1.  累加演示
+1.  创建用于统计的状态类
 
-    - 创建用于统计的状态类
+    ```java
+    public class DownloadStatus {
+    	private int totalBytes;
 
-        ```java
-        public class DownloadStatus {
-            private int totalBytes;
+    	public int getTotalBytes() {
+    		return totalBytes;
+    	}
 
-            public int getTotalBytes() {
-                return totalBytes;
-            }
+    	public void increaseTotalBytes() {
+    		totalBytes++;
+    	}
+    }
+    ```
 
-            public void increaseTotalBytes() {
-                totalBytes++;
-            }
+2.  `DownloadFileTask` 中修改 `run()` 方法，假设美国文字 10_000 字节，最后需要统计总字节数量
+
+    ```java
+    public class DownloadFileTask implements Runnable {
+        private DownloadStatus status;
+
+        public DownloadFileTask(DownloadStatus status) {
+            this.status = status;
         }
-        ```
 
-    - 创建示例，需要在 Main 中调用`ThreadDemo.show()`
+        @Override
+        public void run() {
+                System.out.println("Downloading a file: " + Thread.currentThread().getName());
 
-        ```java
-        public class ThreadDemo {
-            public static void show() {
-                var status = new DownloadStatus();
-
-                List<Thread> threads = new ArrayList<>();
-
-                for (int i = 0; i < 10; i++) {
-                    var thread = new Thread(() -> {
-                        System.out.println("Downloading a file: " + Thread.currentThread().getName());
-
-                        for (int j = 0; j < 10_000; j++) {
-                            if (Thread.currentThread().isInterrupted()) return;
-                            // System.out.println("Downloading byte " + j);
-                            status.increaseTotalBytes();
-                        }
-
-                        System.out.println("Download complete: "+Thread.currentThread().getName());
-                    });
-                    thread.start();
-                    threads.add(thread);
+                for (int j = 0; j < 10_000; j++) {
+                    if (Thread.currentThread().isInterrupted()) return;
+                    // System.out.println("Downloading byte " + j);
+                    status.increaseTotalBytes();
                 }
 
-                for (var thread : threads) {
-                    try {
-                        thread.join();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-
-                System.out.println(status.getTotalBytes());
-            }
+                System.out.println("Download complete: "+Thread.currentThread().getName());
         }
-        ```
+    }
+    ```
 
-        - 描述：设置初始状态为 0，使用 10 线程，每个线程并发执行，给初始状态增加 1，次数一万次，统计线程 10 个线程执行结束后，最后的状态值是多少，往往不是期望的 10_000
-        - 补充：是否每次都输出当前 j 的值，会对结果产生较大影响，因为 `System.out.println()` 是一个相对较慢的操作。如果不进行输出，程序的执行效率会更高，竞争会更激烈，因此在没有适当的安全处理的情况下，程序更容易出错。
+    - 补充：是否每次都输出当前 j 的值，会对结果产生较大影响，因为 `System.out.println()` 是一个相对较慢的操作。如果不进行输出，程序的执行效率会更高，竞争会更激烈，因此在没有适当的安全处理的情况下，程序更容易出错。
+
+3.  创建 ThreadDemo，与 show 方法，就像前面几节一样，Main 中调用`ThreadDemo.show()`
+
+    ```java
+    public class ThreadDemo {
+        public static void show() {
+            var status = new DownloadStatus();
+            List<Thread> threads = new ArrayList<>();
+
+            for (int i = 0; i < 10; i++) {
+                var thread = new Thread(new DownloadFileTask(status));
+                thread.start();
+                threads.add(thread);
+            }
+
+            for (var thread : threads) {
+                try {
+                    thread.join();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            System.out.println(status.getTotalBytes());
+        }
+    }
+    ```
+
+    - 描述：设置初始状态为 0，使用 10 线程，每个线程并发执行，给初始状态增加 1，次数一万次，统计线程 10 个线程执行结束后，最后的状态值是多少，往往不是期望的 100_000
+
+4.  Lambda 表达式方式
+
+    ```java
+    public class ThreadDemo {
+    	public static void show() {
+    		var status = new DownloadStatus();
+
+    		List<Thread> threads = new ArrayList<>();
+
+    		for (int i = 0; i < 10; i++) {
+    			var thread = new Thread(() -> {
+    				System.out.println("Downloading a file: " + Thread.currentThread().getName());
+
+    				for (int j = 0; j < 10_000; j++) {
+    					if (Thread.currentThread().isInterrupted()) return;
+    					// System.out.println("Downloading byte " + j);
+    					status.increaseTotalBytes();
+    				}
+
+    				System.out.println("Download complete: "+Thread.currentThread().getName());
+    			});
+    			thread.start();
+    			threads.add(thread);
+    		}
+
+    		for (var thread : threads) {
+    			try {
+    				thread.join();
+    			} catch (InterruptedException e) {
+    				throw new RuntimeException(e);
+    			}
+    		}
+
+    		System.out.println(status.getTotalBytes());
+    	}
+    }
+    ```
 
 ## 线程安全策略
 
@@ -9191,5 +9373,85 @@ Atomic objects
 
     - 定义：数据分区是将大规模数据拆分成多个独立的段，每个线程只能操作其中一个段，从而减少线程间的竞争。
     - 应用：Java 提供了一些并发集合类（如 `ConcurrentHashMap`），它通过分区实现多个线程并发访问集合中的不同部分，而不需要全局锁定。
+
+## 数据隔离
+
+> 简述：数据隔离（Confinement）是通过将每个线程的工作数据独立开来，避免多个线程共享数据，从而减少竞态条件的风险。每个线程拥有自己的数据副本，确保线程间互不干扰。这种方式简单而有效，尤其适用于不需要共享数据的任务。
+
+**知识树**
+
+1. 概念
+
+    - 定义：数据隔离是指通过将每个线程的工作数据封闭在该线程内，避免多个线程间共享资源。每个线程在执行任务时，使用自己的数据副本，减少竞争条件和数据冲突的发生。
+    - 优点：无需复杂的同步机制，能够显著简化并发编程的复杂度，提升性能。
+
+**代码示例**
+
+1. 修改 `DownloadFileTask`，每个下载线程的状态独立
+
+    ```java
+    public class DownloadFileTask implements Runnable {
+        private DownloadStatus status;
+
+        public DownloadFileTask() {
+            this.status = new DownloadStatus();
+        }
+
+        @Override
+        public void run() {
+            System.out.println("Downloading a file: " + Thread.currentThread().getName());
+
+            for (int j = 0; j < 10_000; j++) {
+                if (Thread.currentThread().isInterrupted()) return;
+                // System.out.println("Downloading byte " + j);
+                status.increaseTotalBytes();
+            }
+
+            System.out.println("Download complete: " + Thread.currentThread().getName());
+        }
+
+        public DownloadStatus getStatus() {
+            return status;
+        }
+    }
+    ```
+
+    - 描述：每个 `DownloadFileTask` 都持有独立的 `DownloadStatus` 对象，而不再共享全局的状态对象。这确保了每个线程有自己的数据副本，避免了竞态条件。
+
+2. 将每个下载的状态分离后汇总
+
+    ```java
+    public class ThreadDemo {
+        public static void show() {
+            List<Thread> threads = new ArrayList<>();
+            List<DownloadFileTask> tasks = new ArrayList<>();
+
+            for (int i = 0; i < 10; i++) {
+                var task = new DownloadFileTask();
+                tasks.add(task);
+
+                var thread = new Thread(task);
+                thread.start();
+                threads.add(thread);
+            }
+
+            for (var thread : threads) {
+                try {
+                    thread.join();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            var totalBytes = tasks.stream()
+                    .map(t -> t.getStatus().getTotalBytes())
+                    .reduce(Integer::sum);
+
+            System.out.println(totalBytes);
+        }
+    }
+    ```
+
+
 
 # --
