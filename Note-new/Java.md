@@ -9080,4 +9080,85 @@ Atomic objects
 
     - 线程安全指多个线程可以并发执行代码而不会导致数据不一致或程序崩溃。
 
+## 竞态条件
 
+> 简述：多个线程同时访问共享资源时，若没有适当的同步机制，可能导致数据不一致或程序崩溃。
+
+**知识树**
+
+1. `++`操作
+
+    - `++` 操作符是一个非原子操作。虽然语法上是简单的递增运算，实际上它由三个步骤组成：读取当前值、递增、将新值写回内存。由于多个线程可能同时执行这些步骤，导致数据不一致。
+
+2. 原子操作
+
+    - 原子操作是指不可分解的操作，所有步骤在执行过程中不可中断。原子操作确保了在多线程环境中，线程之间不会出现数据冲突或不一致的问题。
+
+3. 示例引入
+
+    - 背景：在多线程环境下，没有适当的同步机制时，多个线程同时修改共享变量可能会导致数据错误。通过演示 totalBytes++ 这个非原子操作，我们可以清楚地看到并发下的数据修改错误。
+    - `totalBytes++`：在示例中，`totalBytes++` 看似只有一行代码，但实际上它包含了三个步骤。首先，字段的值会从主内存读取并加载到 CPU 中。接着，CPU 对这个值进行递增，最后，更新后的值被写回到内存。由于这个操作涉及多个步骤，因此我们将其称为非原子操作。
+
+**代码示例**
+
+1.  累加演示
+
+    - 创建用于统计的状态类
+
+        ```java
+        public class DownloadStatus {
+            private int totalBytes;
+
+            public int getTotalBytes() {
+                return totalBytes;
+            }
+
+            public void increaseTotalBytes() {
+                totalBytes++;
+            }
+        }
+        ```
+
+    - 创建示例，需要在 Main 中调用`ThreadDemo.show()`
+
+        ```java
+        public class ThreadDemo {
+            public static void show() {
+                var status = new DownloadStatus();
+
+                List<Thread> threads = new ArrayList<>();
+
+                for (int i = 0; i < 10; i++) {
+                    var thread = new Thread(() -> {
+                        System.out.println("Downloading a file: " + Thread.currentThread().getName());
+
+                        for (int j = 0; j < 10_000; j++) {
+                            if (Thread.currentThread().isInterrupted()) return;
+                            // System.out.println("Downloading byte " + j);
+                            status.increaseTotalBytes();
+                        }
+
+                        System.out.println("Download complete: "+Thread.currentThread().getName());
+                    });
+                    thread.start();
+                    threads.add(thread);
+                }
+
+                for (var thread : threads) {
+                    try {
+                        thread.join();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
+                System.out.println(status.getTotalBytes());
+            }
+        }
+        ```
+
+        - 描述：设置初始状态为 0，使用 10 线程，每个线程并发执行，给初始状态增加 1，次数一万次，统计线程 10 个线程执行结束后，最后的状态值是多少，往往不是期望的 10_000
+        - 补充：是否每次都输出当前 j 的值，会对结果产生较大影响，因为 `System.out.println()` 是一个相对较慢的操作。如果不进行输出，程序的执行效率会更高，竞争会更激烈，因此在没有适当的安全处理的情况下，程序更容易出错。
+
+
+# --
