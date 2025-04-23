@@ -9002,3 +9002,61 @@ Atomic objects
 
     - 描述：线程 1 为下载后自动播放音乐，线程 2 在下载完成后创建并阻塞线程 1，执行完检查操作后，线程 1 继续执行。
 
+## Interrupt 方法
+
+> 简述：在多线程编程中，有时需要提供取消任务的能力，尤其是在处理长时间运行的任务时。通过 `Thread.interrupt()` 方法，主线程可以请求子线程中断其执行，但中断并不会立即强制终止线程的操作。子线程需要定期检查中断标志，并根据需要响应该请求。
+
+**知识树**
+
+1. `Thread.interrupt()` 方法：
+
+    - `interrupt()` 方法用于向线程发送中断请求。调用该方法后，线程并不会立刻停止执行，而是设置一个中断标志，线程需要定期检查该标志并作出相应的处理。
+    - 中断请求对正在执行的线程没有直接的停止作用，它仅通知线程是否应该中止当前操作。
+
+2. 响应中断请求：
+
+    - 线程必须定期检查是否接收到中断请求，常通过 `Thread.currentThread().isInterrupted()` 方法来判断。
+    - 如果线程正在执行一个循环任务，可以在每次循环中检查中断标志，并在收到中断请求时终止循环或退出任务。
+
+3. 中断与异常处理：
+
+    - 如果线程正在执行 `sleep()`、`wait()` 或 `join()` 等阻塞操作，调用 `interrupt()` 方法会抛出 `InterruptedException`。
+    - 需要在这些操作的代码块中捕获并处理 `InterruptedException`，确保线程能够响应中断请求，及时退出。
+
+**代码示例**
+
+1. 使用 `Thread.interrupt()` 请求中断下载任务
+
+    ```java
+    public class Main {
+        public static void main(String[] args) {
+            // 创建线程：下载文件
+            Thread thread = new Thread(() -> {
+                System.out.println("Download a music" + Thread.currentThread().getName());
+
+                for (int i = 0; i < Integer.MAX_VALUE; i++) {
+
+                    // 监控 打断标志 的状态
+                    if(Thread.interrupted()) return;
+
+                    System.out.println("Downloading byte " + i);
+                }
+
+                System.out.println("Download completed" + Thread.currentThread().getName());
+            });
+
+            thread.start();
+
+            // 假设开始下载1秒后取消下载
+            try {
+                // 主线程休眠
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            // 发送打断请求，非强制停止
+            thread.interrupt();
+        }
+    }
+    ```
