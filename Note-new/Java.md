@@ -8893,5 +8893,45 @@ Atomic objects
         }
         ```
 
+## 暂停线程
 
-# ---
+> 简述：Java 提供了`Thread.sleep()`方法来使当前线程暂停执行，用于模拟长时间运行的操作（如下载文件）。通过暂停线程，操作系统可以将 CPU 资源分配给其他线程。
+
+**知识树**
+
+1. `Thread.sleep()` 方法：
+
+    - `Thread.sleep()` 方法可以使当前线程暂停指定的时间，这在模拟长时间任务或延迟执行时非常有用。
+    - 调用时可能会抛出 `InterruptedException`，若当前线程被中断则会抛出该异常，需要使用 try/catch 捕捉
+    - 线程休眠期间，操作系统将允许其他线程使用 CPU 时间。
+
+2. 线程调度：
+
+    - Java 虚拟机的线程调度器负责决定哪些线程在什么时间运行。如果任务数多于可用的线程，调度器会为每个任务分配 CPU 时间片，从而模拟并行执行，尽管这些任务实际上是在不同的时间依次执行的。
+
+**代码示例**
+
+1. 使用 `Thread.sleep()` 模拟下载任务
+
+    ```java
+    public class Main {
+        public static void main(String[] args) {
+            for (int i = 0; i < 10; i++) {
+                Thread thread = new Thread(() ->
+                {
+                    System.out.println("Download a file" + Thread.currentThread().getName());
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    System.out.println("Download completed" + Thread.currentThread().getName());
+                });
+                thread.start();
+            }
+        }
+    }
+    ```
+
+    - 描述：启动后线程并发执行，并在 5 秒后几乎一同执行完。
+
