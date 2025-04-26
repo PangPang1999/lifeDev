@@ -9977,3 +9977,98 @@ Atomic objects
 
     - 描述：将 `DownloadStatus` 中的计数器 `totalBytes` 从 `AtomicInteger` (或 `int`) 替换为 `LongAdder`。读取总和使用 `intValue()`（内部调用 `sum()`），递增操作使用 `increment()`。`LongAdder` 通过其内部的 `Cell` 数组机制，有效地分散了高并发更新时的竞争，使得在大量线程同时调用 `increaseTotalBytes` 时，系统能够维持更高的吞吐量。（见原理的理解部分）
 
+## 同步集合包装器
+
+> 简述：`java.util.Collections` 类提供了一系列静态 `synchronizedXXX()` 方法，用于将非线程安全的标准集合（如 `ArrayList`, `HashMap`）包装成线程安全的版本。这种包装通过对每个方法调用进行同步（使用内部锁）来实现基本的线程安全。
+
+**知识树**
+
+1.  非线程安全的集合
+
+    - 标准集合：Java 核心集合框架中的大部分实现（如 `ArrayList`, `LinkedList`, `HashSet`, `HashMap`, `TreeMap` 等）在设计时并未考虑多线程并发访问，它们是非线程安全的。
+    - 并发风险：若无外部同步措施，多个线程同时读取和修改这些集合，极易导致数据损坏、内部状态不一致、抛出 `ConcurrentModificationException` 或产生其他不可预测的行为。
+
+2.  同步包装器
+
+    - 工具类：`java.util.Collections` 提供了一组静态工厂方法。
+    - 功能：这些方法接收一个非线程安全的集合实例作为输入，返回一个实现了相同集合接口的线程安全包装器实例。
+
+3.  补充-工作机制 (Mechanism):
+
+    - 内部锁定：包装器对象对所有可变操作（增、删、改）内置 `synchronized`，默认锁定在包装器自身的监视器（即 `this`）。
+    - 方法代理：包装器实现与原集合相同的接口，所有方法都委托给内部的“原始”集合实例，但在委托前后加锁和解锁。
+    - 可选锁定对象：部分方法允许传入自定义锁对象（如 `Collections.synchronizedMap(map, mutex)`），以便与其它同步块共享同一锁，避免不必要的锁竞争。
+    - 迭代器处理：调用 `iterator(`) 方法时，返回的迭代器并不自动加锁；若需在迭代过程中保持线程安全，调用方必须手动在外部同步块中使用 `synchronized(wrapper) { … iterator … }`。
+
+4.  缺点与注意事项 (Drawbacks & Considerations):
+
+    - 性能开销：所有操作都采用单一全局锁，严重影响高并发环境下的吞吐量；对于读多写少的场景，容易成为瓶颈。
+    - 死锁风险：若多个线程以不同顺序同时锁定多个同步集合，可能导致死锁；使用统一的锁对象或避开嵌套锁定可缓解此问题。
+    - 迭代不安全：包装器未对迭代器自身加锁，调用者必须自行在同步块中遍历，否则仍会抛出 `ConcurrentModificationException`。
+    - 功能局限：仅能保证单次方法调用的原子性，多步组合操作（如“先检查再插入”）仍需外部同步；它不支持细粒度或锁分段。
+
+**代码示例**
+
+1.  非线程安全集合并发修改问题
+
+    ```java
+    public class ThreadDemo {
+        public static void show() {
+            Collection<Integer> collection = new ArrayList<>();
+
+            var thread1 = new Thread(() -> {
+                collection.addAll(Arrays.asList(1, 2, 3));
+            });
+            var thread2 = new Thread(() -> {
+                collection.addAll(Arrays.asList(4, 5, 6));
+            });
+
+            thread1.start();
+            thread2.start();
+
+            try {
+                thread1.join();
+                thread2.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            System.out.println(collection);
+        }
+    }
+    ```
+
+    - 描述：两个线程并发地向同一个 `ArrayList` 添加元素。由于 `ArrayList` 的 `add` 方法及其内部的数组扩容逻辑非线程安全，概率出现数据丢失（多次执行尝试）。
+
+2.  使用同步集合包装器解决
+
+    ```java
+    public class ThreadDemo {
+        public static void show() {
+            Collection<Integer> collection
+                    = Collections.synchronizedCollection(new ArrayList<Integer>());
+
+            var thread1 = new Thread(() -> {
+                collection.addAll(Arrays.asList(1, 2, 3));
+            });
+            var thread2 = new Thread(() -> {
+                collection.addAll(Arrays.asList(4, 5, 6));
+            });
+
+            thread1.start();
+            thread2.start();
+
+            try {
+                thread1.join();
+                thread2.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            System.out.println(collection);
+        }
+    }
+    ```
+
+    - 描述：首先创建了一个 `ArrayList`，然后通过 `Collections.synchronizedCollection()` 方法将其包装成一个线程安全的 `syncCollection`。后续的多线程任务操作的是这个包装后的集合。由于 `syncCollection` 的 `add` 方法内部使用了 `synchronized` 锁，保证了每次只有一个线程能够执行添加操作，从而避免了并发冲突，使得最终集合的大小能够准确地达到预期值。
+
