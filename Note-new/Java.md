@@ -9912,3 +9912,68 @@ Atomic objects
 
     - 描述：通过将 `DownloadStatus` 类中的 `totalBytes` 字段类型从 `int` 更改为 `AtomicInteger`，并使用其提供的 `incrementAndGet()` 原子方法来执行递增操作。这确保了每次递增都是一个不可分割的原子单元，从而消除了竞态条件。多线程并发调用 `increaseTotalBytes` 时，能够安全、准确地完成计数，且无需使用任何 `synchronized` 或 `Lock` 显式锁。
 
+## Adder
+
+> 简述：累加器类（如 `LongAdder`, `DoubleAdder`）是 Java 并发包中专为高并发更新场景设计的原子计数器。它们通过分散热点（将更新分布到内部单元格数组）来显著提高吞吐量，性能通常优于在高争用下的 `AtomicLong` 或 `AtomicInteger`。
+
+**知识树**
+
+1.  累加器类定义 (Definition):
+
+    - 概念：`java.util.concurrent.atomic` 包下的 `LongAdder` 和 `DoubleAdder` 类，是专门用于在多线程高并发环境下进行高效数值累加（加法）操作的工具。
+    - 目的：解决 `AtomicLong`/`AtomicInteger` 在极端高并发更新时可能遇到的性能瓶颈。
+
+2.  常用方法示例 (`LongAdder`):
+
+    - `LongAdder()`: 构造函数，创建一个初始值为 0 的 `LongAdder` 实例。
+    - `void increment()`: 原子性地将计数器的值加 1。在高并发下，此操作会将更新分散到内部 `Cell`。
+    - `void add(long x)`: 原子性地将计数器的值加上 `x`。同样会分散竞争。
+    - `void decrement()`: 原子性地将计数器的值减 1。
+    - `long sum()`: 返回当前计数器的总和。
+    - `void reset()`: 将计数器重置为 0（将 `base` 和所有 `Cell` 的值都清零）。
+    - `long sumThenReset()`: 原子性地获取当前总和，并将计数器重置为 0。
+    - `int intValue()`, `long longValue()`, `float floatValue()`, `double doubleValue()`: 调用 `sum()` 方法获取总和，然后将结果转换为对应的基本类型。
+
+3.  原理：分片计数器
+
+    - 理解：想象你和九个小伙伴都要往一个大罐子里投糖，每人要投一万颗，大家轮流往同一个口子投那就跟排长龙似的，既慢又容易撞；LongAdder 则聪明地先给你们分好若干小罐子（随着人多罐少时不断增多罐数），每个人都往自己小罐里投，绝大多数时候无需排队、几乎不冲突，等所有人投完再把每个小罐的糖一并倒回大罐，正好是一万颗 × 十人，既准确又大幅提升并发性能。
+    - 原理：累加器基于“条带化计数（Striped Counter）”策略：在低冲突场景下，线程通过一次对 volatile long base 的 CAS 更新完成累加；一旦检测到 CAS 失败，即进入 Striped64 的 longAccumulate 路径——首次冲突时懒初始化一个 Cell[] 数组，利用每线程的 ThreadLocal 哈希将写操作映射到不同槽位上的 Cell.value，再对该槽位执行 CAS；若槽位争用依旧严重，则通过自旋锁扩容 cells（2→4→8…），进一步分散热点；最终调用 sum() 时，将 base 与所有非空 Cell 的值聚合返回，从而在“最终一致”语义下以极低的 CAS 重试率实现高吞吐量的并发累加。
+
+4.  适用场景与建议
+
+    - 场景：非常适合用于统计聚合数据，如 Web 服务器的请求总数、实时系统中的事件发生次数、并行计算中各任务的完成量等，特点是**写操作非常频繁，读操作（获取总和）相对较少**。
+    - 建议：当数值累加操作预期会面临高并发争用（大量线程同时更新）时，应优先考虑使用 `LongAdder` (或 `DoubleAdder`)。 如果读操作频率远高于写操作，或者并发程度不高，`AtomicLong` (或 `AtomicInteger`) 可能因其读取路径更简单而表现相当甚至略好。
+
+**代码示例**
+
+1.  `AtomicInteger` 瓶颈说明
+
+    ```java
+    // import java.util.concurrent.atomic.AtomicInteger;
+    // // AtomicInteger 保证了原子性，解决了正确性问题。
+    // // 但在高并发更新下，所有线程竞争同一个变量的 CAS 操作，
+    // // 可能导致大量失败和自旋，影响性能。
+    // private AtomicInteger totalBytes = new AtomicInteger();
+    // public void increaseTotalBytes() { totalBytes.incrementAndGet(); }
+    ```
+
+    - 描述：指出 `AtomicInteger` 虽解决了数据竞争的正确性问题，但在高并发更新场景下，其依赖单一变量 CAS 的机制可能成为性能瓶颈。
+
+2.  使用 `LongAdder` 优化高并发计数
+
+    ```java
+    public class DownloadStatus {
+        private LongAdder totalBytes = new LongAdder();
+
+        public int getTotalBytes() {
+            return totalBytes.intValue();
+        }
+
+        public void increaseTotalBytes() {
+            totalBytes.increment();
+        }
+    }
+    ```
+
+    - 描述：将 `DownloadStatus` 中的计数器 `totalBytes` 从 `AtomicInteger` (或 `int`) 替换为 `LongAdder`。读取总和使用 `intValue()`（内部调用 `sum()`），递增操作使用 `increment()`。`LongAdder` 通过其内部的 `Cell` 数组机制，有效地分散了高并发更新时的竞争，使得在大量线程同时调用 `increaseTotalBytes` 时，系统能够维持更高的吞吐量。（见原理的理解部分）
+
