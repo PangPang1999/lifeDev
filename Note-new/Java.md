@@ -9605,3 +9605,142 @@ Atomic objects
     ```
 
     - 描述：通过为 `totalBytes` 和 `totalFiles` 分别创建 `totalBytesLock` 和 `totalFilesLock` 两个独立的 `Object` 实例作为锁。`increaseTotalBytes` 方法仅在 `totalBytesLock` 上同步，而 `incrementTotalFiles` 方法仅在 `totalFilesLock` 上同步。这样，不同的线程可以同时执行这两个方法（一个增加字节数，一个增加文件数），因为它们获取的是不同的锁，从而实现了更细粒度的控制，提高了程序的并发性能。
+
+## Volatile
+
+> 简述：`volatile` 是 Java 提供的一种轻量级变量同步机制，用于确保共享变量的修改对所有线程立即可见，从而解决内存可见性问题。但请注意，`volatile` 不保证复合操作的原子性（不能解决竞态条件）
+
+**知识树**
+
+1. 可见性问题
+
+    - 定义：由于 Java 内存模型 (JMM) 允许线程将共享变量缓存到本地工作内存（如 CPU 缓存），一个线程对变量的修改可能无法及时反映到主内存，同时其他线程也可能未能及时从主内存更新该变量的值，导致不同线程读取到过时（stale）的数据。
+    - 示例：比如线程 1 读取了一个值 X，如果线程 2 修改了这个值，线程 1 并不能感知到，因为它将这个值读取到了自己的缓存中，线程 1 并不会持续尝试读取这个值。
+
+2. `volatile` 关键字
+
+    - 定义：
+        - 用于修饰共享的成员变量或静态成员变量。，解决多线程环境下的可见性问题。
+    - 写操作（写屏障 Write Barrier）：
+        - 强制将对 `volatile` 变量的写入操作立即刷新回主内存。
+    - 读操作（读屏障 Read Barrier）：
+        - 强制在读取 `volatile` 变量时，使当前处理器缓存无效，并必须从主内存重新加载最新值。
+    - 效果：
+        - 通过内存屏障技术，确保了 `volatile` 变量在多线程间的立即可见性。
+
+3. 局限性：不保证原子性 (Does Not Guarantee Atomicity):
+
+    - `volatile` 仅保证对变量的单次读或单次写的操作具有可见性。
+    - 不保证复合操作（例如 `count++`，它至少包含“读取当前值”、“增加值”、“写回新值”三个步骤）的原子性。在多线程环境下，这些步骤之间可能被其他线程中断并修改变量值，导致竞态条件（Race Condition）和最终结果错误。
+
+4. 补充
+
+    - 由于 `synchronize` 关键字支持当一个线程对共享变量进行修改时，所有其他线程都能及时看到这个修改，在修改和读取 isDone 的 set、get 方法中加上该关键字也能解决代码示例中的问题，但是不推荐在新代码中使用 `synchronize`
+
+**代码示例**
+
+1. 可见性问题示例
+
+    - `DownloadStatus` 类 (包含非 `volatile` 的 `isDone` 标志)
+
+        ```java
+        public class DownloadStatus {
+            private  boolean isDone;
+            private int totalBytes;
+            private final Object totalBytesLock = new Object();
+
+            public int getTotalBytes() {
+                return totalBytes;
+            }
+
+            public void increaseTotalBytes() {
+                synchronized (totalBytesLock) {
+                    totalBytes++;
+                }
+            }
+
+            public boolean isDone() {
+                return isDone;
+            }
+
+            public void done() {
+                isDone = true;
+            }
+        }
+        ```
+
+    - `DownloadFileTask` (模拟下载并设置状态)
+
+        ```java
+        public class DownloadFileTask implements Runnable {
+          private DownloadStatus status;
+
+          public DownloadFileTask(DownloadStatus status) {
+              this.status = status;
+          }
+
+          @Override
+          public void run() {
+              System.out.println("Downloading a file: " + Thread.currentThread().getName());
+
+              for (int j = 0; j < 1_000_000; j++) {
+                  if (Thread.currentThread().isInterrupted()) return;
+                  status.increaseTotalBytes();
+              }
+
+              status.done();
+
+              System.out.println("Download complete: " + Thread.currentThread().getName());
+          }
+        }
+        ```
+
+    - `ThreadDemo` (启动下载线程和等待线程)
+
+        ```java
+        public class ThreadDemo {
+          public static void show() {
+              var status = new DownloadStatus();
+
+              var downloader = new Thread(new DownloadFileTask(status));
+              var waiter = new Thread(() -> {
+                  while (!status.isDone()) {
+                  }
+                  System.out.println(status.getTotalBytes());
+              });
+              downloader.start();
+              waiter.start();
+          }
+        }
+        ```
+
+        - 描述：启动两个线程。`Downloader` 线程模拟下载完成后调用 `status.done()` 将 `isDone` 设为 `true`。`Waiter` 线程在一个 `while` 循环中检查 `status.isDone()`。由于 `isDone` 不是 `volatile`，`Waiter` 线程可能由于 CPU 缓存而无法看到 `Downloader` 线程对 isDone 的修改，导致其陷入无限循环。
+
+2. 使用`volatile`解决可见性问题
+
+    ```java
+    public class DownloadStatus {
+        private volatile boolean isDone;
+        private int totalBytes;
+        private final Object totalBytesLock = new Object();
+
+        public int getTotalBytes() {
+            return totalBytes;
+        }
+
+        public void increaseTotalBytes() {
+            synchronized (totalBytesLock) {
+                totalBytes++;
+            }
+        }
+
+        public boolean isDone() {
+            return isDone;
+        }
+
+        public void done() {
+            isDone = true;
+        }
+    }
+    ```
+
