@@ -9744,3 +9744,107 @@ Atomic objects
     }
     ```
 
+## 线程通信
+
+> 简述：Java 的 `Object` 类提供 `wait()`, `notify()`, 和 `notifyAll()` 方法，用于实现线程间的协作与同步。它们允许一个线程暂停执行并释放锁，等待特定条件满足后由其他线程唤醒，从而避免消耗 CPU 资源的忙等待。虽然功能强大，但使用相对复杂，需谨慎处理。
+
+**知识树**
+
+1. 核心方法 (定义于 `Object`)
+
+    - `wait()`: 使当前线程释放所持有的对象锁（监视器锁），并进入该对象的等待集 (Wait Set)，暂停执行，直到被唤醒或中断。
+        - `wait(long timeout)`: 带超时的等待，超时后若未被唤醒也会自动返回。
+        - `wait(long timeout, int nanos)`: 更精确的超时等待。
+    - `notify()`: 从对象的等待集中**随机唤醒一个**线程。被唤醒的线程需**重新竞争**获取对象锁后才能从 `wait()` 处继续执行。
+    - `notifyAll()`: 唤醒对象等待集中的**所有**线程。所有被唤醒的线程都需**重新竞争**获取对象锁。通常是更安全、更推荐的选择，以避免信号丢失。
+
+2. 解决的问题
+
+    - 避免忙等待 (Busy-Waiting): 替代 `while(condition) {}` 循环检查，后者持续占用 CPU，效率低下。
+    - 实现条件等待: `wait()` 使线程在条件不满足时休眠并释放锁，不消耗 CPU；`notify()` / `notifyAll()` 在条件满足时唤醒等待线程。
+
+3. 使用前提
+
+    - 必须持有锁 (Monitor Lock): 调用 `wait()`, `notify()`, `notifyAll()` 的线程必须先获得该对象的监视器锁（即必须在以该对象为锁的 `synchronized` 块或方法内）。否则抛出异常。
+    - 处理中断异常: `wait()` 方法会响应线程中断请求（`Thread.interrupt()`），并抛出 `InterruptedException`。调用者必须捕获并处理此受检异常（或直接抛出）。
+
+4. 虚假唤醒（补充）
+
+    - 定义：一个正在调用 Object.wait() 方法而阻塞等待的线程，在没有被其他线程显式调用 `notify()`、`notifyAll()` 或 `interrupt()` 的情况下，意外地、无缘无故地被唤醒。线程醒来时，它原本等待的那个条件很可能并未满足。这是 JVM 规范允许发生的底层行为，与操作系统交互、调度等因素有关。
+    - 解决：二次校验。
+
+**代码示例**
+
+1.  低效的忙等待 (回顾)
+
+    ```java
+    // (之前 Waiter 线程中的代码片段)
+    // while (!status.isDone()) {
+    //     // 此处持续空转，浪费 CPU 资源
+    // }
+    // System.out.println("Download finished! Total bytes: " + status.getTotalBytes());
+    ```
+
+    - 描述：回顾之前的忙等待实现，指出其在条件不满足时持续执行循环检查，导致不必要的 CPU 消耗。
+
+2.  使用 `wait()` / `notifyAll()` 实现高效等待
+
+    - 修改 Waiter 线程 (例如在 `ThreadDemo` 中):
+
+        ```java
+        public class ThreadDemo {
+          public static void show() {
+              var status = new DownloadStatus();
+
+              var downloader = new Thread(new DownloadFileTask(status));
+              var waiter = new Thread(() -> {
+                  while (!status.isDone()) {
+                      synchronized (status) {
+                          try {
+                              // 通知等待，使用try/catch包裹，以及synchronized包裹
+                              status.wait();
+                          } catch (InterruptedException e) {
+                              throw new RuntimeException(e);
+                          }
+                      }
+                  }
+                  System.out.println(status.getTotalBytes());
+              });
+              downloader.start();
+              waiter.start();
+          }
+        }
+        ```
+
+    - 修改 Downloader 任务 (例如在 `DownloadFileTask.run()` ):
+
+        ```java
+        public class DownloadFileTask implements Runnable {
+          private DownloadStatus status;
+
+          public DownloadFileTask(DownloadStatus status) {
+              this.status = status;
+          }
+
+          @Override
+          public void run() {
+              System.out.println("Downloading a file: " + Thread.currentThread().getName());
+
+              for (int j = 0; j < 1_000_000; j++) {
+                  if (Thread.currentThread().isInterrupted()) return;
+                  status.increaseTotalBytes();
+              }
+
+              status.done();
+              // 通知结束等待，使用synchronized包裹
+              synchronized (status) {
+                  status.notifyAll();
+              }
+
+              System.out.println("Download complete: " + Thread.currentThread().getName());
+          }
+        }
+        ```
+
+    - 描述：`Waiter` 线程在获取 `status` 对象的锁后，于 `while` 循环内检查条件 `!status.isDone()`。若条件为 `true`（即尚未完成），则调用 `status.wait()`，此时 `Waiter` 线程释放 `status` 锁并进入等待状态。`Downloader` 线程完成任务后，获取同一个 `status` 对象的锁，更新状态（调用 `status.done()`），然后调用 `status.notifyAll()` 唤醒所有等待 `status` 的线程（包括 `Waiter`）。`Waiter` 被唤醒后，需要重新竞争获取 `status` 锁，成功后从 `wait()` 返回，再次进入 `while` 循环检查条件。如果条件满足 (`isDone()` 返回 `true`)，则退出循环执行后续操作。这种方式使得 `Waiter` 线程在条件不满足时不会消耗 CPU。
+
