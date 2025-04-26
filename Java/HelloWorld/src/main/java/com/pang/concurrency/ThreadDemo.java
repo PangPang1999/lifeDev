@@ -1,34 +1,30 @@
 package com.pang.concurrency;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class ThreadDemo {
     public static void show() {
-        List<Thread> threads = new ArrayList<>();
-        List<DownloadFileTask> tasks = new ArrayList<>();
+        // Collection<Integer> collection = new ArrayList<>();
+        Collection<Integer> collection
+                = Collections.synchronizedCollection(new ArrayList<Integer>());
 
-        for (int i = 0; i < 10; i++) {
-            var task = new DownloadFileTask();
-            tasks.add(task);
+        var thread1 = new Thread(() -> {
+            collection.addAll(Arrays.asList(1, 2, 3));
+        });
+        var thread2 = new Thread(() -> {
+            collection.addAll(Arrays.asList(4, 5, 6));
+        });
 
-            var thread = new Thread(task);
-            thread.start();
-            threads.add(thread);
+        thread1.start();
+        thread2.start();
+
+        try {
+            thread1.join();
+            thread2.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
 
-        for (var thread : threads) {
-            try {
-                thread.join();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        var totalBytes = tasks.stream()
-                .map(t -> t.getStatus().getTotalBytes())
-                .reduce(Integer::sum);
-
-        System.out.println(totalBytes);
+        System.out.println(collection);
     }
 }

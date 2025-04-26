@@ -1,6 +1,7 @@
 # 可能补充
 
 **集合：多线程集合、线程安全集合**
+为什么线程被打断建议重新唤醒
 
 # 特质
 
@@ -9206,6 +9207,7 @@ Atomic objects
 2. 可见性问题
 
     - 一个线程修改了共享数据，但其他线程未能及时看到该修改，导致不同线程对数据的视图不一致。
+    - 示例：比如线程 1 读取了一个值 X，如果线程 2 修改了这个值，线程 1 并不能感知到，因为它将这个值读取到了自己的缓存中，线程 1 并不会持续尝试读取这个值。
 
 3. 线程安全
 
@@ -9275,7 +9277,7 @@ Atomic objects
 
     - 补充：是否每次都输出当前 j 的值，会对结果产生较大影响，因为 `System.out.println()` 是一个相对较慢的操作。如果不进行输出，程序的执行效率会更高，竞争会更激烈，因此在没有适当的安全处理的情况下，程序更容易出错。
 
-3.  创建 ThreadDemo，与 show 方法，就像前面几节一样，Main 中调用`ThreadDemo.show()`
+3.  创建 ThreadDemo，与 `show` 方法，就像前面几节一样，`Main` 中调用`ThreadDemo.show()`
 
     ```java
     public class ThreadDemo {
@@ -9452,6 +9454,52 @@ Atomic objects
     }
     ```
 
+## Locks
 
+> 简述：通过使用锁（Lock），可以确保在同一时刻只有一个线程能够安全地访问共享资源。锁机制用于保护临界区，保证对共享资源的访问是互斥的，从而避免多个线程同时修改数据而导致的不一致性。临界区是指访问共享资源的代码块，需要通过锁机制来控制并发访问。
 
-# --
+**知识树**
+
+1.  锁（Lock）
+
+    - 定义：锁是一种**同步机制**，它允许一个线程独占性地访问共享资源，阻止其他线程的并发访问。Java 提供了多种锁实现，`ReentrantLock` 是一种常用的实现，它支持更灵活的锁控制。
+    - 实现：
+        - 通过 `lock()` 方法获取锁，进入临界区；
+        - 通过 `unlock()` 方法释放锁，允许其他线程尝试获取。
+        - 使用锁可以确保在 `lock()` 和 `unlock()` 之间的代码块（即临界区）在同一时刻只有一个线程执行，从而避免竞争条件。
+    - 注意事项：锁的使用必须小心，尤其要避免死锁和保证锁在异常发生时能够被释放。
+
+2.  临界区 (Critical Section)
+
+    - 概念：指的是一段访问共享资源的代码。在多线程环境下，如果不加以保护，并发执行的临界区代码可能导致数据不一致或其他并发问题。临界区是需要被同步机制（如锁）保护的对象。
+
+3.  最佳实践：`try-finally` 块
+
+    - 为了确保即使在临界区代码执行过程中发生异常，锁也能被正确释放，推荐将临界区代码放在 `try` 块中，并在对应的 `finally` 块中调用 `unlock()` 方法。这可以保证锁在任何情况下都能够被解锁，从而避免死锁。
+
+**代码示例**
+
+1.  将代码回退至 竞态条件 一节
+2.  使用 `ReentrantLock` 保护共享状态，并重写运行
+
+    ```java
+    public class DownloadStatus {
+        private int totalBytes;
+        private Lock lock = new ReentrantLock();
+
+        public int getTotalBytes() {
+            return totalBytes;
+        }
+
+        public void increaseTotalBytes() {
+            lock.lock();
+            try {
+                totalBytes++;
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
+    ```
+
+    - 描述：在 `DownloadStatus` 类中引入 `ReentrantLock`。`increaseTotalBytes` 方法在修改 `totalBytes` 前获取锁，并在 `finally` 块中释放锁，确保了对 `totalBytes` 的递增操作同一时间只有一个线程在进行（线程串行）。
