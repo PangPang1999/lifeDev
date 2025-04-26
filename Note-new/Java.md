@@ -9848,3 +9848,67 @@ Atomic objects
 
     - 描述：`Waiter` 线程在获取 `status` 对象的锁后，于 `while` 循环内检查条件 `!status.isDone()`。若条件为 `true`（即尚未完成），则调用 `status.wait()`，此时 `Waiter` 线程释放 `status` 锁并进入等待状态。`Downloader` 线程完成任务后，获取同一个 `status` 对象的锁，更新状态（调用 `status.done()`），然后调用 `status.notifyAll()` 唤醒所有等待 `status` 的线程（包括 `Waiter`）。`Waiter` 被唤醒后，需要重新竞争获取 `status` 锁，成功后从 `wait()` 返回，再次进入 `while` 循环检查条件。如果条件满足 (`isDone()` 返回 `true`)，则退出循环执行后续操作。这种方式使得 `Waiter` 线程在条件不满足时不会消耗 CPU。
 
+## Atomic Object
+
+> 简述：原子类提供了一种无需显式锁即可对单个变量执行原子操作（如原子性地增减、比较和设置）的机制，有效解决了简单场景下的竞态条件问题，通常比锁具有更好的性能。
+
+**知识树**
+
+1.  原子类定义
+
+    - 概念：`java.util.concurrent.atomic` 包下提供的一系列类，用于封装基本数据类型（如 `AtomicInteger`, `AtomicLong`, `AtomicBoolean`）或对象引用（`AtomicReference`），并为其提供线程安全的原子操作方法。
+    - 目的：在多线程环境下，对这些封装的变量进行修改时，无需使用 `synchronized` 或 `Lock` 也能保证操作的原子性。
+    - 背景：`count++` 包含“读-改-写”三步，可能被线程切换打断，导致数据不一致。
+    - 解决：原子方法（如 `incrementAndGet()`）将整个过程作为一个不可分割的单位执行。
+
+2.  常用方法示例 (`AtomicInteger`):
+
+    - `AtomicInteger()` / `AtomicInteger(int initialValue)`: 构造器，创建 `AtomicInteger` 实例，初始值默认为 0 或指定值。
+    - `int get()`: 原子性地读取并返回当前整数值。
+    - `int incrementAndGet()`: 原子性地将当前值加 1，并返回更新后的值 (等效于 `++i`)。
+    - `int getAndIncrement()`: 原子性地将当前值加 1，并返回原始值 (等效于 `i++`)。
+    - `boolean compareAndSet(int expect, int update)`: 核心 CAS 操作。原子性地比较当前内部值是否等于 `expect`，如果相等，则将内部值设置为 `update` 并返回 `true`；如果不相等，则不修改内部值并返回 `false`。
+    - `int addAndGet(int delta)`: 原子性地将当前值增加 `delta`，并返回更新后的值。
+
+3.  核心机制：CAS (Compare-and-Swap):
+
+    - 可见性：首先用 volatile 语义读取最新值，保证读到的旧值对所有线程可见。
+    - 比较与交换：调用一次硬件原子指令 CAS(old, new)：比较内存中当前值是否等于 old ，若相等，原子地将其更新为 new；否则失败
+    - 自旋重试：若 CAS 失败，循环再读（volatile 读最新值）→ 计算新值 → 再试，直到成功为止。
+    - 无锁无阻塞：整个操作不依赖任何锁，也不会挂起线程，只会在 CPU 层面自旋，适合更新单个变量。
+
+**代码示例**
+
+1.  竞态条件回顾 (Race Condition Review)
+
+    ```java
+    // // 回顾：使用普通 int 和 ++ 操作的代码（如之前的 DownloadStatus）
+    // public class DownloadStatus {
+    //     private int totalBytes;
+    //     public void increaseTotalBytes() {
+    //         totalBytes++; // 非原子操作，多线程并发下会导致计数不准确
+    //     }
+    //     public int getTotalBytes() { return totalBytes; }
+    // }
+    ```
+
+    - 描述：回顾之前使用普通 `int` 类型和 `++` 操作符时，由于 `++` 并非原子操作，在多线程并发调用 `increaseTotalBytes` 方法时会产生竞态条件，导致最终 `totalBytes` 的计数值小于预期。
+
+2.  使用 `AtomicInteger` 解决竞态条件（代码先恢复为竞态条件章节）
+
+    ```java
+    public class DownloadStatus {
+        private AtomicInteger totalBytes = new AtomicInteger();
+
+        public int getTotalBytes() {
+            return totalBytes.get();
+        }
+
+        public void increaseTotalBytes() {
+            totalBytes.incrementAndGet();
+        }
+    }
+    ```
+
+    - 描述：通过将 `DownloadStatus` 类中的 `totalBytes` 字段类型从 `int` 更改为 `AtomicInteger`，并使用其提供的 `incrementAndGet()` 原子方法来执行递增操作。这确保了每次递增都是一个不可分割的原子单元，从而消除了竞态条件。多线程并发调用 `increaseTotalBytes` 时，能够安全、准确地完成计数，且无需使用任何 `synchronized` 或 `Lock` 显式锁。
+
