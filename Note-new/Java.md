@@ -9503,3 +9503,105 @@ Atomic objects
     ```
 
     - 描述：在 `DownloadStatus` 类中引入 `ReentrantLock`。`increaseTotalBytes` 方法在修改 `totalBytes` 前获取锁，并在 `finally` 块中释放锁，确保了对 `totalBytes` 的递增操作同一时间只有一个线程在进行（线程串行）。
+
+## Synchronized
+
+> 简述：`synchronized` 是 Java 内建的**同步机制**，它通过获取和释放对象内置的监视器锁来保证代码块或方法的原子性访问，是比 `Lock` 接口更简洁的同步实现方式。
+
+**知识树**
+
+1. 内建锁
+
+    - Java 中的每个对象都有一个内建的锁。
+
+2. `synchronized` 关键字:
+
+    - 定义：Java 语言层面提供的用于实现线程同步的关键字，依赖于对象内部的锁（称为监视器或 monitor lock）。
+    - 作用：
+        - 内存可见性：当一个线程对共享变量进行修改时，所有其他线程都能及时看到这个修改。
+        - 原子性和互斥性：同一个时刻只有一个线程可以执行被 `synchronized` 修饰的代码块。
+    - 方式：进入 `synchronized` 区域时自动获取监视器锁，退出时自动释放。
+
+3. `synchronized` 语法
+
+    - 语法：`synchronized(monitorObject) { /* 临界区代码 */ }`：
+        - 需要显式指定一个对象作为监视器（锁定的目标）。灵活性高，可以精确控制同步范围。
+    - 语法：`public synchronized void methodName() { /* 方法体 */ }`：
+        - 隐式使用当前实例对象 (`this`) 作为监视器锁。对于静态同步方法，则使用类对象 (`ClassName.class`) 作为锁。写法简洁，但锁定了整个方法。
+
+4. 使用 `this` 作为锁的风险:
+
+    - 问题：当一个类中有多个 `synchronized` 方法或显式使用 `synchronized(this)` 的代码块时，它们会竞争同一个对象的锁。
+    - 影响：一个线程持有该锁执行任一同步区域时，会阻止其他线程进入该对象上任何其他由 `this` 锁保护的同步区域，即使这些区域操作的是完全不相关的数据（如 `totalBytes` 和 `totalFiles`），这会造成不必要的阻塞，显著降低并发性能和吞吐量。
+
+5. 推荐实践：专用监视器对象 (Dedicated Monitor Objects):
+
+    - 方法：为不同的、需要独立保护的共享资源或逻辑单元，分别创建独立的、`private final` 的 `Object` 实例作为锁。可以实现更细粒度的锁定。只锁定必要的代码段和相关的资源，减少锁冲突。
+    - 约定：使用 `Object` 类型作为专用锁对象是常见约定，因为它简单且无业务含义，仅用于提供锁机制。
+
+6. 缺点与建议:
+    - 缺点：
+        - 性能：强制串行执行，降低并发度；可能引入锁竞争和上下文切换开销。
+        - 死锁：不当使用可能导致死锁。
+        - 调试困难：并发问题通常难以复现和修复。
+    - 建议：**避免在新的代码中使用同步（包括 `synchronized` 和 `Lock`）**，除非绝对必要。理解 `synchronized` 主要是为了维护使用了该技术的旧代码库。
+
+**代码示例**
+
+1.  将代码回退至 竞态条件 一节
+2.  同步方法 (隐式使用 `this` 作为锁)
+
+    ```java
+    public class DownloadStatus {
+        private int totalBytes;
+        private int totalFiles;
+
+        public int getTotalBytes() {
+            return totalBytes;
+        }
+        // 这个方法隐式地锁在 'this' 对象上
+        public synchronized void increaseTotalBytes() {
+                totalBytes++;
+        }
+
+        // 这个方法也隐式地锁在同一个 'this' 对象上
+        public synchronized void incrementTotalFiles() {
+            totalFiles++;
+        }
+    }
+    ```
+
+    - 描述：`increaseTotalBytes` 和 `incrementTotalFiles` 两个方法都使用了 `synchronized` 修饰，它们共享当前 `DownloadStatus` 实例 (`this`) 的锁。这意味着，如果一个线程正在执行 `increaseTotalBytes`，那么另一个线程不仅不能同时执行 `increaseTotalBytes`，也不能执行 `incrementTotalFiles`，反之亦然。即使这两个操作是逻辑独立的，它们也会互相阻塞，降低了并发性。
+
+3.  同步代码块与专用监视器 (推荐方式 - 更优的并发性)
+
+    ```java
+    public class DownloadStatus {
+        private int totalBytes;
+        private int totalFiles;
+
+        // 1. 为不同的共享数据创建独立的、final的锁对象
+        private final Object totalBytesLock = new Object();
+        private final Object totalFilesLock = new Object();
+
+        public int getTotalBytes() {
+            return totalBytes;
+        }
+
+        // 2. 使用锁对象保护 totalBytes
+        public void increaseTotalBytes() {
+            synchronized (totalBytesLock) {
+                totalBytes++;
+            }
+        }
+
+        // 3. 使用不同的锁对象保护 totalFiles
+        public synchronized void incrementTotalFiles() {
+            synchronized (totalFilesLock) {
+                totalFiles++;
+            }
+        }
+    }
+    ```
+
+    - 描述：通过为 `totalBytes` 和 `totalFiles` 分别创建 `totalBytesLock` 和 `totalFilesLock` 两个独立的 `Object` 实例作为锁。`increaseTotalBytes` 方法仅在 `totalBytesLock` 上同步，而 `incrementTotalFiles` 方法仅在 `totalFilesLock` 上同步。这样，不同的线程可以同时执行这两个方法（一个增加字节数，一个增加文件数），因为它们获取的是不同的锁，从而实现了更细粒度的控制，提高了程序的并发性能。
