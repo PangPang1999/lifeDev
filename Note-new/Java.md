@@ -9977,7 +9977,7 @@ Atomic objects
 
     - 描述：将 `DownloadStatus` 中的计数器 `totalBytes` 从 `AtomicInteger` (或 `int`) 替换为 `LongAdder`。读取总和使用 `intValue()`（内部调用 `sum()`），递增操作使用 `increment()`。`LongAdder` 通过其内部的 `Cell` 数组机制，有效地分散了高并发更新时的竞争，使得在大量线程同时调用 `increaseTotalBytes` 时，系统能够维持更高的吞吐量。（见原理的理解部分）
 
-## 同步集合包装器
+## 同步集合
 
 > 简述：`java.util.Collections` 类提供了一系列静态 `synchronizedXXX()` 方法，用于将非线程安全的标准集合（如 `ArrayList`, `HashMap`）包装成线程安全的版本。这种包装通过对每个方法调用进行同步（使用内部锁）来实现基本的线程安全。
 
@@ -10072,3 +10072,53 @@ Atomic objects
 
     - 描述：首先创建了一个 `ArrayList`，然后通过 `Collections.synchronizedCollection()` 方法将其包装成一个线程安全的 `syncCollection`。后续的多线程任务操作的是这个包装后的集合。由于 `syncCollection` 的 `add` 方法内部使用了 `synchronized` 锁，保证了每次只有一个线程能够执行添加操作，从而避免了并发冲突，使得最终集合的大小能够准确地达到预期值。
 
+## 并发集合
+
+> 简述： Java 提供了多种多线程环境下安全的集合，如 ConcurrentHashMap，在多线程环境下提供高吞吐且线程安全的数据结构。
+
+**知识树**
+
+1. 常见实现
+
+    - ConcurrentHashMap：线程安全的 HashMap 集合。虽然与 Map 拼写相似，但两者属于两个不同的类，功能和实现不同，效果也不同
+
+2. 性能对比
+
+    - 读多写少 → CopyOnWriteList/Set：写时复制
+    - 高并发读写 → ConcurrentHashMap：节点数组 + CAS
+    - 需排序/范围查询 → ConcurrentSkipListMap/Set：跳表；天然有序，支持范围检索
+
+3. 原理补充
+
+    - 内部锁：`synchronized` / `ReentrantLock`
+    - 无锁：CAS + 自旋
+    - 分段锁：缩小锁粒度
+    - 内存可见性：`volatile`
+
+**代码示例**
+
+1. 普通集合，多线程下数据出现问题
+
+    ```java
+    public class ThreadDemo {
+        public static void show() {
+            Map<Integer,String> map = new HashMap<>();
+            map.put(1,"a");
+            map.get(1);
+            map.remove(1);
+        }
+    }
+    ```
+
+2. 并发集合，多线程下安全
+
+    ```java
+    public class ThreadDemo {
+        public static void show() {
+            Map<Integer,String> map = new ConcurrentHashMap<>();
+            map.put(1,"a");
+            map.get(1);
+            map.remove(1);
+        }
+    }
+    ```
