@@ -42,7 +42,7 @@
     - Magnet（进行快捷键配置，关闭顶部显示）
     - Network&Battry（手动设置开启自动启动）
     - Termius（shh 连接工具）
-    - 微信、QQ、百度网盘、WPS、Eudic、DaisyDisk
+    - 微信、QQ、百度网盘、WPS、Eudic、DaisyDisk、Movist
 3. 考虑：
     - 钉钉、腾讯会议、网易云
 
@@ -349,7 +349,8 @@
     1. Code--首选项--设置--搜索“theme”——选择 Light Morden
     2. Code--首选项--设置--搜索“formatOnSave”——勾选：保存时格式化（可能不生效，需要下载插件）
     3. Code--首选项--设置--搜索“hotExit”——勾选：off：设置 Command+Q 时若有文件未保存出现提示
-    4. （可选）Code--首选项--设置--搜索“restoreWindows”——勾选：none：设置 vscode 启动时不自动打开上一次的项目
+    4. Code--首选项--设置--搜索“terminal.integrated.fontFamily”——输入`MesloLGS NF`：适配 Powerlevel10k 主题
+    5. （可选）Code--首选项--设置--搜索“restoreWindows”——勾选：none：设置 vscode 启动时不自动打开上一次的项目
 
 8. DataGrip 其他配置
 

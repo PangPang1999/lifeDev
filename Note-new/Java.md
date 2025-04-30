@@ -73,16 +73,13 @@
         ```bash
         brew install --cask zulu@17
         ```
-    - 配置 Java 环境变量，host 目录下，在`.zprofile` 中添加以下代码
+    - 配置 Java 环境变量，终端执行下面代码，添加 Java 环境变量，并刷新环境变量
         ```bash
-        export JAVA_HOME=$(/usr/libexec/java_home -v 17)
-        export PATH=$JAVA_HOME/bin:$PATH
-        ```
-        - `Command + Shift + .`显示隐藏文件
-    - 刷新环境变量：
-        ```bash
+        echo 'export JAVA_HOME=$(/usr/libexec/java_home -v 17)' >> ~/.zprofile
+        echo 'export PATH=$JAVA_HOME/bin:$PATH' >> ~/.zprofile
         source ~/.zprofile
         ```
+        - `Command + Shift + .`显示隐藏文件
     - 验证安装：
         ```bash
         java -version
