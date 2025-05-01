@@ -10356,4 +10356,75 @@ Completable Futures
     }
     ```
 
+## CompletableFuture 概念与创建
 
+> 简述：`CompletableFuture<T>` 是 Java 中用于异步编程的增强型 `Future`。它不仅代表了异步计算的未来结果，还实现了 `CompletionStage` 接口，允许将多个异步步骤（阶段）以声明式、非阻塞的方式组合和链接起来，极大地简化了复杂异步工作流的构建与管理。同时，它支持被外部显式地完成。
+
+**知识树**
+
+1.  核心概念
+
+    - 实现 `Future<T>` 接口：
+        - 因此，每个 `CompletableFuture` 也是一个 `Future`。
+        - 继承了 `Future` 的基本能力，如通过 `get()` 阻塞式 获取结果、检查完成状态 (`isDone()`) 等。
+    - 实现 `CompletionStage<T>` 接口：
+        - 核心增强：定义了一个异步操作中的“阶段 (Stage)”。
+        - 提供了丰富的组合与链接方法，允许以声明式 (declarative)、非阻塞的方式构建多步骤的异步流程，类似 Stream API 的链式调用。
+    - 可显式完成 (Completable)：
+        - 与 `Future` 不同，`CompletableFuture` 可以被外部代码主动设置结果 (`complete(T value)`) 或异常 (`completeExceptionally(Throwable ex)`) 来完成。
+
+2.  创建异步任务 (静态工厂方法)
+
+    - `runAsync(Runnable runnable)` / `runAsync(Runnable runnable, Executor executor)`：
+        - 用途：异步执行一个**不返回任何结果**的任务 (`Runnable`)。
+        - 返回：`CompletableFuture<Void>`。
+        - 执行器：若未指定 `executor`，默认使用 `ForkJoinPool.commonPool()`。
+    - `supplyAsync(Supplier<U> supplier)` / `supplyAsync(Supplier<U> supplier, Executor executor)`：
+        - 用途：异步执行一个**返回结果**的任务 (`Supplier<U>`)。
+        - 返回：`CompletableFuture<U>`，`U` 是 `Supplier` 提供的结果类型。
+        - 执行器：若未指定 `executor`，默认使用 `ForkJoinPool.commonPool()`。
+
+3.  默认执行器 (Executor)
+    - `ForkJoinPool.commonPool()`：
+        - 是 `runAsync`/`supplyAsync` 等不带 `Executor` 参数的异步方法默认使用的公共线程池。
+        - 该池的大小通常基于可用 CPU 核心数 (`Runtime.getRuntime().availableProcessors()`)
+
+**代码示例**
+
+1.  使用 `runAsync` 执行无返回值的异步任务
+
+    ```java
+    public class ExecutorsDemo {
+        public static void show() {
+            // ForkJoinPool forkJoinPool = ForkJoinPool.commonPool();
+            Runnable task1 = () -> System.out.println("a");
+            CompletableFuture<Void> future1 = CompletableFuture.runAsync(task1);
+        }
+    }
+    ```
+
+2.  使用 `supplyAsync` 执行有返回值的异步任务并获取结果
+
+    ```java
+    public class ExecutorsDemo {
+        public static void show() {
+            // ForkJoinPool forkJoinPool = ForkJoinPool.commonPool();
+            Runnable task1 = () -> System.out.println("a");
+            CompletableFuture<Void> future1 = CompletableFuture.runAsync(task1);
+
+            Supplier<Integer> task2 = () -> 1;
+            CompletableFuture<Integer> future2 = CompletableFuture.supplyAsync(task2);
+
+            try {
+                Integer result = future2.get();
+                System.out.println(result);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+    ```
+
+    - 描述：`CompletableFuture` 继承自 `Future` 可以使用`get()` ，这节仅创建的初步演示。
