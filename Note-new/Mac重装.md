@@ -500,3 +500,60 @@
 	}
 }
 ```
+
+## 常规版本备份
+
+```json
+{
+	// 主题
+	"workbench.colorTheme": "Default Light Modern",
+	// 图标
+	"workbench.iconTheme": "material-icon-theme",
+	// tab
+	"editor.tabSize": 2,
+	// 未保存时退出提示
+	"files.hotExit": "off",
+	// 终端字体
+	"terminal.integrated.fontFamily": "MesloLGS NF",
+
+	// 设置换行模式为按指定列数换行
+	"editor.wordWrap": "wordWrapColumn",
+	// 设置换行的列数为 80
+	"editor.wordWrapColumn": 80,
+	// 保留视觉标尺
+	"editor.rulers": [80],
+
+	// 保存时格式化
+	"editor.formatOnSave": true,
+	"[vue]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[javascript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[html]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[css]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[json]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[jsonc]": {
+		// 为带注释的 JSON (JSONC) 添加配置 (settings.json 文件本身就是 jsonc)
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[typescript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+
+	// 粘贴文件时不再提示
+	"explorer.confirmPasteNative": false
+	// 删除文件时不再提示
+	// "explorer.confirmDelete": false,
+}
+```
