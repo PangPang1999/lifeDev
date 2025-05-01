@@ -10146,29 +10146,22 @@ Completable Futures
 
 ## Executor 家族
 
-> 简述：Java 线程池的管理框架，用于高效执行和管理并发任务。
+> 简述：`Executor` 家族是 Java 并发框架的核心，用于解耦任务提交与执行策略，并提供强大的线程池管理能力，实现高效的异步任务处理。该体系围绕 `Executor` 和 `ExecutorService` 接口构建，以 `ThreadPoolExecutor` 作为关键的可配置实现。
 
 1. Executor 接口
 
     - 概念
-        - `Executor` 是一个用于执行 `Runnable` 任务的函数式接口，它将任务的提交（`submit`）与执行（`execute`）分离，屏蔽了线程创建的细节，使任务执行更加灵活、可扩展。
-        - 它是线程池相关接口的顶层接口，但由于功能简单，实际开发中通常使用其子接口 `ExecutorService`。
-    - 核心方法：`void execute(Runnable command);`
-        - 接收一个 `Runnable` 对象作为参数，具体如何执行任务（如新建线程或使用线程池）由实现类的 `execute` 方法决定。
-        - 可以通过 Lambda 表达式快速实现该接口，但实际开发中不推荐这么用，除非用于教学目的：
-            ```java
-            // 使用 lambda 实现 Executor 接口：每次调用 execute 就新建一个线程
-            Executor executor = command -> new Thread(command).start();
-            executor.execute(() -> System.out.println("执行一个任务"));
-            ```
+        - `Executor` 是 Java 并发框架中用于任务执行的顶层接口，由于功能较为基础，仅支持接收并执行 `Runnable` 任务，实际开发中更常使用功能更强的子接口 `ExecutorService`。
+    - 核心方法：`void execute(Runnable command)`
+        - 接收一个 `Runnable` 任务作为参数，任务的执行方式（例如直接创建线程、交由线程池调度等）由具体实现类决定。
 
 2. ExecutorService 接口
 
     - 概念：
-        - `ExecutorService` 是 `Executor` 的子接口，提供了更丰富的线程池管理能力，是 Java 中执行多线程任务的主要接口。线程池的具体实现类都实现了这个接口。
-        - 它不仅支持任务的提交，还提供了任务生命周期管理、批量执行、返回结果处理等功能，适用于更复杂的并发场景。
+        - `Executor` 接口主要用于执行不带返回值的任务，通常通过提交 `Runnable` 实现。相比之下，`ExecutorService` 接口扩展了这一能力，允许提交实现了 `Callable<T>` 接口的任务。`Callable` 与 `Runnable` 不同，它可以返回结果，并允许抛出异常。提交的 `Callable` 任务会被封装成 `Future<T>` 对象，用于异步获取执行结果。
+        - **执行多线程任务的主要接口，线程池的具体实现类都实现了这个接口**。
     - 常用方法：
-        - `submit(Callable)` / `(Runnable)` ：提交任务，返回 `Future` 可获取结果
+        - `submit(Callable)` / `(Runnable)` ：提交任务，返回 `Future` 可获取结果（下一节介绍）
         - `invokeAll(Collection)` ：批量提交多个任务，返回所有结果
         - `invokeAny(Collection)` ： 提交多个任务，返回第一个完成的结果
         - `shutdown()` ：优雅关闭，不接受新任务，等待现有任务执行完。
@@ -10176,37 +10169,47 @@ Completable Futures
         - `isShutdown()` / `isTerminated()` ：判断线程池状态
         - `awaitTermination(time, timeUnit)`：如果线程池在超时时间内终止，返回 `true`，否则返回 `false`。
 
-3. ThreadPoolExecutor 类
+3. ExecutorService 的实现（四个“顶级”类）
+
+    1. `AbstractExecutorService`（抽象类）：
+
+        - 实现了 `ExecutorService` 接口中绝大多数方法（`submit`、`invokeAll`、`invokeAny` 等），只留下 `execute(Runnable)`、生命周期管理（`shutdown`、`isTerminated` 等）这几组核心抽象方法；
+
+    2. **`ThreadPoolExecutor`（具体实现）：主要了解**
+
+        - 继承自 `AbstractExecutorService`，重写并实现了：
+            - `execute(Runnable)`：线程复用、队列管理、拒绝策略；
+            - 生命周期方法：`shutdown`、`shutdownNow`、`isShutdown`、`awaitTermination` 等；
+        - 优势：
+            - 提供了最通用也最可配置的线程池实现。**适合在生产环境中使用，能更精准地管理线程池行为。**
+            - 灵活控制线程数量：控制核心线程、最大线程、空闲时间
+            - 自定义任务队列：支持多种 `BlockingQueue` （线程安全的队列）实现
+            - 自定义拒绝策略：提供 4 种默认策略，可自定义
+            - 可替代 `Executors`：比 `Executors.newXxxThreadPool()` 更安全，避免资源耗尽风险
+        - 构造方法重要参数：
+            - `corePoolSize`：核心线程数
+            - `maximumPoolSize`：最大线程数
+            - `keepAliveTime`：空闲线程保留时间
+            - `workQueue`：任务队列（如`LinkedBlockingQueue`）
+            - `threadFactory`：线程创建工厂（可选）
+            - `RejectedExecutionHandler`：拒绝策略
+
+    3. `ScheduledThreadPoolExecutor`（调度线程池）
+
+        - 又继承自 `ThreadPoolExecutor`，并实现 `ScheduledExecutorService` 接口；
+        - 在 `ThreadPoolExecutor` 的基础上增加了定时/周期任务的管理（内部用延迟队列、定期重新入队等机制）。
+
+    4. `ForkJoinPool`（分治并行池）
+        - 直接继承自 `AbstractExecutorService`，并实现 `ExecutorService`；
+        - 引入了 `ForkJoinTask`、双端队列与“工作窃取”算法，不同于 `ThreadPoolExecutor` 的集中队列，更适合大量细粒度、递归拆分的并行计算场景。
+        - “工作窃取”算法：每个工作线程都有自己的任务队列。空闲线程会“窃取”其他线程队列中的任务，避免线程长时间空转，提高吞吐量。
+
+4. `Executors` 类
 
     - 概念：
-        - `ThreadPoolExecutor` 是 Java 中线程池的核心实现类，提供了对线程数量、任务队列、线程创建策略和拒绝策略的全面控制。相比通过 `Executors` 创建的线程池，它更适合在生产环境中使用，能更精准地管理线程池行为。
-    - 构造方法重要参数：
-        - `corePoolSize`：核心线程数
-        - `maximumPoolSize`：最大线程数
-        - `keepAliveTime`：空闲线程保留时间
-        - `workQueue`：任务队列（如`LinkedBlockingQueue`）
-        - `threadFactory`：线程创建工厂（可选）
-        - `RejectedExecutionHandler`：拒绝策略
-    - 优势：
-        - 灵活控制线程数量：控制核心线程、最大线程、空闲时间
-        - 自定义任务队列：支持多种 `BlockingQueue` 实现
-        - 自定义拒绝策略：提供 4 种默认策略，可自定义
-        - 可替代 `Executors`：比 `Executors.newXxxThreadPool()` 更安全，避免资源耗尽风险
-
-4. 补充 ExecutorService 实现类
-
-    - ThreadPoolExecutor：已介绍
-    - AbstractExecutorService：`ExecutorService` 的抽象实现类，封装了 `submit()` 等常用方法，简化了自定义线程池的开发。
-    - ForkJoinPool：支持任务递归拆分与并行执行的线程池，基于“工作窃取算法”，适合 CPU 密集型、大量小任务的场景。每个工作线程都有自己的任务队列。空闲线程会\*\*“窃取”其他线程队列中的任务，避免线程长时间空转，提高吞吐量。
-    - ScheduledThreadPoolExecutor：支持定时执行任务的线程池，替代 `Timer`，可执行延迟或周期性任务。
-
-5. `Executors` 类
-
-    - 概念：
-        - `Executors` 是 Java 提供的一个线程池工厂类，位于 `java.util.concurrent` 包中。它为创建常用线程池提供了便捷的静态方法，简化了 `ThreadPoolExecutor` 的使用。
-        - 尽管使用方便，但由于其默认策略可能导致资源耗尽（如无限队列），**在生产环境中建议使用 `ThreadPoolExecutor` 显式配置线程池参数**。
+        - `Executors` 是 Java 提供的一个线程池工厂类。它为创建常用线程池提供了便捷的静态方法，简化了 `ThreadPoolExecutor` 的使用。
     - 常见方法：
-        - `newFixedThreadPool(n)`：
+        - `newFixedThreadPool(n)`：（常用）
             - 创建固定大小的线程池，适合负载稳定的场景。使用无界队列（任务积累速度大于消耗速度），可能引发 OOM，返回 `ThreadPoolExecutor`实例，方法签名声明的是`ExecutorService`
         - `newSingleThreadExecutor()`：
             - 创建单线程线程池，任务按顺序执行，适合串行任务，返回 `ThreadPoolExecutor`实例，方法签名声明的是`ExecutorService`
@@ -10216,12 +10219,14 @@ Completable Futures
             - 创建支持定时任务和周期任务的线程池，类似于 Timer，返回`ScheduledThreadPoolExecutor`实例，方法签名声明的是`ExecutorService`
         - `newWorkStealingPool()`：
             - 创建基于工作窃取算法的线程池，适合 CPU 密集型任务（JDK 8+）。返回`ForkJoinPool`实例，方法签名声明的是`ExecutorService`
+    - 缺陷
+        - 默认策略可能导致资源耗尽（如无限队列），**在生产环境中建议使用 `ThreadPoolExecutor` 显式配置线程池参数**。
 
-6. 引入示例
+5. 引入示例
 
     - 使用 Executors 的工厂方法创建静态线程池进行演示，创建 ExecutorsDemo 与 show 方法，并在 Main 中调用 show 方法
 
-7. 最佳实践
+6. 最佳实践
 
     - 推荐显式使用`ThreadPoolExecutor`，避免资源耗尽风险
     - 必须使用`try-finally`块管理线程池关闭
@@ -10263,4 +10268,92 @@ Completable Futures
         }
     }
     ```
+
+## Callable 与 Future
+
+> 简述：`Callable` 是 Java 中用于定义具有返回值并可抛出异常的异步任务的接口，`Future` 是代表异步任务结果的占位符，提供阻塞式获取结果的方法。
+
+**知识树**
+
+1. Callable 接口
+
+    - 概念：`java.util.concurrent.Callable<V>` 是一个支持返回结果和抛出异常的函数式接口，用于定义可以返回值的任务。
+    - 核心方法：`V call() throws Exception`
+        - 执行任务并返回结果或抛出异常。
+        - 任务提交给线程池后，其返回值会被封装为 `Future<V>` 对象，以支持异步获取结果。
+
+2. Future 接口
+
+    - 概念：异步任务的结果占位符，表示尚未完成的计算的对象，也就是一个“未来”会有结果的任务，用于后续获取任务执行结果。
+    - 通常由 `ExecutorService` 提交 `Callable` 或 `Runnable` 任务获得 (`Runnable` 可指定返回值)。
+
+3. Future 常用方法
+
+    - `V get()`
+        - 阻塞直至任务完成并返回结果。
+    - `V get(long timeout, TimeUnit unit)`
+        - 限时等待任务结果，超时则抛出 `TimeoutException`。
+    - `boolean cancel(boolean mayInterruptIfRunning)`
+        - 尝试取消任务；参数为是否中断运行中的任务。
+    - `boolean isDone()`
+        - 检查任务是否完成（正常完成、异常或取消）。
+    - `boolean isCancelled()`
+        - 检查任务是否被取消。
+
+4. Future 的缺点（本质问题）
+    1. 不可主动完成
+        - 无法主动设定任务结果，只能被动等待任务执行完成。
+    2. 只能阻塞获取结果
+        - `Future.get()` 方法强制阻塞，异步任务调用方失去了非阻塞优势。
+    3. 缺乏链式组合能力
+        - Future 本身不支持任务完成后的进一步组合或转换操作，无法实现任务链式调用。
+    4. 错误处理机制不足
+        - 异常统一封装在 `ExecutionException` 中，丢失异常原有类型信息和语义。
+        - 需要重复且冗长的 try-catch 解包异常，代码可读性差。
+        - 缺乏在异常发生时自动触发的、非阻塞的回调处理机制。
+        - 无法组合或统一处理多个 Future 中的异常，异常处理的复杂性随任务数量增加而显著增加。
+
+**代码示例**
+
+1. 创建一个模拟任务耗时的类
+
+    ```java
+    public class LongTask {
+        public static void simulate() {
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+    ```
+
+2. Future 方法演示
+
+    ```java
+    public class ExecutorsDemo {
+        public static void show() {
+            ExecutorService executorService = Executors.newFixedThreadPool(2);
+            try {
+                Future<Integer> future = executorService.submit(() -> {
+                    LongTask.simulate();
+                    return 1;
+                });
+
+                System.out.println("Do more work");
+                try {
+                    var result = future.get();
+                    System.out.println(result);
+                } catch (InterruptedException | ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+
+            } finally {
+                executorService.shutdown();
+            }
+        }
+    }
+    ```
+
 
