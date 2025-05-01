@@ -8775,7 +8775,7 @@ Atomic objects
 
 1. Thread 类
 
-    - Thread 类是 Java 中创建和控制线程的主要类，实现 Runnable 接口的 `run()` 方法，但是 Thread 类中的 `run()`方法的作用的调用传入对象（Runnable 对象）的 `run()` 方法。
+    - `Thread` 类是 Java 中用于创建和控制线程的主要类。它可以直接继承并重写其 `run()` 方法，或者传入一个实现了 `Runnable` 接口的对象作为参数，然后在内部的 `run()` 方法中调用该对象的 `run()` 方法。
 
 2. Thread 构造器
 
@@ -10119,3 +10119,148 @@ Atomic objects
         }
     }
     ```
+
+# 执行框架
+
+Thread Pools
+Executors
+Callable and Future interfaces
+Asynchronous Programming
+Completable Futures
+
+## 线程池
+
+> 简述：线程池（Thread Pool）是用于高效管理和复用线程的一种机制，可避免频繁创建和销毁线程带来的性能开销，防止因线程过多导致内存溢出，简化线程管理。
+
+**知识树**
+
+1. 线程池概念
+
+    - 工作线程（worker threads）组成线程池，可重复执行多个任务。
+    - 线程执行完任务后返回线程池，不会销毁，可再次复用。
+
+2. 为什么使用线程池
+
+    - 创建和销毁线程成本高，线程池可显著降低系统资源消耗。
+    - 防止创建过多线程导致内存溢出（OutOfMemoryError）。
+
+## Executor 家族
+
+> 简述：Java 线程池的管理框架，用于高效执行和管理并发任务。
+
+1. Executor 接口
+
+    - 概念
+        - `Executor` 是一个用于执行 `Runnable` 任务的函数式接口，它将任务的提交（`submit`）与执行（`execute`）分离，屏蔽了线程创建的细节，使任务执行更加灵活、可扩展。
+        - 它是线程池相关接口的顶层接口，但由于功能简单，实际开发中通常使用其子接口 `ExecutorService`。
+    - 核心方法：`void execute(Runnable command);`
+        - 接收一个 `Runnable` 对象作为参数，具体如何执行任务（如新建线程或使用线程池）由实现类的 `execute` 方法决定。
+        - 可以通过 Lambda 表达式快速实现该接口，但实际开发中不推荐这么用，除非用于教学目的：
+            ```java
+            // 使用 lambda 实现 Executor 接口：每次调用 execute 就新建一个线程
+            Executor executor = command -> new Thread(command).start();
+            executor.execute(() -> System.out.println("执行一个任务"));
+            ```
+
+2. ExecutorService 接口
+
+    - 概念：
+        - `ExecutorService` 是 `Executor` 的子接口，提供了更丰富的线程池管理能力，是 Java 中执行多线程任务的主要接口。线程池的具体实现类都实现了这个接口。
+        - 它不仅支持任务的提交，还提供了任务生命周期管理、批量执行、返回结果处理等功能，适用于更复杂的并发场景。
+    - 常用方法：
+        - `submit(Callable)` / `(Runnable)` ：提交任务，返回 `Future` 可获取结果
+        - `invokeAll(Collection)` ：批量提交多个任务，返回所有结果
+        - `invokeAny(Collection)` ： 提交多个任务，返回第一个完成的结果
+        - `shutdown()` ：优雅关闭，不接受新任务，等待现有任务执行完。
+        - `shutdownNow()` ：尝试立即关闭线程池，停止正在执行的任务，返回未执行的任务列表。可能抛出异常。
+        - `isShutdown()` / `isTerminated()` ：判断线程池状态
+        - `awaitTermination(time, timeUnit)`：如果线程池在超时时间内终止，返回 `true`，否则返回 `false`。
+
+3. ThreadPoolExecutor 类
+
+    - 概念：
+        - `ThreadPoolExecutor` 是 Java 中线程池的核心实现类，提供了对线程数量、任务队列、线程创建策略和拒绝策略的全面控制。相比通过 `Executors` 创建的线程池，它更适合在生产环境中使用，能更精准地管理线程池行为。
+    - 构造方法重要参数：
+        - `corePoolSize`：核心线程数
+        - `maximumPoolSize`：最大线程数
+        - `keepAliveTime`：空闲线程保留时间
+        - `workQueue`：任务队列（如`LinkedBlockingQueue`）
+        - `threadFactory`：线程创建工厂（可选）
+        - `RejectedExecutionHandler`：拒绝策略
+    - 优势：
+        - 灵活控制线程数量：控制核心线程、最大线程、空闲时间
+        - 自定义任务队列：支持多种 `BlockingQueue` 实现
+        - 自定义拒绝策略：提供 4 种默认策略，可自定义
+        - 可替代 `Executors`：比 `Executors.newXxxThreadPool()` 更安全，避免资源耗尽风险
+
+4. 补充 ExecutorService 实现类
+
+    - ThreadPoolExecutor：已介绍
+    - AbstractExecutorService：`ExecutorService` 的抽象实现类，封装了 `submit()` 等常用方法，简化了自定义线程池的开发。
+    - ForkJoinPool：支持任务递归拆分与并行执行的线程池，基于“工作窃取算法”，适合 CPU 密集型、大量小任务的场景。每个工作线程都有自己的任务队列。空闲线程会\*\*“窃取”其他线程队列中的任务，避免线程长时间空转，提高吞吐量。
+    - ScheduledThreadPoolExecutor：支持定时执行任务的线程池，替代 `Timer`，可执行延迟或周期性任务。
+
+5. `Executors` 类
+
+    - 概念：
+        - `Executors` 是 Java 提供的一个线程池工厂类，位于 `java.util.concurrent` 包中。它为创建常用线程池提供了便捷的静态方法，简化了 `ThreadPoolExecutor` 的使用。
+        - 尽管使用方便，但由于其默认策略可能导致资源耗尽（如无限队列），**在生产环境中建议使用 `ThreadPoolExecutor` 显式配置线程池参数**。
+    - 常见方法：
+        - `newFixedThreadPool(n)`：
+            - 创建固定大小的线程池，适合负载稳定的场景。使用无界队列（任务积累速度大于消耗速度），可能引发 OOM，返回 `ThreadPoolExecutor`实例，方法签名声明的是`ExecutorService`
+        - `newSingleThreadExecutor()`：
+            - 创建单线程线程池，任务按顺序执行，适合串行任务，返回 `ThreadPoolExecutor`实例，方法签名声明的是`ExecutorService`
+        - `newCachedThreadPool()`：
+            - 创建可缓存的线程池，线程可复用，适合短任务、高并发场景。线程数几乎无限制，风险较高，返回 `ThreadPoolExecutor`实例，方法签名声明的是`ExecutorService`
+        - `newScheduledThreadPool(n)`：
+            - 创建支持定时任务和周期任务的线程池，类似于 Timer，返回`ScheduledThreadPoolExecutor`实例，方法签名声明的是`ExecutorService`
+        - `newWorkStealingPool()`：
+            - 创建基于工作窃取算法的线程池，适合 CPU 密集型任务（JDK 8+）。返回`ForkJoinPool`实例，方法签名声明的是`ExecutorService`
+
+6. 引入示例
+
+    - 使用 Executors 的工厂方法创建静态线程池进行演示，创建 ExecutorsDemo 与 show 方法，并在 Main 中调用 show 方法
+
+7. 最佳实践
+
+    - 推荐显式使用`ThreadPoolExecutor`，避免资源耗尽风险
+    - 必须使用`try-finally`块管理线程池关闭
+
+**代码示例**
+
+1. 创建并使用固定大小的线程池
+
+    ```java
+    public class ExecutorsDemo {
+        public static void show() {
+            // new ThreadPoolExecutor()
+            ExecutorService executorService = Executors.newFixedThreadPool(2);
+            for (int i = 0; i < 10; i++) {
+                executorService.submit(() -> {
+                    System.out.println(Thread.currentThread().getName());
+                });
+            }
+        }
+    }
+    ```
+
+    - 描述：两个线程并发执行，执行完后并没有结束，线程等待新任务。
+
+2. 推荐的关闭方式（`try-finally`）：
+
+    ```java
+    public class ExecutorsDemo {
+        public static void show() {
+            // new ThreadPoolExecutor()
+            ExecutorService executorService = Executors.newFixedThreadPool(2);
+            try {
+                executorService.submit(() -> {
+                    System.out.println(Thread.currentThread().getName());
+                });
+            } finally {
+                executorService.shutdown();
+            }
+        }
+    }
+    ```
+
