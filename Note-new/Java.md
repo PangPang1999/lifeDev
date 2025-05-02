@@ -10971,3 +10971,67 @@ Completable Futures
     ```
 
     - 描述：并发启动获取价格和汇率两个异步任务。使用 `thenCombine` 等待两者都完成后，通过 `BiFunction` 将两个数字结果相乘，得到最终的欧元价格，并通过 `thenAccept` 打印。
+
+## 等待多个 CompletableFuture 完成
+
+> 简述：`CompletableFuture.allOf` 是一个静态辅助方法，用于创建一个聚合的 `CompletableFuture`，该 Future 会在**所有**指定的一组独立 `CompletableFuture` 任务都执行完毕（无论是成功还是出现异常）之后才标记为完成。这提供了一种协调机制，以确保一组并行任务全部结束后再执行特定逻辑。
+
+**知识树**
+
+1.  核心场景：等待一组任务全部结束
+
+    - 需求：需要确保多个并行、独立的异步操作都已经执行完成，然后才能进行下一步的操作（例如：并行下载多个文件后，进行文件合并或状态更新）。
+
+2.  解决方案：`CompletableFuture.allOf()` 静态方法
+
+    - 签名：`public static CompletableFuture<Void> allOf(CompletableFuture<?>... cfs)`
+    - 输入：接收一个或多个 `CompletableFuture` 对象作为可变参数 (`varargs`)。
+    - 行为：
+        - 并发执行：传入的多个 `CompletableFuture` 任务会并发执行（受限于线程池资源）。
+        - 聚合完成状态：`allOf` 方法返回一个新的 `CompletableFuture<Void>`。这个新的 Future 只有在所有传入的 `cfs` 参数代表的 Future 都进入完成状态（包括成功完成或异常完成）时，它才会完成。
+
+3.  返回类型 `CompletableFuture<Void>` 解析
+
+    - 原因：传入 `allOf` 的各个 `CompletableFuture` 可能具有不同的泛型结果类型（例如，一个返回 `String`，一个返回 `Integer`）。`allOf` 本身不负责合并或提供这些异构结果，它的核心职责是同步这一组任务的整体完成事件。因此，其自身的逻辑结果是 `Void`（无特定值）。
+
+4.  获取原始任务结果
+    - 时机保证：当 `allOf` 返回的 `CompletableFuture<Void>` 完成时（即 `thenRun` 的回调被触发时），可以**确信**所有传递给 `allOf` 的原始 `CompletableFuture` 也都已经完成了。
+    - 非阻塞获取：此时，在 `thenRun` 的回调内部，调用**原始** Future（例如 `firstFuture`, `secondFuture`）的 `get()` 或 `join()` 方法来获取它们各自的结果，将**不会阻塞**，因为结果已经就绪。
+    - 异常处理：尽管 `get()` 此时不阻塞等待，但仍需使用 `try-catch` 包裹，因为它仍然可能抛出 `ExecutionException`（如果对应的原始 Future 是异常完成的）或 `InterruptedException`。
+
+**代码示例**
+
+1.  使用 `allOf` 等待多个任务完成并执行后续动作
+
+    ```java
+    public class ExecutorsDemo {
+        public static void show() {
+            System.out.println("Starting multiple async tasks...");
+
+            CompletableFuture<Integer> task1 = CompletableFuture.supplyAsync(() -> 1);
+
+            CompletableFuture<String> task2 = CompletableFuture.supplyAsync(() -> "Task2 Result");
+
+            CompletableFuture<Void> task3 = CompletableFuture.runAsync(() -> System.out.println("Task 3 finished."));
+
+            // 等待 task1, task2, task3 全部完成
+            CompletableFuture<Void> allDoneFuture = CompletableFuture.allOf(task1, task2, task3);
+
+            // 当 allDoneFuture 完成时 (即所有任务都完成时)，执行 thenRun 中的代码
+            allDoneFuture.thenRun(() -> {
+                try {
+                    var result1 = task1.get();
+                    System.out.println(result1);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+
+                System.out.println(">>> All tasks completed successfully (or exceptionally). Subsequent action triggered.");
+            });
+        }
+    }
+    ```
+
+    - 描述：创建了三个不同类型的异步任务。`CompletableFuture.allOf` 用于等待这三个任务全部结束。当它们都结束后，`thenRun` 中的消息被打印出来。
