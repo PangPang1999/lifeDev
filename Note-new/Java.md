@@ -1,7 +1,7 @@
 # 可能补充
 
-**集合：多线程集合、线程安全集合**
-为什么线程被打断建议重新唤醒
+为什么线程被打断建议重新唤醒?
+CompletableFuture 异常处理？
 
 # 特质
 
@@ -10386,9 +10386,14 @@ Completable Futures
         - 执行器：若未指定 `executor`，默认使用 `ForkJoinPool.commonPool()`。
 
 3.  默认执行器 (Executor)
+
     - `ForkJoinPool.commonPool()`：
         - 是 `runAsync`/`supplyAsync` 等不带 `Executor` 参数的异步方法默认使用的公共线程池。
         - 该池的大小通常基于可用 CPU 核心数 (`Runtime.getRuntime().availableProcessors()`)
+
+4.  **`CompletableFuture` 方法与异常处理**
+
+    - `CompletableFuture`中各个方法调用后，都会返回一个新的 `CompletableFuture`，链上如果出错，异常会被捕获并封装到返回的 `CompletableFuture` 里（运行期再处理）
 
 **代码示例**
 
@@ -10567,6 +10572,7 @@ Completable Futures
         - 推荐：通常是**更安全、更推荐**的选择，除非能确保回调极其轻量且非阻塞。
 
 5.  演示注意事项 (Demo Considerations)
+
     - 在生命周期短暂的程序（如 `main` 方法直接运行结束的命令行程序）中演示 `...Async` 回调时，主线程可能会在异步回调任务执行并打印输出之前就已退出。为了观察到异步回调的效果，可能需要在主线程中加入适当的等待（如 `Thread.sleep()` ），但这并非异步编程本身的通用要求。
 
 **代码示例**
@@ -10643,6 +10649,22 @@ Completable Futures
 
     - 描述：对比 `thenAccept` 和 `thenAcceptAsync`。两者都能接收到上一步的结果 (100)。与对比 `thenRun` 和 `thenRunAsync`的对比类似， `thenAcceptAsync` 保证了回调的异步执行环境。
 
+3.  异常补充
+
+    ```java
+    public class ExecutorsDemo {
+        public static void show() {
+
+            var future = CompletableFuture.supplyAsync(() -> {
+                return 1 / 0; // 算术异常
+            });
+
+            // 不报错也没有输出
+            CompletableFuture<Void> future2 = future.thenAccept(f -> System.out.println(f));
+        }
+    }
+    ```
+
 ## CompletableFuture 异常处理
 
 > 简述：`CompletableFuture` 不仅能执行异步任务，还能有效处理任务执行过程中可能出现的异常。它提供了非阻塞的异常恢复机制（如 `exceptionally` 方法），允许开发者定义在发生错误时的替代逻辑或默认值，从而构建更健壮、容错的异步应用。
@@ -10682,26 +10704,26 @@ Completable Futures
 1.  默认异常处理方式 (使用 `get()` 和 `try-catch`)
 
     ```java
-	public class ExecutorsDemo {
-	    public static void show() {
-	
-	        var future = CompletableFuture.supplyAsync(() -> {
-	            System.out.println("Getting the current weather");
-	            // 模拟操作失败
-	            throw new IllegalStateException();
-	            // return 100; // 这行不会执行
-	        });
-	
-	        try {
-	            future.get();
-	            System.out.println(temperature);
-	        } catch (InterruptedException e) {
-	            throw new RuntimeException(e);
-	        } catch (ExecutionException e) {
-	            throw new RuntimeException(e);
-	        }
-	    }
-	}
+    public class ExecutorsDemo {
+        public static void show() {
+
+            var future = CompletableFuture.supplyAsync(() -> {
+                System.out.println("Getting the current weather");
+                // 模拟操作失败
+                throw new IllegalStateException();
+                // return 100; // 这行不会执行
+            });
+
+            try {
+                future.get();
+                System.out.println(temperature);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
     ```
 
     - 描述：展示了异步任务抛出异常后，调用 `get()` 会导致 `ExecutionException`
@@ -10709,27 +10731,109 @@ Completable Futures
 2.  使用 `exceptionally()` 进行非阻塞恢复
 
     ```java
-	public class ExecutorsDemo {
-	    public static void show() {
-	
-	        var future = CompletableFuture.supplyAsync(() -> {
-	            System.out.println("Getting the current weather");
-	            // 模拟操作失败
-	            throw new IllegalStateException();
-	            // return 100; // 这行不会执行
-	        });
-	
-	        try {
-	            // future.get();
-	            var temperature = future.exceptionally(ex -> -1).get();
-	            System.out.println(temperature);
-	        } catch (InterruptedException e) {
-	            throw new RuntimeException(e);
-	        } catch (ExecutionException e) {
-	            throw new RuntimeException(e);
-	        }
-	    }
-	}
+    public class ExecutorsDemo {
+        public static void show() {
+
+            var future = CompletableFuture.supplyAsync(() -> {
+                System.out.println("Getting the current weather");
+                // 模拟操作失败
+                throw new IllegalStateException();
+                // return 100; // 这行不会执行
+            });
+
+            try {
+                // future.get();
+                var temperature = future.exceptionally(ex -> -1).get();
+                System.out.println(temperature);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
     ```
 
     - 描述：演示了 `exceptionally` 的用法。当 `supplyAsync` 抛出异常时，`exceptionally` 中的 Lambda 表达式被执行，它捕获异常并返回一个默认值 (-1)。对 `exceptionally` 返回的 `recoveryFuture` 调用 `get()` 会成功获得这个默认值，而不是抛出异常。强调了 `exceptionally` 返回的是一个新的 `CompletableFuture`。
+
+## 转换 CompletableFuture 结果
+
+> 简述：`CompletableFuture` 允许你在异步任务成功完成后，对其结果应用一个函数进行转换或映射，生成一个新的结果，这通常用于改变数据类型、格式或进行单位换算等操作。这种转换通过 `thenApply` 等方法以非阻塞、链式的方式集成到异步流程中。
+
+**知识树**
+
+1.  核心需求：结果转换
+
+    - 场景：异步获取数据后，需要将其从原始形式（如复杂对象、特定单位）转换为更适合后续处理或展示的形式（如提取特定字段、转换为不同单位）。
+
+2.  主要转换方法：`thenApply()`
+
+    - 签名：`CompletableFuture<U> thenApply(Function<? super T, ? extends U> fn)`
+    - 目的：当 `CompletableFuture<T>` 成功完成时，将其结果 `T` 应用于给定的函数 `fn`，该函数返回一个新的结果 `U`。
+    - 输入函数 (`fn`): 定义了从类型 `T` 到类型 `U` 的映射/转换逻辑。
+    - 执行线程：与 `thenRun`/`thenAccept` 类似，转换函数 `fn` 的执行线程不保证是异步的，可能在完成前序任务的线程或调用线程上执行。
+
+3.  异步转换方法：`thenApplyAsync()`
+
+    - 签名：`thenApplyAsync(Function<? super T, ? extends U> fn)` / `thenApplyAsync(Function<? super T, ? extends U> fn, Executor executor)`
+    - 目的：与 `thenApply` 相同，对成功结果 `T` 应用函数 `fn` 得到 `U`。
+    - 执行线程：**保证**转换函数 `fn` 在线程池（默认 `ForkJoinPool.commonPool()` 或指定 `Executor`）中**异步执行**。
+    - 适用场景：当转换函数 `fn` 本身计算量较大或可能阻塞时，推荐使用 `Async` 版本以避免阻塞关键线程。
+
+4.  返回值与链式调用
+
+    - 新的 Future：`thenApply` 和 `thenApplyAsync` 都返回一个新的 `CompletableFuture<U>` 实例，它将持有转换后的结果 `U`。原始的 `CompletableFuture<T>` 保持不变。
+    - 构建流水线：这种返回新 Future 的特性使得可以流畅地链接多个操作，形成声明式的异步处理流水线（例如：`supplyAsync` 获取数据 -> `thenApply` 转换单位 -> `thenAccept` 消费结果）。
+
+5.  结合其他回调
+
+    - 消费转换结果：转换后的结果（`U`）可以通过链式调用后续的 `thenAccept(Consumer<U>)` 或 `thenRun(Runnable)` 等方法进行处理或触发进一步操作，而无需使用阻塞的 `get()`。
+
+**代码示例**
+
+1.  使用 `thenApply` 转换结果并链式处理
+
+    ```java
+    public class ExecutorsDemo {
+        public static void show() {
+
+            // 返回20摄氏度
+            var future = CompletableFuture.supplyAsync(() -> 20);
+
+            try {
+                var result = future.
+                        thenApply(celsius -> (celsius * 1.8) + 32).get();
+                System.out.println(result);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+    ```
+
+    - 描述：首先异步获取摄氏温度 (20)，然后使用 `thenApply` 将其转换为华氏温度
+
+2.  链式调用避免阻塞
+
+    ```java
+    public class ExecutorsDemo {
+        public static double toFahrenheit(double celsius) {
+            return (celsius * 1.8) + 32;
+        }
+
+        public static void show() {
+
+            // 返回20摄氏度
+            var future = CompletableFuture.supplyAsync(() -> 20);
+
+            future
+                    .thenApply(ExecutorsDemo::toFahrenheit)
+                    .thenAccept(f -> System.out.println(f));
+
+        }
+    }
+    ```
+
+    - 描述：与上一个示例功能相同，但将转换逻辑提取到了 `toFahrenheit` 静态方法中，并在 `thenApply` 中通过方法引用 `ThenApplyMethodRefDemo::convertToFahrenheit` 来调用，使用 `thenAccept` 打印转换后的结果。整个过程通过链式调用完成，使代码更清晰。
