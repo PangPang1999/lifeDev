@@ -10918,3 +10918,56 @@ Completable Futures
     ```
 
     - 描述：功能与上例相同，但通过将异步逻辑封装到 `getUserEmailAsycn` 和 `getPlaylistAsync` 方法中，可以直接在 `thenCompose` 中使用方法引用 ，代码更简洁、意图更清晰。
+
+## 组合独立的 CompletableFuture
+
+> 简述：`CompletableFuture` 允许并发地执行多个**相互独立**的异步任务，并在它们全部成功完成后，将各自的结果合并成一个最终结果。核心方法 `thenCombine` 提供了一种非阻塞的方式来协调这种并行执行和结果汇总。
+
+**知识树**
+
+1.  核心场景：并行任务与结果合并
+
+    - 定义：需要同时启动多个不互相依赖（启动时）的异步操作，并等待所有这些操作都成功完成后，利用它们的各自结果来计算一个汇总值。（例如：并行获取产品价格和汇率，然后计算最终价格）。
+    - 关键区别于 `thenCompose`：这里的任务是**独立**的，可以**并发**启动；而 `thenCompose` 处理的是**依赖**任务，后一个任务依赖前一个的结果才能启动。
+
+2.  主要合并方法：`thenCombine()`
+
+    - 签名：`CompletableFuture<V> thenCombine(CompletionStage<? extends U> other, BiFunction<? super T,? super U,? extends V> fn)`
+    - 目的：将当前 `CompletableFuture<T>` 的成功结果 `T` 与另一个独立的 `CompletionStage<U>` (即 `other` Future) 的成功结果 `U` 进行合并。
+    - 输入参数：
+        - `other`: 代表第二个独立异步任务的 `CompletionStage`。
+        - `fn`: 一个 `BiFunction`。当两个 Future 都成功完成时，该函数会接收第一个 Future 的结果 `T` 和第二个 Future (`other`) 的结果 `U` 作为输入，并计算返回一个合并后的结果 `V`。
+    - 执行流程：
+        - `thenCombine` **非阻塞**地等待调用它的 Future (`this`) 和传入的 `other` Future **都成功完成**。这两个 Future 的执行是并发的（如果线程池资源允许）。
+        - 一旦两者都成功完成，将它们各自的结果 (`T` 和 `U`) 传递给 `BiFunction fn`。
+        - `fn` 执行计算，其返回值 `V` 成为 `thenCombine` 返回的新 Future 的成功结果。
+
+3.  异步与非阻塞特性
+
+    - 并发执行：两个独立的任务可以并行运行。
+    - 非阻塞调用：调用 `thenCombine` 方法本身不会阻塞当前线程；它只是设置了组合规则和后续操作。实际的合并计算只在两个前置任务都完成后才异步发生。
+
+**代码示例**
+
+1.  使用 `thenCombine` 合并两个简单的异步结果
+
+    ```java
+    public class ExecutorsDemo {
+        public static void show() {
+            // 模拟第一个任务是拿到美元数额，第二个任务是拿到汇率
+            var first = CompletableFuture
+                    .supplyAsync(() -> "20USB")
+                    .thenApply(str -> {
+                        var price = str.replace("USB", "");
+                        return Integer.parseInt(price);
+                    });
+            var second = CompletableFuture.supplyAsync(() -> 0.9);
+
+            first
+                    .thenCombine(second, (price, exchange) -> price * exchange)
+                    .thenAccept(System.out::println);
+        }
+    }
+    ```
+
+    - 描述：并发启动获取价格和汇率两个异步任务。使用 `thenCombine` 等待两者都完成后，通过 `BiFunction` 将两个数字结果相乘，得到最终的欧元价格，并通过 `thenAccept` 打印。
