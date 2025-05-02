@@ -10837,3 +10837,84 @@ Completable Futures
     ```
 
     - 描述：与上一个示例功能相同，但将转换逻辑提取到了 `toFahrenheit` 静态方法中，并在 `thenApply` 中通过方法引用 `ThenApplyMethodRefDemo::convertToFahrenheit` 来调用，使用 `thenAccept` 打印转换后的结果。整个过程通过链式调用完成，使代码更清晰。
+
+## 组合依赖的 CompletableFuture
+
+> 简述：`CompletableFuture` 提供了 `thenCompose` 方法，用于优雅地编排**有依赖关系**的异步任务序列。当一个异步任务的启动需要依赖前一个异步任务的结果时，`thenCompose` 可以将这两个异步步骤平滑地链接起来，形成一个单一的、代表最终结果的 `CompletableFuture`，避免了回调地狱或嵌套 Future 的复杂性。
+>
+> **回调地狱（callback hell, 又称 “Pyramid of Doom”）**
+> 指在编写一连串异步操作时，把每一步的处理逻辑写在前一步回调里，层层嵌套、逐级缩进，导致代码像金字塔一样向右漂移，难以阅读、测试和统一处理异常。
+
+**知识树**
+
+1.  核心场景：依赖型异步任务
+
+    - 定义：后续的异步操作 B 必须等待异步操作 A 完成，并使用 A 的结果作为输入来启动 B (例如：异步获取用户 ID -> 使用该 ID 异步获取用户详情)。
+    - `thenApply` 的局限：如果传递给 `thenApply` 的函数本身返回一个 `CompletableFuture`（代表异步操作 B），会导致结果嵌套，如 `CompletableFuture<CompletableFuture<ResultB>>`，处理起来不方便。
+
+2.  解决方案：`thenCompose()` 方法
+
+    - 目的：专门用于链接结果依赖且后续步骤本身也是异步的操作，并“扁平化”结果。
+    - 签名：`CompletableFuture<U> thenCompose(Function<? super T, ? extends CompletionStage<U>> fn)`
+    - 工作机制：
+        - 输入函数 (`fn`): 接收前一阶段 `CompletableFuture<T>` 的成功结果 `T`。
+        - 函数返回值: `fn` 的核心任务是**根据输入 `T` 来启动下一个异步操作**，并返回代表这个新异步操作的 `CompletionStage<U>` (通常是 `CompletableFuture<U>`)。
+        - 执行流程: 当 `CompletableFuture<T>` 成功完成时，其结果 `T` 被传递给 `fn`。`fn` 执行后返回 `CompletionStage<U>` (通常是 `CompletableFuture<U>`)。
+        - 结果扁平化: `thenCompose` **不会**直接返回 `CompletionStage<U>`，而是返回一个**新的 `CompletableFuture<U>`**，这个新的 Future 会在 `fn` 返回的 `CompletionStage<U>` 完成时，以其结果或异常来完成。
+
+3.  `thenCompose` vs `thenApply`
+
+    - `thenApply(Function<T, U> fn)`: 用于**同步**转换。当 `fn` 返回一个普通值 `U` 时使用。
+    - `thenCompose(Function<T, CompletionStage<U>> fn)`: 用于**异步**链接。当 `fn` 返回一个 `CompletionStage<U>` (即下一个异步操作) 时使用。
+
+4.  构建声明式异步流 (Declarative Asynchronous Flow)
+
+    - 链式调用：`thenCompose` 使得可以像编写同步代码一样，清晰地表达异步任务间的顺序依赖关系。
+    - 避免嵌套：有效防止 `CompletableFuture` 嵌套，保持代码结构扁平易读。
+    - 返回新 Future：同样返回一个新的 `CompletableFuture`，代表整个组合操作链的最终结果，可以继续链接其他操作（如 `thenApply`, `thenAccept`, `exceptionally`）。
+
+5.  最佳实践：封装与引用 (Encapsulation & Method References)
+    - 封装异步逻辑：将独立的异步步骤封装成返回 `CompletableFuture` 的方法（遵循 `...Async` 命名约定）。
+    - 使用方法引用：在 `thenCompose` 中使用方法引用（如 `this::getNextAsyncTaskAsync`）可以显著提高代码的简洁性和可读性。
+
+**代码示例**
+
+1.  使用 `thenCompose` 和 Lambda 表达式链接依赖任务
+
+    ```java
+    public class ExecutorsDemo {
+        public static void show() {
+
+            // 模拟通过id拿到email，再通过email拿到playlist的过程
+            var future = CompletableFuture.supplyAsync(() -> "email");
+            future
+                    .thenCompose(email -> CompletableFuture.supplyAsync(() -> "playlist"))
+                    .thenAccept(playlist -> System.out.println(playlist));
+        }
+    }
+    ```
+
+    - 描述：首先异步获取用户 Email，然后使用 `thenCompose`，在其 Lambda 表达式中接收到 Email 后，调用 `CompletableFuture` 来启动第二个依赖的异步任务。`thenCompose` 返回代表播放列表结果的 Future，最后通过 `thenAccept` 消费最终结果。
+
+2.  使用封装方法和方法引用优化 `thenCompose`
+
+    ```java
+    public class ExecutorsDemo {
+        public static CompletableFuture<String> getUserEmailAsycn(String id) {
+            return CompletableFuture.supplyAsync(() -> "email");
+        }
+
+        public static CompletableFuture<String> getPlaylistAsycn(String email) {
+            return CompletableFuture.supplyAsync(() -> "playlist");
+        }
+
+        public static void show() {
+            // 模拟通过id拿到email，再通过email拿到playlist的过程
+            getUserEmailAsycn("id123")
+                    .thenCompose(ExecutorsDemo::getPlaylistAsycn)
+                    .thenAccept(playlist -> System.out.println(playlist));
+        }
+    }
+    ```
+
+    - 描述：功能与上例相同，但通过将异步逻辑封装到 `getUserEmailAsycn` 和 `getPlaylistAsync` 方法中，可以直接在 `thenCompose` 中使用方法引用 ，代码更简洁、意图更清晰。
