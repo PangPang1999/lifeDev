@@ -14,6 +14,7 @@
     - 自动推断变量类型，避免显式声明数据类型，使代码更简洁。
     - 仅用于局部变量（方法内部），不能用于字段、方法参数或返回值。
     - 按住 control+shift+P 查看具体类型（Mac）
+    - control +J 展开右侧 查看具体类型（Mac）
 - List.of()——JDK9
     - 快速创建不可变列表（列表内容不能修改）。
     - 避免 Arrays.asList() 的缺陷（Arrays.asList() 支持修改元素，但不能调整大小）。
@@ -10459,8 +10460,9 @@ Completable Futures
     - 提升响应性：调用线程可以继续执行其他任务，尤其对于 UI 或服务器应用，可以更快地响应用户或其他请求。
     - 并发利用：允许同时发起多个异步操作，更好地利用多核 CPU 和 I/O 并行能力。
 
-5. 主线程与异步线程
+5. 演示注意事项 (Demo Considerations)
 
+    - 在生命周期短暂的程序（如 `main` 方法直接运行结束的命令行程序）中演示 `...Async` 回调时，主线程可能会在异步回调任务执行并打印输出之前就已退出。为了观察到异步回调的效果，可能需要在主线程中加入适当的等待（如 `Thread.sleep()` ），但这并非异步编程本身的通用要求。
     - 若异步线程任务没有完成，主线程结束时，异步线程也会一起结束
 
 **代码示例**
@@ -10526,4 +10528,117 @@ Completable Futures
         }
         ```
 
+## CompletableFuture 完成事件
 
+> 简述：`CompletableFuture` 提供了一系列非阻塞的回调方法，允许你在异步任务成功完成后自动执行指定的代码。这些方法使得处理结果、触发后续逻辑或简单地标记完成状态变得流畅而高效，无需依赖阻塞的 `get()` 调用。
+
+**知识树**
+
+1.  核心机制：注册完成回调 (Registering Completion Callbacks)
+
+    - 目的：当一个 `CompletableFuture` 代表的异步任务成功完成时，自动执行后续操作。
+    - 实现：通过 `CompletionStage` 接口提供的、通常以 `then...` 开头的方法来注册回调函数 (Lambda 表达式或方法引用)。
+
+2.  执行无需结果的回调
+
+    - `thenRun(Runnable action)`：
+        - 动作：当 `CompletableFuture` 成功完成时，执行传入的 `Runnable` 任务。`Runnable` 不接收前一阶段的结果。
+        - 执行线程：回调可能在完成前一阶段任务的线程上执行，或者在注册回调的线程上执行（如果 Future 已完成）。**不保证异步执行**。
+    - `thenRunAsync(Runnable action)` / `thenRunAsync(Runnable action, Executor executor)`：
+        - 动作：同 `thenRun`，执行 `Runnable`。
+        - 执行线程：**保证**将 `Runnable` 提交到线程池（默认 `ForkJoinPool.commonPool()` 或指定的 `Executor`）中**异步执行**。
+
+3.  执行消费结果的回调
+
+    - `thenAccept(Consumer<? super T> action)`：
+        - 动作：当 `CompletableFuture` 成功完成时，执行传入的 `Consumer`，并将前一阶段的结果 `T` 作为参数传递给 `Consumer`。
+        - 执行线程：与 `thenRun` 类似，回调执行线程不保证是异步的。
+    - `thenAcceptAsync(Consumer<? super T> action)` / `thenAcceptAsync(Consumer<? super T> action, Executor executor)`：
+        - 动作：同 `thenAccept`，执行 `Consumer` 并传入结果 `T`。
+        - 执行线程：**保证**将 `Consumer` 提交到线程池（默认 `ForkJoinPool.commonPool()` 或指定的 `Executor`）中**异步执行**。
+
+4.  执行线程辨析 (`sync` vs `async` 变体)
+
+    - 非 `Async` 版本 (`thenRun`, `thenAccept`):
+        - 优点：对于非常简短、非阻塞的回调，可能减少线程切换开销。
+        - 缺点：回调执行的线程不确定。如果回调本身耗时或阻塞，可能会阻塞关键线程（如完成计算的线程或调用者线程）。
+    - `Async` 版本 (`thenRunAsync`, `thenAcceptAsync`):
+        - 优点：明确将回调任务交给线程池处理，**保证了异步性**，避免阻塞关键线程，适合执行任何可能耗时或需要隔离的操作。
+        - 推荐：通常是**更安全、更推荐**的选择，除非能确保回调极其轻量且非阻塞。
+
+5.  演示注意事项 (Demo Considerations)
+    - 在生命周期短暂的程序（如 `main` 方法直接运行结束的命令行程序）中演示 `...Async` 回调时，主线程可能会在异步回调任务执行并打印输出之前就已退出。为了观察到异步回调的效果，可能需要在主线程中加入适当的等待（如 `Thread.sleep()` ），但这并非异步编程本身的通用要求。
+
+**代码示例**
+
+1.  `thenRun` vs `thenRunAsync` 对比
+
+    ```java
+    public class ExecutorsDemo {
+        public static void show() {
+
+            Supplier<Integer> supplier = () -> {
+                // 测试耗时任务
+                // try {
+                //     Thread.sleep(1000);
+                // } catch (InterruptedException e) {
+                //     throw new RuntimeException(e);
+                // }
+                return 1;
+            };
+
+            var future = CompletableFuture.supplyAsync(supplier);
+
+            future.thenRunAsync(() -> {
+                System.out.println("Done");
+                System.out.println(Thread.currentThread().getName());
+            });
+
+
+            // 主线程休眠2秒
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+    ```
+
+    - 描述：对比 `thenRun` 和 `thenRunAsync`。`thenRun` 执行耗时任务时，回调线程来自 `ForkJoinPool`，执行非耗时任务时，回调线程来自 `main` 线程（初始任务的线程），而 `thenRunAsync` 的回调线程明确来自 `ForkJoinPool`。
+
+2.  `thenAccept` vs `thenAcceptAsync` 对比
+
+    ```java
+    public class ExecutorsDemo {
+        public static void show() {
+
+            Supplier<Integer> supplier = () -> {
+                // 测试耗时任务
+                // try {
+                //     Thread.sleep(1000);
+                // } catch (InterruptedException e) {
+                //     throw new RuntimeException(e);
+                // }
+                return 1;
+            };
+
+            var future = CompletableFuture.supplyAsync(supplier);
+
+            future.thenAccept(result -> {
+                System.out.println(result);
+                System.out.println(Thread.currentThread().getName());
+            });
+
+
+            // 主线程休眠2秒
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+    ```
+
+    - 描述：对比 `thenAccept` 和 `thenAcceptAsync`。两者都能接收到上一步的结果 (100)。与对比 `thenRun` 和 `thenRunAsync`的对比类似， `thenAcceptAsync` 保证了回调的异步执行环境。
