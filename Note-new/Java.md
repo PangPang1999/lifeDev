@@ -10391,12 +10391,11 @@ Completable Futures
 
 **代码示例**
 
-1.  使用 `runAsync` 执行无返回值的异步任务
+1.  使用 `runAsync` 执行无返回值的异步任务（下一节介绍异步效果）
 
     ```java
     public class ExecutorsDemo {
         public static void show() {
-            // ForkJoinPool forkJoinPool = ForkJoinPool.commonPool();
             Runnable task1 = () -> System.out.println("a");
             CompletableFuture<Void> future1 = CompletableFuture.runAsync(task1);
         }
@@ -10408,10 +10407,6 @@ Completable Futures
     ```java
     public class ExecutorsDemo {
         public static void show() {
-            // ForkJoinPool forkJoinPool = ForkJoinPool.commonPool();
-            Runnable task1 = () -> System.out.println("a");
-            CompletableFuture<Void> future1 = CompletableFuture.runAsync(task1);
-
             Supplier<Integer> task2 = () -> 1;
             CompletableFuture<Integer> future2 = CompletableFuture.supplyAsync(task2);
 
@@ -10428,3 +10423,107 @@ Completable Futures
     ```
 
     - 描述：`CompletableFuture` 继承自 `Future` 可以使用`get()` ，这节仅创建的初步演示。
+
+## CompletableFuture 构建异步任务
+
+> 简述：利用 `CompletableFuture` 能将耗时的同步阻塞操作（如网络请求、数据库查询、文件读写等）封装成异步非阻塞的 API。
+
+**知识树**
+
+1. 同步操作的问题
+
+    - 定义：执行时会阻塞调用线程，直到操作完成才能继续执行后续代码的方法（例如，直接进行网络、磁盘 I/O）
+    - 影响：若在关键线程（如 UI 线程或请求处理线程）上执行，会导致应用程序无响应、吞吐量下降。
+
+2. 异步 API 设计目标
+
+    - 核心：执行可能耗时的操作，但不阻塞调用方线程。
+    - 实现：调用立即返回，操作在后台（通常是独立的线程）执行，结果或完成状态通过返回的 CompletableFuture 来传递和管理。
+
+3. 转换步骤
+
+    - 识别耗时操作：定位代码中执行阻塞 I/O 或长时间计算的同步方法。
+    - 定义异步方法签名
+        - 返回类型：将原方法的返回类型 `T` 更改为 `CompletableFuture<T>`。如果原方法返回 `void`，则更改为 `CompletableFuture<Void>`。
+        - 命名约定：在原方法名后添加 `Async` 后缀（例如 `sendMail` 变为 `sendMailAsync`），作为清晰的标识。
+    - 实现异步方法体
+        - **核心转换**：使用 `CompletableFuture` 的静态工厂方法包装对**原同步方法**的调用。
+        - 无返回值 (`void`)：使用 `CompletableFuture.runAsync(() -> originalSyncMethod(...))`。
+        - 有返回值 (`T`)：使用 `CompletableFuture.supplyAsync(() -> originalSyncMethod(...))`。
+        - 内部逻辑：Lambda 表达式的主体就是调用原来的同步阻塞方法。`CompletableFuture` 会负责将这个调用放到其他线程（默认是 `ForkJoinPool.commonPool()`）执行-
+
+4. 调用与效果
+
+    - 非阻塞调用：调用 `...Async` 方法会立即返回一个 `CompletableFuture` 对象，调用线程不会被阻塞。
+    - 后台执行：实际的耗时操作会在 `CompletableFuture` 内部管理的线程上执行。
+    - 提升响应性：调用线程可以继续执行其他任务，尤其对于 UI 或服务器应用，可以更快地响应用户或其他请求。
+    - 并发利用：允许同时发起多个异步操作，更好地利用多核 CPU 和 I/O 并行能力。
+
+5. 主线程与异步线程
+
+    - 若异步线程任务没有完成，主线程结束时，异步线程也会一起结束
+
+**代码示例**
+
+1. 同步阻塞的邮件发送示例
+
+    - 创建 `MailService` 模拟邮件发送
+        ```java
+        public class MailService {
+            public void send() {
+        	    System.out.println("Sending mail...");
+                LongTask.simulate();// 之前创建，sleep 3秒
+                System.out.println("Mail was sent.");
+            }
+        }
+        ```
+    - Main 中调用
+        ```java
+        public class Main {
+            public static void main(String[] args) {
+                var service = new MailService();
+                service.send();
+                System.out.println("Hello World!");
+            }
+        }
+        ```
+    - 描述：先输出`Sending mail...`，阻塞主线程 3 秒后，输出`Mail was sent.`以及`Hello World!`
+
+2. 异步的邮件发送示例
+
+    - 将同步操作转换为异步 API
+
+        ```java
+        public class MailService {
+            public void send() {
+                System.out.println("Sending mail...");
+                LongTask.simulate();// 之前创建，sleep 3秒
+                System.out.println("Mail was sent.");
+            }
+
+            public CompletableFuture<Void> sendAsync() {
+                return CompletableFuture.runAsync(() -> send());
+            }
+        }
+        ```
+
+    - Main 中调用
+
+        ```java
+        public class Main {
+          public static void main(String[] args) {
+              var service = new MailService();
+              service.sendAsync();
+              System.out.println("Hello World!");
+
+              // 延长主线程，避免结束后异步线程没有执行完（粗暴方法）
+              try {
+                  Thread.sleep(5000);
+              } catch (InterruptedException e) {
+                  throw new RuntimeException(e);
+              }
+          }
+        }
+        ```
+
+
