@@ -11035,3 +11035,52 @@ Completable Futures
     ```
 
     - 描述：创建了三个不同类型的异步任务。`CompletableFuture.allOf` 用于等待这三个任务全部结束。当它们都结束后，`thenRun` 中的消息被打印出来。
+
+## 获取首个完成的 CompletableFuture 结果
+
+> 简述：`CompletableFuture.anyOf` 是一个静态辅助方法，用于处理一组并发执行的异步任务，并获取其中最先成功完成的那个任务的结果。这适用于需要从多个来源获取信息（如调用多个不同的服务）并希望采用最快响应结果的场景。
+
+**知识树**
+
+1.  核心场景：竞速任务与最快响应
+
+    - 需求：同时启动多个异步操作（通常它们的目标相似或可互换），并希望在**任何一个**操作成功完成后立即获得其结果，而无需等待其他可能较慢的操作。
+    - 例子：调用两个不同的天气服务 API，使用先返回结果的那个。
+
+2.  解决方案：`CompletableFuture.anyOf()` 静态方法
+
+    - 签名：`public static CompletableFuture<Object> anyOf(CompletableFuture<?>... cfs)`
+    - 输入：接收一个或多个 `CompletableFuture` 对象作为可变参数 (`varargs`)。
+    - 行为：
+        - 并发启动：所有传入的 `CompletableFuture` 会并发开始执行（受限于线程池资源）。
+        - 等待首个成功：`anyOf` 方法返回一个新的 `CompletableFuture<Object>`。这个新的 Future 会在传入的 `cfs` 中任何一个 Future 首次成功完成时，也立即成功完成。
+        - 结果传递：`anyOf` 返回的 Future 的结果值与那个最先成功完成的原始 Future 的结果值相同。
+        - 异常情况：如果第一个完成的 Future 是异常完成，`anyOf` 通常会继续等待下一个完成的 Future。只有当所有传入的 Future 都异常完成时，`anyOf` 返回的 Future 才会异常完成。（主要关注成功路径）
+
+3.  返回类型 `CompletableFuture<Object>` 解析
+
+    - 原因：由于传入 `anyOf` 的多个 `CompletableFuture` 可能具有不同的泛型结果类型，并且在编译时无法确定哪一个会最先成功完成，因此 `anyOf` 返回的 Future 的结果类型被泛化为 `Object`。
+    - 后续处理：在消费 `anyOf` 的结果时（例如在 `thenAccept` 中），可能需要根据预期的结果类型进行类型转换 (cast)。
+
+**代码示例**
+
+1.  使用 `anyOf` 获取两个竞速任务中较快的结果
+
+    ```java
+    public class ExecutorsDemo {
+        public static void show() {
+            var first = CompletableFuture.supplyAsync(() -> {
+                LongTask.simulate();
+                return 19;
+            });
+
+            var second = CompletableFuture.supplyAsync(() -> 20);
+
+            CompletableFuture
+                    .anyOf(first, second)
+                    .thenAccept(temp -> System.out.println(temp));
+        }
+    }
+    ```
+
+    - 描述：创建了两个模拟不同响应时间的异步服务。`CompletableFuture.anyOf` 用于同时监听这两个服务。由于 `second` 会先完成，`anyOf` 返回的 Future 会以 `second` 的结果来完成，并触发 `thenAccept` 打印该结果，而无需等待 `first` 完成。
