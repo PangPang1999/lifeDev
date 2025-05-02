@@ -10642,3 +10642,94 @@ Completable Futures
     ```
 
     - 描述：对比 `thenAccept` 和 `thenAcceptAsync`。两者都能接收到上一步的结果 (100)。与对比 `thenRun` 和 `thenRunAsync`的对比类似， `thenAcceptAsync` 保证了回调的异步执行环境。
+
+## CompletableFuture 异常处理
+
+> 简述：`CompletableFuture` 不仅能执行异步任务，还能有效处理任务执行过程中可能出现的异常。它提供了非阻塞的异常恢复机制（如 `exceptionally` 方法），允许开发者定义在发生错误时的替代逻辑或默认值，从而构建更健壮、容错的异步应用。
+
+**知识树**
+
+1.  异常的捕获与传递 (Exception Capture and Propagation)
+
+    - 自动捕获：当 `CompletableFuture` 关联的异步任务（在 `runAsync`, `supplyAsync` 等方法中执行的代码）抛出异常时，该异常会被 `CompletableFuture` 内部自动捕获。
+    - 阻塞获取 (`get()`):
+        - 如果直接对一个已异常完成的 `CompletableFuture` 调用 `get()` 方法，它会抛出 `ExecutionException`。
+        - 原始的异常被包装在 `ExecutionException` 内部，可通过 `ex.getCause()` 获取。
+        - 这种方式需要传统的 `try-catch` 块，并且是阻塞的。
+
+2.  非阻塞异常恢复: `exceptionally()` 方法
+
+    - 目的：提供一种非阻塞的方式来处理异步链中发生的异常，并允许从中恢复，通常是通过提供一个默认值或替代结果。
+    - 签名：`CompletableFuture<T> exceptionally(Function<Throwable, ? extends T> fn)`
+    - 工作机制：
+        - 输入: 接收一个函数 `fn`，该函数以捕获到的 `Throwable` (异常) 作为输入参数。
+        - 处理: 函数 `fn` 的逻辑定义了如何根据异常来产生一个类型为 `T` 的替代结果。
+        - 触发条件: 仅当调用 `exceptionally` 的 `CompletableFuture` (即前一阶段) 异常完成时，函数 `fn` 才会被执行。
+        - 跳过条件: 如果前一阶段成功完成，`exceptionally` 及其函数 `fn` 会被完全跳过。
+    - 返回值: `exceptionally` 方法总是返回一个**新的 `CompletableFuture<T>`** 实例。
+        - 如果原始 Future 成功：新 Future 持有原始的成功结果。
+        - 如果原始 Future 失败：新 Future 持有由 `fn` 函数计算出的恢复值，并且这个新 Future 被标记为**成功完成**。
+
+3.  `exceptionally` 的关键特性
+
+    - 非阻塞恢复: 与 `try-catch(ExecutionException)` 不同，`exceptionally` 的处理逻辑集成在异步链中，不阻塞流程。
+    - 声明式错误处理: 将错误处理逻辑作为链式调用的一部分，使代码更清晰。
+    - 链式不变性: 不修改原始 `CompletableFuture` 的状态；它返回一个新的 Future 来代表恢复后的结果。如果直接 `get()` 原始的失败 Future，仍然会得到 `ExecutionException`。
+    - 构建容错流程: 允许异步“配方 (recipe)” 在遇到预期错误时继续执行或提供有意义的回退。
+
+**代码示例**
+
+1.  默认异常处理方式 (使用 `get()` 和 `try-catch`)
+
+    ```java
+	public class ExecutorsDemo {
+	    public static void show() {
+	
+	        var future = CompletableFuture.supplyAsync(() -> {
+	            System.out.println("Getting the current weather");
+	            // 模拟操作失败
+	            throw new IllegalStateException();
+	            // return 100; // 这行不会执行
+	        });
+	
+	        try {
+	            future.get();
+	            System.out.println(temperature);
+	        } catch (InterruptedException e) {
+	            throw new RuntimeException(e);
+	        } catch (ExecutionException e) {
+	            throw new RuntimeException(e);
+	        }
+	    }
+	}
+    ```
+
+    - 描述：展示了异步任务抛出异常后，调用 `get()` 会导致 `ExecutionException`
+
+2.  使用 `exceptionally()` 进行非阻塞恢复
+
+    ```java
+	public class ExecutorsDemo {
+	    public static void show() {
+	
+	        var future = CompletableFuture.supplyAsync(() -> {
+	            System.out.println("Getting the current weather");
+	            // 模拟操作失败
+	            throw new IllegalStateException();
+	            // return 100; // 这行不会执行
+	        });
+	
+	        try {
+	            // future.get();
+	            var temperature = future.exceptionally(ex -> -1).get();
+	            System.out.println(temperature);
+	        } catch (InterruptedException e) {
+	            throw new RuntimeException(e);
+	        } catch (ExecutionException e) {
+	            throw new RuntimeException(e);
+	        }
+	    }
+	}
+    ```
+
+    - 描述：演示了 `exceptionally` 的用法。当 `supplyAsync` 抛出异常时，`exceptionally` 中的 Lambda 表达式被执行，它捕获异常并返回一个默认值 (-1)。对 `exceptionally` 返回的 `recoveryFuture` 调用 `get()` 会成功获得这个默认值，而不是抛出异常。强调了 `exceptionally` 返回的是一个新的 `CompletableFuture`。
