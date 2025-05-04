@@ -3,13 +3,14 @@ package com.pang.executors;
 import java.util.concurrent.CompletableFuture;
 
 public class MailService {
-    public void send() {
+    public void sendMail() {
         System.out.println("Sending mail...");
-        LongTask.simulate();// 之前创建，sleep 3秒
+        // 模拟邮件发送
+        LongTask.simulate(5);
         System.out.println("Mail was sent.");
     }
 
-    public CompletableFuture<Void> sendAsync() {
-        return CompletableFuture.runAsync(() -> send());
+    public CompletableFuture<Void> sendMailAsync() {
+        return CompletableFuture.runAsync(() -> sendMail());
     }
 }

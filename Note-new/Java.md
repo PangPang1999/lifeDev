@@ -19,6 +19,8 @@ CompletableFuture 异常处理？
     - 快速创建不可变列表（列表内容不能修改）。
     - 避免 Arrays.asList() 的缺陷（Arrays.asList() 支持修改元素，但不能调整大小）。
     - 比 new ArrayList<>() 代码更简洁。
+- CompletableFuture.completeOnTimeout——JDK9
+    - 处理 CompletableFuture 超时
 
 # 快捷键
 
@@ -10147,22 +10149,21 @@ Completable Futures
 
 ## Executor 家族
 
-> 简述：`Executor` 家族是 Java 并发框架的核心，用于解耦任务提交与执行策略，并提供强大的线程池管理能力，实现高效的异步任务处理。该体系围绕 `Executor` 和 `ExecutorService` 接口构建，以 `ThreadPoolExecutor` 作为关键的可配置实现。
+> 简述：`Executor` 家族是 Java 并发框架的核心，用于解耦任务提交与执行策略，并提供强大的线程池管理能力，实现高效的异步任务处理。该体系围绕 `Executor` 和 `ExecutorService` 接口构建。
 
-1. Executor 接口
+1. `Executor` 接口
 
     - 概念
-        - `Executor` 是 Java 并发框架中用于任务执行的顶层接口，由于功能较为基础，仅支持接收并执行 `Runnable` 任务，实际开发中更常使用功能更强的子接口 `ExecutorService`。
+        - `Executor` 是 Java 并发框架中用于任务执行的顶层接口，由于功能较为基础，主要用于执行不带返回值的任务，仅支持接收并执行 `Runnable` 任务，实际开发常使用功能更强的子接口 `ExecutorService`。
     - 核心方法：`void execute(Runnable command)`
         - 接收一个 `Runnable` 任务作为参数，任务的执行方式（例如直接创建线程、交由线程池调度等）由具体实现类决定。
 
-2. ExecutorService 接口
+2. `ExecutorService` 接口
 
     - 概念：
-        - `Executor` 接口主要用于执行不带返回值的任务，通常通过提交 `Runnable` 实现。相比之下，`ExecutorService` 接口扩展了这一能力，允许提交实现了 `Callable<T>` 接口的任务。`Callable` 与 `Runnable` 不同，它可以返回结果，并允许抛出异常。提交的 `Callable` 任务会被封装成 `Future<T>` 对象，用于异步获取执行结果。
-        - **执行多线程任务的主要接口，线程池的具体实现类都实现了这个接口**。
+        - `ExecutorService` 接口扩展`Executor` 接口，允许提交实现了 `Callable<T>` 接口的任务。提交的`Callable` 任务会返回一个 `Future<T>` 对象，用于异步获取执行结果（下一节介绍）。
     - 常用方法：
-        - `submit(Callable)` / `(Runnable)` ：提交任务，返回 `Future` 可获取结果（下一节介绍）
+        - `submit(Callable)` / `(Runnable)` ：提交任务
         - `invokeAll(Collection)` ：批量提交多个任务，返回所有结果
         - `invokeAny(Collection)` ： 提交多个任务，返回第一个完成的结果
         - `shutdown()` ：优雅关闭，不接受新任务，等待现有任务执行完。
@@ -10170,30 +10171,19 @@ Completable Futures
         - `isShutdown()` / `isTerminated()` ：判断线程池状态
         - `awaitTermination(time, timeUnit)`：如果线程池在超时时间内终止，返回 `true`，否则返回 `false`。
 
-3. ExecutorService 的实现（四个“顶级”类）
+3. `ExecutorService` 的实现（四个“顶级”类）
 
-    1. `AbstractExecutorService`（抽象类）：
+    1. `AbstractExecutorService`（抽象类）
 
         - 实现了 `ExecutorService` 接口中绝大多数方法（`submit`、`invokeAll`、`invokeAny` 等），只留下 `execute(Runnable)`、生命周期管理（`shutdown`、`isTerminated` 等）这几组核心抽象方法；
 
-    2. **`ThreadPoolExecutor`（具体实现）：主要了解**
+    2. **`ThreadPoolExecutor`（具体实现）：主要**
 
         - 继承自 `AbstractExecutorService`，重写并实现了：
             - `execute(Runnable)`：线程复用、队列管理、拒绝策略；
             - 生命周期方法：`shutdown`、`shutdownNow`、`isShutdown`、`awaitTermination` 等；
         - 优势：
-            - 提供了最通用也最可配置的线程池实现。**适合在生产环境中使用，能更精准地管理线程池行为。**
-            - 灵活控制线程数量：控制核心线程、最大线程、空闲时间
-            - 自定义任务队列：支持多种 `BlockingQueue` （线程安全的队列）实现
-            - 自定义拒绝策略：提供 4 种默认策略，可自定义
-            - 可替代 `Executors`：比 `Executors.newXxxThreadPool()` 更安全，避免资源耗尽风险
-        - 构造方法重要参数：
-            - `corePoolSize`：核心线程数
-            - `maximumPoolSize`：最大线程数
-            - `keepAliveTime`：空闲线程保留时间
-            - `workQueue`：任务队列（如`LinkedBlockingQueue`）
-            - `threadFactory`：线程创建工厂（可选）
-            - `RejectedExecutionHandler`：拒绝策略
+            - 提供了最通用也最可配置的线程池实现（构造函数复杂），安全，避免了资源耗尽风险。**适合在生产环境中使用，能更精准地管理线程池行为。**
 
     3. `ScheduledThreadPoolExecutor`（调度线程池）
 
@@ -10201,6 +10191,7 @@ Completable Futures
         - 在 `ThreadPoolExecutor` 的基础上增加了定时/周期任务的管理（内部用延迟队列、定期重新入队等机制）。
 
     4. `ForkJoinPool`（分治并行池）
+
         - 直接继承自 `AbstractExecutorService`，并实现 `ExecutorService`；
         - 引入了 `ForkJoinTask`、双端队列与“工作窃取”算法，不同于 `ThreadPoolExecutor` 的集中队列，更适合大量细粒度、递归拆分的并行计算场景。
         - “工作窃取”算法：每个工作线程都有自己的任务队列。空闲线程会“窃取”其他线程队列中的任务，避免线程长时间空转，提高吞吐量。
@@ -10211,7 +10202,7 @@ Completable Futures
         - `Executors` 是 Java 提供的一个线程池工厂类。它为创建常用线程池提供了便捷的静态方法，简化了 `ThreadPoolExecutor` 的使用。
     - 常见方法：
         - `newFixedThreadPool(n)`：（常用）
-            - 创建固定大小的线程池，适合负载稳定的场景。使用无界队列（任务积累速度大于消耗速度），可能引发 OOM，返回 `ThreadPoolExecutor`实例，方法签名声明的是`ExecutorService`
+            - 创建固定大小的线程池，适合负载稳定的场景。使用无界队列，若任务积累速度大于消耗速度，可能引发 OOM，返回 `ThreadPoolExecutor`实例，方法签名声明的是`ExecutorService`
         - `newSingleThreadExecutor()`：
             - 创建单线程线程池，任务按顺序执行，适合串行任务，返回 `ThreadPoolExecutor`实例，方法签名声明的是`ExecutorService`
         - `newCachedThreadPool()`：
@@ -10234,7 +10225,7 @@ Completable Futures
 
 **代码示例**
 
-1. 创建并使用固定大小的线程池
+1. `Executors` 工厂方法创建并使用固定大小的线程池
 
     ```java
     public class ExecutorsDemo {
@@ -10252,7 +10243,24 @@ Completable Futures
 
     - 描述：两个线程并发执行，执行完后并没有结束，线程等待新任务。
 
-2. 推荐的关闭方式（`try-finally`）：
+2. 返回`Future<T>` 对象
+
+    ```java
+    public class ExecutorsDemo {
+        public static void show() {
+            // new ThreadPoolExecutor()
+            ExecutorService executorService = Executors.newFixedThreadPool(2);
+
+            // 提交带返回值的任务，会返回一个Future对象
+            Future<Integer> future = executorService.submit(() -> {
+                System.out.println(Thread.currentThread().getName());
+                return 1;
+            };
+        }
+    }
+    ```
+
+3. 推荐的关闭方式（`try-finally`）：
 
     ```java
     public class ExecutorsDemo {
@@ -10276,19 +10284,26 @@ Completable Futures
 
 **知识树**
 
-1. Callable 接口
+1. `Callable` 接口
 
     - 概念：`java.util.concurrent.Callable<V>` 是一个支持返回结果和抛出异常的函数式接口，用于定义可以返回值的任务。
     - 核心方法：`V call() throws Exception`
         - 执行任务并返回结果或抛出异常。
         - 任务提交给线程池后，其返回值会被封装为 `Future<V>` 对象，以支持异步获取结果。
 
-2. Future 接口
+2. `Callable` 接口与 `Supplier`接口
+
+    - 共同点：两者都提供值
+    - 不同点：异常处理：
+        - `Callable` 接口对异常进行了抛出，并在线程池内部进行捕获，存放在返回的 `Future` 实例内，实例调用 `get()` 方法时会触发
+        - `Supplier`接口并没有抛出异常，在使用时，如果存在需要处理异常的步骤，需要显式的捕获或者抛出
+
+3. Future 接口
 
     - 概念：异步任务的结果占位符，表示尚未完成的计算的对象，也就是一个“未来”会有结果的任务，用于后续获取任务执行结果。
     - 通常由 `ExecutorService` 提交 `Callable` 或 `Runnable` 任务获得 (`Runnable` 可指定返回值)。
 
-3. Future 常用方法
+4. Future 常用方法
 
     - `V get()`
         - 阻塞直至任务完成并返回结果。
@@ -10301,7 +10316,8 @@ Completable Futures
     - `boolean isCancelled()`
         - 检查任务是否被取消。
 
-4. Future 的缺点（本质问题）
+5. Future 的缺点（本质问题）
+
     1. 不可主动完成
         - 无法主动设定任务结果，只能被动等待任务执行完成。
     2. 只能阻塞获取结果
@@ -10320,9 +10336,9 @@ Completable Futures
 
     ```java
     public class LongTask {
-        public static void simulate() {
+        public static void simulate(int seconds) {
             try {
-                Thread.sleep(3000);
+                Thread.sleep(seconds * 1000);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -10337,12 +10353,14 @@ Completable Futures
         public static void show() {
             ExecutorService executorService = Executors.newFixedThreadPool(2);
             try {
-                Future<Integer> future = executorService.submit(() -> {
-                    LongTask.simulate();
-                    return 1;
+                // 提交带返回值的任务，会返回一个Future对象
+                Future<String> future = executorService.submit(() -> {
+    	            // 模拟任务执行消耗2秒
+                    LongTask.simulate(2);
+                    return "Done";
                 });
 
-                System.out.println("Do more work");
+
                 try {
                     var result = future.get();
                     System.out.println(result);
@@ -10357,7 +10375,9 @@ Completable Futures
     }
     ```
 
-## CompletableFuture 概念与创建
+    - 描述：一开始 `result` 并不会输出，阻塞两秒后，输出 Done
+
+## CompletableFuture
 
 > 简述：`CompletableFuture<T>` 是 Java 中用于异步编程的增强型 `Future`。它不仅代表了异步计算的未来结果，还实现了 `CompletionStage` 接口，允许将多个异步步骤（阶段）以声明式、非阻塞的方式组合和链接起来，极大地简化了复杂异步工作流的构建与管理。同时，它支持被外部显式地完成。
 
@@ -10365,35 +10385,40 @@ Completable Futures
 
 1.  核心概念
 
-    - 实现 `Future<T>` 接口：
-        - 因此，每个 `CompletableFuture` 也是一个 `Future`。
+    - 实现了 `Future<T>` 接口：
+        - 每个 `CompletableFuture` 也是一个 `Future`。
         - 继承了 `Future` 的基本能力，如通过 `get()` 阻塞式 获取结果、检查完成状态 (`isDone()`) 等。
-    - 实现 `CompletionStage<T>` 接口：
-        - 核心增强：定义了一个异步操作中的“阶段 (Stage)”。
+    - 实现了 `CompletionStage<T>` 接口：
+        - 核心：定义了异步操作中的“阶段 (Stage)”。
         - 提供了丰富的组合与链接方法，允许以声明式 (declarative)、非阻塞的方式构建多步骤的异步流程，类似 Stream API 的链式调用。
     - 可显式完成 (Completable)：
         - 与 `Future` 不同，`CompletableFuture` 可以被外部代码主动设置结果 (`complete(T value)`) 或异常 (`completeExceptionally(Throwable ex)`) 来完成。
 
-2.  创建异步任务 (静态工厂方法)
+2.  `CompletableFuture` 方法
+
+    - 介绍：
+        - 这个类是 Java 并发编程的核心工具之一，后续内容主要介绍该类的部份方法。
+        - `CompletableFuture` 类中存在大量的方法，除去部分用于调试或者工具功能的，调用 `CompletableFuture.method` 后，大部份方法都会返回一个`CompletableFuture`实例。
+    - 静态非静态划分：
+        - 静态方法不依赖对象状态，比如创建方法
+        - 非静态方法依赖具体`CompletableFuture`实例的状态
+
+3.  创建异步任务方法
 
     - `runAsync(Runnable runnable)` / `runAsync(Runnable runnable, Executor executor)`：
-        - 用途：异步执行一个**不返回任何结果**的任务 (`Runnable`)。
+        - 用途：异步执行一个不返回任何结果的任务 (`Runnable`)。
         - 返回：`CompletableFuture<Void>`。
         - 执行器：若未指定 `executor`，默认使用 `ForkJoinPool.commonPool()`。
     - `supplyAsync(Supplier<U> supplier)` / `supplyAsync(Supplier<U> supplier, Executor executor)`：
-        - 用途：异步执行一个**返回结果**的任务 (`Supplier<U>`)。
+        - 用途：异步执行一个返回结果的任务 (`Supplier<U>`)。
         - 返回：`CompletableFuture<U>`，`U` 是 `Supplier` 提供的结果类型。
         - 执行器：若未指定 `executor`，默认使用 `ForkJoinPool.commonPool()`。
 
-3.  默认执行器 (Executor)
+4.  默认执行器 (Executor)
 
     - `ForkJoinPool.commonPool()`：
         - 是 `runAsync`/`supplyAsync` 等不带 `Executor` 参数的异步方法默认使用的公共线程池。
         - 该池的大小通常基于可用 CPU 核心数 (`Runtime.getRuntime().availableProcessors()`)
-
-4.  **`CompletableFuture` 方法与异常处理**
-
-    - `CompletableFuture`中各个方法调用后，都会返回一个新的 `CompletableFuture`，链上如果出错，异常会被捕获并封装到返回的 `CompletableFuture` 里（运行期再处理）
 
 **代码示例**
 
@@ -10430,7 +10455,28 @@ Completable Futures
 
     - 描述：`CompletableFuture` 继承自 `Future` 可以使用`get()` ，这节仅创建的初步演示。
 
-## CompletableFuture 构建异步任务
+3.  异常补充
+
+    ```java
+    public class ExecutorsDemo {
+        public static void show() {
+            Supplier task1 = () -> 1 / 0;
+            CompletableFuture<Void> future = CompletableFuture.supplyAsync(task1);
+
+            // try {
+            //     future.get();
+            // } catch (InterruptedException e) {
+            //     throw new RuntimeException(e);
+            // } catch (ExecutionException e) {
+            //     throw new RuntimeException(e);
+            // }
+        }
+    }
+    ```
+
+    - 描述：直接执行不会报错
+
+## CompletableFuture 异步
 
 > 简述：利用 `CompletableFuture` 能将耗时的同步阻塞操作（如网络请求、数据库查询、文件读写等）封装成异步非阻塞的 API。
 
@@ -10452,11 +10498,8 @@ Completable Futures
     - 定义异步方法签名
         - 返回类型：将原方法的返回类型 `T` 更改为 `CompletableFuture<T>`。如果原方法返回 `void`，则更改为 `CompletableFuture<Void>`。
         - 命名约定：在原方法名后添加 `Async` 后缀（例如 `sendMail` 变为 `sendMailAsync`），作为清晰的标识。
-    - 实现异步方法体
-        - **核心转换**：使用 `CompletableFuture` 的静态工厂方法包装对**原同步方法**的调用。
-        - 无返回值 (`void`)：使用 `CompletableFuture.runAsync(() -> originalSyncMethod(...))`。
-        - 有返回值 (`T`)：使用 `CompletableFuture.supplyAsync(() -> originalSyncMethod(...))`。
-        - 内部逻辑：Lambda 表达式的主体就是调用原来的同步阻塞方法。`CompletableFuture` 会负责将这个调用放到其他线程（默认是 `ForkJoinPool.commonPool()`）执行-
+    - 核心转换
+        - 使用 `CompletableFuture` 的静态工厂方法**包装**对**原同步方法**的调用。
 
 4. 调用与效果
 
@@ -10465,10 +10508,12 @@ Completable Futures
     - 提升响应性：调用线程可以继续执行其他任务，尤其对于 UI 或服务器应用，可以更快地响应用户或其他请求。
     - 并发利用：允许同时发起多个异步操作，更好地利用多核 CPU 和 I/O 并行能力。
 
-5. 演示注意事项 (Demo Considerations)
+5. 演示注意事项
 
-    - 在生命周期短暂的程序（如 `main` 方法直接运行结束的命令行程序）中演示 `...Async` 回调时，主线程可能会在异步回调任务执行并打印输出之前就已退出。为了观察到异步回调的效果，可能需要在主线程中加入适当的等待（如 `Thread.sleep()` ），但这并非异步编程本身的通用要求。
-    - 若异步线程任务没有完成，主线程结束时，异步线程也会一起结束
+    - 在生命周期短暂的程序（如 `main` 方法直接运行结束的命令行程序）中演示 `...Async` 回调时，主线程可能会在异步回调任务执行并打印输出之前就已退出。若异步线程任务没有完成，主线程结束时，异步线程也会一起结束
+    - 为了观察到异步回调的效果，有两种方法。
+        1. 延迟主线程时间：在主线程中加入适当的等待（如 `Thread.sleep()` ），但这并非异步编程本身的通用要求。
+        2. 使用 `join` 方法
 
 **代码示例**
 
@@ -10479,22 +10524,22 @@ Completable Futures
         public class MailService {
             public void send() {
         	    System.out.println("Sending mail...");
-                LongTask.simulate();// 之前创建，sleep 3秒
+        	    // 模拟邮件发送
+                LongTask.simulate(5);
                 System.out.println("Mail was sent.");
             }
         }
         ```
-    - Main 中调用
+    - 模拟邮件发送
         ```java
-        public class Main {
-            public static void main(String[] args) {
-                var service = new MailService();
-                service.send();
-                System.out.println("Hello World!");
-            }
+        public class ExecutorsDemo {
+          public static void show() {
+              var service = new MailService();
+              service.send();
+          }
         }
         ```
-    - 描述：先输出`Sending mail...`，阻塞主线程 3 秒后，输出`Mail was sent.`以及`Hello World!`
+    - 描述：先输出`Sending mail...`，阻塞主线程 5 秒后，输出`Mail was sent.`
 
 2. 异步的邮件发送示例
 
@@ -10502,38 +10547,34 @@ Completable Futures
 
         ```java
         public class MailService {
-            public void send() {
-                System.out.println("Sending mail...");
-                LongTask.simulate();// 之前创建，sleep 3秒
-                System.out.println("Mail was sent.");
-            }
+          public void sendMail() {
+              System.out.println("Sending mail...");
+              // 模拟邮件发送
+              LongTask.simulate(5);
+              System.out.println("Mail was sent.");
+          }
 
-            public CompletableFuture<Void> sendAsync() {
-                return CompletableFuture.runAsync(() -> send());
-            }
+          public CompletableFuture<Void> sendMailAsync() {
+              return CompletableFuture.runAsync(() -> sendMail());
+          }
         }
         ```
 
     - Main 中调用
 
         ```java
-        public class Main {
-          public static void main(String[] args) {
+        public class ExecutorsDemo {
+          public static void show() {
               var service = new MailService();
-              service.sendAsync();
-              System.out.println("Hello World!");
+              CompletableFuture<Void> future = service.sendMailAsync();
 
-              // 延长主线程，避免结束后异步线程没有执行完（粗暴方法）
-              try {
-                  Thread.sleep(5000);
-              } catch (InterruptedException e) {
-                  throw new RuntimeException(e);
-              }
+              // 主线程中插入该线程，该线程结束，主线程才能继续执行（结束）
+              future.join();
           }
         }
         ```
 
-## CompletableFuture 完成事件
+## `thenRun`&`thenAccept`
 
 > 简述：`CompletableFuture` 提供了一系列非阻塞的回调方法，允许你在异步任务成功完成后自动执行指定的代码。这些方法使得处理结果、触发后续逻辑或简单地标记完成状态变得流畅而高效，无需依赖阻塞的 `get()` 调用。
 
@@ -10583,30 +10624,20 @@ Completable Futures
     public class ExecutorsDemo {
         public static void show() {
 
-            Supplier<Integer> supplier = () -> {
-                // 测试耗时任务
-                // try {
-                //     Thread.sleep(1000);
-                // } catch (InterruptedException e) {
-                //     throw new RuntimeException(e);
-                // }
-                return 1;
+            Supplier<String> supplier = () -> {
+                LongTask.simulate(2);
+                return "Done";
             };
 
             var future = CompletableFuture.supplyAsync(supplier);
 
-            future.thenRunAsync(() -> {
-                System.out.println("Done");
+            // 此处更换 thenRun/thenRunAsync 测试 耗时/非耗时 任务
+            future.thenRun(() -> {
                 System.out.println(Thread.currentThread().getName());
             });
 
 
-            // 主线程休眠2秒
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            future.join();
         }
     }
     ```
@@ -10619,53 +10650,28 @@ Completable Futures
     public class ExecutorsDemo {
         public static void show() {
 
-            Supplier<Integer> supplier = () -> {
-                // 测试耗时任务
-                // try {
-                //     Thread.sleep(1000);
-                // } catch (InterruptedException e) {
-                //     throw new RuntimeException(e);
-                // }
-                return 1;
+            Supplier<String> supplier = () -> {
+                LongTask.simulate(2);
+                return "Done";
             };
 
             var future = CompletableFuture.supplyAsync(supplier);
 
-            future.thenAccept(result -> {
+            // 此处更换 thenAccept/thenAcceptAsync 测试 耗时/非耗时 任务
+            future.thenAcceptAsync(result -> {
                 System.out.println(result);
                 System.out.println(Thread.currentThread().getName());
             });
 
 
-            // 主线程休眠2秒
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            future.join();
         }
     }
     ```
 
     - 描述：对比 `thenAccept` 和 `thenAcceptAsync`。两者都能接收到上一步的结果 (100)。与对比 `thenRun` 和 `thenRunAsync`的对比类似， `thenAcceptAsync` 保证了回调的异步执行环境。
 
-3.  异常补充
-
-    ```java
-    public class ExecutorsDemo {
-        public static void show() {
-
-            var future = CompletableFuture.supplyAsync(() -> {
-                return 1 / 0; // 算术异常
-            });
-
-            // 不报错也没有输出
-            CompletableFuture<Void> future2 = future.thenAccept(f -> System.out.println(f));
-        }
-    }
-    ```
-
-## CompletableFuture 异常处理
+## `exceptionally`
 
 > 简述：`CompletableFuture` 不仅能执行异步任务，还能有效处理任务执行过程中可能出现的异常。它提供了非阻塞的异常恢复机制（如 `exceptionally` 方法），允许开发者定义在发生错误时的替代逻辑或默认值，从而构建更健壮、容错的异步应用。
 
@@ -10688,16 +10694,9 @@ Completable Futures
         - 处理: 函数 `fn` 的逻辑定义了如何根据异常来产生一个类型为 `T` 的替代结果。
         - 触发条件: 仅当调用 `exceptionally` 的 `CompletableFuture` (即前一阶段) 异常完成时，函数 `fn` 才会被执行。
         - 跳过条件: 如果前一阶段成功完成，`exceptionally` 及其函数 `fn` 会被完全跳过。
-    - 返回值: `exceptionally` 方法总是返回一个**新的 `CompletableFuture<T>`** 实例。
+    - 返回值: `exceptionally` 方法总是返回一个新的 `CompletableFuture<T>` 实例。
         - 如果原始 Future 成功：新 Future 持有原始的成功结果。
-        - 如果原始 Future 失败：新 Future 持有由 `fn` 函数计算出的恢复值，并且这个新 Future 被标记为**成功完成**。
-
-3.  `exceptionally` 的关键特性
-
-    - 非阻塞恢复: 与 `try-catch(ExecutionException)` 不同，`exceptionally` 的处理逻辑集成在异步链中，不阻塞流程。
-    - 声明式错误处理: 将错误处理逻辑作为链式调用的一部分，使代码更清晰。
-    - 链式不变性: 不修改原始 `CompletableFuture` 的状态；它返回一个新的 Future 来代表恢复后的结果。如果直接 `get()` 原始的失败 Future，仍然会得到 `ExecutionException`。
-    - 构建容错流程: 允许异步“配方 (recipe)” 在遇到预期错误时继续执行或提供有意义的回退。
+        - 如果原始 Future 失败：新 Future 持有由 `fn` 函数计算出的恢复值，并且这个新 Future 被标记为成功完成。
 
 **代码示例**
 
@@ -10708,25 +10707,24 @@ Completable Futures
         public static void show() {
 
             var future = CompletableFuture.supplyAsync(() -> {
-                System.out.println("Getting the current weather");
+                System.out.println("Getting the current temperature");
                 // 模拟操作失败
                 throw new IllegalStateException();
-                // return 100; // 这行不会执行
+                // return 80; // 这行不会执行
             });
 
             try {
-                future.get();
+                // 调用时才会抛异常，不调用时存放在返回的future中
+                var temperature = future.get();
                 System.out.println(temperature);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (ExecutionException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException(e);
             }
         }
     }
     ```
 
-    - 描述：展示了异步任务抛出异常后，调用 `get()` 会导致 `ExecutionException`
+    - 描述：异常存放在返回的 `future` 中，调用 `get()` 会导致 `ExecutionException`
 
 2.  使用 `exceptionally()` 进行非阻塞恢复
 
@@ -10735,28 +10733,26 @@ Completable Futures
         public static void show() {
 
             var future = CompletableFuture.supplyAsync(() -> {
-                System.out.println("Getting the current weather");
+                System.out.println("Getting the current temperature");
                 // 模拟操作失败
                 throw new IllegalStateException();
-                // return 100; // 这行不会执行
+                // return 80; // 这行不会执行
             });
 
             try {
-                // future.get();
+                // 使用 exceptionally 处理，只有在异常时才会处理
                 var temperature = future.exceptionally(ex -> -1).get();
                 System.out.println(temperature);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (ExecutionException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException(e);
             }
         }
     }
     ```
 
-    - 描述：演示了 `exceptionally` 的用法。当 `supplyAsync` 抛出异常时，`exceptionally` 中的 Lambda 表达式被执行，它捕获异常并返回一个默认值 (-1)。对 `exceptionally` 返回的 `recoveryFuture` 调用 `get()` 会成功获得这个默认值，而不是抛出异常。强调了 `exceptionally` 返回的是一个新的 `CompletableFuture`。
+    - 描述：当 `supplyAsync` 抛出异常时，`exceptionally` 中的 Lambda 表达式被执行，对`exceptionally` 返回的新对象调用 `get()` 会成功获得这个默认值，而不是抛出异常。强调了 `exceptionally` 返回的是一个新的 `CompletableFuture`。
 
-## 转换 CompletableFuture 结果
+## thenApply
 
 > 简述：`CompletableFuture` 允许你在异步任务成功完成后，对其结果应用一个函数进行转换或映射，生成一个新的结果，这通常用于改变数据类型、格式或进行单位换算等操作。这种转换通过 `thenApply` 等方法以非阻塞、链式的方式集成到异步流程中。
 
@@ -10777,7 +10773,7 @@ Completable Futures
 
     - 签名：`thenApplyAsync(Function<? super T, ? extends U> fn)` / `thenApplyAsync(Function<? super T, ? extends U> fn, Executor executor)`
     - 目的：与 `thenApply` 相同，对成功结果 `T` 应用函数 `fn` 得到 `U`。
-    - 执行线程：**保证**转换函数 `fn` 在线程池（默认 `ForkJoinPool.commonPool()` 或指定 `Executor`）中**异步执行**。
+    - 执行线程：保证转换函数 `fn` 在线程池（默认 `ForkJoinPool.commonPool()` 或指定 `Executor`）中异步执行。
     - 适用场景：当转换函数 `fn` 本身计算量较大或可能阻塞时，推荐使用 `Async` 版本以避免阻塞关键线程。
 
 4.  返回值与链式调用
@@ -10815,7 +10811,7 @@ Completable Futures
 
     - 描述：首先异步获取摄氏温度 (20)，然后使用 `thenApply` 将其转换为华氏温度
 
-2.  链式调用避免阻塞
+2.  同样 使用 `thenApply`，优化为链式调用
 
     ```java
     public class ExecutorsDemo {
@@ -10838,12 +10834,9 @@ Completable Futures
 
     - 描述：与上一个示例功能相同，但将转换逻辑提取到了 `toFahrenheit` 静态方法中，并在 `thenApply` 中通过方法引用 `ThenApplyMethodRefDemo::convertToFahrenheit` 来调用，使用 `thenAccept` 打印转换后的结果。整个过程通过链式调用完成，使代码更清晰。
 
-## 组合依赖的 CompletableFuture
+## thenCompose
 
-> 简述：`CompletableFuture` 提供了 `thenCompose` 方法，用于优雅地编排**有依赖关系**的异步任务序列。当一个异步任务的启动需要依赖前一个异步任务的结果时，`thenCompose` 可以将这两个异步步骤平滑地链接起来，形成一个单一的、代表最终结果的 `CompletableFuture`，避免了回调地狱或嵌套 Future 的复杂性。
->
-> **回调地狱（callback hell, 又称 “Pyramid of Doom”）**
-> 指在编写一连串异步操作时，把每一步的处理逻辑写在前一步回调里，层层嵌套、逐级缩进，导致代码像金字塔一样向右漂移，难以阅读、测试和统一处理异常。
+> 简述：`CompletableFuture` 提供了 `thenCompose` 方法，用于优雅地编排有依赖关系的异步任务序列。当一个异步任务的启动需要依赖前一个异步任务的结果时，`thenCompose` 可以将这两个异步步骤平滑地链接起来，形成一个单一的、代表最终结果的 `CompletableFuture`，避免了回调地狱，也就是嵌套 Future 的复杂性。
 
 **知识树**
 
@@ -10858,9 +10851,9 @@ Completable Futures
     - 签名：`CompletableFuture<U> thenCompose(Function<? super T, ? extends CompletionStage<U>> fn)`
     - 工作机制：
         - 输入函数 (`fn`): 接收前一阶段 `CompletableFuture<T>` 的成功结果 `T`。
-        - 函数返回值: `fn` 的核心任务是**根据输入 `T` 来启动下一个异步操作**，并返回代表这个新异步操作的 `CompletionStage<U>` (通常是 `CompletableFuture<U>`)。
+        - 函数返回值: `fn` 的核心任务是根据输入 `T` 来启动下一个异步操作，并返回代表这个新异步操作的 `CompletionStage<U>` (通常是 `CompletableFuture<U>`)。
         - 执行流程: 当 `CompletableFuture<T>` 成功完成时，其结果 `T` 被传递给 `fn`。`fn` 执行后返回 `CompletionStage<U>` (通常是 `CompletableFuture<U>`)。
-        - 结果扁平化: `thenCompose` **不会**直接返回 `CompletionStage<U>`，而是返回一个**新的 `CompletableFuture<U>`**，这个新的 Future 会在 `fn` 返回的 `CompletionStage<U>` 完成时，以其结果或异常来完成。
+        - 结果扁平化: `thenCompose` 不会直接返回 `CompletionStage<U>`，而是返回一个新的 `CompletableFuture<U>`，这个新的 Future 会在 `fn` 返回的 `CompletionStage<U>` 完成时，以其结果或异常来完成。
 
 3.  `thenCompose` vs `thenApply`
 
@@ -10883,52 +10876,54 @@ Completable Futures
 
     ```java
     public class ExecutorsDemo {
+        // Step1：模拟远程/数据库调用，返回 userId
+        private static CompletableFuture<String> fetchUserId() {
+            return CompletableFuture.supplyAsync(() -> {
+                LongTask.simulate(1);
+                System.out.println("[fetchUserId] got id = 001");
+                return "001";
+            });
+        }
+
+        // Step2：根据 userId 再查邮箱
+        private static CompletableFuture<String> fetchEmailById(String id) {
+            return CompletableFuture.supplyAsync(() -> {
+                LongTask.simulate(2);
+                String email = id + "@example.com";
+                System.out.println("[fetchEmailById] id = " + id + ", email = " + email);
+                return email;
+            });
+        }
+
         public static void show() {
 
-            // 模拟通过id拿到email，再通过email拿到playlist的过程
-            var future = CompletableFuture.supplyAsync(() -> "email");
-            future
-                    .thenCompose(email -> CompletableFuture.supplyAsync(() -> "playlist"))
-                    .thenAccept(playlist -> System.out.println(playlist));
+            CompletableFuture<Void> pipeline = fetchUserId()
+                    .thenCompose(ExecutorsDemo::fetchEmailById)
+                    .thenAccept(email -> System.out.println("[show] id = " + email))
+                    .exceptionally(ex -> {                   // 统一兜底
+                        System.err.println("Pipeline failed: " + ex);
+                        return null;
+                    });
+
+            pipeline.join();
         }
     }
     ```
 
-    - 描述：首先异步获取用户 Email，然后使用 `thenCompose`，在其 Lambda 表达式中接收到 Email 后，调用 `CompletableFuture` 来启动第二个依赖的异步任务。`thenCompose` 返回代表播放列表结果的 Future，最后通过 `thenAccept` 消费最终结果。
+    - 描述：首先异步获取用户 `id`，然后使用 `thenCompose`，在其 Lambda 表达式中接收到 id 后，调用 `CompletableFuture` 来启动第二个依赖的异步任务。`thenCompose` 返回代表 `Email` 结果的 `Future`，通过 `thenAccept` 消费最终结果。
 
-2.  使用封装方法和方法引用优化 `thenCompose`
+## thenCombine
 
-    ```java
-    public class ExecutorsDemo {
-        public static CompletableFuture<String> getUserEmailAsycn(String id) {
-            return CompletableFuture.supplyAsync(() -> "email");
-        }
-
-        public static CompletableFuture<String> getPlaylistAsycn(String email) {
-            return CompletableFuture.supplyAsync(() -> "playlist");
-        }
-
-        public static void show() {
-            // 模拟通过id拿到email，再通过email拿到playlist的过程
-            getUserEmailAsycn("id123")
-                    .thenCompose(ExecutorsDemo::getPlaylistAsycn)
-                    .thenAccept(playlist -> System.out.println(playlist));
-        }
-    }
-    ```
-
-    - 描述：功能与上例相同，但通过将异步逻辑封装到 `getUserEmailAsycn` 和 `getPlaylistAsync` 方法中，可以直接在 `thenCompose` 中使用方法引用 ，代码更简洁、意图更清晰。
-
-## 组合独立的 CompletableFuture
-
-> 简述：`CompletableFuture` 允许并发地执行多个**相互独立**的异步任务，并在它们全部成功完成后，将各自的结果合并成一个最终结果。核心方法 `thenCombine` 提供了一种非阻塞的方式来协调这种并行执行和结果汇总。
+> 简述：`CompletableFuture` 允许并发地执行多个相互独立的异步任务，并在它们全部成功完成后，将各自的结果合并成一个最终结果。核心方法 `thenCombine` 提供了一种非阻塞的方式来协调这种并行执行和结果汇总。
 
 **知识树**
 
 1.  核心场景：并行任务与结果合并
 
     - 定义：需要同时启动多个不互相依赖（启动时）的异步操作，并等待所有这些操作都成功完成后，利用它们的各自结果来计算一个汇总值。（例如：并行获取产品价格和汇率，然后计算最终价格）。
-    - 关键区别于 `thenCompose`：这里的任务是**独立**的，可以**并发**启动；而 `thenCompose` 处理的是**依赖**任务，后一个任务依赖前一个的结果才能启动。
+    - 区别于 `thenCompose`：
+        - `thenCombine`的任务是独立的，可以并发启动；
+        - `thenCompose` 处理的是依赖任务，后一个任务依赖前一个的结果才能启动。
 
 2.  主要合并方法：`thenCombine()`
 
@@ -10938,14 +10933,9 @@ Completable Futures
         - `other`: 代表第二个独立异步任务的 `CompletionStage`。
         - `fn`: 一个 `BiFunction`。当两个 Future 都成功完成时，该函数会接收第一个 Future 的结果 `T` 和第二个 Future (`other`) 的结果 `U` 作为输入，并计算返回一个合并后的结果 `V`。
     - 执行流程：
-        - `thenCombine` **非阻塞**地等待调用它的 Future (`this`) 和传入的 `other` Future **都成功完成**。这两个 Future 的执行是并发的（如果线程池资源允许）。
+        - `thenCombine` 非阻塞地等待调用它的 Future (`this`) 和传入的 `other` Future 都成功完成。这两个 Future 的执行是并发的（如果线程池资源允许）。
         - 一旦两者都成功完成，将它们各自的结果 (`T` 和 `U`) 传递给 `BiFunction fn`。
         - `fn` 执行计算，其返回值 `V` 成为 `thenCombine` 返回的新 Future 的成功结果。
-
-3.  异步与非阻塞特性
-
-    - 并发执行：两个独立的任务可以并行运行。
-    - 非阻塞调用：调用 `thenCombine` 方法本身不会阻塞当前线程；它只是设置了组合规则和后续操作。实际的合并计算只在两个前置任务都完成后才异步发生。
 
 **代码示例**
 
@@ -10954,27 +10944,37 @@ Completable Futures
     ```java
     public class ExecutorsDemo {
         public static void show() {
-            // 模拟第一个任务是拿到美元数额，第二个任务是拿到汇率
-            var first = CompletableFuture
-                    .supplyAsync(() -> "20USB")
-                    .thenApply(str -> {
-                        var price = str.replace("USB", "");
-                        return Integer.parseInt(price);
+            // 第一个任务：拿到美元数额
+            var getCount = CompletableFuture
+                    .supplyAsync(() -> {
+                        LongTask.simulate(2);
+                        return 20;
                     });
-            var second = CompletableFuture.supplyAsync(() -> 0.9);
+            // 第二个任务：拿到汇率
+            var second = CompletableFuture.supplyAsync(() -> {
+                LongTask.simulate(3);
+                return 0.9;
+            });
 
-            first
+            CompletableFuture<Void> calc = getCount
                     .thenCombine(second, (price, exchange) -> price * exchange)
-                    .thenAccept(System.out::println);
+                    .thenAccept(System.out::println)
+                    .exceptionally(ex -> {                   // 统一兜底
+                        System.err.println("calc failed: " + ex);
+                        return null;
+                    });
+
+            // 为了演示创建的 future
+            calc.join();
         }
     }
     ```
 
     - 描述：并发启动获取价格和汇率两个异步任务。使用 `thenCombine` 等待两者都完成后，通过 `BiFunction` 将两个数字结果相乘，得到最终的欧元价格，并通过 `thenAccept` 打印。
 
-## 等待多个 CompletableFuture 完成
+## allOf
 
-> 简述：`CompletableFuture.allOf` 是一个静态辅助方法，用于创建一个聚合的 `CompletableFuture`，该 Future 会在**所有**指定的一组独立 `CompletableFuture` 任务都执行完毕（无论是成功还是出现异常）之后才标记为完成。这提供了一种协调机制，以确保一组并行任务全部结束后再执行特定逻辑。
+> 简述：`CompletableFuture.allOf` 是一个静态辅助方法，用于创建一个聚合的 `CompletableFuture`，该 Future 会在所有指定的一组独立 `CompletableFuture` 任务都执行完毕（无论是成功还是出现异常）之后才标记为完成。这提供了一种协调机制，以确保一组并行任务全部结束后再执行特定逻辑。
 
 **知识树**
 
@@ -10995,8 +10995,9 @@ Completable Futures
     - 原因：传入 `allOf` 的各个 `CompletableFuture` 可能具有不同的泛型结果类型（例如，一个返回 `String`，一个返回 `Integer`）。`allOf` 本身不负责合并或提供这些异构结果，它的核心职责是同步这一组任务的整体完成事件。因此，其自身的逻辑结果是 `Void`（无特定值）。
 
 4.  获取原始任务结果
-    - 时机保证：当 `allOf` 返回的 `CompletableFuture<Void>` 完成时（即 `thenRun` 的回调被触发时），可以**确信**所有传递给 `allOf` 的原始 `CompletableFuture` 也都已经完成了。
-    - 非阻塞获取：此时，在 `thenRun` 的回调内部，调用**原始** Future（例如 `firstFuture`, `secondFuture`）的 `get()` 或 `join()` 方法来获取它们各自的结果，将**不会阻塞**，因为结果已经就绪。
+
+    - 时机保证：当 `allOf` 返回的 `CompletableFuture<Void>` 完成时（即 `thenRun` 的回调被触发时），可以确信所有传递给 `allOf` 的原始 `CompletableFuture` 也都已经完成了。
+    - 非阻塞获取：此时，在 `thenRun` 的回调内部，调用原始 Future（例如 `firstFuture`, `secondFuture`）的 `get()` 或 `join()` 方法来获取它们各自的结果，将不会阻塞，因为结果已经就绪。
     - 异常处理：尽管 `get()` 此时不阻塞等待，但仍需使用 `try-catch` 包裹，因为它仍然可能抛出 `ExecutionException`（如果对应的原始 Future 是异常完成的）或 `InterruptedException`。
 
 **代码示例**
@@ -11008,11 +11009,20 @@ Completable Futures
         public static void show() {
             System.out.println("Starting multiple async tasks...");
 
-            CompletableFuture<Integer> task1 = CompletableFuture.supplyAsync(() -> 1);
+            CompletableFuture<Integer> task1 = CompletableFuture.supplyAsync(() -> {
+                LongTask.simulate(1);
+                return 1;
+            });
 
-            CompletableFuture<String> task2 = CompletableFuture.supplyAsync(() -> "Task2 Result");
+            CompletableFuture<String> task2 = CompletableFuture.supplyAsync(() -> {
+                LongTask.simulate(2);
+                return "Task2 Result";
+            });
 
-            CompletableFuture<Void> task3 = CompletableFuture.runAsync(() -> System.out.println("Task 3 finished."));
+            CompletableFuture<Void> task3 = CompletableFuture.runAsync(() -> {
+                LongTask.simulate(3);
+                System.out.println("Task 3 finished.");
+            });
 
             // 等待 task1, task2, task3 全部完成
             CompletableFuture<Void> allDoneFuture = CompletableFuture.allOf(task1, task2, task3);
@@ -11030,13 +11040,16 @@ Completable Futures
 
                 System.out.println(">>> All tasks completed successfully (or exceptionally). Subsequent action triggered.");
             });
+
+
+            allDoneFuture.join();
         }
     }
     ```
 
-    - 描述：创建了三个不同类型的异步任务。`CompletableFuture.allOf` 用于等待这三个任务全部结束。当它们都结束后，`thenRun` 中的消息被打印出来。
+    - 描述：创建了三个不同类型的异步任务。`CompletableFuture.allOf` 用于等待（3 秒）这三个任务全部结束。当它们都结束后，`thenRun` 中的消息被打印出来。
 
-## 获取首个完成的 CompletableFuture 结果
+## anyOf
 
 > 简述：`CompletableFuture.anyOf` 是一个静态辅助方法，用于处理一组并发执行的异步任务，并获取其中最先成功完成的那个任务的结果。这适用于需要从多个来源获取信息（如调用多个不同的服务）并希望采用最快响应结果的场景。
 
@@ -11070,17 +11083,112 @@ Completable Futures
     public class ExecutorsDemo {
         public static void show() {
             var first = CompletableFuture.supplyAsync(() -> {
-                LongTask.simulate();
+                LongTask.simulate(10);
                 return 19;
             });
 
-            var second = CompletableFuture.supplyAsync(() -> 20);
+            var second = CompletableFuture.supplyAsync(() -> {
+                LongTask.simulate(1);
+                return 20;
+            });
 
             CompletableFuture
                     .anyOf(first, second)
-                    .thenAccept(temp -> System.out.println(temp));
+                    .thenAccept(temp -> System.out.println(temp))
+                    .join();
+
+
         }
     }
     ```
 
     - 描述：创建了两个模拟不同响应时间的异步服务。`CompletableFuture.anyOf` 用于同时监听这两个服务。由于 `second` 会先完成，`anyOf` 返回的 Future 会以 `second` 的结果来完成，并触发 `thenAccept` 打印该结果，而无需等待 `first` 完成。
+
+## CompletableFuture 超时
+
+> 简述：`CompletableFuture` 提供了内置方法来为异步操作设置超时限制。这使得开发者可以优雅地处理任务执行时间过长的情况，可以选择在超时后让任务失败并抛出异常 (`orTimeout`)，或者让任务成功完成并返回一个预设的默认值 (`completeOnTimeout`)。Java 9 及以上版本可用。
+
+**知识树**
+
+1.  核心需求：限制异步操作时长
+
+    - 场景：调用外部服务、执行复杂计算或其他可能耗时不确定的异步任务时，需要设定一个最大等待时间，避免无限期等待。
+
+2.  超时即异常：`orTimeout()` 方法
+
+    - 签名：`public CompletableFuture<T> orTimeout(long timeout, TimeUnit unit)`
+    - **可用性**: Java 9 及以上版本。
+    - 目的：为 `CompletableFuture` 设置一个超时时间。如果在指定时间内未能完成（无论是成功还是异常），则强制使其**异常完成**。
+    - 行为：
+        - **未超时**: 如果原始 Future 在 `timeout` 内完成，则 `orTimeout` 返回的 Future 以相同的结果或异常完成。
+        - **超时**: 如果在 `timeout` 到期时原始 Future 仍未完成，则 `orTimeout` 返回的 Future 会以 `TimeoutException` **异常完成**。后续若调用 `get()`，会抛出 `ExecutionException`，其 `cause` 为 `TimeoutException`。
+    - 返回值：返回一个新的 `CompletableFuture` 实例。
+    - 适用：适用于超时后应视为操作失败的场景。
+
+3.  **超时即默认值：`completeOnTimeout()` 方法**
+
+    - 签名：`public CompletableFuture<T> completeOnTimeout(T value, long timeout, TimeUnit unit)`
+    - **可用性**: Java 9 及以上版本。
+    - 目的：为 `CompletableFuture` 设置一个超时时间。如果在指定时间内未能完成，则强制使其**成功完成**并使用提供的**默认值**。
+    - 行为：
+        - **未超时**: 如果原始 Future 在 `timeout` 内完成，则 `completeOnTimeout` 返回的 Future 以相同的结果或异常完成。
+        - **超时**: 如果在 `timeout` 到期时原始 Future 仍未完成，则 `completeOnTimeout` 返回的 Future 会以给定的 `value` **成功完成**。后续调用 `get()` 会直接返回这个 `value`。
+    - 返回值：返回一个新的 `CompletableFuture` 实例。
+    - 适用：适用于超时后希望提供一个后备（fallback）或默认结果，以维持程序流程或提供更平滑用户体验的场景。
+
+4.  **选择考量 (Choosing Between Methods)**
+
+    - `orTimeout`: 当超时必须被视为错误处理时使用。
+    - `completeOnTimeout`: 当超时后提供默认值是可接受的、更友好的处理方式时使用。
+
+**代码示例**
+
+1.  使用 `orTimeout` 在超时后触发异常
+
+    ```java
+    public class ExecutorsDemo {
+        public static void show() {
+            var slowTask = CompletableFuture.supplyAsync(() -> {
+                LongTask.simulate();
+                return 1;
+            });
+            try {
+                var result = future
+                        .orTimeout(1, TimeUnit.SECONDS)
+                        .get();
+    			System.out.println(result);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+    ```
+
+    - 描述：`slowTask` 需要 3 秒完成，但 `orTimeout` 设置了 1 秒的限制。因此，在调用 `get()` 时，会因为超时而捕获到 `ExecutionException`，其内部原因 (`cause`) 是 `TimeoutException`。
+
+2.  使用 `completeOnTimeout` 在超时后返回默认值
+
+    ```java
+    public class ExecutorsDemo {
+        public static void show() {
+            var future = CompletableFuture.supplyAsync(() -> {
+                LongTask.simulate();
+                return 1;
+            });
+            try {
+                var result = future
+                        .completeOnTimeout(-1, 1, TimeUnit.SECONDS)
+                        .get();
+                System.out.println(result);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+    ```
+
+    - 描述：同样是 3 秒的任务和 1 秒的超时。这次使用 `completeOnTimeout` 并指定默认值为 -1。因为任务超时，`futureWithTimeout` 会在 1 秒后成功完成，并且 `get()` 调用会返回预设的默认值 -1，而不是抛出异常。
