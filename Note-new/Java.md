@@ -7294,19 +7294,19 @@ CompletableFuture 异常处理？
     - 持有者可以是类名（静态方法）、特定对象（实例方法）或类名加 `new`（构造器）。
     - 目标类型：函数式接口，抽象方法签名与被引用方法完全一致。
 
-2. 静态方法引用
+2. 方法引用
 
-    - 格式：`ClassName::staticMethod`
-    - 将类的静态方法直接作为实现。
-
-3. 特定对象的实例方法引用
-
-    - 格式：`instance::instanceMethod`
-    - 引用某个对象的实例方法，如 `System.out::println`。
-
-4. 构造器引用
-    - 格式：`ClassName::new`
-    - 将构造器作为函数式接口（如 `Supplier`、`Function`、`Consumer` 等）的实现，用于创建新实例。
+    - 实例方法引用（已有对象）
+        - 格式：`instance::instanceMethod`
+        - 引用某个对象的实例方法，如 `System.out::println`。
+    - 实例方法引用（隐式对象）
+        - 格式： `ClassName::instanceMethod`
+    - 静态方法引用
+        - 格式：`ClassName::staticMethod`
+        - 将类的静态方法直接作为实现。
+    - 构造器引用
+        - 格式：`ClassName::new`
+        - 将构造器作为函数式接口（如 `Supplier`、`Function`、`Consumer` 等）的实现，用于创建新实例。
 
 **代码示例**
 
@@ -10124,12 +10124,6 @@ Atomic objects
     ```
 
 # 执行框架
-
-Thread Pools
-Executors
-Callable and Future interfaces
-Asynchronous Programming
-Completable Futures
 
 ## 线程池
 
