@@ -6641,7 +6641,7 @@ CompletableFuture 异常处理？
         - 清空操作：`clear()`，移除所有元素
     - 集合转换
         - 转数组：`toArray()` 返回 `Object[]` 数组
-        - 转类型数组：`toArray(T[] a)` 返回指定类型数组
+        - 转类型数组：`toArray(T[] a)` 返回指定类型数组，如果 `a` 长度不够，会新建一个同类型、足够长的新数组，`list.toArray(new T[0])`为推荐的默认写法。
 
 3. 常见实现类
     - List 类
@@ -8688,14 +8688,6 @@ CompletableFuture 异常处理？
     ```
 
 # 并发多线程
-
-**Concurency and Multi-threading**
-Key terms and concepts
-Working with threads
-Concurrency issues
-Synchronization
-Volatile fields
-Atomic objects
 
 ## 进程&线程基础
 
@@ -11186,3 +11178,109 @@ Atomic objects
     ```
 
     - 描述：同样是 3 秒的任务和 1 秒的超时。这次使用 `completeOnTimeout` 并指定默认值为 -1。因为任务超时，`futureWithTimeout` 会在 1 秒后成功完成，并且 `get()` 调用会返回预设的默认值 -1，而不是抛出异常。
+
+## Ex: 同步查找最便宜航班
+
+> **要求**：
+> 编写一个程序，异步向多个航班代理网站查询报价，实时打印各网站返回的报价，并在所有查询完成后打印总耗时。
+
+> **解法**：
+>
+> 1. 定义 `Quote` 类，包含不可变的 `site` 和 `price` 两个字段，通过构造器初始化，并重写 `toString()` 便于打印。
+> 2. 在 `FlightService` 中：
+>
+>     - 实现 `CompletableFuture<Quote> getQuote(String site)`，使用 `CompletableFuture.supplyAsync` 进行异步调用，内部模拟 1–3 秒随机延迟，然后返回一个 `Quote` 对象。
+>     - 实现 `Stream<CompletableFuture<Quote>> getQuotes()`，通过一个站点列表 `.stream()` 调用 `getQuote` 并返回未来对象流。
+>
+> 3. 在 `Demo` 类中：
+>
+>     1. 记录查询开始时间。
+>     2. 调用 `getQuotes()`，收集为 `List<CompletableFuture<Quote>>`，并对每个未来对象注册 `thenAccept(System.out::println)`，以在结果到达时实时打印。
+>     3. 使用 `CompletableFuture.allOf(...)` 等待所有查询完成 (`join()`)，然后记录结束时间、计算 `Duration` 并打印总耗时。
+
+**代码**
+
+1. 定义 `Quote` 类
+
+```java
+public class Quote {
+    private final String siteName;
+    private final int price;
+
+    public Quote(String siteName, int price) {
+        this.siteName = siteName;
+        this.price = price;
+    }
+
+    public String getSiteName() {
+        return siteName;
+    }
+
+    public int getPrice() {
+        return price;
+    }
+
+    @Override
+    public String toString() {
+        return "Quote{" +
+                "siteName='" + siteName + '\'' +
+                ", price=" + price +
+                '}';
+    }
+}
+```
+
+2. 定义 `FlightService` 类
+
+```java
+public class FlightService {
+
+    public Stream<CompletableFuture<Quote>> getQuotes(List<String> sites) {
+        return sites.stream().map(this::getQuote);
+    }
+
+    public CompletableFuture<Quote> getQuote(String siteName) {
+        return CompletableFuture.supplyAsync(() -> {
+            System.out.println("Getting a quote from " + siteName);
+
+            var random = new Random();
+            // 模拟任务耗时
+            LongTask.simulate(random.nextInt(3));
+            // 模拟获取到的价格
+            var price = 100 + random.nextInt(10);
+            return new Quote(siteName, price);
+        });
+    }
+}
+
+```
+
+3. 在 `ExecutorsDemo` 中调用 `FlightService`
+
+```java
+public class ExecutorsDemo {
+    public static void show() {
+
+        var sites = List.of("site1", "site2", "site3");
+
+        var start = LocalTime.now();
+        var service = new FlightService();
+        var futures = service.getQuotes(sites)
+                .map(future -> future.thenAccept(System.out::println))
+                .collect(Collectors.toList());
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenRun(() -> {
+                    var end = LocalTime.now();
+                    var duration = Duration.between(start, end);
+                    System.out.println("Retrieved all quotes in " + duration.toMillis() + " ms");
+                });
+
+        try {
+            Thread.sleep(5_000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+```
