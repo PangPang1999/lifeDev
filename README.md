@@ -36,12 +36,28 @@ Java
   - endDate: 2025/3/19
 - Part2 Object-oriented 4h
   - startDate: 2025/3/20
-  - endDate:
+  - endDate:2025/3/31
+- Part3 Object-oriented 6h
+  - startDate: 2025/4/1
+  - endDate:2025/5/5
 
 summarize:
 
 1. 开始回顾 Java，计划尽快过一遍基础
-2. 我觉得我学完什么东西，就可以快速指导其他人学会，这是费曼学习法
-   但是 Moth 的 Java 课程似乎无法做到，虽然确实很优秀，但是项目
-   示例较多，如果要整理出非常优秀的笔记，可能时间要 Double，暂时
-   不考虑，后续如果要做教程，再重写整理一遍即可。
+2. 初步计划快速过，费曼学习过于的慢
+3. 踏实学技术，敷衍自己无意义，我需要是：
+   Once I learn, I can teach.
+4. Java 核心知识 Stream、CompleteFuture 也挺简单的，
+   类似学习 JS 的数组与原型，学不一定定牢牢记住，但是用
+   的时候很快就能想到。
+5. 中间离职后零零碎碎休息了半个多月，SpringBoot 加速！
+
+SpringBoot
+
+- Mastering the Fundamentals 6h
+  - startDate: 2025/5/5
+  - endDate:
+
+summarize:
+
+1.
