@@ -241,6 +241,8 @@
 
 4. Maven
 
+    0. 使用 IntelliJ IDEA 不需要安装 maven，可以使用内建的 maven
+
     1. 使用传统方式安装 maven（我使用该方式）
     2. 下载链接（无需手动前往下载）：https://archive.apache.org/dist/maven/maven-3/3.9.4/binaries/
     3. 使用命令行简化操作（复制到终端回车，中间需要输入密码）
@@ -310,6 +312,7 @@
 
 4. InteliJ IDEA 插件
 
+    0. Setting 快捷键：`Command+，`
     1. Settings--插件--Chinese (Simplified) ：中文界面（可选）
     2. Settings--插件--MyBatisX：xml 文件跳转
     3. Settings--插件--GitHub Copilot：代码补全
@@ -322,10 +325,12 @@
     2. Settings--编译器--代码风格--Java--代码生成
         1. Line comment at first column 顶格注释：取消勾选
         2. Add a space comment start 注释前加空格：勾选
-    3. Settings--外观与行为--外观--亮色主题
-    4. Settings--外观与行为--外观--使用自定义字体（导航栏）
-    5. Settings--编译器--字体（编译器）
-    6. 设置 idea 启动时不自动打开上一次的项目
+    3. Settings--编译器--代码风格--Java--代码生成
+        1. 第一栏调整锁进，个人偏好 888
+    4. Settings--外观与行为--外观--亮色主题
+    5. Settings--外观与行为--外观--使用自定义字体（导航栏）
+    6. Settings--编译器--字体（编译器）
+    7. 设置 idea 启动时不自动打开上一次的项目
         1. 打开 IDEA，选择选择菜单 File>Settings 进入设置页面。
         2. 选择 Appearance & Behavior>System Settings，进入系统设置页面。
         3. 在 Startup/Shutdown 栏目处，去掉默认的勾选 Reopen last project on startup（在启动的时候打开上次的项目），去掉勾选之后，点击确认。
