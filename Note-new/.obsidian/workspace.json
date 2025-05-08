@@ -4,31 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "5059c639c72a9ffc",
+        "id": "feaaef08bb27e261",
         "type": "tabs",
         "children": [
           {
-            "id": "39b65bcd4f2cd857",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "SpringBoot.md",
-                "mode": "source",
-                "source": true
-              },
-              "icon": "lucide-file",
-              "title": "SpringBoot"
-            }
-          }
-        ]
-      },
-      {
-        "id": "a2bf362e6d6b79a2",
-        "type": "tabs",
-        "children": [
-          {
-            "id": "0af03465c9b83ecf",
+            "id": "497df478da2a7f52",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -98,8 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "right": {
     "id": "4c76231ee1d676b9",
@@ -189,12 +168,13 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "39b65bcd4f2cd857",
+  "active": "497df478da2a7f52",
   "lastOpenFiles": [
-    "JavaScript.md",
+    "Untitled.md",
     "SpringBoot.md",
-    "Java.md",
     "Mac重装.md",
+    "Java.md",
+    "JavaScript.md",
     "搭建 VPN.md",
     "Java回顾（非Moth版本）.md",
     "未命名.md",
@@ -227,7 +207,6 @@
     "es6-tooling-webpack/node_modules/@babel/plugin-transform-class-properties/README.md",
     "es6-tooling-webpack/node_modules/@babel/plugin-syntax-import-assertions/README.md",
     "es6-tooling-webpack/node_modules/@babel/plugin-syntax-import-attributes/README.md",
-    "es6-tooling-webpack/node_modules/@babel/plugin-syntax-unicode-sets-regex/README.md",
     "es6-tooling-webpack/node_modules/renderkid/docs/images/usage.png",
     "es6-tooling-webpack/node_modules/renderkid/docs/images/display.png",
     "es6-tooling-webpack/node_modules/renderkid/docs/images/bullets-1.png",
