@@ -283,7 +283,7 @@ Debugging your application
 
 ## Controller
 
-> 简述：Controller 是 Spring MVC 中处理用户请求的组件，它接收客户端请求，与业务逻辑交互后决定返回视图或数据响应给用户，实现数据与界面的有效分离。
+> 简述：Controller 是 Spring MVC 中**处理用户请求**的组件，它接收客户端请求，与业务逻辑交互后决定返回视图或数据响应给用户，实现数据与界面的有效分离。
 
 **知识树**
 
@@ -978,3 +978,84 @@ bean 的生命周期方法
     ```
 
     - 描述：在 `OrderService` 特定注入 PayPal 实现，无需耦合具体实现类，仅引用 Bean 名称。
+
+## Ex: 通知系统设计练习
+
+> **要求**：设计一个可扩展的通知系统，支持通过不同渠道，如电子邮件(默认)、短信发送通知，无需修改核心业务逻辑即可切换通知方式。
+>
+> **解法**：
+>
+> 1. **定义契约**：创建 `NotificationService` 接口，声明 `send(String message)` 方法。
+> 2. **实现渠道**：
+>
+>     - `EmailNotificationService`：标注 `@Service("email")` 并使用 `@Primary` 作为默认 Bean，`send` 方法打印邮件通知。
+>     - `SMSNotificationService`：标注 `@Service("sms")`，`send` 方法打印短信通知。
+>
+> 3. **管理器注入**：创建 `NotificationManager`（`@Service`），通过构造函数注入 `NotificationService`，在 `sendNotification(String message)` 中委托调用。
+> 4. **运行验证**：在启动类中获取 `NotificationManager` Bean 并调用 `sendNotification`，默认走邮件；如需短信，可在构造器参数上使用 `@Qualifier("sms")` 指定。
+
+**代码**
+
+1. 创建 `NotificationService` 接口
+
+    ```java
+    public interface NotificationService {
+        void send(String message);
+    }
+    ```
+
+2. 创建实现类`EmailNotificationService`
+
+    ```java
+    @Service("email")
+    @Primary
+    public class EmailNotificationService implements NotificationService {
+        @Override
+        public void send(String message) {
+            System.out.println("Sending email : " + message);
+        }
+    }
+    ```
+
+3. 创建实现类`SMSNotificationService`
+
+    ```java
+    @Service("sms")
+    public class SMSNotificationService implements NotificationService {
+        @Override
+        public void send(String message) {
+            System.out.println("Sending SMS: " + message);
+        }
+    }
+    ```
+
+4. 创建 `NotificationManager`
+
+    ```java
+    @Service
+    public class NotifacationManager {
+        private final NotificationService notificationService;
+
+        public NotifacationManager(NotificationService notificationService) {
+            this.notificationService = notificationService;
+        }
+
+        public void sendNotification(String message) {
+            notificationService.send(message);
+        }
+    }
+    ```
+
+5. 运行验证
+
+    ```java
+    @SpringBootApplication
+    public class StoreApplication {
+
+        public static void main(String[] args) {
+            ApplicationContext context = SpringApplication.run(StoreApplication.class, args);
+            var manager = context.getBean(NotifacationManager.class);
+            manager.sendNotification("This is a test");
+        }
+    }
+    ```
