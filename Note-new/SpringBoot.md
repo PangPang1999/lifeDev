@@ -903,3 +903,78 @@ bean 的生命周期方法
     ```
 
     - 描述：不标注时容器优先使用默认构造器，可能导致依赖未注入，标注后指定构造器按需装配
+
+## Bean 优先级
+
+> 简述：当多个 Bean 实现同一接口时，Spring 无法自动确定使用哪个实现。为解决这种歧义，Spring 提供了 `@Primary`（设置默认 Bean）和 `@Qualifier`（指定具体 Bean）注解，以明确告诉容器选择合适的实现
+
+**知识树**
+
+1. Bean 歧义
+
+    - 场景：多个 Bean 实现同一接口，容器无法自动选定
+
+2. `@Primary` 注解
+
+    - 定义：标记默认 Bean，当出现多个同类型 Bean 时优先注入
+    - 特性：仅能作用于单个 Bean
+
+3. `@Qualifier` 注解
+
+    - 定义：在注入点显式指定 Bean 名称或 ID
+    - 用法：配合构造器、字段或 Setter 使用
+
+4. Bean 命名方式：
+
+    - 默认：类名首字母小写（如 `paypalPaymentService`）。
+    - 自定义：通过 `@Service("name")` 明确指定名称。
+
+**代码示例**
+
+1.  使用 `@Primary` 设置默认实现
+
+    ```java
+    @Service("stripe")
+    @Primary
+    public class StripePaymentService implements PaymentService {
+
+        @Override
+        public void processPayment(double amount) {
+            System.out.println("STRIPE PAYMENT " + amount);
+        }
+    }
+    ```
+
+    - 描述：默认情况下将优先注入 Stripe 实现。
+
+2.  命名实现类
+
+    ```java
+    @Service("paypal")
+    public class PayPalPaymentService implements PaymentService {
+
+        @Override
+        public void processPayment(double amount) {
+            System.out.println("PayPal PAYMENT " + amount);
+        }
+    }
+    ```
+
+3.  使用 `@Qualifier` 明确指定实现
+
+    ```java
+    @Service
+    public class OrderService {
+    	private PaymentService paymentService;
+
+    	public OrderService(@Qualifier("paypal") PaymentService paymentService) {
+    		this.paymentService = paymentService;
+    	}
+
+    	public void placeOrder() {
+    		paymentService.processPayment(10.0);
+    	}
+    }
+    ```
+
+    - 描述：在 `OrderService` 特定注入 PayPal 实现，无需耦合具体实现类，仅引用 Bean 名称。
