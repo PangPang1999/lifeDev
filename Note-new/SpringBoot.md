@@ -1,9 +1,13 @@
 ## 快捷键
 
-`Command+,`设置
-`Command+shift+O`查找文件
-`Control+r`运行
-`Control+D`调试运行
+1. 高级
+    - 提取方法/接口： （选取代码）置顶菜单 Refactor——Extract/Introduce——Method/Interface
+        - 提取方法默认为 private
+2. 基础
+    - `Command+,`设置
+    - `Command+shift+O`查找文件
+    - `Control+r`运行
+    - `Control+D`调试运行
 
 ## 待补充
 
@@ -482,21 +486,179 @@ Debugging your application
     - 注释：单个属性注入，`${}` 包裹键名。
 
 # 依赖注入
+
 什么是依赖注入
 为什么重要
-它怎么让代码更清晰更容易维护 
+它怎么让代码更清晰更容易维护
 
 构造器注入
-Setter注入
-SpringIOC容器
-使用注解配置bean
-控制bean的行为
+Setter 注入
+SpringIOC 容器
+使用注解配置 bean
+控制 bean 的行为
 额外的配置让应用更灵活
-配置程序化的bean
+配置程序化的 bean
 懒初始化
-控制bean的范围
-bean的生命周期方法
+控制 bean 的范围
+bean 的生命周期方法
 
-目标：对依赖注入有深刻的理解，以及理解Spring怎么有效率的管理bean
+目标：对依赖注入有深刻的理解，以及理解 Spring 怎么有效率的管理 bean
 
-## 概念
+## 耦合与依赖注入
+
+> 简述：依赖注入（Dependency Injection, DI）是一种实现控制反转（IoC）的技术，其核心思想是：将对象所依赖的 其他对象 由外部提供（注入），而不是在对象内部自行创建，从而降低耦合、便于测试和配置。本节先演示高耦合的弊端，再引出 DI 的必要性。
+
+**知识树**
+
+1. 耦合（Coupling）
+
+    - 定义：衡量模块之间依赖的紧密程度
+    - 低耦合：通过接口或抽象层交互，修改影响范围可控
+    - 高耦合：直接依赖具体实现，修改易引发连锁变化
+
+2. 依赖注入（Dependency Injection, DI）
+
+    - 定义：由外部容器或调用者提供依赖实例
+    - 优势：
+        - 降低模块间耦合
+        - 简化单元测试。
+        - 灵活替换实现，无需修改调用者。
+
+3. 耦合举例
+
+    - 类比：餐馆依赖厨师，可随意更换厨师保证运营；依赖特定厨师则风险大
+    - 示例：如果类 A 依赖于 B，而 B 又依赖于 C，修改 C 可能影响 B 和 A
+
+4. 问题引入
+
+    - `OrderService` 硬编码依赖 `StripePaymentService`
+    - 添加新支付方式时必须修改 `OrderService`，测试与维护成本上升
+
+**代码示例**
+
+1. 定义`StripePaymentService`类，在 store 包中创建
+
+    ```java
+    public class StripePaymentService {
+        public void processPayment(double amount) {
+            System.out.println("STRIPE PAYMENT " + amount);
+        }
+    }
+    ```
+
+2. 定义`OrderService`类，在 store 包中创建
+
+    ```java
+    public class OrderService {
+        public void placeOrder() {
+            var paymentService = new StripePaymentService();
+            paymentService.processPayment(10.0);
+        }
+    }
+    ```
+
+    - 问题：`OrderService` 强依赖于 `StripePaymentService`，支付方式改变需修改代码。
+
+3. 在`StoreApplication`中调用`OrderService`
+
+    ```java
+    @SpringBootApplication
+    public class StoreApplication {
+
+        public static void main(String[] args) {
+            // 暂时注释
+            // SpringApplication.run(StoreApplication.class, args);
+            var orderService = new OrderService();
+            orderService.placeOrder();
+        }
+    }
+    ```
+
+    - 测试困难：测试 `OrderService` 必须包含 `StripePaymentService`。
+
+## 构造函数
+
+> 简述：通过构造函数注入依赖并结合接口抽象，遵循开闭原则，实现低耦合、高可扩展性的支付服务设计。
+
+**知识树**
+
+1. 构造函数注入
+
+    - 定义：将依赖实例通过构造函数参数传入
+    - 优势：
+        - 解耦：调用方无需关心具体实现
+
+2. 接口抽象
+
+    - 定义：声明 `PaymentService` 接口，统一调用契约
+    - 方法：`void processPayment(double amount)`
+
+3. 实现替换
+
+    - Stripe 与 PayPal 等具体实现
+    - 注入时：`new OrderService(new StripePaymentService())` 或 `new OrderService(new PaypalPaymentService())`
+
+4. 开闭原则（Open–Closed Principle）
+
+    - 定义：对扩展开放、对修改关闭
+    - 效果：新增支付方式无需修改已有 `OrderService`
+
+**代码示例**
+
+1. 构造函数注入
+
+    ```java
+    public class OrderService {
+        private final PaymentService paymentService;
+
+        public OrderService(PaymentService paymentService) {
+            this.paymentService = paymentService;
+        }
+
+        public void placeOrder() {
+            paymentService.processPayment(10.0);
+        }
+    }
+    ```
+
+    - 通过构造函数接收 `PaymentService`，替换具体实现无需改动本类。
+
+2. 支付接口及实现
+
+    ```java
+    public interface PaymentService {
+        void processPayment(double amount);
+    }
+
+    public class StripePaymentService implements PaymentService {
+        @Override
+        public void processPayment(double amount) {
+            System.out.println("STRIPE PAYMENT " + amount);
+        }
+    }
+
+    public class PaypalPaymentService implements PaymentService {
+        @Override
+        public void processPayment(double amount) {
+            System.out.println("PAYPAL PAYMENT " + amount);
+        }
+    }
+    ```
+
+    - 接口定义通用方法，各实现类负责具体逻辑。
+
+3. 注入与运行
+
+    ```java
+    public class StoreApplication {
+        public static void main(String[] args) {
+            PaymentService service = new PaypalPaymentService();
+            OrderService orderService = new OrderService(service);
+            orderService.placeOrder();
+        }
+    }
+    ```
+
+    - 运行时传入不同实现，`OrderService` 无需修改即可支持新支付方式。
+
+(结束)
