@@ -774,7 +774,6 @@ bean 的生命周期方法
 
 4. 注册 Bean
 
-
     - 注解扫描：`@Component`、`@Service` 等自动识别，下一节介绍
     - Java 配置：`@Configuration` + `@Bean` 方法，稍后介绍
 
@@ -799,3 +798,108 @@ bean 的生命周期方法
     ```
 
     - 描述：启动应用返回容器实例，通过 `getBean` 获取已管理的 Bean
+
+## 注解注册 Bean
+
+> 简述：使用 Spring 提供的注解标记类，由容器自动扫描并实例化为 Bean，完成依赖自动注入，避免手动管理对象及其依赖。
+
+**知识树**
+
+1. 注解驱动注册 Bean
+
+    - 定义：类标注特定注解，容器自动实例化并管理生命周期
+
+2. 常用组件注解
+
+    - `@Component`：通用组件，无具体角色
+    - `@Service`：业务逻辑层，语义清晰
+    - `@Repository`：数据访问层，便于异常转换
+    - `@Controller`：Web 控制器，处理 HTTP 请求
+    - 派生关系：后三者本质上均为 `@Component` 的特殊化，无行为差异，仅区分用途与语义
+
+3. 自动装配注解
+
+    - `@Autowired`：
+        - 用于构造器、Setter 或字段注入
+        - **单一构造器无需显式标注**（Spring 4.3+ ）
+        - 多构造器场景必须显式标注
+    - 使用建议：推荐省略，简洁纯净
+
+4. Bean 优先级
+
+    - 概念：
+        - 多个实现同一接口时，容器无法确定默认注入对象，需额外指定（下一节介绍）
+    - 注意：
+        - 这一节仅在`OrderService`以及`PayPalPaymentService`上标柱`@Service`进行注册，而不理会`StripePaymentService`，因为两者都标准会导致调用时，容器不知道选择哪一个。
+
+**代码示例**
+
+1. 使用 `@Service` 标记业务逻辑类
+
+    ```java
+    @Service
+    public class OrderService {
+        private final PaymentService paymentService;
+
+    	// 单一构造器，无需 @Autowired
+        public OrderService(PaymentService paymentService) {
+            this.paymentService = paymentService;
+        }
+
+        public void placeOrder() {
+            paymentService.processPayment(10.0);
+        }
+    }
+    ```
+
+    - 描述：单一构造器无需显式使用 `@Autowired`，容器自动装配
+
+2. 标记实现类为 Bean
+
+    ```java
+    @Service
+    public class PayPalPaymentService implements PaymentService {
+        @Override
+        public void processPayment(double amount) {
+            System.out.println("PayPal 支付: " + amount);
+        }
+    }
+    ```
+
+    - 描述：提供接口具体实现，自动纳入容器管理
+
+3. 主启动类获取容器管理的 Bean
+
+    ```java
+    @SpringBootApplication
+    public class StoreApplication {
+
+        public static void main(String[] args) {
+            // 获取 IoC 容器对象
+            ApplicationContext context = SpringApplication.run(StoreApplication.class, args);
+            // 通过容器获取 Bean 实例，获取时自动调用其构造函数
+            OrderService orderService = context.getBean(OrderService.class);
+            orderService.placeOrder();
+        }
+    }
+    ```
+
+    - 描述：启动应用自动扫描注解，完成 Bean 实例化与注入
+
+4. 多构造器显式指定注入构造器（示例）
+
+    ```java
+    @Service
+    public class OrderService {
+        private PaymentService paymentService;
+
+        public OrderService() { }
+
+        @Autowired
+        public OrderService(PaymentService paymentService) {
+            this.paymentService = paymentService;
+        }
+    }
+    ```
+
+    - 描述：不标注时容器优先使用默认构造器，可能导致依赖未注入，标注后指定构造器按需装配

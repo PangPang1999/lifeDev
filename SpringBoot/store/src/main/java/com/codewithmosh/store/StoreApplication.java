@@ -11,10 +11,8 @@ public class StoreApplication {
     public static void main(String[] args) {
         // 获取 IoC 容器对象
         ApplicationContext context = SpringApplication.run(StoreApplication.class, args);
-        // 通过容器获取 Bean 实例
-        // 目前还没有往容器中加入bean，所以找不到报错
+        // 通过容器获取 Bean 实例，获取时自动调用其构造函数
         OrderService orderService = context.getBean(OrderService.class);
-        orderService.setPaymentService(new PayPalPaymentService());
         orderService.placeOrder();
     }
 }
