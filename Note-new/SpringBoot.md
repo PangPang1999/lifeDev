@@ -4,6 +4,7 @@
     - 提取方法/接口： （选取代码）置顶菜单 Refactor——Extract/Introduce——Method/Interface
         - 提取方法默认为 private
 2. 基础
+    - `Shift+Command+上下`移动方法
     - `Command+,`设置
     - `Command+shift+O`查找文件
     - `Control+r`运行
@@ -676,3 +677,74 @@ bean 的生命周期方法
     ```
 
     - 运行时传入不同实现，`OrderService` 无需修改即可支持新支付方式。
+
+## Setter 注入
+
+> 简述：通过公开的 `setXxx(…)` 方法将依赖注入到类中，适用于可选或运行时调整的依赖，但若遗漏注入易引发空指针，通常仅在构造注入不便时使用。
+
+**知识树**
+
+1. 定义
+
+    - 在类中提供公有 setter 方法，由外部容器或调用者调用注入依赖
+
+2. 适用场景
+
+    - 可选依赖：依赖非必需，可赋予默认实现
+    - 运行时切换：动态替换依赖实例
+
+3. 风险与建议
+
+    - 空指针异常：调用前未注入导致 `NullPointerException`
+    - 隐式依赖：依赖关系不明显，阅读难度增加
+    - 缓解：
+        - 提供默认实现
+        - 框架注解（补充，暂不介绍）
+
+4. 推荐策略
+
+    - 优先构造函数注入，保证依赖不可变且显式
+    - 仅在构造注入不适用（如循环依赖、可选参数）时使用
+
+**代码示例**
+
+1. 在 `OrderService` 中添加 Setter 注入
+
+    ```java
+    public class OrderService {
+        private PaymentService paymentService;
+
+        // 构造注入暂注释或移除
+        // public OrderService(PaymentService paymentService) {
+        //     this.paymentService = paymentService;
+        // }
+
+        public void placeOrder() {
+            paymentService.processPayment(10.0);
+        }
+
+        public void setPaymentService(PaymentService paymentService) {
+            this.paymentService = paymentService;
+        }
+    }
+    ```
+
+    - 描述：通过 `setPaymentService` 注入依赖；未调用时 `paymentService` 为 `null`
+
+2. 在应用入口使用 Setter 注入
+
+    ```java
+    @SpringBootApplication
+    public class StoreApplication {
+
+        public static void main(String[] args) {
+            // 暂时注释
+            // SpringApplication.run(StoreApplication.class, args);
+            var orderService = new OrderService();
+            orderService.setPaymentService(new PayPalPaymentService());
+            orderService.placeOrder();
+        }
+    }
+    ```
+
+    - 描述：在运行时传入不同实现，若省略 `setPaymentService` 调用，将抛出 NPE

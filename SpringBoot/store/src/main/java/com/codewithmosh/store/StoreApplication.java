@@ -9,7 +9,8 @@ public class StoreApplication {
     public static void main(String[] args) {
         // 暂时注释
         // SpringApplication.run(StoreApplication.class, args);
-        var orderService = new OrderService(new PayPalPaymentService());
+        var orderService = new OrderService();
+        orderService.setPaymentService(new PayPalPaymentService());
         orderService.placeOrder();
     }
 }
