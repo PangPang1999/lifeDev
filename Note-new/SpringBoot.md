@@ -576,40 +576,77 @@ bean 的生命周期方法
 
     - 测试困难：测试 `OrderService` 必须包含 `StripePaymentService`。
 
-## 构造函数
+## 构造函数注入
 
-> 简述：通过构造函数注入依赖并结合接口抽象，遵循开闭原则，实现低耦合、高可扩展性的支付服务设计。
+> 简述：构造函数注入（Constructor Injection）通过构造器参数将依赖对象传入实例，实现控制反转与依赖可替换，提高模块可测试性和扩展性。
 
 **知识树**
 
 1. 构造函数注入
 
-    - 定义：将依赖实例通过构造函数参数传入
+    - 定义：通过构造器参数注入依赖实例
     - 优势：
-        - 解耦：调用方无需关心具体实现
+        - 降低耦合：调用方不负责创建依赖
+        - 符合开闭：新增实现无需修改类
 
 2. 接口抽象
 
-    - 定义：声明 `PaymentService` 接口，统一调用契约
-    - 方法：`void processPayment(double amount)`
+    - 定义：通过接口定义依赖契约，隐藏具体实现
+    - 使用：
+        - 在调用处声明接口类型
+        - 将实现类实例传递给接口引用
 
-3. 实现替换
+3. 开闭原则（Open–Closed Principle）
 
-    - Stripe 与 PayPal 等具体实现
-    - 注入时：`new OrderService(new StripePaymentService())` 或 `new OrderService(new PaypalPaymentService())`
-
-4. 开闭原则（Open–Closed Principle）
-
-    - 定义：对扩展开放、对修改关闭
-    - 效果：新增支付方式无需修改已有 `OrderService`
+    - 定义：对扩展开放，对修改关闭
+    - 示例：新增 `PayPalPaymentService` 无需修改 `OrderService`
 
 **代码示例**
 
-1. 构造函数注入
+1. 抽象接口
+
+    ```java
+    public interface PaymentService {
+        void processPayment(double amount);
+    }
+    ```
+
+    - 描述：定义通用支付契约，各实现类负责具体逻辑。
+    - 快捷键：使用快捷键可快捷提取接口，置顶菜单 Refactor——Extract/Introduce——Interface
+
+2. `StripePaymentService`实现接口
+
+    ```java
+    public class StripePaymentService implements PaymentService {
+
+        @Override
+        public void processPayment(double amount) {
+            System.out.println("STRIPE PAYMENT " + amount);
+        }
+    }
+    ```
+
+    - 描述提供 Stripe 支付逻辑
+
+3. `PayPalPaymentService`实现接口
+
+    ```java
+    public class PayPalPaymentService implements PaymentService {
+
+        @Override
+        public void processPayment(double amount) {
+            System.out.println("PayPal PAYMENT " + amount);
+        }
+    }
+    ```
+
+    - 描述：提供 PayPal 支付逻辑提供 PayPal 支付逻辑
+
+4. `OrderService`中使用构造函数注入
 
     ```java
     public class OrderService {
-        private final PaymentService paymentService;
+        private PaymentService paymentService;
 
         public OrderService(PaymentService paymentService) {
             this.paymentService = paymentService;
@@ -621,44 +658,21 @@ bean 的生命周期方法
     }
     ```
 
-    - 通过构造函数接收 `PaymentService`，替换具体实现无需改动本类。
+    - 依赖在实例化时注入，替换实现无需修改类
 
-2. 支付接口及实现
-
-    ```java
-    public interface PaymentService {
-        void processPayment(double amount);
-    }
-
-    public class StripePaymentService implements PaymentService {
-        @Override
-        public void processPayment(double amount) {
-            System.out.println("STRIPE PAYMENT " + amount);
-        }
-    }
-
-    public class PaypalPaymentService implements PaymentService {
-        @Override
-        public void processPayment(double amount) {
-            System.out.println("PAYPAL PAYMENT " + amount);
-        }
-    }
-    ```
-
-    - 接口定义通用方法，各实现类负责具体逻辑。
-
-3. 注入与运行
+5. 注入与运行
 
     ```java
+    @SpringBootApplication
     public class StoreApplication {
+
         public static void main(String[] args) {
-            PaymentService service = new PaypalPaymentService();
-            OrderService orderService = new OrderService(service);
+            // 暂时注释
+            // SpringApplication.run(StoreApplication.class, args);
+            var orderService = new OrderService(new PayPalPaymentService());
             orderService.placeOrder();
         }
     }
     ```
 
     - 运行时传入不同实现，`OrderService` 无需修改即可支持新支付方式。
-
-(结束)
