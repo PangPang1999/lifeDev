@@ -748,3 +748,54 @@ bean 的生命周期方法
     ```
 
     - 描述：在运行时传入不同实现，若省略 `setPaymentService` 调用，将抛出 NPE
+
+## IoC 容器
+
+> 简述：Spring IoC 容器通过控制反转与依赖注入自动管理 Bean 的创建、装配与生命周期，实现模块解耦与灵活扩展。
+
+**知识树**
+
+1. IoC（控制反转）
+
+    - 定义：容器接手对象创建与依赖提供
+    - 本质：由“我创建依赖”转为“容器注入依赖”
+
+2. Spring IoC 容器
+
+    - 定义：Spring 提供的对象管理容器，负责创建、注入、销毁对象
+    - 类型：ApplicationContext 是常用的 IoC 容器实现
+    - 获取方式：通过 `SpringApplication.run(...)` 返回容器实例
+
+3. Bean
+
+    - 定义：容器管理的对象
+    - 特性：实例化、依赖注入、生命周期由容器控制
+    - 配置：注解或 Java 配置类
+
+4. 注册 Bean
+
+
+    - 注解扫描：`@Component`、`@Service` 等自动识别，下一节介绍
+    - Java 配置：`@Configuration` + `@Bean` 方法，稍后介绍
+
+**代码示例**
+
+1. 获取 IoC 容器并获取 Bean
+
+    ```java
+    @SpringBootApplication
+    public class StoreApplication {
+
+        public static void main(String[] args) {
+            // 获取 IoC 容器对象
+            ApplicationContext context = SpringApplication.run(StoreApplication.class, args);
+            // 通过容器获取 Bean 实例
+            // 目前还没有往容器中加入bean，所以找不到报错
+            OrderService orderService = context.getBean(OrderService.class);
+            orderService.setPaymentService(new PayPalPaymentService());
+            orderService.placeOrder();
+        }
+    }
+    ```
+
+    - 描述：启动应用返回容器实例，通过 `getBean` 获取已管理的 Bean
