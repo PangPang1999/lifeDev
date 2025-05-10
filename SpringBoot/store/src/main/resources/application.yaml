@@ -6,3 +6,4 @@ stripe:
   enabled: true
   timeout: 60
   supported-currencies: USD,EUR,GBP
+payment-gateway: paypal

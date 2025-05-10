@@ -1151,3 +1151,117 @@ bean 的生命周期方法
     ```
 
     - 描述：层级结构更清晰，避免重复前缀，便于维护
+
+## 配置类注册 Bean
+
+> 简述：使用 `@Configuration` 与 `@Bean` 注解，可通过纯 Java 代码方式定义并装配 Bean，提供更细粒度的控制，并支持实现对第三方类的配置。
+
+**知识树**
+
+1. Java 配置类
+
+    - 使用 `@Configuration` 标记
+    - 包含一个或多个带 `@Bean` 注解的方法
+
+2. `@Bean` 注解
+
+    - 定义：将方法返回值注册为 Spring 管理的 Bean
+    - Bean 名称：默认取方法名，或可通过 `@Bean("name")` 指定
+    - 优势：可在方法中添加任意逻辑，比注解扫描更灵活
+
+3. 条件化 Bean 创建
+
+    - 在工厂方法中使用 `if/else` 或配置值决定返回哪个实现
+    - 适用场景：环境差异、第三方库、动态需求
+
+4. 配合`@Primary`
+
+    - 自定义配置类依然可以依赖`@Primary`，自动注入默认实现，支持使用`@Qualifier`指定具体 Bean
+
+5. 引入示例
+
+    - 注释掉`OrderService`、`PayPalPaymentService`、`StripePaymentService`上的注解，使用自定义配置类注入 bean
+    - 在`application.yaml`加入`payment-gateway: paypal`，根据配置文件选择支付方式
+
+**代码示例**
+
+1. Java 配置类
+
+    ```java
+    @Configuration
+    public class AppConfig {
+
+        @Value("$payment-gateway")
+        private String paymentGateway;
+
+        @Bean
+        public PaymentService stripe() {
+            return new StripePaymentService();
+        }
+
+        @Bean
+        public PaymentService paypal() {
+            return new PayPalPaymentService();
+        }
+
+        @Bean
+        public OrderService orderService() {
+            if (paymentGateway.equals("stripe")) return new OrderService(stripe());
+            else return new OrderService(paypal());
+        }
+    }
+    ```
+
+    - `@Configuration`：标记配置类
+    - `@Bean`：将方法返回值注册为 Bean，名称由方法名或注解指定
+    - 使用 `@Value` 读取 `payment.gateway` 配置，条件选择注入实现
+
+2. 主启动类获取 Bean（不变）
+
+    ```java
+    @SpringBootApplication
+    public class StoreApplication {
+
+        public static void main(String[] args) {
+            // 获取 IoC 容器对象
+            ApplicationContext context = SpringApplication.run(StoreApplication.class, args);
+            OrderService orderService = context.getBean(OrderService.class);
+            orderService.placeOrder();
+        }
+    }
+    ```
+
+    - 启动时加载配置类，容器自动实例化并注入 `OrderService`，无需修改业务逻辑即可切换通知方式。
+
+3. 配置类中设置默认实现
+
+    ```java
+    @Configuration
+    public class AppConfig {
+
+        @Value("$payment-gateway")
+        private String paymentGateway;
+
+        @Bean
+        @Primary
+        public PaymentService stripe() {
+            return new StripePaymentService();
+        }
+
+        @Bean
+        public PaymentService paypal() {
+            return new PayPalPaymentService();
+        }
+
+        // @Bean
+        // public OrderService orderService() {
+        // if (paymentGateway.equals("stripe")) return new OrderService(stripe());
+        // else return new OrderService(paypal());
+        // }
+
+        @Bean
+        public OrderService orderService(PaymentService paymentService) {
+            return new OrderService(paymentService);
+        }
+    }
+    ```
