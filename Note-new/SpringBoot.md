@@ -1059,3 +1059,95 @@ bean 的生命周期方法
         }
     }
     ```
+
+## 外部化配置属性
+
+> 简述：Spring 支持将配置信息抽离到外部文件中（如 `.properties` 或 `.yaml`），通过注解注入到 Bean 中，避免硬编码，实现配置集中管理与灵活切换。
+
+**知识树**
+
+1. 属性注入方式：`@Value`
+
+    - `${}`：
+        - 概念：读取配置项的原始值，只负责提取值，不做逻辑计算
+        - 示例：`@Value("${stripe.api-url}")`
+        - 支持默认值：`@Value("${stripe.timeout:3000}")`
+    - `#{}`：
+        - 概念：执行 SpEL（Spring Expression Language）表达式，可在注入时对提取值进行表达式运算（如字符串拆分、类型转换、条件判断）
+        - 示例：`@Value("#{'${stripe.supported-currencies}'.split(',')}")`
+    - 嵌套能力：
+        - `#{}` 可嵌套使用 `${}` 提取配置值再处理
+    - 推荐：
+        - 仅注入用 `${}`
+        - 需运算用 `#{}`
+
+2. 配置文件格式
+
+    - `.properties`：平铺结构，适合简单场景，但键名前缀重复
+    - `.yaml`：层级结构，表达清晰，推荐使用
+
+3. 数据类型支持
+
+    - 可注入：`String`、`boolean`、`int`、`double`、`List<T>`、`Map<K,V>` 等
+
+4. 配置优先级
+
+    - YAML 与 properties 可同时存在，若有冲突 YAML 优先
+    - 项目中推荐统一使用一种格式（优先 YAML）
+
+**代码示例**
+
+1.  使用 `application.properties` 与 `@Value`
+
+    - `application.properties`
+
+        ```
+        spring.application.name=store
+        stripe.apiUrl=https://api.stripe.com
+        stripe.enabled=true
+        stripe.timeout=1000
+        stripe.supported-currencies=USD,EUR,GBP
+        ```
+
+    - 在`StripePaymentService`读取配置文件中的设置
+
+        ```java
+        @Service
+        public class StripePaymentService implements PaymentService {
+        	  @Value("${stripe.api-url}")
+        	  private String apiUrl;
+
+        	  @Value("${stripe.enabled}")
+        	  private boolean enabled;
+
+        	  @Value("${stripe.timeout:3000}")
+        	  private int timeout;
+
+        	  @Value("#{'${stripe.supported-currencies}'.split(',')}")
+        	  private List<String> supportedCurrencies;
+
+        	  public void processPayment(double amount) {
+        		  System.out.println("API URL: " + apiUrl);
+        		  System.out.println("Enabled: " + enabled);
+        		  System.out.println("Timeout: " + timeout);
+        		  System.out.println("Currencies: " + supportedCurrencies);
+        	  }
+        }
+        ```
+
+        - 描述：注入基础类型、布尔值、默认值和集合类型
+
+2.  使用 `application.yaml` 结构化配置
+
+    ```yaml
+    spring:
+      application:
+        name: store
+    stripe:
+      api-url: https://api.stripe.com
+      enabled: true
+      timeout: 60
+      supported-currencies: USD,EUR,GBP
+    ```
+
+    - 描述：层级结构更清晰，避免重复前缀，便于维护
