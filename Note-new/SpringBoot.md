@@ -14,7 +14,7 @@
 
 > 在前面阶段不过多的介绍复制的概念是好的学习方案。但是为了避免遗漏，这里记录课程中，我觉得有必要补充的东西
 
-1. SpringBoot 中的各类注解
+1. Web 应用专用作用域（感觉在 Part2）
 
 # Prerequisites
 
@@ -1337,3 +1337,101 @@ bean 的生命周期方法
     ```
 
     - 描述：容器启动不会创建 HeavyResource，仅当首次请求触发访问时才加载
+
+## Bean 作用域
+
+> 简述：Spring Bean 的作用域（Scope）决定了 Bean 实例的创建频率与生命周期。默认作用域为单例（singleton），也可指定为多例、请求级、会话级等，以满足不同场景的需求。
+
+**知识树**
+
+1. Bean 作用域（Scope）
+
+    - 定义：Bean 的作用范围和生命周期，由容器管理
+    - 设置方式：`@Scope("...")` 注解可用于类或 `@Bean` 方法上
+
+2. 常见作用域类型
+
+    - `singleton`（默认）
+        - 每个容器中仅创建一个 Bean 实例
+        - 适用：无状态、可复用的服务组件
+    - `prototype`
+        - 每次请求 Bean 时创建新实例
+        - 适用：有状态、临时对象
+
+3. Web 应用专用作用域（后续介绍，暂不演示）
+
+    - `request`
+        - 每个 HTTP 请求一个实例
+        - 生命周期随请求开始与结束
+        - 用于：请求级参数封装、临时数据缓存
+    - `session`
+        - 每个 HTTP 会话一个实例
+        - 生命周期等同用户登录状态
+        - 用于：用户上下文、状态保持
+
+4. 使用建议与注意事项
+
+    - `singleton` 简洁高效，首选
+    - 非单例需考虑线程安全与资源释放
+    - Web 作用域需启用 Spring Web 上下文支持
+
+**代码示例**
+
+1. 为查看效果，在 `OrderService` 构造函数中加入输出信息
+
+    ```java
+    // @Service
+    public class OrderService {
+        private PaymentService paymentService;
+
+        public OrderService(PaymentService paymentService) {
+            this.paymentService = paymentService;
+            System.out.println("OrderService created");
+        }
+
+        public void placeOrder() {
+            paymentService.processPayment(10.0);
+        }
+    }
+    ```
+
+    - 描述：在在 `OrderService` 类的构造方法中，加入输出信息
+
+2. 单例作用域（默认）
+
+    ```java
+    @Bean
+    public OrderService orderService() {
+        return new OrderService(stripe());
+    }
+    ```
+
+    - 描述：默认情况下，即使多次调用 `getBean(OrderService.class)`，返回的也是同一个实例。
+
+3. 设置为原型作用域
+
+    ```java
+    @Bean
+    @Scope("prototype")
+    public OrderService orderService() {
+        return new OrderService(stripe());
+    }
+    ```
+
+    - 每次调用容器的 `getBean()` 方法都会返回新的实例。
+
+4. 多次获取 Bean 验证原型行为
+
+    ```java
+    @SpringBootApplication
+    public class StoreApplication {
+
+        public static void main(String[] args) {
+            ApplicationContext context = SpringApplication.run(StoreApplication.class, args);
+            OrderService orderService1 = context.getBean(OrderService.class);
+            OrderService orderService2 = context.getBean(OrderService.class);
+        }
+    }
+    ```
+
+    - 描述：设置` @Scope("prototype")`后，控制台输出会显示构造器被调用多次，表明每次获取的是新实例
