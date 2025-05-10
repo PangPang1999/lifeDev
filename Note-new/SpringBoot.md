@@ -1514,3 +1514,166 @@ bean 的生命周期方法
     ```
 
     - 需使用 `ConfigurableApplicationContext` 才能调用 `close()`
+
+## Ex: 用户注册服务
+
+> **要求**：实现一个用户注册服务，接收用户信息，保存用户数据，并向用户发送通知。邮件服务配置需通过配置文件外部化。重复注册应被拒绝。
+
+> **解法**：
+
+0. 备注：
+
+    - 本节将复用上一个测试使用的几个文件，删除 `NotifacationManager`、`SMSNotificationService`
+
+1. **定义模型与接口**：
+
+    - 创建 `User` 实体类，包含 `name`、`email`、`password` 字段。
+    - 创建 `UserRepository` 接口，定义 `save(User)` 与 `findByEmail(String)` 方法。
+    - 创建 `NotificationService` 接口，定义 `send(String message, String recipientEmail)` 方法。
+
+2. **实现核心逻辑**：
+
+    - 创建 `InMemoryUserRepository` 类，实现 `UserRepository`，用 `Map<String, User>` 存储用户。
+    - 创建 `EmailNotificationService` 类，实现 `NotificationService`，使用 `@Value` 注解注入 `mail.host` 和 `mail.port`。
+    - 创建 `UserService` 类，构造器注入上述两个服务，实现 `registerUser(User)` 方法：
+
+        - 若用户已存在，抛出异常
+        - 否则保存用户，并发送通知
+
+3. **配置与执行**：
+
+    - 在 `application.yaml` 中配置邮件服务器属性
+    - 在 `StoreApplication` 中创建 `UserService`，模拟重复注册行为，验证逻辑正确性
+
+**代码**
+
+1. 创建 `User` 实体类
+
+    ```java
+    public class User {
+        private Long id;
+        private String email;
+        private String password;
+        private String name;
+
+        public User(Long id, String email, String password, String name) {
+            this.id = id;
+            this.email = email;
+            this.password = password;
+            this.name = name;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+    }
+    ```
+
+2. 创建 `UserRepository` 接口
+
+    ```java
+    public interface UserRepository {
+
+        void save(User user);
+
+        User findByEmail(String email);
+    }
+    ```
+
+3. 创建（修改）`NotificationService` 接口
+
+    ```java
+    public interface NotificationService {
+        void send(String message, String recipientEmail);
+    }
+    ```
+
+4. 创建 `InMemoryUserRepository` 类，实现 `UserRepository` 接口
+
+    ```java
+    @Repository
+    public class InMemoryUserRepository implements UserRepository {
+        private final Map<String, User> users = new HashMap<>();
+
+        @Override
+        public void save(User user) {
+            System.out.println("Saving user: " + user);
+            users.put(user.getEmail(), user);
+        }
+
+        @Override
+        public User findByEmail(String email) {
+            return users.getOrDefault(email, null);
+        }
+    }
+    ```
+
+5. 创建（修改） `EmailNotificationService` 类，实现 `NotificationService`
+
+    ```java
+    @Service("email")
+    public class EmailNotificationService implements NotificationService {
+        @Value("${mail.host}")
+        private String host;
+
+        @Value("${mail.port}")
+        private String port;
+
+        @Override
+        public void send(String message, String recipientEmail) {
+            System.out.println("Recipient: " + recipientEmail);
+            System.out.println("Sending email : " + message);
+            System.out.println("Host: " + host);
+            System.out.println("Port: " + port);
+        }
+    }
+    ```
+
+6. 配置类中加入定义信息
+
+    ```yaml
+    mail:
+      host: https://smtp.gmail.com
+      port: 5761
+    ```
+
+7. 创建 `UserService` 类，构造器注入上述两个服务，实现 `registerUser(User)` 方法
+
+    ```java
+    @Service
+    public class UserService {
+        private final UserRepository userRepository;
+        private final NotificationService notificationService;
+
+        public UserService(UserRepository userRepository, NotificationService notificationService) {
+            this.userRepository = userRepository;
+            this.notificationService = notificationService;
+        }
+
+        public void registerUser(User user) {
+            if (userRepository.findByEmail(user.getEmail()) != null) {
+                throw new IllegalArgumentException("User with email " + user.getEmail() + " already exists");
+            }
+
+            userRepository.save(user);
+            notificationService.send("You registered successfully!", user.getEmail());
+        }
+    }
+    ```
+
+8. 在启动类中调用
+
+    ```java
+    @SpringBootApplication
+    public class StoreApplication {
+
+        public static void main(String[] args) {
+            ApplicationContext context = SpringApplication.run(StoreApplication.class, args);
+            UserService userService = context.getBean(UserService.class);
+
+            User user = new User(1L, "alice@example.com", "123456", "Alice");
+            userService.registerUser(user); // 正常注册
+            userService.registerUser(user); // 触发重复注册异常
+        }
+    }
+    ```
