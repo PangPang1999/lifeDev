@@ -13,12 +13,12 @@ public class AppConfig {
     private String paymentGateway;
 
     @Bean
-    @Primary
     public PaymentService stripe() {
         return new StripePaymentService();
     }
 
     @Bean
+    @Primary
     public PaymentService paypal() {
         return new PayPalPaymentService();
     }
@@ -30,7 +30,7 @@ public class AppConfig {
     // }
 
     @Bean
-    public OrderService orderService(@Qualifier("paypal") PaymentService paymentService) {
+    public OrderService orderService(PaymentService paymentService) {
         return new OrderService(paymentService);
     }
 }

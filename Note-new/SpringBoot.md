@@ -1169,14 +1169,18 @@ bean 的生命周期方法
     - Bean 名称：默认取方法名，或可通过 `@Bean("name")` 指定
     - 优势：可在方法中添加任意逻辑，比注解扫描更灵活
 
-3. 条件化 Bean 创建
+3. 避免重复注册
 
-    - 在工厂方法中使用 `if/else` 或配置值决定返回哪个实现
-    - 适用场景：环境差异、第三方库、动态需求
+    - 问题：
+        - 同一个类既被  `@Component` （或  `@Service`  等）扫描，又在  `@Configuration`  里以  `@Bean`  显式注册，会产生两份 `BeanDefinition`。
+        - `Bean name` 相同时，纯 Spring 环境最终只有一份 Bean，在 Spring Boot 2.1+中，启动直接抛异常
+        - `Bean name` 不同时，容器里会并存 两个同类型 Bean，若按 类型 注入且未标  `@Primary` 或  `@Qualifier`，Spring 在启动阶段抛异常
+    - 建议：
+        - 避免双重注册：同一个类要么扫描、要么 `@Bean`，选一种即可。
 
 4. 配合`@Primary`
 
-    - 自定义配置类依然可以依赖`@Primary`，自动注入默认实现，支持使用`@Qualifier`指定具体 Bean
+    - 自定义配置类依然可以依赖`@Primary`，自动注入默认实现，支持在配置类中使用`@Qualifier`指定具体 Bean。
 
 5. 引入示例
 
@@ -1265,3 +1269,71 @@ bean 的生命周期方法
         }
     }
     ```
+
+## Bean 初始化时机
+
+> 简述：Spring 默认在容器启动时立即实例化所有单例 Bean（Eager Initialization）；对创建代价高或不常用的 Bean，可通过 `@Lazy` 延迟到首次使用时实例化，以节省资源。
+
+**知识树**
+
+1. Eager Initialization（默认）
+
+    - 定义：容器启动完成前创建所有单例 Bean
+    - 特点：及早发现依赖缺失或循环依赖
+    - 例子：即使 Bean 没被使用也会被创建
+
+2. Lazy Initialization（延迟加载）
+
+    - 定义：Bean 在首次被注入或检索时才实例化
+    - 场景：资源密集型对象（如大缓存、远程连接）、并非每次请求都用到
+    - 实现方式：
+        - 对类使用 `@Lazy` 注解
+        - 对 `@Bean` 方法使用 `@Lazy` 注解
+
+3. 实现方式
+
+    - 在类上标记`@Lazy`注解，如果是在自定义配置类中，在方法上添加(`@Bean` 下方)`@Lazy`注解
+
+4. 注意事项
+
+    - 可能改变生命周期时序，需评估依赖链
+    - 避免滥用，仅对确实“重”或“少用” Bean 使用
+
+**代码示例**
+
+1. 创建 `HeavyResource` 模拟代价高的资源
+
+    ```java
+    @Component
+    public class HeavyResource {
+        public HeavyResource() {
+            System.out.println("HeavyResource created");
+        }
+    }
+    ```
+
+2. 即时未使用，启动时依然会创建该类的 Bean
+
+    ```java
+    @SpringBootApplication
+    public class StoreApplication {
+
+        public static void main(String[] args) {
+            ApplicationContext context = SpringApplication.run(StoreApplication.class, args);
+        }
+    }
+    ```
+
+3. 在 `HeavyResource` 上标记`@Lazy`
+
+    ```java
+    @Component
+    @Lazy
+    public class HeavyResource {
+        public HeavyResource() {
+            System.out.println("HeavyResource created");
+        }
+    }
+    ```
+
+    - 描述：容器启动不会创建 HeavyResource，仅当首次请求触发访问时才加载
