@@ -31,7 +31,7 @@ public class AppConfig {
     // }
 
     @Bean
-    @Scope("prototype")
+    // @Scope("prototype")
     public OrderService orderService(PaymentService paymentService) {
         return new OrderService(paymentService);
     }

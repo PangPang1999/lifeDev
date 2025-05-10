@@ -1354,9 +1354,11 @@ bean 的生命周期方法
     - `singleton`（默认）
         - 每个容器中仅创建一个 Bean 实例
         - 适用：无状态、可复用的服务组件
+        - **特点**：由容器负责创建 + 管理 + 销毁。
     - `prototype`
         - 每次请求 Bean 时创建新实例
         - 适用：有状态、临时对象
+        - `特点`：容器只负责创建，不会跟踪或管理其生命周期（下一节介绍）。
 
 3. Web 应用专用作用域（后续介绍，暂不演示）
 
@@ -1435,3 +1437,80 @@ bean 的生命周期方法
     ```
 
     - 描述：设置` @Scope("prototype")`后，控制台输出会显示构造器被调用多次，表明每次获取的是新实例
+
+## Bean 生命周期回调
+
+> 简述：Spring Bean 在创建、使用和销毁的整个生命周期中，允许开发者通过特定注解在关键节点插入自定义逻辑，实现资源初始化与清理控制。
+
+**知识树**
+
+1. Bean 生命周期概述
+
+    - 步骤：实例化 → 依赖注入 → 初始化 → 使用 → 销毁
+    - 生命周期由容器统一调度管理
+
+2. 初始化回调：`@PostConstruct`
+
+    - 时机：构造函数执行后、依赖注入完成后调用
+    - 场景：加载资源、建立连接、执行启动逻辑
+    - 限制：方法必须为 `public void` 且无参
+
+3. 销毁回调：`@PreDestroy`
+
+    - 时机：容器销毁 Bean 前调用（限单例）
+    - 场景：释放资源、关闭连接、清理线程
+    - 需显式关闭容器（如调用 `context.close()`）才会触发
+
+4. 手动关闭上下文
+
+    - 注意：Web 容器会自动管理 Bean，这里为演示而手动操作
+    - 类型转换：将 `ApplicationContext` 转为 `ConfigurableApplicationContext`
+    - 方法：`close()` 显式触发 `@PreDestroy` 执行
+
+5. 作用域问题
+
+    - `singleton`（默认作用域）：
+        - 由容器负责创建 + 管理 + 销毁。
+        - 容器关闭时，Spring 调用 `@PreDestroy` 等销毁回调。
+    - `prototype`（原型作用域）：
+        - 容器只负责创建，不会跟踪或管理其生命周期。
+        - 不会自动调用 `@PreDestroy`，即使手动调用 `context.close()`，也无效。
+    - 本节示例：需要删除或者注释自定义配置类中，`OrderService`上的`@Scope("prototype")`
+
+**代码示例**
+
+1. 使用 `@PostConstruct` 初始化资源，`@PreDestroy` 释放资源
+
+    ```java
+    public class OrderService {
+        public OrderService(PaymentService paymentService) {
+            this.paymentService = paymentService;
+            System.out.println("OrderService constructor");
+        }
+
+        @PostConstruct
+        public void init() {
+            System.out.println("OrderService post construct");
+        }
+
+        private final PaymentService paymentService;
+    }
+    ```
+
+    - 构造后自动调用 `init()` 执行初始化逻辑，在容器关闭前调用 `cleanup()`，清理
+
+2. 显式关闭容器触发销毁逻辑
+
+    ```java
+    @SpringBootApplication
+    public class StoreApplication {
+        public static void main(String[] args) {
+            ConfigurableApplicationContext context = SpringApplication.run(StoreApplication.class, args);
+            OrderService service = context.getBean(OrderService.class);
+            service.placeOrder();
+            context.close(); // 触发 @PreDestroy
+        }
+    }
+    ```
+
+    - 需使用 `ConfigurableApplicationContext` 才能调用 `close()`
