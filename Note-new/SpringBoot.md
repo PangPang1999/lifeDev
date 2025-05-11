@@ -1794,3 +1794,52 @@ bean 的生命周期方法
         - 自定义查询：支持通过 `@Query` 注解使用 JPQL 或原生 SQL 编写复杂查询。
         - 与 Spring 生态集成：无缝融入 Spring 事务管理、依赖注入等特性。
     - 目标：将开发者从繁琐的 DAL 样板代码中解放出来，更专注于业务逻辑。
+
+## 安装 MySQL
+
+1. Homebrew
+
+    1. 使用 Homebrew 安装 Mysql
+        ```sh
+        brew install mysql
+        ```
+    2. 安装完成后提示
+
+        ```
+        We've installed your MySQL database without a root password. To secure it run:
+            mysql_secure_installation
+
+        MySQL is configured to only allow connections from localhost by default
+
+        To connect run:
+            mysql -u root
+
+        To restart mysql after an upgrade:
+          brew services restart mysql
+        Or, if you don't want/need a background service you can just run:
+          /opt/homebrew/opt/mysql/bin/mysqld_safe --datadir\=/opt/homebrew/var/mysql
+        ```
+
+    3. 根据提示，输入命令设置每次开机自动启动 mysql，存在后台进程 `mysqld_safe`
+        ```
+        brew services start mysql
+        ```
+    4. 根据提示，输入命令进行密码设置（复杂密码）
+        ```
+        mysql_secure_installation
+        ```
+    5. 跟进提示 yes/no
+
+2. 手动
+
+    - 官网选择 MySQL Community (GPL) Downloads
+        - https://www.mysql.com/downloads/
+    - 选择 MySQL Community Server
+    - 下载最新版本
+    - 在安装过程中设置 root 密码
+    - 验证安装命令
+        - `mysql -u root -p`
+
+# 分界
+
+由于对下面知识点内容较多（4 小时），我对其结构不够清晰，先简单整理一轮，然后再进行费曼式整理
