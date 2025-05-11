@@ -15,6 +15,7 @@
 > 在前面阶段不过多的介绍复制的概念是好的学习方案。但是为了避免遗漏，这里记录课程中，我觉得有必要补充的东西
 
 1. Web 应用专用作用域（感觉在 Part2）
+2. 数据库没有 Mybatis 以及 Mybatis Plus，本节课程可能不覆盖，需要单独 Cover
 
 # Prerequisites
 
@@ -1677,3 +1678,119 @@ bean 的生命周期方法
         }
     }
     ```
+
+# Database Integration
+
+1.  **Java 数据访问技术概览**
+
+    - JDBC（Java Database Connectivity）
+    - JPA（Java Persistence API）
+    - Hibernate（JPA 实现）
+    - Spring Data JPA（基于 JPA 的抽象与简化）
+
+2.  **Spring Data JPA 配置**
+
+    - 添加依赖
+    - 配置数据源、数据库连接
+    - 自动建表与模式同步设置
+
+3.  **数据库建模设计**
+
+    - 为电商项目设计表结构
+    - 理解表、主键、外键、关系类型（1 对 1、1 对多、多对多）
+
+4.  **定义领域模型（Domain Model）**
+
+    - 创建实体类（Entity）
+    - 字段与列映射（@Entity, @Column, @Id 等）
+    - 映射关系（@OneToMany, @ManyToOne, @ManyToMany）
+    - 使用 JPA Buddy 工具加速开发
+
+5.  **使用 Repository 操作数据库**
+
+    - 理解 `JpaRepository` 与 `CrudRepository`
+    - 自动生成增删改查方法
+    - 自定义方法命名查询（Derived Queries）
+
+6.  **实体生命周期与状态管理**
+
+    - Entity 的四种状态：New, Managed, Detached, Removed
+    - `EntityManager` 背后的工作原理
+    - `persist()` vs `merge()` vs `remove()`
+
+7.  **事务管理（Transaction Management）**
+
+    - @Transactional 注解
+    - 事务的传播行为与隔离级别
+    - 数据一致性控制
+
+8.  **抓取策略（Fetch Strategies）**
+
+    - `EAGER` vs `LAZY`
+    - 性能与内存之间的权衡
+    - 实战中选择策略的考量
+
+9.  **优化查询与避免性能陷阱**
+
+    - N + 1 查询问题的成因与解决方案（如使用 JOIN FETCH）
+    - 使用 JPQL 和 Native SQL 编写复杂查询
+    - 参数绑定与类型安全
+
+10. **动态查询（Dynamic Queries）**
+
+    - 使用 Criteria API 构建动态查询
+    - 使用 Specification 构建可组合查询逻辑
+    - 基于用户输入灵活过滤数据
+
+11. **排序与分页**
+
+        - 使用 `Pageable` 与 `Sort` 接口
+        - 返回分页结果（`Page<T>` 与 `Slice<T>`）
+        - 前后端交互中的分页实践
+
+## Java 数据访问技术
+
+> 简述：Java 数据库访问从直接但繁琐的 JDBC 出发，演化为定义了对象关系映射 (ORM) 规范的 JPA，再通过其功能强大的主流实现 Hibernate 得到增强，发展为由 Spring Data JPA 引入了高度简化的声明式数据访问，极大提升了开发效率并减少了样板代码。
+
+**知识树**
+
+1.  JDBC (Java Database Connectivity)
+
+    - 定义：Java 访问关系型数据库的标准 API 规范。
+    - 核心：提供一套统一的接口，使 Java 程序能与多种数据库进行交互。
+    - 特点：
+        - 直接执行 SQL：开发者需手动编写和管理 SQL 语句。
+        - 手动资源管理：需显式处理连接 (Connection) 的开启与关闭、语句 (Statement) 的创建与执行、结果集 (ResultSet) 的处理与关闭等。
+        - 过程化：操作步骤繁琐，样板代码（Boilerplate Code）较多。
+        - 灵活性高：赋予开发者对数据库操作的完全控制权。
+    - 问题：开发效率低，代码冗余，易因资源管理不当引发问题（如连接泄漏）。
+
+2.  JPA (Jakarta Persistence API / 原 Java Persistence API)
+
+    - 定义：一套基于 ORM (Object-Relational Mapping) 思想的 Java 持久化规范。
+    - 核心：将 Java 对象映射到数据库表，允许开发者通过操作对象来间接操作数据库记录，屏蔽底层 SQL 差异。
+    - 特点：
+        - 规范而非实现：定义了一系列接口和注解，具体功能由 JPA Provider (实现者) 提供。
+        - 面向对象：以对象为中心进行数据操作，更符合 Java 开发者的思维习惯。
+        - 减少 SQL 编写：对于标准 CRUD 操作，通常无需编写 SQL。
+    - 目标：简化数据持久化层开发，提高可移植性（更换 JPA Provider 或数据库相对容易）。
+
+3.  Hibernate
+
+    - 定义：JPA 规范最流行和功能最强大的开源实现之一，是一个成熟的 ORM 框架。
+    - 核心：实现了 JPA 定义的所有接口，并提供了 JPA 规范之外的增强功能。
+    - 特点：
+        - JPA Provider：作为 JPA 的具体实现，负责将面向对象的操作转换为底层 SQL。
+        - 强大功能：HQL、二级缓存、延迟加载、自动 DDL
+        - 成熟稳定：广泛应用于企业级开发。
+    - 关系：使用 JPA 编程时，通常会选择 Hibernate 作为底层的 JPA 实现。
+
+4.  Spring Data JPA
+    - 定义：Spring Framework 体系中的一个项目，旨在进一步简化基于 JPA 的数据访问层 (DAL) 开发。
+    - 核心：在 JPA (通常结合 Hibernate) 的基础上提供更高层次的抽象，通过 Repository 模式极大简化数据操作。
+    - 特点：
+        - Repository 接口抽象：开发者只需定义继承自 Spring Data JPA 特定接口（，框架会自动提供 CRUD、分页、排序等方法的实现。
+        - 方法名派生查询：支持根据约定的方法名自动生成查询逻辑
+        - 自定义查询：支持通过 `@Query` 注解使用 JPQL 或原生 SQL 编写复杂查询。
+        - 与 Spring 生态集成：无缝融入 Spring 事务管理、依赖注入等特性。
+    - 目标：将开发者从繁琐的 DAL 样板代码中解放出来，更专注于业务逻辑。
