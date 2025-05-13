@@ -1,9 +1,18 @@
+## 思路
+
+随着学习的深入，后期各章节所涉及的代码改动日益复杂，已不再是 JavaScript 或 Java 基础阶段那种相对独立的单点修改。特别是在 Spring Boot 项目中，一个类往往涉及多个实体类之间的协作与耦合，使得逐节编写面向初学者、逐行讲解的笔记显得过于理想化，难以全面覆盖实际场景。因此，我认为更可行的方式是构建一套结构化、模块化的笔记体系，类似字典式的大纲索引，按功能或概念组织内容，以便在需要时快速检索并定位相关知识点与用法。
+
 ## 快捷键
 
 1. 高级
     - 提取方法/接口： （选取代码）置顶菜单 Refactor——Extract/Introduce——Method/Interface
         - 提取方法默认为 private
-2. 基础
+2. 进阶
+
+    - Command+P 查看构造参数，如在`new User();`的括号内按下此快捷键
+
+3. 基础
+    - Command+shift+A，搜索 rearrange：调整代码结构
     - `Shift+Command+上下`移动方法
     - `Command+,`设置
     - `Command+shift+O`查找文件
@@ -16,6 +25,7 @@
 
 1. Web 应用专用作用域（感觉在 Part2）
 2. 数据库没有 Mybatis 以及 Mybatis Plus，本节课程可能不覆盖，需要单独 Cover
+3. 多对多关系中间实体类
 
 # Prerequisites
 
@@ -1843,3 +1853,783 @@ bean 的生命周期方法
 # 分界
 
 由于对下面知识点内容较多（4 小时），我对其结构不够清晰，先简单整理一轮，然后再进行费曼式整理
+
+## Spring Data JPA 依赖
+
+**知识树**
+
+1. 设置 Spring Data JPA 步骤
+    - pom.xml 文件中加入 Spring Data JPA 依赖，以及 MySQL 驱动，建议在 pom.xml 文件中点击 Add Starters 方式添加，搜索 Spring Data JPA，以及 MySQL Driver
+    - 在 application.yaml 中配置 datasource 信息
+        ```yaml
+        spring:
+          datasource:
+            url: jdbc:mysql://localhost:3306/store?createDatabaseIfNotExist=true
+            username: root
+            password: Seeyou1!
+        ```
+
+## 表关系以及驱动方式
+
+本节介绍示例项目中准备引入的实体之间的管理
+
+1. User
+
+    - 与 Profile 一对一
+    - 与 Address 一对多，一个 User 可以多多个地址
+    - 与 Tag 多对多
+    - 与 Product 多对多
+
+2. Product
+
+    - 对 User 多对多
+    - 与 Category 多对一，一个种类可以多个产品，一个产品对应一个种类
+
+3. 创建方式
+
+    - database-first approach：先创建数据库，根据根据数据库创建实体类
+    - model-first approach：先创建实体类，根据实体类自动创建数据库
+    - 备注：本节课程以数据库驱动实体类为主，但是后面也会介绍另一种方式
+
+## 后续内容介绍
+
+DATABASE
+DOMAIN MODEL
+REPOSITORIES
+CUSTOM QUERIES
+DYNAMIC QUERIES
+
+## DATABASE
+
+### 创建表（视图方式）
+
+> 简述：先连接数据库，再使用视图工具创建表的过程
+
+**知识树**
+
+1. 创建表方式
+
+    - SQL 直接创建表
+        - 如果对 SQL 非常自信，可以使用 SQL 直接进行表的创建
+    - 视图工具创建表
+        - 推荐使用视图工具创建表，在 IDEA 中就有对应的视图工具，此外推荐 DataGrip
+
+2. 视图工具创建技巧
+
+    - 先创建所有的列，再进行主键外键的指定
+
+**代码实例**
+
+1. 本节 SQL：users&addresses
+
+    ```sql
+    create table users
+    (
+        id       bigint auto_increment
+            primary key,
+        name     varchar(255) not null,
+        email    varchar(255) not null,
+        password varchar(255) not null
+    );
+
+    create table addresses
+    (
+        id      bigint auto_increment
+            primary key,
+        street  varchar(255) not null,
+        city    varchar(255) not null,
+        zip     varchar(255) not null,
+        user_id bigint       not null,
+        constraint addresses_users_id_fk
+            foreign key (user_id) references users (id)
+    );
+    ```
+
+### 版本管理 Flyway
+
+> 简述：flyway 可以让项目在不同的设备、环境中，能够快速搭建相同的数据库，并且便于版本管理以及跟踪变化
+
+**知识树**
+
+1.  添加方式
+
+    - pom.xml 中添加 Starters，搜索 flyway 添加
+    - 在 resource 目录下创建文件夹 db，db 目录下创建 migration 文件夹，这是 flyway 查找 sql 脚本的目录
+    - 在 resource/db/migration 下添加脚本
+
+2.  脚本命名方式
+
+    - V 开头，加上表示版本的数字，再加上`__`与描述分隔开，描述使用小写，单词之间用单个`_`分割
+    - 例如：`V1__initial_migration`
+
+3.  使用方式
+
+    - 将带有（表创建）脚本的 SQL，放在对应目录下，程序启动时，将会自动执行未执行过的脚本
+    - 脚本是否执行有一个专门的历史表管理
+
+4.  注意
+
+    - Flyway 文件的管理与 git 提交记录类似，只能向前，不能修改，不然可能产生问题，如果当前的脚本存在问题，应该用一个新的脚本来解决当前的问题。
+    - 示例：
+        - 计划在 addresses 表添加一个 state 属性，但是添加到 user 表上了，并且创建脚本并执行了，需要重新创建一个新的脚本解决这个问题
+
+**代码示例**
+
+1. 属性添加错在 user 表，创建了文件`V2__add_state_column.sql`
+
+    ```sql
+    alter table users
+        add state VARCHAR(255) null;
+    ```
+
+2. 重新创建`V3__move_sate_from_users_to_addresses.sql`
+
+    ```SQL
+    alter table users
+        drop column state;
+
+    alter table addresses
+        add state VARCHAR(255) null;
+    ```
+
+### Maven&Flayway
+
+只添加 Flayway 的话，只有项目重启才能执行 sql 脚本，通过 maven 插件，可以在不重启项目的情况下，执行脚本
+
+1. 添加插件方式
+
+    - 在 plugins 标签内，使用 command+N，添加插件
+    - 在 artifactId 标签内，写入 flyway-maven-plugin
+    - 在 groupId 标签内，通过 control+空格引入提示，选择 org.flywaydb
+    - 在 version 标签内，选择最新版本，之后刷新 maven 下载
+    - 添加 configuration 标签，在其内添加 3 个标签，url，user，password，数据从之前创建好的 yaml 文件中拿
+    - configuration 标签内还可以设置 cleanDisabled 标签，设置为 false 之后，将给予插件删除表的权利
+
+2. flyway 插件使用
+
+    - flyway:migrate: 生成表
+    - flyway:clean: 删除表
+    - flyway:validate: 验证表是否符合预期
+
+### 其他表
+
+1. `V4__add_profiles_table.sql`
+
+```sql
+CREATE TABLE profiles
+(
+    id             BIGINT PRIMARY KEY,
+    bio            TEXT,
+    phone_number   VARCHAR(15),
+    date_of_birth  DATE,
+    loyalty_points INT UNSIGNED DEFAULT 0,
+    FOREIGN KEY (id) REFERENCES users(id)
+);
+```
+
+2. `V5__add_tags_table.sql`
+
+    ```sql
+    -- Create the tags table
+    CREATE TABLE tags
+    (
+        id   INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL
+    );
+
+    -- Create the user_tags join table
+    CREATE TABLE user_tags
+    (
+        user_id BIGINT NOT NULL,
+        tag_id  INT NOT NULL,
+        PRIMARY KEY (user_id, tag_id),
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+        FOREIGN KEY (tag_id) REFERENCES tags (id) ON DELETE CASCADE
+    );
+    ```
+
+## DOMAIN MODEL
+
+定义实体类
+使用 lombok
+定义实体类之间的关系 （一对多，多对多）
+JPA Buddy
+
+Model-first approach
+
+### 定义实体类
+
+删除 store 包下，除了 StoreApplication.java 之外所有文件
+
+创建 entities 包
+
+entities 包下，创建 User 类
+
+**知识树**
+
+1. 注解说明
+
+    - @Entity
+    - @Table(name = "users")、
+    - @Id
+    - @GeneratedValue(strategy = GenerationType.IDENTITY)
+    - @Column(nullable = false, name = "name")
+
+2. 生成 getter/setter 代码
+
+3. 调整代码结构快捷键
+
+    - Command+shift+A，搜索 rearrange，
+
+**代码示例**
+
+1. User
+    ```java
+    @Entity
+    @Table(name = "users")
+    public class User {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
+        @Column(nullable = false, name = "name")
+        private String name;
+        @Column(nullable = false, name = "email")
+        private String email;
+        @Column(nullable = false, name = "password")
+        private String password;
+    }
+    ```
+
+### Lombok
+
+Lombok 可以快速生成 setter/getter/toString/contructor 代码，并隐藏，让代码看起来清晰
+
+1. 添加方式
+
+    - pom.xml 中，Command+N 添加 Starters、，搜索 Lombok 添加
+    - 在 setting 中，搜索 annotation processing，勾选`Enable annotation processing`
+
+2. 参数说明
+
+    @Setter
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+
+3. @Builder 问题
+
+    - @Builder 构建时，若某个参数未进行赋值，@Builder 会给它一个默认值 0/false/null，取决于类型。即便在实体类中已经给了默认值，或者进行了初始化，都不会生效，因为 Lombok 的 builder 模式只关注你显式设置的字段，忽略了字段声明时的默认值
+    - 需要 @Builder.Default，用于配合 @Builder 注解一起使用时，保留字段的默认初始化值，防止被忽略。
+
+**代码示例**
+
+1. User
+
+    ```java
+    @Setter
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    @Entity
+    @Table(name = "users")
+    public class User {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(nullable = false, name = "id")
+        private Long id;
+        @Column(nullable = false, name = "name")
+        private String name;
+        @Column(nullable = false, name = "email")
+        private String email;
+        @Column(nullable = false, name = "password")
+        private String password;
+    ```
+
+2. `@Builder`
+
+    ```java
+    var user = User.builder()
+    		.name("Alice")
+    		.password("password")
+    		.email("alice@example.com")
+    		.build();
+    ```
+
+### 其他实体类
+
+1. Address
+
+    ```java
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "addresses")
+    public class Address {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(nullable = false, name = "id")
+        private Long id;
+
+        @Column(nullable = false, name = "street")
+        private String street;
+
+        @Column(nullable = false, name = "city")
+        private String city;
+
+        @Column(nullable = false, name = "zip")
+        private String zip;
+
+        @Column(nullable = false, name = "state")
+        private String state;
+    }
+    ```
+
+2. Profile
+
+    ```java
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "profiles")
+    public class Profile {
+        @Id
+        @Column(nullable = false, name = "id")
+        private Long id;
+
+        @Column(name = "bio")
+        private String bio;
+
+        @Column(name = "phone_number")
+        private String phoneNumber;
+
+        @Column(name = "date_of_birth")
+        private LocalDate dateOfBirth;
+
+        @Column(name = "loyalty_points")
+        private Integer loyaltyPoints;
+    }
+    ```
+
+3. Tag
+
+    ```java
+    @Setter
+    @Entity
+    @Table(name = "tags")
+    public class Tag {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(nullable = false, name = "id")
+        private Integer id;
+
+        @Column(nullable = false, name = "name")
+        private String name;
+    }
+    ```
+
+### 一对多关系
+
+要建立一对多关系，在其中（一对多）一个类中使用 List/Set 创建另一个类的集合，并使用相应的注解进行标记，在多对一的那个类中，使用对象创建另一个类的引用，并使用相应的注解进行标记
+
+一对多关系分为单向的（unidirectional）或双向的（bidirectional），这在稍后进行介绍，本节定义的是双向关系
+
+定义一对多关系，使用`@OneToMany`和`@ManyToOne`注解，比如在 User 上标注`@OneToMany`，在地址上标注`@ManyToOne`，表示一个用户可以有多个地址。
+
+属于定义
+
+在一段关系中，谁属于谁，主要取决于这段关系是由谁来维护的，比如 user 和 address，外键定义在 address 中，关系由 address 维护，即 user 属于 address，需要在 user 的注解中添加 mappedBy 关键字，若在 address 类中定义的 user 引用名称为 user，那么在 User 类中的 address 集合引用上需要标注` @OneToMany(mappedBy = "user")`
+
+- 拥有方，标注`@JoinColumn(name = "user_id")`
+- 被拥有方，标注`@OneToMany(mappedBy = "user")`
+
+ToString 循环
+在关系中，如果两者都定义了`@ToString` 注解，那么在输出时，会循环调用导致栈溢出，需要在其中一个，对应字段上定义`@ToString.Exclude`，避免循环
+
+1. User
+
+    ```java
+    @ToString
+    @Setter
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    @Entity
+    @Table(name = "users")
+    public class User {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(nullable = false, name = "id")
+        private Long id;
+        @Column(nullable = false, name = "name")
+        private String name;
+        @Column(nullable = false, name = "email")
+        private String email;
+        @Column(nullable = false, name = "password")
+        private String password;
+
+        @OneToMany(mappedBy = "user")
+        @Builder.Default
+        private List<Address> addresses = new ArrayList<>();
+
+        public void addAddress(Address address) {
+            addresses.add(address);
+            address.setUser(this);
+        }
+
+        public void removeAddress(Address address) {
+            addresses.remove(address);
+            address.setUser(null);
+        }
+    }
+    ```
+
+2. Address
+
+    ```java
+    @ToString
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "addresses")
+    public class Address {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(nullable = false, name = "id")
+        private Long id;
+
+        @Column(nullable = false, name = "street")
+        private String street;
+
+        @Column(nullable = false, name = "city")
+        private String city;
+
+        @Column(nullable = false, name = "zip")
+        private String zip;
+
+        @Column(nullable = false, name = "state")
+        private String state;
+
+        @ManyToOne
+        @JoinColumn(name = "user_id")
+        @ToString.Exclude
+        private User user;
+    }
+    ```
+
+3. 测试
+
+    ```java
+    @SpringBootApplication
+    public class StoreApplication {
+
+        public static void main(String[] args) {
+            // ApplicationContext context = SpringApplication.run(StoreApplication.class, args);
+            var user = User.builder()
+                    .name("Alice")
+                    .password("password")
+                    .email("alice@example.com")
+                    .build();
+
+            var address = Address.builder()
+                    .street("street")
+                    .city("city")
+                    .state("state")
+                    .zip("zip")
+                    .build();
+
+            user.addAddress(address);
+            System.out.println(user);
+        }
+    }
+    ```
+
+### 多对多关系
+
+> 真实企业开发中，不建议使用`@ManyToMany`注解，而应该手动建中间实体类，这里为了跟进课程，先采用`@ManyToMany`注解
+
+多对多的从属关系，依然是由谁维持这段关系来确定，在两者都有外键的情况下，两者都可以是那个“拥有者”，在本节例子中，使用 User 为主。与一对多不同， 多对多使用`@JoinTable`
+
+拥有方，标注
+
+```java
+@JoinTable(
+		name = "user_tags",
+		joinColumns = @JoinColumn(name = "user_id"),
+		inverseJoinColumns = @JoinColumn(name = "tag_id")
+)
+```
+
+- name 指向中间表表名
+- joinColumns 指向拥有方在中间表的字段
+- inverseJoinColumns 指向被拥有方在中间表的字段
+    被拥有方，标注`@ManyToMany(mappedBy = "tags")`
+
+1. User
+
+    ```java
+    @ToString
+    @Setter
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    @Entity
+    @Table(name = "users")
+    public class User {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(nullable = false, name = "id")
+        private Long id;
+        @Column(nullable = false, name = "name")
+        private String name;
+        @Column(nullable = false, name = "email")
+        private String email;
+        @Column(nullable = false, name = "password")
+        private String password;
+
+        @OneToMany(mappedBy = "user")
+        @Builder.Default
+        private List<Address> addresses = new ArrayList<>();
+
+        public void addAddress(Address address) {
+            addresses.add(address);
+            address.setUser(this);
+        }
+
+        public void removeAddress(Address address) {
+            addresses.remove(address);
+            address.setUser(null);
+        }
+
+        @ManyToMany
+        @JoinTable(
+                name = "user_tags",
+                joinColumns = @JoinColumn(name = "user_id"),
+                inverseJoinColumns = @JoinColumn(name = "tag_id")
+        )
+        @Builder.Default
+        private Set<Tag> tags = new HashSet<>();
+
+        public void addTag(Tag tag) {
+            tags.add(tag);
+            tag.getUsers().add(this);
+        }
+
+        public void removeTag(Tag tag) {
+            tags.remove(tag);
+            tag.getUsers().remove(this);
+        }
+    }
+    ```
+
+2. Tag
+
+    ```java
+    @Builder
+    @ToString
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "tags")
+    public class Tag {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(nullable = false, name = "id")
+        private Integer id;
+
+        @Column(nullable = false, name = "name")
+        private String name;
+
+        @ManyToMany(mappedBy = "tags")
+        @ToString.Exclude
+        @Builder.Default
+        private Set<User> users = new HashSet<>();
+    }
+    ```
+
+3. 测试
+
+    ```java
+    @SpringBootApplication
+    public class StoreApplication {
+
+        public static void main(String[] args) {
+            // ApplicationContext context = SpringApplication.run(StoreApplication.class, args);
+            var user = User.builder()
+                    .name("Alice")
+                    .password("password")
+                    .email("alice@example.com")
+                    .build();
+
+            var tag = Tag.builder()
+                    .name("tag1")
+                    .build();
+
+
+            user.addTag(tag);
+            System.out.println(user);
+        }
+    }
+    ```
+
+### 一对一关系
+
+有谁维护这段关系来决定拥有与被拥有者，比如 user 和 profile，profile 表中的主键，也是外键指向 user，所以 profile 是拥有者
+
+两者都需要标注`@OneToOne`
+拥有者，标注` @JoinColumn(name = "id")`，还需要额外标注` @MapsId`，这意味这将主键和外键使用同一个属性（字段），即“复用”已有主键字段来映射外键关系，避免字段冗余。
+被拥有者，标注`@OneToOne(mappedBy = "user")`
+
+1. User
+
+    ```java
+    @ToString
+    @Setter
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    @Entity
+    @Table(name = "users")
+    public class User {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(nullable = false, name = "id")
+        private Long id;
+        @Column(nullable = false, name = "name")
+        private String name;
+        @Column(nullable = false, name = "email")
+        private String email;
+        @Column(nullable = false, name = "password")
+        private String password;
+
+        @OneToMany(mappedBy = "user")
+        @Builder.Default
+        private List<Address> addresses = new ArrayList<>();
+
+        public void addAddress(Address address) {
+            addresses.add(address);
+            address.setUser(this);
+        }
+
+        public void removeAddress(Address address) {
+            addresses.remove(address);
+            address.setUser(null);
+        }
+
+        @ManyToMany
+        @JoinTable(
+                name = "user_tags",
+                joinColumns = @JoinColumn(name = "user_id"),
+                inverseJoinColumns = @JoinColumn(name = "tag_id")
+        )
+        @Builder.Default
+        private Set<Tag> tags = new HashSet<>();
+
+        public void addTag(Tag tag) {
+            tags.add(tag);
+            tag.getUsers().add(this);
+        }
+
+        public void removeTag(Tag tag) {
+            tags.remove(tag);
+            tag.getUsers().remove(this);
+        }
+
+        @OneToOne(mappedBy = "user")
+        private Profile profile;
+
+        public void addProfile(Profile profile) {
+            this.profile = profile;
+            profile.setUser(this);
+        }
+
+        public void removeProfile(Profile profile) {
+            this.profile = null;
+            profile.setUser(null);
+        }
+    }
+    ```
+
+2. Profile
+
+    ```java
+    @ToString
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "profiles")
+    public class Profile {
+        @Id
+        @Column(nullable = false, name = "id")
+        private Long id;
+
+        @Column(name = "bio")
+        private String bio;
+
+        @Column(name = "phone_number")
+        private String phoneNumber;
+
+        @Column(name = "date_of_birth")
+        private LocalDate dateOfBirth;
+
+        @Column(name = "loyalty_points")
+        private Integer loyaltyPoints;
+
+        @OneToOne
+        @JoinColumn(name = "id")
+        @MapsId
+        @ToString.Exclude
+        private User user;
+    }
+    ```
+
+3. 测试
+
+    ```java
+    @SpringBootApplication
+    public class StoreApplication {
+
+        public static void main(String[] args) {
+            // ApplicationContext context = SpringApplication.run(StoreApplication.class, args);
+            var user = User.builder()
+                    .name("Alice")
+                    .password("password")
+                    .email("alice@example.com")
+                    .build();
+
+            var profile = Profile.builder()
+                    .bio("bio")
+                    .build();
+
+
+            user.addProfile(profile);
+            System.out.println(user);
+        }
+    }
+    ```
+
+### 单双向关系
+
+单向和双向的区分，主要是两者之间是否可以相互访问
+
+1. 单向关系：
+
+    - 定义：
+        - 在单向关系中，只有一方知道另一方的存在，比如 User 知道 Address，但 Address 不知道 User，或反之。
+    - 使用场景：
+        - 适用于你只需要从一个实体访问另一个实体的情况，例如只关心“用户有哪些地址”，而不关心“地址属于谁”。
+
+2. 双向关系
+    - 双方知道彼此的存在，可以相互访问
