@@ -2736,7 +2736,7 @@ Model-first approach
     ```sql
     CREATE TABLE categories
     (
-        id   TINYINT AUTO_INCREMENT PRIMARY KEY,
+        id   BIGINT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL
     );
 
@@ -2745,7 +2745,7 @@ Model-first approach
         id          BIGINT AUTO_INCREMENT PRIMARY KEY,
         name        VARCHAR(255)   NOT NULL,
         price       DECIMAL(10, 2) NOT NULL,
-        category_id TINYINT,
+        category_id BIGINT,
         CONSTRAINT fk_category
             FOREIGN KEY (category_id) REFERENCES categories (id)
                 ON DELETE RESTRICT
@@ -2755,6 +2755,7 @@ Model-first approach
 2. 实体类`Category.java`
 
     ```java
+    @Getter
     @Setter
     @Entity
     @Table(name = "categories")
@@ -2762,7 +2763,7 @@ Model-first approach
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         @Column(name = "id")
-        private Byte id;
+        private Long id;
 
         @Column(name = "name")
         private String name;
@@ -2775,6 +2776,7 @@ Model-first approach
 3. 实体类`Product.java`
 
     ```java
+    @Getter
     @Setter
     @Entity
     @Table(name = "products")
@@ -2796,4 +2798,54 @@ Model-first approach
     }
     ```
 
+### JPA Buddy
 
+> 简述：JPA Buddy 是 IntelliJ IDEA 提供的插件，用于通过已有数据库结构自动生成 JPA 实体类，适用于 Database-First 模式。它能显著提升建模效率，自动映射字段与关系，但仍需开发者对生成结果进行规范化优化。
+
+**知识树**
+
+1. 插件安装与启用
+
+    - 打开 IDEA 设置
+        - Mac：IntelliJ IDEA → Preferences
+        - Windows：File → Settings
+    - 前往 Plugins → Marketplace，搜索并安装 “JPA Buddy”
+    - 重启 IDE 激活插件功能
+
+2. 实体生成流程（Database-First）
+
+    - 在项目结构中选择实体类包 → 右键 → New → JPA Entities from DB
+    - 选择数据源连接，勾选目标表（如 `categories`, `products`，中间表可跳过）
+    - 可配置实体类名称、字段类型及关联关系，建议勾选生成一对多等结构
+    - 插件将自动生成带注解的 Java 实体类，包括字段、主键与外键映射
+
+3. 生成代码优化建议
+
+    - 删除 `@Table` 中无用的 `schema` 属性
+    - 删除 `@Column(nullable = false)` 等约束：这些约束已在 Flyway 脚本中定义，无需在实体类中冗余声明
+    - 删除 `precision`, `scale` 等字段限定：仅在 `Model-First` 建表时才有意义
+    - 调整集合类型：将 `LinkedHashSet` 改为常用的 `HashSet`（若无排序需求）
+    - 熟练使用多光标编辑：使用快捷键批量删除属性提高效率（Mac：⌃⌘+G）
+
+4. 使用建议与注意事项
+
+    - 适合已有数据库结构的系统（Database-First）
+    - 自动生成代码仅为初始模型，仍需开发者补充业务逻辑、关系同步方法等
+    - Database-First 时，实体类不应承载数据库结构管理职责，应配合 Flyway 等工具进行结构版本控制
+
+5. 特殊类型注意事项：`TINYINT` 主键处理
+
+    - JPA Buddy 默认不会为 `TINYINT` 主键字段生成 `@GeneratedValue` 注解
+        - 由于 `TINYINT` 范围仅为 `0 ~ 255`，插件认为其容量过小，不适合作为通用主键
+        - 插件仅在主键类型为 `BIGINT`, `INT`, `INTEGER`, `UUID` 等“主流且安全”的类型时，才会默认添加自增策略
+    - 建议：
+        - 实际开发中，推荐将主键至少使用 `BIGINT` 类型，具备更高扩展性
+        - 若确实需使用 `TINYINT`，应手动补充主键生成注解：
+            ```java
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            ```
+
+6. 代码
+
+    - 本节未单独展示实体代码，因修改后其与前文一致
+    - 额外需要说明的是，删除了`@ManyToOne` 中的策略`(fetch = FetchType.LAZY)`，这将在后面介绍
