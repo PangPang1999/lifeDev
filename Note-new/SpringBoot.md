@@ -9,7 +9,10 @@
         - 提取方法默认为 private
 2. 进阶
 
-    - Command+P 查看构造参数，如在`new User();`的括号内按下此快捷键
+    - command+P 查看构造参数，如在`new User();`的括号内按下此快捷键
+    - command+G 选中后查找下一个相同内容
+        - command + shift + G 选中后查找上一个相同内容
+        - command + control + G 选中后，选中所有相同内容
 
 3. 基础
     - Command+shift+A，搜索 rearrange：调整代码结构
@@ -24,8 +27,9 @@
 > 在前面阶段不过多的介绍复制的概念是好的学习方案。但是为了避免遗漏，这里记录课程中，我觉得有必要补充的东西
 
 1. Web 应用专用作用域（感觉在 Part2）
-2. 数据库没有 Mybatis 以及 Mybatis Plus，本节课程可能不覆盖，需要单独 Cover
-3. 多对多关系中间实体类
+2. 数据库没有 Mybatis 以及 Mybatis Plus，本节课程不覆盖，需要单独 Cover
+3. 一对多关系单关系
+4. 将中间表建模为显式实体类，待理解写入操作后进行编写
 
 # Prerequisites
 
@@ -91,6 +95,7 @@ Debugging your application
             - 构建 Web 应用，处理 HTTP 请求与响应 (JSON、HTML 等格式)。
         - 数据访问层 (Data Access Layer)
             - 数据库交互支持（JDBC、ORM、NoSQL 等）。
+            - ORM： Object relationship mapping
         - 面向切面编程 (Aspect-Oriented Programming, AOP)
             - 模块化横切关注点（如日志、安全、事务管理），避免代码重复。
         - 测试支持层 (Testing Layer)
@@ -386,7 +391,7 @@ Debugging your application
 
     - 打开位置：项目根目录下，`mvnw`同级目录。
     - 验证版本：`./mvnw -v` 确保使用项目指定的 Maven 版本。windows 为 `mvnw.cmd -v`
-    - 启动命令：`./mvnw spring-boot:run` 自动编译并运行应用。。windows 为 `mvnw.cmd spring-boot:run`
+    - 启动命令：`./mvnw spring-boot:run` 自动编译并运行应用。windows 为 `mvnw.cmd spring-boot:run`
     - 日志：终端显示构建及启动日志，与 IDE 输出一致。
 
 4. 访问与终止
@@ -465,8 +470,8 @@ Debugging your application
 
 1. 配置文件类型
 
-    - `properties` vs `yaml`：键值对 vs 层级结构，可按喜好选择。
-    - 默认为`application.properties`
+    - `properties` vs `yaml`：键值对 vs 层级结构，可按喜好选择，不建议同时使用。
+    - 默认为`application.properties`，建议使用 yaml
 
 2. 常见配置项
 
@@ -654,7 +659,7 @@ bean 的生命周期方法
 
     - 描述：提供 PayPal 支付逻辑提供 PayPal 支付逻辑
 
-4. `OrderService`中使用构造函数注入
+4. `OrderService`中使用构造函数注入接口引用
 
     ```java
     public class OrderService {
@@ -758,7 +763,7 @@ bean 的生命周期方法
     }
     ```
 
-    - 描述：在运行时传入不同实现，若省略 `setPaymentService` 调用，将抛出 NPE
+    - 描述：在运行时传入不同实现即可，单若省略 `setPaymentService` 调用，将抛出 NPE
 
 ## IoC 容器
 
@@ -808,7 +813,7 @@ bean 的生命周期方法
     }
     ```
 
-    - 描述：启动应用返回容器实例，通过 `getBean` 获取已管理的 Bean
+    - 描述：启动应用返回容器实例，通过 `getBean` 获取已管理的 Bean，目前还没有往容器中加入 bean，所以找不到报错。
 
 ## 注解注册 Bean
 
@@ -1082,7 +1087,7 @@ bean 的生命周期方法
     - `${}`：
         - 概念：读取配置项的原始值，只负责提取值，不做逻辑计算
         - 示例：`@Value("${stripe.api-url}")`
-        - 支持默认值：`@Value("${stripe.timeout:3000}")`
+        - 支持默认值：`@Value("${stripe.timeout:3000}")`，若配置文件中没有定义值，使用默认值
     - `#{}`：
         - 概念：执行 SpEL（Spring Expression Language）表达式，可在注入时对提取值进行表达式运算（如字符串拆分、类型转换、条件判断）
         - 示例：`@Value("#{'${stripe.supported-currencies}'.split(',')}")`
@@ -1296,14 +1301,14 @@ bean 的生命周期方法
 2. Lazy Initialization（延迟加载）
 
     - 定义：Bean 在首次被注入或检索时才实例化
-    - 场景：资源密集型对象（如大缓存、远程连接）、并非每次请求都用到
+    - 场景：资源密集型对象、并非每次请求都用到
     - 实现方式：
         - 对类使用 `@Lazy` 注解
         - 对 `@Bean` 方法使用 `@Lazy` 注解
 
 3. 实现方式
 
-    - 在类上标记`@Lazy`注解，如果是在自定义配置类中，在方法上添加(`@Bean` 下方)`@Lazy`注解
+    - 在类上标记`@Lazy`注解，如果是在自定义配置类中，在方法上(`@Bean` 上下)添加`@Lazy`注解
 
 4. 注意事项
 
@@ -1365,11 +1370,11 @@ bean 的生命周期方法
     - `singleton`（默认）
         - 每个容器中仅创建一个 Bean 实例
         - 适用：无状态、可复用的服务组件
-        - **特点**：由容器负责创建 + 管理 + 销毁。
+        - 特点：由容器负责创建 + 管理 + 销毁。
     - `prototype`
         - 每次请求 Bean 时创建新实例
         - 适用：有状态、临时对象
-        - `特点`：容器只负责创建，不会跟踪或管理其生命周期（下一节介绍）。
+        - 特点：容器只负责创建，不会跟踪或管理其生命周期（生命周期在下一节介绍）。
 
 3. Web 应用专用作用域（后续介绍，暂不演示）
 
@@ -1410,7 +1415,7 @@ bean 的生命周期方法
 
     - 描述：在在 `OrderService` 类的构造方法中，加入输出信息
 
-2. 单例作用域（默认）
+2. 未单独设置时，默认为单例作用域
 
     ```java
     @Bean
@@ -1431,9 +1436,9 @@ bean 的生命周期方法
     }
     ```
 
-    - 每次调用容器的 `getBean()` 方法都会返回新的实例。
+    - 描述：每次调用容器的 `getBean()` 方法都会返回新的实例。
 
-4. 多次获取 Bean 验证原型行为
+4. 多次获取 Bean 验证原型`@Scope("prototype")行为
 
     ```java
     @SpringBootApplication
@@ -1486,7 +1491,7 @@ bean 的生命周期方法
     - `prototype`（原型作用域）：
         - 容器只负责创建，不会跟踪或管理其生命周期。
         - 不会自动调用 `@PreDestroy`，即使手动调用 `context.close()`，也无效。
-    - 本节示例：需要删除或者注释自定义配置类中，`OrderService`上的`@Scope("prototype")`
+    - 本节示例：需要删除（或者注释）自定义配置类中，`OrderService`上的`@Scope("prototype")`
 
 **代码示例**
 
@@ -1854,12 +1859,13 @@ bean 的生命周期方法
 
 由于对下面知识点内容较多（4 小时），我对其结构不够清晰，先简单整理一轮，然后再进行费曼式整理
 
-## Spring Data JPA 依赖
+## 添加 Spring Data JPA 依赖
 
 **知识树**
 
 1. 设置 Spring Data JPA 步骤
-    - pom.xml 文件中加入 Spring Data JPA 依赖，以及 MySQL 驱动，建议在 pom.xml 文件中点击 Add Starters 方式添加，搜索 Spring Data JPA，以及 MySQL Driver
+
+    - `pom.xml` 文件中加入 Spring Data JPA 依赖，以及 MySQL 驱动，建议在 pom.xml 文件中点击 Add Starters 方式添加，搜索 `Spring Data JPA`，以及 `MySQL Driver`
     - 在 application.yaml 中配置 datasource 信息
         ```yaml
         spring:
@@ -1869,27 +1875,38 @@ bean 的生命周期方法
             password: Seeyou1!
         ```
 
-## 表关系以及驱动方式
+## 表关系与驱动方式
 
-本节介绍示例项目中准备引入的实体之间的管理
+> 简述：数据库表之间可建立一对一、一对多、多对多等关系，实体建模可采用“数据库优先”或“模型优先”两种策略，用于同步数据库与 Java 实体类结构。
 
-1. User
+**知识树**
 
-    - 与 Profile 一对一
-    - 与 Address 一对多，一个 User 可以多多个地址
-    - 与 Tag 多对多
-    - 与 Product 多对多
+1. 常见实体关系（MySQL 笔记中逻辑模型章节亦有介绍）
 
-2. Product
+    - 一对一（One-to-One）：每个记录仅对应另一张表中一条记录（如 User 与 Profile）
+    - 一对多（One-to-Many）：一个记录关联多条记录（如 User 与 Address）
+    - 多对多（Many-to-Many）：双方都可有多个对应项，需借助中间表（如 User 与 Tag）
 
-    - 对 User 多对多
-    - 与 Category 多对一，一个种类可以多个产品，一个产品对应一个种类
+2. 实体生成方式
 
-3. 创建方式
+    - Database-First：先建表，再通过工具反向生成实体类
+    - Model-First：先建实体类，通过注解或工具生成数据库结构
 
-    - database-first approach：先创建数据库，根据根据数据库创建实体类
-    - model-first approach：先创建实体类，根据实体类自动创建数据库
-    - 备注：本节课程以数据库驱动实体类为主，但是后面也会介绍另一种方式
+3. 本项目采用方式
+
+    - 当前使用 Database-First 模式：先设计数据库，再建立实体类与其对应
+    - 后续将引入 Model-First 以实现双向理解
+
+4. 当前项目中的实体关系结构
+
+    - User
+        - 一对一 → Profile
+        - 一对多 → Address
+        - 多对多 → Tag（中间表 user_tags）
+        - 多对多 → Product（如收藏、购买记录等）
+    - Product
+        - 多对多 ←→ User
+        - 多对一 → Category（一个分类对应多个产品，一个产品只归属一个分类）
 
 ## 后续内容介绍
 
@@ -1903,24 +1920,38 @@ DYNAMIC QUERIES
 
 ### 创建表（视图方式）
 
-> 简述：先连接数据库，再使用视图工具创建表的过程
+> 简述：在 IntelliJ IDEA 中连接数据库后，可通过图形化视图工具创建数据表，适合初学者，底层为生成并执行 SQL 语句。
 
 **知识树**
 
-1. 创建表方式
+1. 创建表的两种方式
 
-    - SQL 直接创建表
-        - 如果对 SQL 非常自信，可以使用 SQL 直接进行表的创建
-    - 视图工具创建表
-        - 推荐使用视图工具创建表，在 IDEA 中就有对应的视图工具，此外推荐 DataGrip
+    - 直接使用 SQL
+        - 适合熟悉语法者，自由度高，可批量执行
+    - 使用视图工具
+        - 推荐方式：图形界面友好，适合初学者
+        - 本质：每一次点击、字段设置、主外键指定，最终都对应生成 SQL
 
-2. 视图工具创建技巧
+2. 视图工具使用技巧
 
-    - 先创建所有的列，再进行主键外键的指定
+    - 先添加所有字段（列）
+    - 后设置主键、外键等约束关系
+
+3. 表结构设计建议
+
+    - 每张表建议包含主键（如自增 ID）
+    - 所有关联关系（如一对多）推荐通过外键明确表达
+    - 字段命名保持简洁清晰，与实体类字段一致有助于 ORM 映射
+
+4. IDEA 数据库视图操作路径
+
+    - 右侧 Database 工具栏
+    - 右键连接数据库 → New → 先建库后建标
+    - 填写字段 → 设置类型 → 配置主键、外键 → 应用保存
 
 **代码实例**
 
-1. 本节 SQL：users&addresses
+1. 等效 SQL（users 表与 addresses 表）
 
     ```sql
     create table users
@@ -1945,9 +1976,11 @@ DYNAMIC QUERIES
     );
     ```
 
-### 版本管理 Flyway
+    - 描述：先创建数据库 store，手动 SQL 与视图操作结果一致，建议初期使用视图方式辅助理解
 
-> 简述：flyway 可以让项目在不同的设备、环境中，能够快速搭建相同的数据库，并且便于版本管理以及跟踪变化
+### Flyway 版本管理
+
+> 简述：Flyway 是一种数据库迁移工具，可自动执行版本化 SQL 脚本，实现跨环境数据库结构同步与演化控制。
 
 **知识树**
 
@@ -1957,59 +1990,100 @@ DYNAMIC QUERIES
     - 在 resource 目录下创建文件夹 db，db 目录下创建 migration 文件夹，这是 flyway 查找 sql 脚本的目录
     - 在 resource/db/migration 下添加脚本
 
-2.  脚本命名方式
+2.  脚本命名规范
 
-    - V 开头，加上表示版本的数字，再加上`__`与描述分隔开，描述使用小写，单词之间用单个`_`分割
-    - 例如：`V1__initial_migration`
+    - 格式：`V<版本号>__<描述>.sql`
+    - 规则：
+        - `V` 开头，后跟递增数字（可带点号，如 `V1.1__desc`）
+        - `__` 双下划线分隔版本与描述
+        - 描述建议使用小写，单词间用 `_` 分隔
+    - 示例：`V1__initial_migration.sql`、`V2__add_state_column.sql`
 
-3.  使用方式
+3.  执行机制
 
-    - 将带有（表创建）脚本的 SQL，放在对应目录下，程序启动时，将会自动执行未执行过的脚本
-    - 脚本是否执行有一个专门的历史表管理
+    - 应用启动时自动扫描并执行未运行的 SQL 脚本
+    - Flyway 内部维护一张元数据表（如 `flyway_schema_history`），记录已执行脚本的版本、状态等信息
+    - 每个 SQL 脚本必须是不可变的，只能新增，不应修改已执行脚本内容
 
-4.  注意
+4.  注意事项
 
-    - Flyway 文件的管理与 git 提交记录类似，只能向前，不能修改，不然可能产生问题，如果当前的脚本存在问题，应该用一个新的脚本来解决当前的问题。
-    - 示例：
-        - 计划在 addresses 表添加一个 state 属性，但是添加到 user 表上了，并且创建脚本并执行了，需要重新创建一个新的脚本解决这个问题
+    - 脚本等同于数据库的“提交历史”，不可回溯或改写
+    - 若脚本写错（如字段加错表），应通过新脚本进行修复而非修改原文件
+    - 示例情境：误将 `state` 字段添加至 `users`，应通过新脚本移除并添加到 `addresses`
 
 **代码示例**
 
-1. 属性添加错在 user 表，创建了文件`V2__add_state_column.sql`
+1. 错误操作脚本（`V2__add_state_column.sql`）
 
     ```sql
     alter table users
-        add state VARCHAR(255) null;
+        add state varchar(255);
     ```
 
-2. 重新创建`V3__move_sate_from_users_to_addresses.sql`
+    - 描述：误将 `state` 添加至 `users` 表
 
-    ```SQL
+2. 修正操作脚本（`V3__move_sate_from_users_to_addresses.sql`）
+
+    ```sql
     alter table users
         drop column state;
 
     alter table addresses
-        add state VARCHAR(255) null;
+        add state varchar(255);
     ```
 
-### Maven&Flayway
+    - 描述：删除 `users` 中的错误字段，改为添加至 `addresses` 表
 
-只添加 Flayway 的话，只有项目重启才能执行 sql 脚本，通过 maven 插件，可以在不重启项目的情况下，执行脚本
+### Flyway & Maven 插件集成
 
-1. 添加插件方式
+> 简述：通过集成 Flyway Maven 插件，可在无需重启 Spring Boot 项目的前提下手动执行数据库迁移、校验或清理脚本，提升开发效率与灵活性。
 
-    - 在 plugins 标签内，使用 command+N，添加插件
-    - 在 artifactId 标签内，写入 flyway-maven-plugin
-    - 在 groupId 标签内，通过 control+空格引入提示，选择 org.flywaydb
-    - 在 version 标签内，选择最新版本，之后刷新 maven 下载
-    - 添加 configuration 标签，在其内添加 3 个标签，url，user，password，数据从之前创建好的 yaml 文件中拿
-    - configuration 标签内还可以设置 cleanDisabled 标签，设置为 false 之后，将给予插件删除表的权利
+1. 插件添加步骤
 
-2. flyway 插件使用
+    - 在 `pom.xml` 的 `<plugins>` 标签下添加 Flyway 插件配置：
+        - `groupId`：`org.flywaydb`
+        - `artifactId`：`flyway-maven-plugin`
+        - `version`：选择最新版本
+    - 添加 `<configuration>` 节点，配置数据库连接信息：
+        - `url`：数据库连接地址
+        - `user`：用户名
+        - `password`：密码
+    - 可选配置项：
 
-    - flyway:migrate: 生成表
-    - flyway:clean: 删除表
-    - flyway:validate: 验证表是否符合预期
+        - `cleanDisabled`：设置为 `false`，允许执行 `flyway:clean` 命令（默认禁止）
+
+    - 示例：为确保一致性，数据库连接信息可从 `application.yml` 中复制
+        ```xml
+        <plugin>
+        		<groupId>org.flywaydb</groupId>
+        		<artifactId>flyway-maven-plugin</artifactId>
+        		<version>10.20.0</version>
+        		<configuration>
+        				<url>jdbc:mysql://localhost:3306/store?createDatabaseIfNotExist=true</url>
+        				<user>root</user>
+        				<password>Seeyou1!</password>
+        				<cleanDisabled>false</cleanDisabled>
+        		</configuration>
+        </plugin>
+        ```
+
+2. 常用命令
+
+    - `flyway:migrate`：执行未执行的版本脚本，生成或更新表结构
+    - `flyway:clean`：删除数据库中所有对象（表、视图、索引等）
+    - `flyway:validate`：校验脚本是否被修改、执行状态是否一致
+
+3. 使用注意事项
+
+    - `flyway:clean` 会清空整个数据库，仅建议在开发环境中使用
+    - 每次执行 `migrate` 前建议先运行 `validate`，确保迁移脚本未被篡改
+    - 插件命令可在 IDEA Terminal 中执行：
+
+        ```bash
+        ./mvnw flyway:migrate
+        ./mvnw flyway:clean
+        ./mvnw flyway:validate
+        ```
 
 ### 其他表
 
@@ -2059,138 +2133,178 @@ Model-first approach
 
 ### 定义实体类
 
-删除 store 包下，除了 StoreApplication.java 之外所有文件
-
-创建 entities 包
-
-entities 包下，创建 User 类
+> 简述：使用 JPA 注解将 Java 类映射为数据库表，通过标注字段、主键、生成策略等元数据，构建与数据库结构一致的实体模型。
 
 **知识树**
 
-1. 注解说明
+1.  JPA 核心注解
 
-    - @Entity
-    - @Table(name = "users")、
-    - @Id
-    - @GeneratedValue(strategy = GenerationType.IDENTITY)
-    - @Column(nullable = false, name = "name")
+    - `@Entity`：标记该类为 JPA 实体，对应数据库中的一张表
+    - `@Table(name = "...")`：指定映射的表名；若类名与表名一致，可省略但不推荐
+    - `@Id`：标识主键字段
+    - `@GeneratedValue(strategy = GenerationType.IDENTITY)`：主键生成策略为数据库自增
+    - `@Column(name = "...")`：指定实体字段对应的数据库列名，可附加如 `nullable`, `unique` 等约束属性。若字段名与列名一致，且未启用命名策略，则可省略 `name` 属性，但为避免未来维护混淆，建议显式声明。
 
-2. 生成 getter/setter 代码
+2.  实体类结构规范
 
-3. 调整代码结构快捷键
+    - 所有字段应设为 `private`，通过 Getter/Setter 访问
+    - **必须提供无参构造器**（供 JPA 反射使用）
+    - 不包含业务逻辑，仅承担数据结构职责
 
-    - Command+shift+A，搜索 rearrange，
+3.  工具与快捷操作
+
+    - 生成 Getter/Setter：使用 IDEA 快捷键（如 `Command + N` 或右键 Generate）
+    - 优化代码结构：`Command + Shift + A` → 搜索 `Rearrange Code` 整理字段顺序
+
+4.  实践建议
+
+    - 删除 `store` 包中除 `StoreApplication.java` 外的所有类，集中实体至新建 `entities` 包
+    - 实体类专注于数据结构，业务逻辑放在 Service 层（后面介绍）实现
+
+5.  **补充**命名映射策略（暂不使用，而是使用 `name` 指定）
+
+    - 默认行为：JPA 默认大小写敏感且不做命名转换，即 `userName` 映射列名 `userName`（非 `user_name`）
+    - 如果希望 Java 使用驼峰命名、数据库使用下划线命名，可在配置文件中启用物理命名策略：
+        ```yaml
+        spring:
+          jpa:
+        	hibernate:
+        	  naming:
+        		physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        ```
+    - 启用命名策略后，可省略 `@Table` 和 `@Column` 的 `name` 参数，Spring Boot 将自动从驼峰转为下划线命名（根据团队进行选择实现方案）
 
 **代码示例**
 
-1. User
+1.  定义 `User` 实体类
+
     ```java
     @Entity
     @Table(name = "users")
     public class User {
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(name = "id")
         private Long id;
-        @Column(nullable = false, name = "name")
+
+        @Column(name = "name")
         private String name;
-        @Column(nullable = false, name = "email")
+
+        @Column(name = "email")
         private String email;
-        @Column(nullable = false, name = "password")
+
+        @Column(name = "password")
+        private String password;
+
+        // Getter / Setter 省略
+    }
+    ```
+
+    - 描述：该类对应 `users` 表，字段名称与列一一映射，采用数据库主键自增策略。
+
+### Lombok
+
+> 简述：Lombok 是一款 Java 编译期注解处理工具，可自动生成构造器、Getter/Setter、Builder 等样板代码，提升开发效率、简化实体类定义。
+
+**知识树**
+
+1. 添加方式
+
+    - 在 `pom.xml` 中添加依赖：使用 IDEA 搜索 Starters 并添加 `lombok`
+    - 启用注解处理器：IDEA → Preferences → 搜索 `annotation processing`，勾选 `Enable annotation processing`
+
+2. 常用注解说明
+
+    - `@Getter` / `@Setter`：为所有字段自动生成对应方法
+    - `@NoArgsConstructor` / `@AllArgsConstructor`：生成无参/全参构造方法
+    - `@Builder`：生成链式构建器
+    - `@ToString`：生成 `toString()` 方法，可排除字段
+    - `@Builder.Default`：指定字段在使用 `@Builder` 构造时保留初始化值，否则将被默认重置（0/null/false）
+
+3. 使用细节与注意事项（后面介绍）
+
+    - 默认值问题：`@Builder` 仅设置显式赋值字段，忽略字段定义时的默认初始化。需使用 `@Builder.Default` 显式标明默认值应保留
+    - `@ToString` 的循环依赖问题：当两个实体类互相引用，且都标注了 `@ToString`，可能导致栈溢出，应在其中一方的关联字段上使用 `@ToString.Exclude` 排除该字段
+
+**代码示例**
+
+1. User 实体类定义（使用 Lombok 简化）
+
+    ```java
+    @Setter
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    @Entity
+    @Table(name = "users")
+    public class User {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(name = "id")
+        private Long id;
+
+        @Column(name = "name")
+        private String name;
+
+        @Column(name = "email")
+        private String email;
+
+        @Column(name = "password")
         private String password;
     }
     ```
 
-### Lombok
-
-Lombok 可以快速生成 setter/getter/toString/contructor 代码，并隐藏，让代码看起来清晰
-
-1. 添加方式
-
-    - pom.xml 中，Command+N 添加 Starters、，搜索 Lombok 添加
-    - 在 setting 中，搜索 annotation processing，勾选`Enable annotation processing`
-
-2. 参数说明
-
-    @Setter
-    @Getter
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Builder
-
-3. @Builder 问题
-
-    - @Builder 构建时，若某个参数未进行赋值，@Builder 会给它一个默认值 0/false/null，取决于类型。即便在实体类中已经给了默认值，或者进行了初始化，都不会生效，因为 Lombok 的 builder 模式只关注你显式设置的字段，忽略了字段声明时的默认值
-    - 需要 @Builder.Default，用于配合 @Builder 注解一起使用时，保留字段的默认初始化值，防止被忽略。
-
-**代码示例**
-
-1. User
-
-    ```java
-    @Setter
-    @Getter
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Builder
-    @Entity
-    @Table(name = "users")
-    public class User {
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        @Column(nullable = false, name = "id")
-        private Long id;
-        @Column(nullable = false, name = "name")
-        private String name;
-        @Column(nullable = false, name = "email")
-        private String email;
-        @Column(nullable = false, name = "password")
-        private String password;
-    ```
-
-2. `@Builder`
+2. 使用 Builder 构建对象
 
     ```java
     var user = User.builder()
-    		.name("Alice")
-    		.password("password")
-    		.email("alice@example.com")
-    		.build();
+        .name("Alice")
+        .email("alice@example.com")
+        .password("password")
+        .build();
     ```
 
 ### 其他实体类
 
-1. Address
+1. Address 实体类
 
     ```java
-    @Getter
     @Setter
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
     @Entity
     @Table(name = "addresses")
     public class Address {
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
-        @Column(nullable = false, name = "id")
+        @Column(name = "id")
         private Long id;
 
-        @Column(nullable = false, name = "street")
+        @Column(name = "street")
         private String street;
 
-        @Column(nullable = false, name = "city")
+        @Column(name = "city")
         private String city;
 
-        @Column(nullable = false, name = "zip")
+        @Column(name = "zip")
         private String zip;
 
-        @Column(nullable = false, name = "state")
+        @Column(name = "state")
         private String state;
     }
     ```
 
-2. Profile
+2. Profile 实体类
 
     ```java
-    @Getter
     @Setter
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
     @Entity
     @Table(name = "profiles")
     public class Profile {
@@ -2212,42 +2326,70 @@ Lombok 可以快速生成 setter/getter/toString/contructor 代码，并隐藏�
     }
     ```
 
-3. Tag
+3. Tag 实体类
 
     ```java
     @Setter
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
     @Entity
     @Table(name = "tags")
     public class Tag {
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
-        @Column(nullable = false, name = "id")
+        @Column(name = "id")
         private Integer id;
 
-        @Column(nullable = false, name = "name")
+        @Column(name = "name")
         private String name;
     }
     ```
 
-### 一对多关系
+### 一对多关系（双向）
 
-要建立一对多关系，在其中（一对多）一个类中使用 List/Set 创建另一个类的集合，并使用相应的注解进行标记，在多对一的那个类中，使用对象创建另一个类的引用，并使用相应的注解进行标记
+> 简述：一对多关系用于表示一个实体对应多个关联实体。通过 `@OneToMany` 和 `@ManyToOne` 注解建立映射，支持单向或双向设计。本节使用双向关联，体现主从关系、关系维护权及防止循环引用的技巧。
 
-一对多关系分为单向的（unidirectional）或双向的（bidirectional），这在稍后进行介绍，本节定义的是双向关系
+1. 集合与对象引用
 
-定义一对多关系，使用`@OneToMany`和`@ManyToOne`注解，比如在 User 上标注`@OneToMany`，在地址上标注`@ManyToOne`，表示一个用户可以有多个地址。
+    - 在“一”的一方（如 User）使用 `List<T>` 表示多方集合，集合类型按需求使用
+    - 在“多”的一方（如 Address）使用具体对象表示一方引用
+    - 需要在集合字段使用 `@Builder.Default` 初始化为空集合，避免 `NullPointerException`
+        - 尝试先产生这个错误再修复
 
-属于定义
+2. 注解定义
 
-在一段关系中，谁属于谁，主要取决于这段关系是由谁来维护的，比如 user 和 address，外键定义在 address 中，关系由 address 维护，即 user 属于 address，需要在 user 的注解中添加 mappedBy 关键字，若在 address 类中定义的 user 引用名称为 user，那么在 User 类中的 address 集合引用上需要标注` @OneToMany(mappedBy = "user")`
+    - `@OneToMany(mappedBy = "...")`：在“一”的一方声明，表示被拥有方
+    - `@ManyToOne + @JoinColumn`：在“多”的一方声明，并通过外键字段维护关系
 
-- 拥有方，标注`@JoinColumn(name = "user_id")`
-- 被拥有方，标注`@OneToMany(mappedBy = "user")`
+3. 关系维护方
 
-ToString 循环
-在关系中，如果两者都定义了`@ToString` 注解，那么在输出时，会循环调用导致栈溢出，需要在其中一个，对应字段上定义`@ToString.Exclude`，避免循环
+    - 拥有方（Owning Side）：声明 `@ManyToOne` 的一方，持有外键，负责维护关系
+    - 被拥有方（Inverse Side）：使用 `mappedBy` 指定拥有方字段名，不负责更新数据库关系
 
-1. User
+4. 双向同步与辅助方法
+
+    - 建议通过 `addXxx()` 和 `removeXxx()` 方法显式同步维护双方引用
+    - 可设置 `cascade` 与 `orphanRemoval` 进一步控制持久化行为（后续章节介绍）
+
+5. 避免循环引用
+
+    - Lombok 中的 `@ToString` 会导致双向关系无限递归
+    - 使用 `@ToString.Exclude` 标注某一方的关联字段打断循环调用链
+        - 尝试先产生这个错误再修复
+
+6. 单向 vs 双向（补充）
+
+    - 单双向是指：实体类之间的导航方向（对象引用），而不是数据库中表与表之间的物理关系。
+    - 单向关联设计（单向导航）
+        - 实体类只在一端定义引用，不能从另一端反向访问。
+    - 双向关联设计（双向导航）
+        - 实体类在双方都持有对方的引用，并通过 mappedBy 指定关系维护方。
+
+**代码示例**
+
+1. User 实体类（一方）
 
     ```java
     @ToString
@@ -2259,18 +2401,10 @@ ToString 循环
     @Entity
     @Table(name = "users")
     public class User {
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        @Column(nullable = false, name = "id")
-        private Long id;
-        @Column(nullable = false, name = "name")
-        private String name;
-        @Column(nullable = false, name = "email")
-        private String email;
-        @Column(nullable = false, name = "password")
-        private String password;
 
-        @OneToMany(mappedBy = "user")
+    	// 省略其他字段
+
+        @OneToMany(mappedBy = "user")// 指向Address类中的user字段
         @Builder.Default
         private List<Address> addresses = new ArrayList<>();
 
@@ -2286,91 +2420,103 @@ ToString 循环
     }
     ```
 
-2. Address
+    - 描述：`User` 拥有多个 `Address`，关系由 `Address` 端维护，使用 `mappedBy` 建立反向映射。
+
+2. Address 实体类（多方）
 
     ```java
-    @ToString
-    @Builder
-    @AllArgsConstructor
-    @NoArgsConstructor
     @Getter
     @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @ToString
     @Entity
     @Table(name = "addresses")
     public class Address {
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        @Column(nullable = false, name = "id")
-        private Long id;
 
-        @Column(nullable = false, name = "street")
-        private String street;
-
-        @Column(nullable = false, name = "city")
-        private String city;
-
-        @Column(nullable = false, name = "zip")
-        private String zip;
-
-        @Column(nullable = false, name = "state")
-        private String state;
+    	// 省略其他字段
 
         @ManyToOne
-        @JoinColumn(name = "user_id")
+        @JoinColumn(name = "user_id")// 指向数据库中的外键
         @ToString.Exclude
         private User user;
     }
     ```
 
-3. 测试
+    - 描述：`Address` 持有 `user_id` 外键，维护关系。`@ToString.Exclude` 防止无限递归。
+
+3. 测试示例
 
     ```java
     @SpringBootApplication
     public class StoreApplication {
 
         public static void main(String[] args) {
-            // ApplicationContext context = SpringApplication.run(StoreApplication.class, args);
+            // SpringApplication.run(StoreApplication.class, args);
+
             var user = User.builder()
-                    .name("Alice")
-                    .password("password")
-                    .email("alice@example.com")
-                    .build();
+                .name("Alice")
+                .email("alice@example.com")
+                .password("password")
+                .build();
 
             var address = Address.builder()
-                    .street("street")
-                    .city("city")
-                    .state("state")
-                    .zip("zip")
-                    .build();
+                .street("123 Main St")
+                .city("Springfield")
+                .zip("12345")
+                .state("CA")
+                .build();
 
             user.addAddress(address);
-            System.out.println(user);
+
+            System.out.println(user); // 避免循环引用崩溃
         }
     }
     ```
 
-### 多对多关系
+### 多对多关系（`@ManyToMany`）
 
-> 真实企业开发中，不建议使用`@ManyToMany`注解，而应该手动建中间实体类，这里为了跟进课程，先采用`@ManyToMany`注解
+> 简述：多对多关系用于描述两个实体之间互相拥有多个对方的场景（如用户和标签）。通过 `@ManyToMany` 和 `@JoinTable` 注解配置中间表。虽然 JPA 支持该注解直接建模，但企业开发更推荐使用显式中间实体以增强灵活性和可维护性。
 
-多对多的从属关系，依然是由谁维持这段关系来确定，在两者都有外键的情况下，两者都可以是那个“拥有者”，在本节例子中，使用 User 为主。与一对多不同， 多对多使用`@JoinTable`
+**知识树**
 
-拥有方，标注
+1. 集合与对象引用
 
-```java
-@JoinTable(
-		name = "user_tags",
-		joinColumns = @JoinColumn(name = "user_id"),
-		inverseJoinColumns = @JoinColumn(name = "tag_id")
-)
-```
+    - 在双方使用 `Set` 而非 `List` 表示多对多集合，以避免重复项
+    - 需要在集合字段使用 `@Builder.Default` 初始化为空集合，避免 `NullPointerException`
+        - 尝试先产生这个错误再修复
 
-- name 指向中间表表名
-- joinColumns 指向拥有方在中间表的字段
-- inverseJoinColumns 指向被拥有方在中间表的字段
-    被拥有方，标注`@ManyToMany(mappedBy = "tags")`
+2. 多对多关系结构
 
-1. User
+    - 每一方都可以关联多个对方实体
+    - 需要使用中间表（如 `user_tags`）来维持两者之间的绑定关系
+    - JPA 可自动管理中间表，无需手写 SQL 建表（但真实项目中推荐显式建中间实体类）
+
+3. 拥有方与被拥有方
+
+    - 拥有方：通过 `@JoinTable` 定义中间表结构，持有关系更新权
+        - `name`：中间表名称
+        - `joinColumns`：拥有方在中间表的外键字段
+        - `inverseJoinColumns`：被拥有方在中间表的外键字段
+    - 被拥有方：使用 `mappedBy` 指定拥有方字段名，不负责关系更新
+    - 在两者都有外键的情况下，两者都可以是那个“拥有者”，在本节例子中，使用 User 拥有方
+
+4. 实践建议
+
+    - 提供辅助方法 `addXxx` / `removeXxx` 同步维护双向集合
+    - 使用 `@ToString.Exclude` 避免序列化栈溢出
+        - 尝试先产生这个错误再修复
+
+5. 企业级建模提示
+
+    - 实际开发中，建议将中间表建模为显式实体类（如 `UserTag`），便于添加时间戳、状态等附加信息
+    - `@ManyToMany` 更适用于轻量建模或教学示例
+    - 将中间表建模为显式实体类后续介绍
+
+**代码示例**
+
+1. User 实体类（拥有方）
 
     ```java
     @ToString
@@ -2382,30 +2528,8 @@ ToString 循环
     @Entity
     @Table(name = "users")
     public class User {
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        @Column(nullable = false, name = "id")
-        private Long id;
-        @Column(nullable = false, name = "name")
-        private String name;
-        @Column(nullable = false, name = "email")
-        private String email;
-        @Column(nullable = false, name = "password")
-        private String password;
 
-        @OneToMany(mappedBy = "user")
-        @Builder.Default
-        private List<Address> addresses = new ArrayList<>();
-
-        public void addAddress(Address address) {
-            addresses.add(address);
-            address.setUser(this);
-        }
-
-        public void removeAddress(Address address) {
-            addresses.remove(address);
-            address.setUser(null);
-        }
+    	// 省略其他字段、方法
 
         @ManyToMany
         @JoinTable(
@@ -2425,18 +2549,19 @@ ToString 循环
             tags.remove(tag);
             tag.getUsers().remove(this);
         }
+
     }
     ```
 
-2. Tag
+2. Tag 实体类（被拥有方）
 
     ```java
-    @Builder
     @ToString
+    @Setter
+    @Getter
     @AllArgsConstructor
     @NoArgsConstructor
-    @Getter
-    @Setter
+    @Builder
     @Entity
     @Table(name = "tags")
     public class Tag {
@@ -2455,26 +2580,26 @@ ToString 循环
     }
     ```
 
-3. 测试
+3. 测试用例：验证多对多绑定
 
     ```java
     @SpringBootApplication
     public class StoreApplication {
 
         public static void main(String[] args) {
-            // ApplicationContext context = SpringApplication.run(StoreApplication.class, args);
+            // SpringApplication.run(StoreApplication.class, args);
+
             var user = User.builder()
                     .name("Alice")
-                    .password("password")
                     .email("alice@example.com")
+                    .password("password")
                     .build();
 
             var tag = Tag.builder()
                     .name("tag1")
                     .build();
 
-
-            user.addTag(tag);
+            user.addTag(tag); // 双向同步绑定
             System.out.println(user);
         }
     }
@@ -2482,15 +2607,34 @@ ToString 循环
 
 ### 一对一关系
 
-有谁维护这段关系来决定拥有与被拥有者，比如 user 和 profile，profile 表中的主键，也是外键指向 user，所以 profile 是拥有者
+> 简述：一对一关系表示两个实体之间严格一对一的映射。其核心在于谁维护关系（即外键在哪一方）。常通过共享主键（`@MapsId`）方式实现字段复用，避免数据冗余。典型场景如用户与个人资料的绑定。
 
-两者都需要标注`@OneToOne`
-拥有者，标注` @JoinColumn(name = "id")`，还需要额外标注` @MapsId`，这意味这将主键和外键使用同一个属性（字段），即“复用”已有主键字段来映射外键关系，避免字段冗余。
-被拥有者，标注`@OneToOne(mappedBy = "user")`
+**知识树**
 
-1. User
+1. 关系建模原则
+
+    - 一对一关系通常由从表（拥有方）持有外键，同时复用主键字段
+    - 使用 `@OneToOne` 注解建立实体类之间的关系
+    - 使用 `@JoinColumn(name = "id")` 指定外键字段（即复用主键）
+    - 使用 `@MapsId` 将外键绑定为主键，保持一对一约束
+
+2. 拥有方 vs 被拥有方
+
+    - 拥有方：维护外键关系，使用 `@OneToOne` + `@JoinColumn` + `@MapsId`
+    - 被拥有方：使用 `@OneToOne(mappedBy = "...")` 指定引用字段名，不维护外键
+
+3. 注意事项
+
+    - `@MapsId` 只能用于一对一中主键/外键共用的情况
+    - 双向关系中避免同时使用 `@ToString`，需使用 `@ToString.Exclude` 防止递归调用
+    - 与 `@ManyToOne + unique=true` 实现的一对一关系相比，共享主键方式更常见于关联强耦合场景
+
+**代码示例**
+
+1.  User 实体类（被拥有方）
 
     ```java
+
     @ToString
     @Setter
     @Getter
@@ -2500,66 +2644,27 @@ ToString 循环
     @Entity
     @Table(name = "users")
     public class User {
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        @Column(nullable = false, name = "id")
-        private Long id;
-        @Column(nullable = false, name = "name")
-        private String name;
-        @Column(nullable = false, name = "email")
-        private String email;
-        @Column(nullable = false, name = "password")
-        private String password;
 
-        @OneToMany(mappedBy = "user")
-        @Builder.Default
-        private List<Address> addresses = new ArrayList<>();
+        	// 省略其他字段、方法
 
-        public void addAddress(Address address) {
-            addresses.add(address);
-            address.setUser(this);
+            @OneToOne(mappedBy = "user")
+            private Profile profile;
+
+            public void addProfile(Profile profile) {
+                this.profile = profile;
+                profile.setUser(this);
+            }
+
+            public void removeProfile(Profile profile) {
+                this.profile = null;
+                profile.setUser(null);
+            }
         }
-
-        public void removeAddress(Address address) {
-            addresses.remove(address);
-            address.setUser(null);
-        }
-
-        @ManyToMany
-        @JoinTable(
-                name = "user_tags",
-                joinColumns = @JoinColumn(name = "user_id"),
-                inverseJoinColumns = @JoinColumn(name = "tag_id")
-        )
-        @Builder.Default
-        private Set<Tag> tags = new HashSet<>();
-
-        public void addTag(Tag tag) {
-            tags.add(tag);
-            tag.getUsers().add(this);
-        }
-
-        public void removeTag(Tag tag) {
-            tags.remove(tag);
-            tag.getUsers().remove(this);
-        }
-
-        @OneToOne(mappedBy = "user")
-        private Profile profile;
-
-        public void addProfile(Profile profile) {
-            this.profile = profile;
-            profile.setUser(this);
-        }
-
-        public void removeProfile(Profile profile) {
-            this.profile = null;
-            profile.setUser(null);
-        }
-    }
     ```
 
-2. Profile
+    - 描述：User 为被拥有方，仅声明反向引用，不维护关系
+
+2.  Profile 实体类（拥有方）
 
     ```java
     @ToString
@@ -2595,41 +2700,100 @@ ToString 循环
     }
     ```
 
-3. 测试
+    - 描述：Profile 使用 `@MapsId` 将主键字段 `id` 绑定为外键，持有并维护 User 的引用关系
+
+3.  测试用例：验证一对一关系绑定
 
     ```java
     @SpringBootApplication
     public class StoreApplication {
 
         public static void main(String[] args) {
-            // ApplicationContext context = SpringApplication.run(StoreApplication.class, args);
             var user = User.builder()
                     .name("Alice")
-                    .password("password")
                     .email("alice@example.com")
+                    .password("password")
                     .build();
 
             var profile = Profile.builder()
-                    .bio("bio")
+                    .bio("Senior Developer")
                     .build();
 
-
-            user.addProfile(profile);
+            user.addProfile(profile); // 建立双向关系绑定
             System.out.println(user);
         }
     }
     ```
 
-### 单双向关系
+    - 描述：通过 `addProfile()` 方法同步设置双方引用，构成绑定
 
-单向和双向的区分，主要是两者之间是否可以相互访问
+### 其他实体类
 
-1. 单向关系：
+> 简述：分类与产品实体建模（`Category` ↔ `Product`）
 
-    - 定义：
-        - 在单向关系中，只有一方知道另一方的存在，比如 User 知道 Address，但 Address 不知道 User，或反之。
-    - 使用场景：
-        - 适用于你只需要从一个实体访问另一个实体的情况，例如只关心“用户有哪些地址”，而不关心“地址属于谁”。
+1. `categories`表，以及 `products`表：添加 flyway 文件`V6__add_categories_and_products.sql`
 
-2. 双向关系
-    - 双方知道彼此的存在，可以相互访问
+    ```sql
+    CREATE TABLE categories
+    (
+        id   TINYINT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL
+    );
+
+    CREATE TABLE products
+    (
+        id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+        name        VARCHAR(255)   NOT NULL,
+        price       DECIMAL(10, 2) NOT NULL,
+        category_id TINYINT,
+        CONSTRAINT fk_category
+            FOREIGN KEY (category_id) REFERENCES categories (id)
+                ON DELETE RESTRICT
+    );
+    ```
+
+2. 实体类`Category.java`
+
+    ```java
+    @Setter
+    @Entity
+    @Table(name = "categories")
+    public class Category {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(name = "id")
+        private Byte id;
+
+        @Column(name = "name")
+        private String name;
+
+        @OneToMany(mappedBy = "category")
+        private Set<Product> products = new HashSet<>();
+    }
+    ```
+
+3. 实体类`Product.java`
+
+    ```java
+    @Setter
+    @Entity
+    @Table(name = "products")
+    public class Product {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(name = "id")
+        private Long id;
+
+        @Column(name = "name")
+        private String name;
+
+        @Column(name = "price")
+        private BigDecimal price;
+
+        @ManyToOne
+        @JoinColumn(name = "category_id")
+        private Category category;
+    }
+    ```
+
+

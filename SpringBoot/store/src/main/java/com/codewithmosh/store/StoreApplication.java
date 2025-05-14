@@ -1,5 +1,9 @@
 package com.codewithmosh.store;
 
+import com.codewithmosh.store.entities.Address;
+import com.codewithmosh.store.entities.Profile;
+import com.codewithmosh.store.entities.Tag;
+import com.codewithmosh.store.entities.User;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
@@ -9,11 +13,17 @@ import org.springframework.context.ConfigurableApplicationContext;
 public class StoreApplication {
 
     public static void main(String[] args) {
-        ApplicationContext context = SpringApplication.run(StoreApplication.class, args);
-        UserService userService = context.getBean(UserService.class);
+        var user = User.builder()
+                .name("Alice")
+                .email("alice@example.com")
+                .password("password")
+                .build();
 
-        User user = new User(1L, "alice@example.com", "123456", "Alice");
-        userService.registerUser(user); // 正常注册
-        userService.registerUser(user); // 触发重复注册异常
+        var profile = Profile.builder()
+                .bio("Senior Developer")
+                .build();
+
+        user.addProfile(profile); // 建立双向关系绑定
+        System.out.println(user);
     }
 }
