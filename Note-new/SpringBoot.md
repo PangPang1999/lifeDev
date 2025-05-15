@@ -1844,6 +1844,7 @@ bean 的生命周期方法
         mysql_secure_installation
         ```
     5. 跟进提示 yes/no
+    6. 如果安装的非默认版本需要手动配置环境变量
 
 2. 手动
 
@@ -2013,7 +2014,32 @@ DYNAMIC QUERIES
 
 **代码示例**
 
-1. 错误操作脚本（`V2__add_state_column.sql`）
+1. 生成初始脚本（`V1__initial_migration.sql`）
+
+    ```sql
+    create table users
+    (
+        id       bigint auto_increment
+            primary key,
+        name     varchar(255) not null,
+        email    varchar(255) not null,
+        password varchar(255) not null
+    );
+
+    create table addresses
+    (
+        id      bigint auto_increment
+            primary key,
+        street  varchar(255) not null,
+        city    varchar(255) not null,
+        zip     varchar(255) not null,
+        user_id bigint       not null,
+        constraint addresses_users_id_fk
+            foreign key (user_id) references users (id)
+    );
+    ```
+
+2. 错误操作脚本（`V2__add_state_column.sql`）
 
     ```sql
     alter table users
@@ -2022,7 +2048,7 @@ DYNAMIC QUERIES
 
     - 描述：误将 `state` 添加至 `users` 表
 
-2. 修正操作脚本（`V3__move_sate_from_users_to_addresses.sql`）
+3. 修正操作脚本（`V3__move_sate_from_users_to_addresses.sql`）
 
     ```sql
     alter table users
@@ -2987,3 +3013,59 @@ Model-first approach
         ADD CONSTRAINT fk_wishlist_on_user FOREIGN KEY (user_id) REFERENCES users (id);
     ```
 
+### Hibernate 自动建表机制
+
+> 简述：Spring Boot 集成 Hibernate 提供自动数据库结构管理功能。通过配置`ddl-auto`属性，实现实体类与数据库表结构的自动创建或更新。适合快速原型开发，不推荐用于正式环境。
+
+**知识树**
+
+1. 自动建表配置
+
+    - 配置位置：`application.yaml` 或 `application.properties`
+    - 配置路径：`spring.jpa.hibernate.ddl-auto`
+    - 可选值说明：
+        - `create`：每次应用启动时，先删除数据库中所有与实体类对应的表，再根据实体类定义全部重建表结构（数据会全部丢失）。
+        - `create-drop`：启动时行为同 `create`，但在应用关闭时自动删除所有表。
+        - `update`：应用启动时，自动比对并尝试根据实体类结构对数据库表进行“增量”更新（如增加列/表），但不会删除表或字段（可能遗留历史结构）。
+        - `validate`：启动时仅校验数据库表结构是否与实体类一致，不做任何更改，校验不通过则启动失败。
+        - `none`：不做任何 DDL 操作（推荐用于生产环境，由外部工具如 Flyway/Migration 管理表结构）。
+
+2. 局限性与风险
+
+    - 类型推断不精确（如默认 `VARCHAR(255)`）
+    - 缺乏版本管理，难以跨环境同步
+    - `update`可能导致不合理结构累积
+
+3. 异常与冲突
+
+    - `create` 与 Flyway 冲突
+        - 若同时启用 `ddl-auto: create` 和 Flyway，启动时 Flyway 会先执行迁移脚本生成表，随后 Hibernate 的 `create` 会删除这些表并根据实体类重新建表，导致 Flyway 创建的结构被覆盖。
+    - `create` 常见异常
+        - 使用 `create` 时，即使数据库为空，Hibernate 也会尝试先删除表及其外键。如果外键名称与实际不一致，或外键不存在，会产生警告（WARN）或抛出 `CommandAcceptanceException`。
+
+4. 推荐最佳实践
+
+    - 仅用于原型开发和功能验证阶段，避免误用于生产环境。
+    - 建议使用独立的临时数据库（如 `store_temp`），以免影响正式数据，可辅助生成 Flyway 初始脚本。
+    - 进入正式开发或生产阶段后，应禁用 `ddl-auto`，转为使用 Flyway 等数据库迁移工具统一管理表结构。
+
+**代码示例**
+
+1. 配置 Hibernate 自动建表：
+
+    ```yaml
+    spring:
+      application:
+        name: store
+      datasource:
+        url: jdbc:mysql://localhost:3306/store_temp?createDatabaseIfNotExist=true
+        username: root
+        password: Seeyou1!
+      jpa:
+        hibernate:
+          ddl-auto: create
+      flyway:
+        enabled: false
+    ```
+
+    - 描述：使用临时数据库`store_temp`避免干扰主数据库，关闭 Flyway 避免冲突。
