@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @Entity
-@Table(name = "products", schema = "store")
+@Table(name = "products")
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,6 +18,9 @@ public class Product {
 
     @Column(name = "name")
     private String name;
+
+    @Column(name = "description", columnDefinition = "TEXT", nullable = false)
+    private String description;
 
     @Column(name = "price")
     private BigDecimal price;

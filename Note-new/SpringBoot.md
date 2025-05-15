@@ -2849,3 +2849,81 @@ Model-first approach
 
     - 本节未单独展示实体代码，因修改后其与前文一致
     - 额外需要说明的是，删除了`@ManyToOne` 中的策略`(fetch = FetchType.LAZY)`，这将在后面介绍
+
+### Model-First 实体驱动
+
+> 简述：Model-First 是以实体类为核心，通过 JPA 注解定义结构与约束，并通过工具（如 JPA Buddy）生成 Flyway 脚本，实现数据库结构同步。相比 Database-First，Model-First 更强调代码驱动
+
+1. 模型驱动
+
+    - 以 Java 实体类为源，通过注解描述字段、约束、关系等，使用 JPA 工具自动生成对应的数据库迁移脚本，实现结构与版本同步
+
+2. 字段约束定义方式
+
+    - `length`：设置最大长度，如 `@Column(length = 100)`
+    - `nullable`：定义是否可为空，如 `@Column(nullable = false)`
+    - `columnDefinition`：直接指定 SQL 类型，如 `@Column(columnDefinition = "TEXT")`
+    - 注意：不显式声明时，JPA Buddy 会自动推导类型，可能与预期不一致
+
+3. 差异比对逻辑（JPA Buddy Diff 工具）
+
+    - 工具打开方式
+        - 修改/创建实体类后，使用 `Alt + Enter` → `Generate Flyway migration`
+        - 在 Flyway 脚本目录 `New → Flyway Migration...` 手动发起
+    - 来源/目标选择：
+        - 左侧为 model，右侧为数据库
+        - 可选择多个实体文件进行同步比对
+    - 变更类型标识：
+        - 绿色：安全变更（如新增字段）
+        - 黄色：中性变更（如修改字段约束）
+        - 红色：危险变更（如删除表/字段）
+	- 操作建议
+		- 明确选择需要同步的变更
+		- 忽略自动识别但不需要纳入版本控制的部分
+		- 生成脚本时注意目录选择
+
+4. Model-First 与 Database-First 的区别
+
+    - Model-First
+        - 优点：以代码为中心，变更集中于实体，配合 JPA Buddy 自动生成迁移脚本
+        - 缺点：实体类需显式写出所有约束信息，类文件冗长，职责耦合
+    - Database-First
+        - 优点：结构清晰，实体类精简，所有字段行为由 DDL 控制（如 Flyway）
+        - 建议：**选择一种方式坚持使用，避免混用导致实体与数据库不同步**
+
+5. 备注
+
+    - 本节以 Database-First 为主，设置约束完成修改后，删除约束保持简洁
+
+**代码示例**
+
+1. 在 `Product` 中添加 `description` 字段
+
+    ```java
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "products")
+    public class Product {
+
+
+    	// 省略其他字段
+
+        @Column(name = "description", columnDefinition = "TEXT", nullable = false)
+        private String description;
+    }
+    ```
+
+    - 描述：定义字段类型为 `TEXT`，不可为 `null`。此设计将自动反映至迁移脚本中。。由于本项目是数据库优先，生成脚本后删除`@Column`中除 `name` 之外的属性保持简洁，本节仅作演示。
+
+2. 生成的 flyway 脚本：`V7__add_description.sql`
+
+    ```sql
+    ALTER TABLE products
+        ADD `description` TEXT NULL;
+
+    ALTER TABLE products
+        MODIFY `description` TEXT NOT NULL;
+    ```
+
+    - 描述：JPA Buddy 根据字段定义生成两步式变更，先添加字段，再修改约束。
