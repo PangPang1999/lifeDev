@@ -173,6 +173,15 @@
         - 将按照命令中的`@17`替换为`@8`，将配置环境变量命令中的`17`替换为 `1.8`（Java 8 在内部版本号上仍然用 `1.8` 来表示）
     6. 若考虑手动安装
         - 官网下载：https://www.oracle.com/cn/java/technologies/downloads/archive/
+    7. 不带后台可以考虑安装 OpenJDK
+
+        ```
+        brew install openjdk@17
+
+        echo 'export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"' >> ~/.zprofile
+        echo 'export CPPFLAGS="-I/opt/homebrew/opt/openjdk@17/include"' >> ~/.zprofile
+        source ~/.zshrc
+        ```
 
 2. Node
 
@@ -208,6 +217,15 @@
 
 3. Mysql
 
+    0. 目前使用 Homebrew 安装 Mysql 会安装 `9.x` 版本，不兼容 Flyway 常规版本
+        1. 官网下载安装兼容性较高的`8.0.42`版本
+        2. 官网：https://www.mysql.com/downloads/
+        3. 下载地址：https://dev.mysql.com/get/Downloads/MySQL-9.3/mysql-9.3.0-macos15-arm64.dmg
+        4. 需要配置环境变量，终端输入
+            ```bash
+            echo 'export PATH="/usr/local/mysql/bin:$PATH"' >> ~/.zprofile
+            source ~/.zprofile
+            ```
     1. 使用 Homebrew 安装 Mysql
         ```sh
         brew install mysql
