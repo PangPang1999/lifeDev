@@ -2709,6 +2709,8 @@ Model-first approach
     public class StoreApplication {
 
         public static void main(String[] args) {
+            // SpringApplication.run(StoreApplication.class, args);
+
             var user = User.builder()
                     .name("Alice")
                     .email("alice@example.com")
@@ -2877,10 +2879,10 @@ Model-first approach
         - 绿色：安全变更（如新增字段）
         - 黄色：中性变更（如修改字段约束）
         - 红色：危险变更（如删除表/字段）
-	- 操作建议
-		- 明确选择需要同步的变更
-		- 忽略自动识别但不需要纳入版本控制的部分
-		- 生成脚本时注意目录选择
+    - 操作建议
+        - 明确选择需要同步的变更
+        - 忽略自动识别但不需要纳入版本控制的部分
+        - 生成脚本时注意目录选择
 
 4. Model-First 与 Database-First 的区别
 
@@ -2927,3 +2929,61 @@ Model-first approach
     ```
 
     - 描述：JPA Buddy 根据字段定义生成两步式变更，先添加字段，再修改约束。
+
+### Ex: 使用 Model-First 实现 Wishlist（多对多）
+
+> **要求**：使用 Model-First 方法，在 `User` 与 `Product` 实体之间创建多对多关系。定义名为 `wishlist` 的中间表，仅在 `User` 一侧维护该关系。随后使用 JPA Buddy 生成 Flyway 脚本，迁移结构到数据库，完成新表创建与外键设置。无需在 `Product` 一侧定义反向导航。
+>
+> **解法**：
+>
+> 1. **Step 1**：在 `User` 实体中添加字段 `wishlist`，类型为 `Set<Product>`，并初始化为 `new HashSet<>()`
+> 2. **Step 2**：在该字段上添加 `@ManyToMany` 注解，并用 `@JoinTable` 指定中间表名和关联字段
+> 3. **Step 3**：使用 JPA Buddy 生成 Flyway migration（命名如 `V8__add_wishlist.sql`），并迁移数据库
+> 4. **Step 4**：验证数据库已创建 `wishlist` 表，含 `user_id` 与 `product_id` 两列，并设为复合主键
+
+**代码**
+
+1. User 类
+
+    ```java
+    @ToString
+    @Setter
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    @Entity
+    @Table(name = "users")
+    public class User {
+
+    	// 省略其他字段、方法
+
+        @ManyToMany
+        @JoinTable(
+                name = "wishlist",
+                joinColumns = @JoinColumn(name = "user_id"),
+                inverseJoinColumns = @JoinColumn(name = "product_id")
+        )
+        private Set<Product> products = new HashSet<>();
+    }
+    ```
+
+    - 描述：无需在 `Product.java` 中添加反向关系
+
+2. 生成的脚本：`V8__add_wishlist.sql`
+
+    ```sql
+    CREATE TABLE wishlist
+    (
+        product_id BIGINT NOT NULL,
+        user_id    BIGINT NOT NULL,
+        CONSTRAINT pk_wishlist PRIMARY KEY (product_id, user_id)
+    );
+
+    ALTER TABLE wishlist
+        ADD CONSTRAINT fk_wishlist_on_product FOREIGN KEY (product_id) REFERENCES products (id);
+
+    ALTER TABLE wishlist
+        ADD CONSTRAINT fk_wishlist_on_user FOREIGN KEY (user_id) REFERENCES users (id);
+    ```
+
