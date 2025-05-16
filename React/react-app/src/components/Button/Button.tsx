@@ -12,7 +12,7 @@ interface Props {
     | "light"
     | "dark";
 }
-const Button = ({ children, onClick, color = "primary" }: Props) => {
+const Button = ({ children, onClick, color = "danger" }: Props) => {
   return (
     // <button className={`btn btn-${color}`} onClick={onClick}>
     <button

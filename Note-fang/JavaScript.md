@@ -300,9 +300,9 @@
 
     - 代表“空对象引用”
     - `null` 和 `undefined` 的区别：
-        - `undefined`：定义未赋值     
-        - `null`：null 是定义 并赋值null 
-        - null表示一个值被定义了，但是是空值，但是undefined表示未被定义。null和undefined在if判断中都会被解析为false，但是在用Number运算时，null的结果为0，undefined的结果为NaN，让属性变为null就需要先定义，再赋空值。 
+        - `undefined`：定义未赋值
+        - `null`：null 是定义 并赋值 null
+        - null 表示一个值被定义了，但是是空值，但是 undefined 表示未被定义。null 和 undefined 在 if 判断中都会被解析为 false，但是在用 Number 运算时，null 的结果为 0，undefined 的结果为 NaN，让属性变为 null 就需要先定义，再赋空值。
 
 6. 历史遗留问题
 
@@ -397,7 +397,7 @@
     let value = "5" + 2; // 字符串拼接
     console.log(value); // "52"
     console.log(typeof value); // "string"
-    
+
     let result = "5" - 2; // 数字运算
     console.log(result); // 3
     console.log(typeof result); // "number"
@@ -442,11 +442,11 @@
     // 点 . 表示法
     person.name = "John";
     console.log(person.name); // 输出: John
-    
+
     // 方括号 [] 表示法
     person["name"] = "Mary";
     console.log(person["name"]); // 输出: Mary
-    
+
     // 方括号 [] 表示法（间接访问）
     let selection = "name";
     person[selection] = "Pang";
@@ -1222,17 +1222,17 @@
     const readPermission = 4; // 二进制：0100
     const writePermission = 2; // 二进制：0010
     const executePermission = 1; // 二进制：0001
-    
+
     // 用户的权限初始为 0（无权限）
     let myPermission = 0;
     // 使用位或操作添加读取和写入权限
     myPermission = myPermission | readPermission | writePermission;
     console.log(myPermission); // 输出: 6 (二进制：0110)
-    
+
     // 检查是否具有读取权限
     let message = myPermission & readPermission ? "Yes" : "No";
     console.log(message); // 输出: Yes
-    
+
     // 使用取反操作符和位与操作取消读取权限
     myPermission = myPermission & ~readPermission;
     console.log(myPermission); // 输出: 2 (二进制：0010)
@@ -1289,11 +1289,11 @@
     ```js
     // 左结合：先计算 1 - 2，再计算结果 - 3
     let result = 1 - 2 - 3; // 实际计算为 ((1 - 2) - 3)
-    
+
     let a, b, c;
     // 右结合：先计算 c = 5，再计算 b = (c = 5)，最后计算 a = (b = (c = 5))
     a = b = c = 5;
-    
+
     // 在 ES2016 中引入的指数运算符（**）是右结合的：
     let exp = 2 ** (3 ** 2); // 实际计算为 2 ** (3 ** 2) = 2 ** 9 = 512
     // 三目运算符也是右结合
@@ -1373,7 +1373,7 @@
     ```js
     let a = "red";
     let b = "blue";
-    
+
     [a, b] = [b, a];
     console.log(a); // 输出：blue
     console.log(b); // 输出：red
@@ -2079,7 +2079,7 @@
     ```js
     let arr = [10, 20, 30];
     arr.customProperty = "Custom Value";
-    
+
     for (let index in arr) {
     	console.log(index, arr[index]); // 遍历索引和额外属性
     }
@@ -2798,7 +2798,7 @@ showPrimes(10);
     		console.log("draw");
     	},
     };
-    
+
     // 访问属性和方法
     console.log(circle.radius); // 输出: 1
     console.log(circle.location.x); // 输出: 1
@@ -3040,7 +3040,7 @@ console.log(circle.radius); // 输出：10
     const arrConstructor = new Array();
     console.log(arrLiteral.constructor); // 输出: [Function: Array]
     console.log(arrConstructor.constructor); // 输出: [Function: Array]
-    
+
     // 数字
     const numLiteral = 42;
     const numConstructor = new Number(42);
@@ -3122,7 +3122,7 @@ console.log(circle.radius); // 输出：10
     ```js
     // 使用 Function 构造函数动态生成一个计算两个数字之和的函数
     const sumFunction = new Function("a", "b", "return a + b;");
-    
+
     // 调用动态生成的函数
     console.log(sumFunction(3, 5)); // 输出: 8
     ```
@@ -3199,10 +3199,10 @@ console.log(circle.radius); // 输出：10
     function increase(obj) {
     	obj.value++;
     }
-    
+
     let obj = { value: 10 };
     increase(obj);
-    
+
     console.log(obj.value); // 输出: 11
     ```
 
@@ -3297,11 +3297,10 @@ console.log(circle.radius); // 输出：10
     		console.log("Drawing a circle");
     	},
     };
-    
+
     console.log("radius" in circle); // 输出: true
     console.log("color" in circle); // 输出: false
     ```
-
 
 ## 可枚举属性和可迭代属性
 
@@ -3310,7 +3309,7 @@ console.log(circle.radius); // 输出：10
 **知识树**
 
 1. 可枚举属性
-    
+
     - 定义：对象中属性描述符的 enumerable 为 true 的属性
     - 获取方式：
         - for...in（遍历自身及原型链上可枚举属性，需要 hasOwnProperty 过滤）
@@ -3319,8 +3318,9 @@ console.log(circle.radius); // 输出：10
         - Object.entries()（返回键值对数组）
         - JSON.stringify()（序列化时仅处理可枚举属性）
         - Object.assign()（复制自身可枚举属性，进行浅拷贝）
+
 2. 可迭代属性（可迭代对象）
-    
+
     - 定义：实现了 Symbol.iterator 方法的对象，遵循迭代器协议
     - 典型对象：
         - Array、String、Map、Set、TypedArray
@@ -3330,13 +3330,15 @@ console.log(circle.radius); // 输出：10
         - 扩展运算符（...iterable 展开为数组元素）
         - Array.from()（将任意可迭代对象转为数组）
         - Promise.all() 等接受可迭代对象作为参数
+
 3. 区别与联系
-    
+
     - 可枚举属性侧重于对象属性的“存在性”和“可见性”，主要用于属性遍历与复制；
     - 可迭代对象则侧重于序列数据的遍历，必须实现迭代器接口（Symbol.iterator）；
     - 交集示例：数组既具有可枚举的数字索引（Object.keys、for...in）又实现了迭代器（for...of、...扩展）。
+
 4. 扩展与应用
-    
+
     - 转换：利用 Array.from() 或扩展运算符将可迭代对象转换为数组，再使用数组方法（map、forEach 等）；
     - 自定义：可通过定义 [Symbol.iterator] 使普通对象变为可迭代对象；
     - 注意：for...in 遍历可枚举属性时可能会遍历继承属性，需谨慎使用。
@@ -3344,180 +3346,163 @@ console.log(circle.radius); // 输出：10
 **代码示例**
 
 1. 获取对象的可枚举属性
-    
+
     ```js
     const obj = { a: 1, b: 2, c: 3 };
     // for...in 遍历所有可枚举属性（需过滤继承属性）
     for (let key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        console.log(key, obj[key]);
-      }
+    	if (obj.hasOwnProperty(key)) {
+    		console.log(key, obj[key]);
+    	}
     }
-    console.log(Object.keys(obj));      // ["a", "b", "c"]
-    console.log(Object.values(obj));    // [1, 2, 3]
-    console.log(Object.entries(obj));   // [["a",1],["b",2],["c",3]]
+    console.log(Object.keys(obj)); // ["a", "b", "c"]
+    console.log(Object.values(obj)); // [1, 2, 3]
+    console.log(Object.entries(obj)); // [["a",1],["b",2],["c",3]]
     // Object.assign 复制自身可枚举属性（浅拷贝）
     const target = {};
     Object.assign(target, obj);
-    console.log(target);                // { a: 1, b: 2, c: 3 }
+    console.log(target); // { a: 1, b: 2, c: 3 }
     ```
-    
+
     - 说明：展示了不同方法获取和操作对象的可枚举属性，注意 for...in 会遍历原型链属性。
+
 2. 遍历可迭代对象
-    
+
     ```js
     const arr = [10, 20, 30];
     // for...of 直接遍历数组（内置迭代器）
     for (const value of arr) {
-      console.log(value);
+    	console.log(value);
     }
     const str = "hello";
     // for...of 遍历字符串每个字符
     for (const char of str) {
-      console.log(char);
+    	console.log(char);
     }
     const set = new Set([1, 2, 3]);
     // 扩展运算符将 Set 转为数组
-    console.log([...set]);             // [1, 2, 3]
-    const map = new Map([["a", 1], ["b", 2]]);
+    console.log([...set]); // [1, 2, 3]
+    const map = new Map([
+    	["a", 1],
+    	["b", 2],
+    ]);
     // for...of 遍历 Map 的键值对
     for (const [key, value] of map) {
-      console.log(key, value);
+    	console.log(key, value);
     }
     // Array.from 将可迭代对象转换为数组
-    console.log(Array.from(str));      // ["h", "e", "l", "l", "o"]
+    console.log(Array.from(str)); // ["h", "e", "l", "l", "o"]
     ```
-    
+
     - 说明：所有可迭代对象因实现 Symbol.iterator 均支持 for...of、扩展运算符和 Array.from 等方法，便于数据转换和遍历。
 
-
 **为什么普通对象不能被遍历**
-+ 可迭代对象：必须实现 Symbol.iterator 方法，这样才能被 for-of 循环遍历
-	+ 有自然迭代顺序的集合（如数组、Map、Set、字符串）
-+ 普通对象（如字面量对象）无法直接进行迭代
-	+ 没有 `Symbol.iterator` 属性
-	+ 属性的顺序不确定
-+ 如需遍历对象的属性，使用 for-in 循环或`Object.keys`、`Object.values` 、 `Object.entries`，它们返回可迭代的数组。
 
+- 可迭代对象：必须实现 Symbol.iterator 方法，这样才能被 for-of 循环遍历
+    - 有自然迭代顺序的集合（如数组、Map、Set、字符串）
+- 普通对象（如字面量对象）无法直接进行迭代
+    - 没有 `Symbol.iterator` 属性
+    - 属性的顺序不确定
+- 如需遍历对象的属性，使用 for-in 循环或`Object.keys`、`Object.values` 、 `Object.entries`，它们返回可迭代的数组。
 
 1. for-in 循环
-	
-	- **用途**：  
-	    遍历对象的可枚举属性，包括对象自身的属性和从原型链上继承的可枚举属性。
-	    
-	- **特点**：
-	    
-	    - 返回的值是属性名（字符串）。
-	    - 不保证遍历顺序（虽然大多数实现中可能表现为插入顺序，但不应依赖）。
-	    - 需要额外判断 `hasOwnProperty` 来区分对象自身的属性与继承属性。
-	- **示例代码**：
-	    
-	    ```javascript
-	    const obj = { a: 1, b: 2, c: 3 };
-	    
-	    for (let key in obj) {
-	      // 使用 hasOwnProperty 过滤掉继承属性
-	      if (obj.hasOwnProperty(key)) {
-	        console.log(key, obj[key]);
-	      }
-	    }
-	    ```
-	    
 
+    - **用途**：  
+       遍历对象的可枚举属性，包括对象自身的属性和从原型链上继承的可枚举属性。
+    - **特点**：
+        - 返回的值是属性名（字符串）。
+        - 不保证遍历顺序（虽然大多数实现中可能表现为插入顺序，但不应依赖）。
+        - 需要额外判断 `hasOwnProperty` 来区分对象自身的属性与继承属性。
+    - **示例代码**：
+        ```javascript
+        const obj = { a: 1, b: 2, c: 3 };
+
+        for (let key in obj) {
+        	// 使用 hasOwnProperty 过滤掉继承属性
+        	if (obj.hasOwnProperty(key)) {
+        		console.log(key, obj[key]);
+        	}
+        }
+        ```
 
 2. Object.keys
 
-	- **用途**：  
-	    返回对象自身所有**可枚举**属性的键名组成的数组。
-	    
-	- **特点**：
-	    
-	    - 只包含对象自身的属性，不包括继承属性。
-	    - 返回的数组可以用 for-of 循环或其他数组方法（如 forEach、map）进行迭代。
-	    - 顺序通常与属性插入的顺序一致（对于非整数键）。
-	- **示例代码**：
-	    
-	    ```javascript
-	    const obj = { a: 1, b: 2, c: 3 };
-	    const keys = Object.keys(obj);
-	    
-	    keys.forEach(key => {
-	      console.log(key, obj[key]);
-	    });
-	    
-	    // 或者使用 for-of
-	    for (const key of keys) {
-	      console.log(key, obj[key]);
-	    }
-	    ```
-	    
+    - **用途**：  
+       返回对象自身所有**可枚举**属性的键名组成的数组。
+    - **特点**：
+        - 只包含对象自身的属性，不包括继承属性。
+        - 返回的数组可以用 for-of 循环或其他数组方法（如 forEach、map）进行迭代。
+        - 顺序通常与属性插入的顺序一致（对于非整数键）。
+    - **示例代码**：
+        ```javascript
+        const obj = { a: 1, b: 2, c: 3 };
+        const keys = Object.keys(obj);
+
+        keys.forEach((key) => {
+        	console.log(key, obj[key]);
+        });
+
+        // 或者使用 for-of
+        for (const key of keys) {
+        	console.log(key, obj[key]);
+        }
+        ```
+
 3. Object.values
-	
-	- **用途**：  
-	    返回对象自身所有**可枚举**属性值组成的数组。
-	    
-	- **特点**：
-	    
-	    - 不包含键，仅返回属性对应的值。
-	    - 同样不包含继承属性。
-	    - 适合只需要关心值而不关心键的场景。
-	- **示例代码**：
-	    
-	    ```javascript
-	    const obj = { a: 1, b: 2, c: 3 };
-	    const values = Object.values(obj);
-	    
-	    for (const value of values) {
-	      console.log(value);
-	    }
-	    ```
-	    
+
+    - **用途**：  
+       返回对象自身所有**可枚举**属性值组成的数组。
+    - **特点**：
+        - 不包含键，仅返回属性对应的值。
+        - 同样不包含继承属性。
+        - 适合只需要关心值而不关心键的场景。
+    - **示例代码**：
+        ```javascript
+        const obj = { a: 1, b: 2, c: 3 };
+        const values = Object.values(obj);
+
+        for (const value of values) {
+        	console.log(value);
+        }
+        ```
 
 4. Object.entries
-	
-	- **用途**：  
-	    返回一个数组，其中的每个元素都是一个 `[key, value]` 的数组，表示对象自身的可枚举属性键值对。
-	    
-	- **特点**：
-	    
-	    - 同时获取键和值，方便在遍历中同时使用。
-	    - 只包含对象自身的属性，不包括继承属性。
-	    - 结果数组也可以结合 for-of 循环或数组方法进行处理。
-	- **示例代码**：
-	    
-	    ```javascript
-	    const obj = { a: 1, b: 2, c: 3 };
-	    const entries = Object.entries(obj);
-	    
-	    for (const [key, value] of entries) {
-	      console.log(key, value);
-	    }
-	    ```
-	    
+
+    - **用途**：  
+       返回一个数组，其中的每个元素都是一个 `[key, value]` 的数组，表示对象自身的可枚举属性键值对。
+    - **特点**：
+        - 同时获取键和值，方便在遍历中同时使用。
+        - 只包含对象自身的属性，不包括继承属性。
+        - 结果数组也可以结合 for-of 循环或数组方法进行处理。
+    - **示例代码**：
+        ```javascript
+        const obj = { a: 1, b: 2, c: 3 };
+        const entries = Object.entries(obj);
+
+        for (const [key, value] of entries) {
+        	console.log(key, value);
+        }
+        ```
 
 5. 总结对比
 
-	- **for-in 循环**
-	    
-	    - **优点**：语法简单，适用于遍历所有可枚举属性（包括继承的）。
-	    - **缺点**：需要手动过滤继承属性，且顺序不确定，不适合只需要对象自身属性的场景。
-	- Object.keys/Object.values/Object.entries
-	    
-	    - **优点**：
-	        - 仅返回对象自身的属性，不受原型链影响。
-	        - 返回数组后可以利用数组的各种内置方法进行灵活操作，如 map、filter、reduce 等。
-	        - 遍历顺序更有保证（一般与属性的插入顺序一致）。
-	    - **缺点**：
-	        - 需要额外调用一个方法来获取数组，再进行迭代。
-	        - 适合对象属性较多或者需要对结果进行进一步处理的情况。
-	- **选择建议**：
-	    
-	    - 如果只需要简单地获取对象的属性名并不考虑继承属性，推荐使用 `Object.keys`（或结合 `Object.entries` 来获取键值对）。
-	    - 如果需要遍历所有可枚举属性（包括继承的），则可以使用 `for-in` 循环，但记得使用 `hasOwnProperty` 进行过滤。
-	    - 当仅需要属性值时，`Object.values` 是很好的选择。
+    - **for-in 循环**
+        - **优点**：语法简单，适用于遍历所有可枚举属性（包括继承的）。
+        - **缺点**：需要手动过滤继承属性，且顺序不确定，不适合只需要对象自身属性的场景。
+    - Object.keys/Object.values/Object.entries
+        - **优点**：
+            - 仅返回对象自身的属性，不受原型链影响。
+            - 返回数组后可以利用数组的各种内置方法进行灵活操作，如 map、filter、reduce 等。
+            - 遍历顺序更有保证（一般与属性的插入顺序一致）。
+        - **缺点**：
+            - 需要额外调用一个方法来获取数组，再进行迭代。
+            - 适合对象属性较多或者需要对结果进行进一步处理的情况。
+    - **选择建议**：
+        - 如果只需要简单地获取对象的属性名并不考虑继承属性，推荐使用 `Object.keys`（或结合 `Object.entries` 来获取键值对）。
+        - 如果需要遍历所有可枚举属性（包括继承的），则可以使用 `for-in` 循环，但记得使用 `hasOwnProperty` 进行过滤。
+        - 当仅需要属性值时，`Object.values` 是很好的选择。
 
 通过这些方法，可以更精确地控制对象属性的遍历方式，避免因默认不可迭代性带来的限制，同时也能利用数组操作方法进行更复杂的数据处理。
-
 
 ## 克隆和合并对象
 
@@ -3586,31 +3571,31 @@ console.log(circle.radius); // 输出：10
     ```
 
     - 说明：Object.assign() 复制的是对象的可枚举自有属性，实现浅拷贝。
-		1. 可枚举自有属性的定义
-		    - 自有属性（Own Property）：直接定义在对象本身上，不通过原型链继承（可用 obj.hasOwnProperty(prop) 检测）。
-		    - 可枚举（Enumerable）：属性内部的标记为 true，使其在 for...in、Object.keys()、Object.assign() 等方法中可被遍历或复制。
-		2. Object.assign() 的工作原理
-		    - 浅拷贝：仅复制对象自身的、可枚举为 true 的属性，忽略继承属性和不可枚举属性。
-		3. 数据类型与属性
-		    - 对象：数组、函数、日期、正则等均具备自有属性和可枚举属性。
-		    - 原始数据类型：如字符串、数字、布尔值、Symbol、BigInt 本身不具备属性；访问时会被临时包装为对应对象，但不建议直接操作。
-		4. 设计考量
-		    - 只复制可枚举自有属性保证复制行为明确、避免意外继承和隐藏属性被复制，符合浅拷贝原则。
-		
+        1. 可枚举自有属性的定义
+            - 自有属性（Own Property）：直接定义在对象本身上，不通过原型链继承（可用 obj.hasOwnProperty(prop) 检测）。
+            - 可枚举（Enumerable）：属性内部的标记为 true，使其在 for...in、Object.keys()、Object.assign() 等方法中可被遍历或复制。
+        2. Object.assign() 的工作原理
+            - 浅拷贝：仅复制对象自身的、可枚举为 true 的属性，忽略继承属性和不可枚举属性。
+        3. 数据类型与属性
+            - 对象：数组、函数、日期、正则等均具备自有属性和可枚举属性。
+            - 原始数据类型：如字符串、数字、布尔值、Symbol、BigInt 本身不具备属性；访问时会被临时包装为对应对象，但不建议直接操作。
+        4. 设计考量
+            - 只复制可枚举自有属性保证复制行为明确、避免意外继承和隐藏属性被复制，符合浅拷贝原则。
+
 3. 使用扩展运算符（Spread Operator）克隆对象
 
-	```js
-	let circle = {
-		radius: 10,
-		draw() {
-			console.log("Drawing a circle");
-		},
-	};
+    ```js
+    let circle = {
+    	radius: 10,
+    	draw() {
+    		console.log("Drawing a circle");
+    	},
+    };
 
-	let another = { ...circle };
+    let another = { ...circle };
 
-	console.log(another); // 输出: { radius: 10, draw: [Function: draw] }
-	```
+    console.log(another); // 输出: { radius: 10, draw: [Function: draw] }
+    ```
 
 4. 合并多个对象
 
@@ -3621,16 +3606,16 @@ console.log(circle.radius); // 输出：10
     		console.log("Drawing a circle");
     	},
     };
-    
+
     let another = {
     	radius: 5,
     	color: "yellow",
     };
-    
+
     // 使用 Object.assign() 合并对象
     let merged1 = Object.assign({}, circle, another);
     console.log(merged1);
-    
+
     // 使用扩展运算符合并对象
     let merged2 = { ...circle, ...another };
     console.log(merged2);
@@ -4405,16 +4390,16 @@ const restaurants = [
     	{ id: 1, name: "a" },
     	{ id: 2, name: "b" },
     ];
-    
+
     // includes() 无法匹配具有相同内容但不同引用的对象
     console.log(courses.includes({ id: 1, name: "a" })); // 输出: false
-    
+
     // 使用 find() 根据条件查找对象
     const courseA = courses.find(function (course) {
     	return course.name === "a";
     });
     console.log(courseA); // 输出: { id: 1, name: "a" }
-    
+
     // 使用 findIndex() 查找符合条件的对象索引
     const indexB = courses.findIndex(function (course) {
     	return course.name === "b";
@@ -5789,7 +5774,7 @@ console.log(titles); // 输出: ["b", "a"]
     	year = year || 5; // 如果 year 没传，使用 5
     	return ((principal * rate) / 100) * year;
     }
-    
+
     console.log(interest(1000)); // 使用默认值，输出 175
     ```
 
@@ -5887,13 +5872,13 @@ console.log(titles); // 输出: ["b", "a"]
     const person = {
     	// firstName: "Mosh",
     	_firstName: "Mosh",
-    
+
     	get firstName() {
     		// return this.firstName;
     		return this._firstName;
     	},
     };
-    
+
     console.log(person._firstName);
     ```
 
@@ -6264,7 +6249,7 @@ console.log(person); // 输出对象，检查是否修改成功
         	this.name = name; // 这里会报错，因为 this 是 undefined
         	this.age = age;
         }
-    
+
         Person("Bob", 30); // 报错: Cannot set property 'name' of undefined
         ```
 
@@ -6292,10 +6277,10 @@ console.log(person); // 输出对象，检查是否修改成功
     		console.log(this);
     	};
     }
-    
+
     const c = new Circle(10);
     c.draw(); // 输出：Circle 实例对象
-    
+
     const draw = c.draw;
     draw(); // 非严格模式下输出：window (浏览器环境)
     // 严格模式下输出：undefined
@@ -6383,15 +6368,15 @@ console.log(person); // 输出对象，检查是否修改成功
     function Person(name, age) {
     	this.name = name;
     	this.age = age;
-    
+
     	return this; // 若没有显式返回this，使用call/apply方法将返回underfined
     }
-    
+
     const p1 = new Person("Alice", 25);
     const p2 = Person.call({}, "Bob", 30); // 等价于 new Person，但需提供一个空对象{}
     const p3 = Person.apply({}, ["Charlie", 30]);
     const p4 = Person.bind({}, "Nancy", 28);
-    
+
     console.log(p1); // {name: 'Alice', age: 25}
     console.log(p2); // {name: 'Bob', age: 30}，注意此处须显式返回，否则为undefined
     console.log(p3); // {name: 'Charlie', age: 30}，注意此处须显式返回，否则为undefined
@@ -6661,12 +6646,15 @@ try {
 
     - 同一属性不可同时设置数据描述符与访问描述符，否则报错。
     - 描述符一旦设置`configurable: false`后，无法修改或删除该属性描述符（但`writable`为`true`时值仍可修改）。
-    - 默认创建属性（如`obj.prop = 1`）时，描述符均为`true`（除显式定义外）。
+    - 不同创建方式默认值不同：
+        - 通过直接赋值（如 `obj.prop = 1`）创建的属性，其 `writable`, `enumerable`, `configurable` 默认为 `true`。而通过 `Object.defineProperty` 定义属性时，未显式指定的 `writable`, `enumerable`, `configurable` 默认值为 `false`。
 
 4. 辅助方法
 
     - `Object.getOwnPropertyDescriptor(obj, prop)`：
         - 获取指定对象属性的描述符，常用于调试或验证属性配置。
+    - `Object.defineProperties(obj, props)`：
+        - 同时定义或修改对象的多个属性，接收一个包含多个属性描述符的对象。
 
 5. `Object.defineProperty`与`getter`/`setter`对比
     - 定义位置：
@@ -6733,7 +6721,7 @@ try {
     const book = {
     	title: "JavaScript Guide",
     };
-    
+
     const descriptor = Object.getOwnPropertyDescriptor(book, "title");
     console.log(descriptor);
     // 输出：{ value: 'JavaScript Guide', writable: true, enumerable: true, configurable: true }
@@ -7119,10 +7107,10 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     	this.radius = radius; // 实例成员&自有成员
     }
     Circle.prototype.color = "red"; // 原型成员&继承成员
-    
+
     const circle = new Circle(5);
     circle.position = { x: 1, y: 2 }; // 自有成员
-    
+
     console.log(circle.toString()); // 继承成员，toString方法继承自Object.prototype
     ```
 
@@ -7223,15 +7211,15 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     function Circle(radius) {
     	this.radius = radius;
     	this.draw = function () {
-    	console.log("Drawing a circle with radius " + this.radius);
-    };
+    		console.log("Drawing a circle with radius " + this.radius);
+    	};
     }
-    
+
     Circle.prototype.move = function () {
     	console.log("Moving the circle");
     	this.draw(); // 调用实例方法
     };
-    
+
     const circle = new Circle(5);
     circle.move(); // 输出：Moving the circle
     // 输出：Drawing a circle with radius 5
@@ -7319,12 +7307,12 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     for (let key in x) {
     	console.log(key, "-- before set enumerable true");
     }
-    
+
     // 如果需要将 toString 设置为可枚举（不推荐，但仅作演示）
     Object.defineProperty(Object.prototype, "toString", {
     	enumerable: true,
     });
-    
+
     for (let key in x) {
     	console.log(key, "-- after set enumerable true");
     }
@@ -7404,7 +7392,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     		[arr[i], arr[j]] = [arr[j], arr[i]];
     	}
     }
-    
+
     const arr = [1, 2, 3, 4];
     shuffleArray(arr);
     console.log(arr); // 打乱后的数组
@@ -7431,7 +7419,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     	this.running = false; // 是否正在计时
     	this.duration = 0; // 记录持续时间
     }
-    
+
     Stopwatch.prototype.start = function () {
     	if (this.running) {
     		throw new Error("Stopwatch has already started"); // 如果已经启动，则抛出错误
@@ -7439,7 +7427,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     	this.running = true;
     	this.startTime = new Date(); // 设置开始时间为当前时间
     };
-    
+
     Stopwatch.prototype.stop = function () {
     	if (!this.running) {
     		throw new Error("Stopwatch has not started yet"); // 如果未启动，则抛出错误
@@ -7448,16 +7436,16 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     	this.endTime = new Date(); // 设置结束时间为当前时间
     	this.duration = (this.endTime - this.startTime) / 1000; // 计算持续时间，单位为秒
     };
-    
+
     Stopwatch.prototype.reset = function () {
     	this.startTime = 0;
     	this.endTime = 0;
     	this.running = false;
     	this.duration = 0; // 重置时长
     };
-    
+
     const stopwatch = new Stopwatch();
-    
+
     stopwatch.start(); // 启动计时器
     setTimeout(() => {
     	stopwatch.stop(); // 停止计时器
@@ -7620,15 +7608,15 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     ```js
     function Shape() {}
     Shape.prototype.color = "red";
-    
+
     const shape1 = new Shape();
     const shape2 = new Shape();
-    
+
     console.log(shape1.color); // 输出: red
     console.log(shape2.color); // 输出: red
-    
+
     Shape.prototype.color = "blue";
-    
+
     console.log(shape1.color); // 输出: blue
     console.log(shape2.color); // 输出: blue
     ```
@@ -7718,39 +7706,39 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     	Child.prototype = Object.create(Parent.prototype); // 设置继承链
     	Child.prototype.constructor = Child; // 修正 constructor 指向子类
     }
-    
+
     // 定义 Shape构造函数
     function Shape() {}
     Shape.prototype.duplicate = function () {
     	console.log("Duplicating " + this.constructor.name);
     };
-    
+
     // 定义 Circle 构造函数
     function Circle(radius, color) {
     	Shape.call(this, color);
     	this.radius = radius;
     }
-    
+
     // 定义 Square 构造函数
     function Square(side) {
     	this.side = side;
     }
-    
+
     // 使用 extend 函数设置继承
     extend(Circle, Shape);
     Circle.prototype.draw = function () {
     	console.log("Drawing circle with radius " + this.radius);
     };
-    
+
     // 使用 extend 函数设置继承
     extend(Square, Shape);
     Square.prototype.draw = function () {
     	console.log("Drawing square with side " + this.side);
     };
-    
+
     const circle = new Circle(5, "red");
     const square = new Square(10);
-    
+
     circle.duplicate(); // Duplicating Circle
     circle.draw(); // Drawing circle with radius 5
     square.duplicate(); // Duplicating Square
@@ -7824,7 +7812,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     	Child.prototype = Object.create(Parent.prototype); // 设置继承链
     	Child.prototype.constructor = Child; // 修正 constructor 指向子类
     }
-    
+
     // 定义 Shape构造函数
     function Shape(color) {
     	this.color = color;
@@ -7832,21 +7820,21 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     Shape.prototype.duplicate = function () {
     	console.log("Duplicating " + this.constructor.name);
     };
-    
+
     // 定义 Circle 构造函数
     function Circle(radius) {
     	this.radius = radius;
     }
-    
+
     // 让 Circle 继承自 Shape
     extend(Circle, Shape);
     // 重写 duplicate 方法
     Circle.prototype.duplicate = function () {
     	Shape.prototype.duplicate.call(this);
-    
+
     	console.log("Duplicating circle with radius " + this.radius);
     };
-    
+
     const circle = new Circle(5);
     console.log(circle.duplicate());
     // 输出
@@ -7883,7 +7871,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
       Child.prototype = Object.create(Parent.prototype); // 设置继承链
       Child.prototype.constructor = Child; // 修正 constructor 指向子类
     }
-    
+
     // 定义 Shape构造函数
     function Shape(color) {
       this.color = color;
@@ -7891,33 +7879,33 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     Shape.prototype.duplicate = function () {
       console.log("Duplicating " + this.constructor.name);
     };
-    
+
     // 定义 Circle 构造函数
     function Circle(radius) {
       this.radius = radius;
     }
-    
+
     // 让 Circle 继承自 Shape
     extend(Circle, Shape);
     // 重写 duplicate 方法
     Circle.prototype.duplicate = function () {
       console.log("Duplicating circle with radius " + this.radius);
     };
-    
+
     function Square(side) {
       this.side = side;
     }
-    
+
     extend(Square, Shape); // 设置继承链
-    
+
     // 子类重写父类的方法
     Square.prototype.duplicate = function () {
       console.log("Duplicating square with side " + this.side);
     };
-    
+
     const circle = new Circle(5);
     const square = new Square(10);
-    
+
     const shapes = [circle, square];
     shapes.forEach(function (shape) {
       shape.duplicate(); // 根据对象类型自动调用不同的 duplicate 方法
@@ -7925,7 +7913,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     // 输出：
     // Duplicating circle with radius 5
     // Duplicating square with side 10
-    
+
     ```
 
 ## 继承的局限性
@@ -7964,11 +7952,11 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
         canEat (eat)
         canWalk (walk)
         canSwim (swim)
-        
+
         Person (组合两个对象)
         ├── canEat (eat)
         └── canWalk (walk)
-        
+
         Fish (组合两个对象)
         ├── canEat (eat)
         └── canSwim (swim)
@@ -8066,9 +8054,9 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     function mixin(target, ...sources) {
         Object.assign(target, ...sources);
     }
-    
+
     ...
-    
+
     mixin(Person.prototype, canEat, canWalk);
     const personWithMixin = new Person();
     console.log(personWithMixin); // Person { eat: [Function: eat], walk: [Function: walk] }
@@ -8105,39 +8093,39 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     		console.log("clicked");
     	};
     }
-    
+
     HtmlElement.prototype.focus = function () {
     	console.log("focused");
     };
-    
+
     function HtmlSelectElement(items = []) {
     	this.items = items;
-    
+
     	this.addItem = function (item) {
     		this.items.push(item);
     	};
-    
+
     	this.removeItem = function (item) {
     		this.items.splice(this.items.indexOf(item), 1);
     	};
     }
-    
+
     // 继承设置，但是这里无法满足需求，丢失了 click 方法
     // HtmlSelectElement.prototype = Object.create(HtmlElement.prototype);
     // 为实现要求，需要采用继承实例的方式
     HtmlSelectElement.prototype = new HtmlElement();
     // 调整 constructor
     HtmlSelectElement.prototype.constructor = HtmlSelectElement;
-    
+
     // 测试代码
     const selectElement = new HtmlSelectElement(["Option1", "Option2"]);
-    
+
     selectElement.addItem("Option3");
     console.log(selectElement.items); // 输出: ["Option1", "Option2", "Option3"]
-    
+
     selectElement.removeItem("Option1");
     console.log(selectElement.items); // 输出: ["Option2", "Option3"]
-    
+
     // 继承自 HtmlElement 的方法
     selectElement.click(); // 输出: clicked
     selectElement.focus(); // 输出: focused
@@ -8156,22 +8144,22 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     		console.log("clicked");
     	};
     }
-    
+
     HtmlElement.prototype.focus = function () {
     	console.log("focused");
     };
-    
+
     function HtmlSelectElement(items = []) {
     	this.items = items;
-    
+
     	this.addItem = function (item) {
     		this.items.push(item);
     	};
-    
+
     	this.removeItem = function (item) {
     		this.items.splice(this.items.indexOf(item), 1);
     	};
-    
+
     	this.render = function () {
     		return `
     <select>${this.items
@@ -8183,21 +8171,21 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     </select>`;
     	};
     }
-    
+
     HtmlSelectElement.prototype = new HtmlElement();
     // 调整 constructor
     HtmlSelectElement.prototype.constructor = HtmlSelectElement;
-    
+
     function HtmlImageElement(src) {
     	this.src = src;
     	this.render = function () {
     		return `<img src ="${this.src}" />`;
     	};
     }
-    
+
     HtmlImageElement.prototype = new HtmlElement();
     HtmlImageElement.prototype.constructor = HtmlImageElement;
-    
+
     const selectElement = new HtmlSelectElement(["Option1", "Option2"]);
     console.log(selectElement.render());
     // 输出
@@ -8205,7 +8193,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     //   <option>Option1</option>
     //   <option>Option2</option>
     // </select>
-    
+
     const imageElement = new HtmlImageElement();
     console.log(imageElement.render());
     // 输出：<img src ="undefined" />
@@ -8320,24 +8308,24 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
     ```js
     // "use strict";
-    
+
     // 类
     class Circle {
     	constructor(radius) {
     		this.radius = radius;
     	}
-    
+
     	draw() {
     		console.log(this);
     	}
     }
-    
+
     const c = new Circle(5);
     c.draw(); // 输出：Circle 实例对象
-    
+
     const draw = c.draw;
     draw(); // 输出：undefined (因为类体默认启用严格模式)
-    
+
     // 原始构造函数
     function Square(side) {
     	this.side = side;
@@ -8345,10 +8333,10 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     		console.log(this);
     	};
     }
-    
+
     const c1 = new Square(10);
     c1.duplicate(); // 输出：Square 实例对象
-    
+
     const duplicate = c1.duplicate;
     duplicate(); // 非严格模式下输出：window (浏览器环境)
     // 严格模式下输出：undefined
@@ -8414,12 +8402,12 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
     ```js
     const c = new Circle(); // 报错：Cannot access 'Circle' before initialization
-    
+
     // 类声明（Class Declaration）
     class Circle {}
-    
+
     const square = new Square(); // 报错：Cannot access 'Square' before initialization
-    
+
     // 类表达式（Class Expression）
     const Square = class {};
     ```
@@ -8506,7 +8494,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     		return value >= 0 ? value : -value;
     	}
     }
-    
+
     console.log(MyMath.abs(-7)); // 输出：7
     ```
 
@@ -8664,17 +8652,17 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     class Person {
     	// 使用 # 定义私有属性
     	#name;
-    
+
     	constructor(name) {
     		this.#name = name;
     	}
-    
+
     	// 公共方法用于访问私有属性
     	getName() {
     		return this.#name;
     	}
     }
-    
+
     const p = new Person("Alice");
     console.log(p.getName()); // 输出: "Alice"
     // console.log(p.#name); // 报错：无法从类外部访问私有属性
@@ -8754,7 +8742,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     class Person {
     	constructor(name) {
     		let _name = name;
-    
+
     		Object.defineProperty(this, "name", {
     			get() {
     				return _name;
@@ -8770,7 +8758,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     		});
     	}
     }
-    
+
     const p = new Person("Alice");
     console.log(p.name); // 输出: Alice
     p.name = "Bob";
@@ -8864,7 +8852,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     		console.log("move");
     	}
     }
-    
+
     class Circle extends Shape {
     	constructor(color, radius) {
     		super(color); // 调用父类构造函数初始化 color，若没有该行会报错
@@ -8875,7 +8863,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
     		console.log("Circle move");
     	}
     }
-    
+
     // 创建 Circle 实例，并传入 color 和 radius 参数
     const c = new Circle("red", 10);
     console.log(c); // 对象原型中存在子类的move方法，沿原型链往上一层寻找，存在父类中move方法
@@ -8921,13 +8909,13 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
     ```js
     const _radius = new WeakMap();
-    
+
     class Circle {
     	constructor(radius) {
     		_radius.set(this, radius);
     	}
     }
-    
+
     const c = new Circle(10);
     console.log(_radius.get(c)); // 输出 10
     ```
@@ -8994,7 +8982,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
     ```js
     const Circle = require("./circle");
-    
+
     const c = new Circle(10);
     c.draw();
     ```
@@ -9107,7 +9095,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
     ```js
     const path = require("path");
-    
+
     module.exports = {
     	entry: "./src/index.js",
     	output: {
@@ -9172,7 +9160,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
     ```js
     "use strict";
-    
+
     var x = 1;
     ```
 
@@ -9284,7 +9272,7 @@ console.log(Object.getPrototypeOf(x) === x.__proto__); // true
 
     ```js
     "use strict";
-    
+
     ```
 
 - Babel

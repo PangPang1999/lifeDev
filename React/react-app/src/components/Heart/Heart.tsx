@@ -1,23 +1,19 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import styles from "./Heart.module.css";
-import { FaHeart } from "react-icons/fa";
+import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 interface Props {
-  children: string;
+  children: boolean;
   onClick: () => void;
 }
-const Heart = ({ children, onClick }: Props) => {
-  const [color1, setColor1] = useState(false);
+export default function Heart({ children, onClick }: Props) {
+  const [status, setStatus] = useState(false);
+  const onClick1 = () => {
+    console.log("clicked");
+    setStatus(!status);
+  };
   return (
-    <FaHeart
-      onClick={() => {
-        setColor1(!color1);
-        onClick;
-      }}
-      size={30}
-      color={color1 ? "red" : ""}
-      className={[styles.heart, styles.color].join(" ")}
-    ></FaHeart>
+    <div onClick={onClick1}>
+      {status ? <AiOutlineHeart /> : <AiFillHeart />}
+    </div>
   );
-};
-
-export default Heart;
+}

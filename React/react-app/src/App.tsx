@@ -1,110 +1,90 @@
-import { useState } from "react";
-import produce from "immer";
-import Alert from "./components/Alert";
-import Button1 from "./components/Button1";
-import ListGroup from "./components/ListGroup";
-import Button from "./components/Button";
-import Heart from "./components/Heart";
-import ExpandableText from "./components/ExpandableText";
-import Form from "./components/Form";
+import { useEffect, useState } from "react";
+// import axios from "axios";
+import apiClient, { CanceledError } from "./services/api-client";
+import UserService, { User } from "./services/user-service";
+
 function App() {
-  // let items = ["London", "Tokyo", "New York"];
-  // const handleSelectedIndex = (item: string) => {
-  //   console.log(item);
-  // };
-  // const [alertVisible, setAlertVisible] = useState(false);
-  // const onClose = () => {
-  //   setAlertVisible(false);
-  // };
-  // const onBtnClick = () => {
-  //   setAlertVisible(true);
-  // };
-
-  const [game, setGame] = useState({
-    id: 1,
-    player: {
-      name: "John",
-    },
-  });
-  const handleClick1 = () => {
-    setGame({
-      ...game,
-      player: {
-        ...game.player,
-        name: "Doe",
-      },
+  const [users, setUsers] = useState<User[]>([]);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  //获取
+  useEffect(() => {
+    setIsLoading(true);
+    const { request, cancel } = UserService.getAllUsers();
+    request
+      .then((res) => {
+        setUsers(res.data);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        if (err instanceof CanceledError) return;
+        console.log(err);
+        setError(err.message);
+        setIsLoading(false);
+      });
+    return () => cancel();
+  }, []); // 依赖项为空 → 只在初次渲染时执行
+  //删除
+  const deleteUser = (user: User) => {
+    const originalUsers = [...users];
+    setUsers(users.filter((u) => u.id !== user.id));
+    UserService.deleteUser(user.id).catch((err) => {
+      setError(err.message);
+      setUsers(originalUsers);
     });
   };
-
-  const [carts, setCart] = useState({
-    discount: 0.1,
-    items: [
-      { id: 1, title: "Product 1", quantity: 1 },
-      { id: 2, title: "Product 2", quantity: 1 },
-    ],
-  });
-  const handleClick2 = () => {
-    setCart({
-      ...carts,
-      items: carts.items.map((item) =>
-        item.id === 2 ? { ...item, quantity: item.quantity + 1 } : item
-      ),
+  //添加
+  const addUser = () => {
+    const originalUsers = [...users];
+    const newUser = { id: 0, name: "Mosh" };
+    setUsers([...users, newUser]);
+    UserService.addUser(newUser).catch((err) => {
+      setError(err.message);
+      setUsers(originalUsers);
     });
-    // setCart(produce(draft=>{
-    //   const cart =  draft.find(c=>c.id===2);
-    //   if(cart){
-    //     cart.quantity++;
-    //   }
-    // }))
   };
-  const handleClick = () => {
-    console.log("clicked");
+  //更新
+  const updateUser = (user: User) => {
+    const originalUsers = [...users];
+    const updatedUser = { ...user, name: user.name + "!" };
+    setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
+    UserService.updateUser(updatedUser).catch((err) => {
+      setError(err.message);
+      setUsers(originalUsers); // 回滚原始列表
+    });
   };
-
   return (
-    <div>
-      {/* {alertVisible && <Alert children="My alert" onClose={onClose}></Alert>}
-      <Button1 onBtnClick={onBtnClick}></Button1>
-      <ListGroup
-        items={items}
-        heading="cities"
-        onSelectedIndex={handleSelectedIndex}
-      />
-      <Button children="My button" onClick={() => {}} color="primary"></Button> 
-       <Heart onClick={() => console.log("clicked")} children=""></Heart>
-      <button onClick={handleClick2}>
-        {carts.items.map((item) => (
-          <div key={item.id}>
-            {item.title} - {item.quantity}
-          </div>
-        ))}
+    <>
+      <button className="btn btn-primary mb-3" onClick={() => addUser()}>
+        Add
       </button>
-      
-
-      <ExpandableText maxChars={10} handleClick={handleClick}>
-        Lorem ipsum dolor sit amet consectetur adipisicing eliquia, accusamus
-        minima assumenda quisquam neque aliquaoptio harum magnam eius maxime.
-        Magni veritatis culpadolorem. Rerum harum et minus aliquid placeat
-        necessitaadipisci nemo ratione, ducimus dolorem omnis maiores!illum
-        minus sed tenetur rem maiores quos incidunt soluVoluptate tempora itaque
-        nostrum ea explicabo ullam esandithis componentwillhsummarize thertext
-        for usoNowtby ul
-      </ExpandableText>
-      */}
-
-      <Form
-        formData1={[
-          { id: 1, value: "Groceries", label: "Groceries" },
-          { id: 2, value: "Utilities", label: "Utilities" },
-          { id: 3, value: "Entertainment", label: "Entertainment" },
-        ]}
-        formData2={[
-          { id: 1, value: "Groceries", label: "Groceries" },
-          { id: 2, value: "Utilities", label: "Utilities" },
-          { id: 3, value: "Entertainment", label: "Entertainment" },
-        ]}
-      />
-    </div>
+      {isLoading && <div className="spinner-border"></div>}
+      {error && <p className="text-danger">{error}</p>}
+      <div className="list-group">
+        {users.map((user) => (
+          <li
+            key={user.id}
+            className="list-group-item d-flex justify-content-between"
+          >
+            {user.name}
+            <div>
+              <button
+                className="btn btn-outline-danger mx-2"
+                onClick={() => deleteUser(user)}
+              >
+                delete
+              </button>
+              <button
+                className="btn btn-primary mx-2"
+                onClick={() => updateUser(user)}
+              >
+                update
+              </button>
+            </div>
+          </li>
+        ))}
+      </div>
+    </>
   );
 }
 export default App;
