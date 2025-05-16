@@ -34,6 +34,7 @@
 2. 数据库没有 Mybatis 以及 Mybatis Plus，本节课程不覆盖，需要单独 Cover
 3. 一对多关系单关系
 4. 将中间表建模为显式实体类，待理解写入操作后进行编写
+5. JPA 乐观锁与悲观锁支持
 
 ## 符号
 
@@ -3087,44 +3088,84 @@ Model-first approach
 
     - 描述：使用临时数据库`store_temp`避免干扰主数据库，关闭 Flyway 避免冲突。
 
+2. 测试完毕后恢复，后续继续使用 flyway 管理
+
+    ```yaml
+    spring:
+      application:
+        name: store
+      datasource:
+        url: jdbc:mysql://localhost:3306/store_temp?createDatabaseIfNotExist=true
+        username: root
+        password: Seeyou1!
+    ```
+
 ## Repository
 
 ### Repository 接口
 
-> 简述：Spring Data JPA 通过分层的仓库（Repository）接口体系，简化了数据访问层开发。开发者只需声明接口，无需手写常规 CRUD 操作，即可高效管理实体对象，支持分页、排序和高级查询等能力。
+> 简述：Spring Data JPA 通过 Repository 接口体系极大简化了数据访问层开发。开发者只需声明接口，即可获得标准 CRUD、分页、排序及自定义查询等能力，无需手写实现。
 
 **知识树**
 
 1. Repository 接口家族
 
-    - `public interface Repository<T, ID>`
-        - 最顶层的标记接口，无任何方法，仅作为体系基础。
-    - `CrudRepository<T, ID>`
-        - 直接继承 `Repository`，提供标准的增删查改方法，如 `save`, `findById`, `findAll`, `delete`, `count` 等。
-        - CRUD：Create, Read, Update, Delete
-    - `PagingAndSortingRepository<T, ID>`
-        - 直接继承 `Repository`，
-    - `JpaRepository<T, ID>`：
-        - 间接继承 `CrudRepository`、`PagingAndSortingRepository`等接口
+    - `Repository<T, ID>`：顶层标记接口，无实际方法，仅作为体系基础。
+    - `CrudRepository<T, ID>`：提供基础 CRUD（增删查改）操作，如 `save`、`findById`、`findAll`、`delete`、`count` 等。
+    - `PagingAndSortingRepository<T, ID>`：在 `CrudRepository` 基础上扩展分页与排序能力。
+    - `JpaRepository<T, ID>`：最常用接口，继承所有上层接口，额外支持批量操作、刷新、延迟加载等 JPA 特性。
 
-2. 常用接口选择
+2. 常用选择
 
-    - 简单 CRUD：通常使用 `CrudRepository`
-    - 需要分页/排序/批量操作/高级查询：优先使用 `JpaRepository`
-    - 推荐优先采用 `JpaRepository`，因其向下兼容所有能力且支持更丰富的特性
+    - 简单 CRUD 场景：用 `CrudRepository`
+    - 分页、排序、批量操作或高级操作：用 `JpaRepository`（推荐，功能最全且向下兼容）
 
-3. 自定义仓库接口定义
+3. 自定义 Repository 接口
 
-    - 创建 Repository 接口
-        - 命名建议：实体名+Repository，如 `UserRepository`
-        - 需继承一个 Repository 基础接口（如 `CrudRepository<User, Long>`）
-        - 泛型参数：第一个为实体类类型，第二个为主键类型
-    - 推荐将所有仓库接口统一放在 `repositories` 包下，便于管理
-    - 使用 `New`-`Spring Java Component`可以快速创建实体类的 `Repository` 接口（需要安装插件 JPA Buddy）
+    - 创建方式：新建接口，命名建议为“实体名+Repository”，如 `UserRepository`
+    - 继承适当的 Repository 基础接口（如 `JpaRepository<User, Long>`），指定实体类及主键类型
+    - 推荐将所有仓库接口放于 `repositories` 包统一管理
+    - 可通过 IDE/JPA Buddy 工具自动生成模板（`New`-`Spring Java Component`）
+
+4. **Repository 实现原理与 Spring Boot 自动装配**
+
+    - 自动装配流程
+
+        - 依赖引入：
+            - 项目引入 Spring Data JPA 依赖后，Spring Boot 自动配置机制（Auto-Configuration）会启用 JPA Repository 子系统。
+        - 接口扫描：
+            - 启动时，Spring 会扫描所有继承自 `Repository` 体系的接口，无需额外注解或显式注册。
+        - FactoryBean 生成代理：
+            - Spring Data JPA 内部通过 `RepositoryFactoryBean` 为每个 Repository 接口动态生成代理实现类（通常基于 JDK 动态代理或 CGLIB 字节码技术）。
+        - 代理类功能：
+            - 这些代理类会自动实现你接口中声明的所有 CRUD 和查询方法，并与底层的 `EntityManager` 集成，实现所有数据访问逻辑。
+        - Bean 注册与注入：
+            - 生成的 Repository 代理对象会注册为 Spring Bean，支持常规依赖注入（`@Autowired`、构造注入、通过 `ApplicationContext` 访问等）。
+
+    - 开发者视角
+
+        - 无需实现类：开发者只需定义接口，Spring 自动完成实现，无需手写 `UserRepositoryImpl` 等具体类。
+        - 注解简化：Repository 接口无需 `@Repository` 注解，Spring Boot 自动识别和注册。
+        - 用法举例：
+            - 声明：`public interface UserRepository extends JpaRepository<User, Long> {}`
+            - 注入：`@Autowired private UserRepository userRepository;`
+            - 使用：可直接调用 `userRepository.findAll()`、`userRepository.save(user)` 等。
+
+    - 底层机制
+
+        - 动态代理：Spring Data JPA 通过代理技术捕捉方法调用，根据方法名、参数或注解，自动生成底层 JPQL 或 SQL 查询并执行。
+        - 方法名解析：如 `findByEmail(String email)`，Spring 会解析方法名生成 SQL，无需写实现。
+        - 高级特性：支持分页、排序、Specification 动态查询等扩展能力，全部由底层代理类处理。
+
+    - 优势与表现
+
+        - 零样板代码：避免重复手写数据访问实现，减少出错与维护成本。
+        - 一致性和扩展性：所有 Repository 享有一致的事务管理、异常转换、数据查询与更新逻辑。
+        - 开放扩展点：可通过自定义接口、查询方法或 JPQL 注解灵活扩展数据层能力。
 
 **代码示例**
 
-1. 手动定义用户仓库接口 UserRepository.java
+1. 手动定义用户仓库接口 `UserRepository.java`
 
     ```java
     public interface UserRepository extends CrudRepository<User, Long> {
@@ -3132,7 +3173,7 @@ Model-first approach
     }
     ```
 
-    - 说明：泛型参数 `<User, Long>` 分别代表实体类和主键类型。
+    - 说明：泛型 `<User, Long>` 分别为实体类型与主键类型。接口 Bean 自动具备全部 CRUD、分页和 JPA 能力。仅需声明接口，无需手写实现，Spring Data JPA 会自动生成代理 Bean。
 
 2. 使用 JPA Buddy 生成地址仓库接口：AddressRepository.java
 
@@ -3142,3 +3183,88 @@ Model-first approach
     ```
 
     - 说明：通过 JPA Buddy 插件选择实体和父接口后自动生成，结构一致。
+
+### Repository 使用
+
+> 简述：Spring Data JPA 提供的 Repository 接口支持对实体的标准化 CRUD 操作，开发者无需手动编写 SQL，通过调用仓库方法即可执行数据库操作，极大简化了数据访问层代码编写。
+
+**知识树**
+
+1. 获取 Repository 实例
+
+    - 定义接口后，Spring Boot 启动时自动生成实现类，并注册为 Bean。
+    - 通过依赖注入或`ApplicationContext.getBean()`获取实例使用。
+
+2. 基本 CRUD 操作方法（CrudRepository）
+
+    - `save(entity)`：
+        - 功能：保存或更新实体。
+        - 使用场景：插入新实体或更新已有实体（根据主键）。
+    - `findById(id)`：
+        - 功能：按主键查询实体。
+        - 返回值：`Optional`，可用`orElse`/`orElseThrow`处理查询为空情况。
+    - `findAll()`：
+        - 功能：查询所有实体记录。
+        - 返回值：集合或迭代器，可用`forEach`通过 Lambda 表示批量处理如打印。
+    - `delete(entity)` / `deleteById(id)`：
+        - 功能：按主键删除指定实体。
+        - 删除主实体时，会自动（先）删除与之关联的中间表（如多对多关联表）的数据。这是由 JPA/Hibernate 的级联删除（cascade）和外键约束共同决定，稍后介绍。
+    - `deleteAll()`：
+        - 功能：删除全部记录（谨慎使用）。
+
+3. SQL 语句输出与调试
+
+    - 配置：在`application.yaml`中启用`spring.jpa.show-sql: true`。
+    - 效果：控制台显示 Hibernate 生成执行的实际 SQL，便于开发调试。
+
+4. 级联操作与加载策略
+
+    - Hibernate 的默认级联与懒加载策略，可能导致实体在输出（如打印、序列化）时仅能访问基本属性，无法直接获取全部关联对象。
+    - 本节暂不展开，详细配置和常见问题将在稍后介绍。
+
+**代码示例**
+
+1. 开启 SQL 日志输出 (`application.yaml`)
+
+    ```yaml
+    spring:
+      ...此处不展示其他配置
+      jpa:
+        show-sql: true
+    ```
+
+    - 说明：在 application.yaml 中添加，方便调试和学习 SQL 生成过程。
+
+2. 仓库实例使用与 CRUD 操作示例
+
+    ```java
+    @SpringBootApplication
+    public class StoreApplication {
+        public static void main(String[] args) {
+            ApplicationContext context = SpringApplication.run(StoreApplication.class, args);
+
+            UserRepository userRepository = context.getBean(UserRepository.class);
+
+            // 创建对象
+            // var user = User.builder()
+            //         .name("John")
+            //         .email("john@example.com")
+            //         .password("password")
+            //         .build();
+            // 将对象数据添加到表，无需手动写SQL
+            // userRepository.save(user);
+
+            // 根据ID查找数据
+            // User user = userRepository.findById(1L).orElseThrow();
+            // System.out.println(user.getName());
+
+            // 查找所有数据并输出
+            // userRepository.findAll().forEach(u -> System.out.println(u.getName()));
+
+            // 根据ID删除数据
+            // userRepository.deleteById(1L);
+        }
+    }
+    ```
+
+    - 说明：示例涵盖了常见 CRUD 操作，均无需手写 SQL，Spring Data JPA 自动实现。

@@ -82,7 +82,7 @@
     brew --version
     ```
 
-## iterm2
+## iterm2&Powerlevel10k
 
 1. 安装`iterm2`，比默认终端好用，安装完成后使用`itrem2`
     ```bash
