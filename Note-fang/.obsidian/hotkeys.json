@@ -54,5 +54,37 @@
       ],
       "key": "R"
     }
+  ],
+  "editor:toggle-numbered-list": [
+    {
+      "modifiers": [
+        "Ctrl"
+      ],
+      "key": "1"
+    }
+  ],
+  "editor:toggle-bullet-list": [
+    {
+      "modifiers": [
+        "Ctrl"
+      ],
+      "key": "2"
+    }
+  ],
+  "editor:set-heading-0": [
+    {
+      "modifiers": [
+        "Mod"
+      ],
+      "key": "4"
+    }
+  ],
+  "editor:set-heading": [
+    {
+      "modifiers": [
+        "Mod"
+      ],
+      "key": "5"
+    }
   ]
 }
