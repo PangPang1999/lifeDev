@@ -9,22 +9,22 @@
         - 提取方法默认为 private
 2. 进阶
 
-    - command+P 查看构造参数，如在`new User();`的括号内按下此快捷键
-    - command+G 选中后查找下一个相同内容
-        - command + shift + G 选中后查找上一个相同内容
-        - command + control + G 选中后，选中所有相同内容
+    - ⌘P：查看构造参数，如在`new User();`的括号内按下此快捷键
+    - ⌘G：选中后查找下一个相同内容
+        - ⌘⇧G：选中后查找上一个相同内容
+        - ⇧⌃G：选中后，选中所有相同内容
 
 3. 基础
 
-    - Command+shift+A，搜索 rearrange：调整代码结构
-    - `Shift+Command+上下`移动方法
-    - `Command+shift+O`查找文件
-    - `Control+r`运行
-    - `Control+D`调试运行
-    - `Command+,`设置
-    - `Command+1`打开/关闭视图
-    - `Command+E`最佳文件
-    - `control+tab`切换文件
+    - ⌘⇧A，搜索 rearrange：调整代码结构
+    - ⌘⇧↑ /↓：移动方法
+    - ⌘⇧O：查找文件
+    - ⌃R：运行
+    - ⌃D：调试运行
+    - `⌘,`：设置
+    - ⌘1：打开/关闭视图
+    - ⌘E：最近文件
+    - ⌃⇥：切换文件
 
 ## 待补充
 
@@ -34,6 +34,19 @@
 2. 数据库没有 Mybatis 以及 Mybatis Plus，本节课程不覆盖，需要单独 Cover
 3. 一对多关系单关系
 4. 将中间表建模为显式实体类，待理解写入操作后进行编写
+
+## 符号
+
+⇥
+⇧
+🌐
+⌃
+⌥
+⌘
+↩
+␣
+⌫
+↑ ↓ ← →
 
 # Prerequisites
 
