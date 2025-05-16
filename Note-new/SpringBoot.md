@@ -15,12 +15,16 @@
         - command + control + G 选中后，选中所有相同内容
 
 3. 基础
+
     - Command+shift+A，搜索 rearrange：调整代码结构
     - `Shift+Command+上下`移动方法
-    - `Command+,`设置
     - `Command+shift+O`查找文件
     - `Control+r`运行
     - `Control+D`调试运行
+    - `Command+,`设置
+    - `Command+1`打开/关闭视图
+    - `Command+E`最佳文件
+    - `control+tab`切换文件
 
 ## 待补充
 
@@ -3041,7 +3045,7 @@ Model-first approach
     - `create` 与 Flyway 冲突
         - 若同时启用 `ddl-auto: create` 和 Flyway，启动时 Flyway 会先执行迁移脚本生成表，随后 Hibernate 的 `create` 会删除这些表并根据实体类重新建表，导致 Flyway 创建的结构被覆盖。
     - `create` 常见异常
-        - 使用 `create` 时，即使数据库为空，Hibernate 也会尝试先删除表及其外键。如果外键名称与实际不一致，或外键不存在，会产生警告（WARN）或抛出 `CommandAcceptanceException`。
+        - 使用 `create` 时，即使数据库为空，Hibernate 也会尝试先删除表及其外键。如果外键名称与实际不一致，或外键不存在，会产生警告（WARN），抛出 `CommandAcceptanceException`，这不用担心。
 
 4. 推荐最佳实践
 
@@ -3069,3 +3073,59 @@ Model-first approach
     ```
 
     - 描述：使用临时数据库`store_temp`避免干扰主数据库，关闭 Flyway 避免冲突。
+
+## Repository
+
+### Repository 接口
+
+> 简述：Spring Data JPA 通过分层的仓库（Repository）接口体系，简化了数据访问层开发。开发者只需声明接口，无需手写常规 CRUD 操作，即可高效管理实体对象，支持分页、排序和高级查询等能力。
+
+**知识树**
+
+1. Repository 接口家族
+
+    - `public interface Repository<T, ID>`
+        - 最顶层的标记接口，无任何方法，仅作为体系基础。
+    - `CrudRepository<T, ID>`
+        - 直接继承 `Repository`，提供标准的增删查改方法，如 `save`, `findById`, `findAll`, `delete`, `count` 等。
+        - CRUD：Create, Read, Update, Delete
+    - `PagingAndSortingRepository<T, ID>`
+        - 直接继承 `Repository`，
+    - `JpaRepository<T, ID>`：
+        - 间接继承 `CrudRepository`、`PagingAndSortingRepository`等接口
+
+2. 常用接口选择
+
+    - 简单 CRUD：通常使用 `CrudRepository`
+    - 需要分页/排序/批量操作/高级查询：优先使用 `JpaRepository`
+    - 推荐优先采用 `JpaRepository`，因其向下兼容所有能力且支持更丰富的特性
+
+3. 自定义仓库接口定义
+
+    - 创建 Repository 接口
+        - 命名建议：实体名+Repository，如 `UserRepository`
+        - 需继承一个 Repository 基础接口（如 `CrudRepository<User, Long>`）
+        - 泛型参数：第一个为实体类类型，第二个为主键类型
+    - 推荐将所有仓库接口统一放在 `repositories` 包下，便于管理
+    - 使用 `New`-`Spring Java Component`可以快速创建实体类的 `Repository` 接口（需要安装插件 JPA Buddy）
+
+**代码示例**
+
+1. 手动定义用户仓库接口 UserRepository.java
+
+    ```java
+    public interface UserRepository extends CrudRepository<User, Long> {
+
+    }
+    ```
+
+    - 说明：泛型参数 `<User, Long>` 分别代表实体类和主键类型。
+
+2. 使用 JPA Buddy 生成地址仓库接口：AddressRepository.java
+
+    ```java
+    public interface AddressRepository extends CrudRepository<Address, Long> {
+    }
+    ```
+
+    - 说明：通过 JPA Buddy 插件选择实体和父接口后自动生成，结构一致。

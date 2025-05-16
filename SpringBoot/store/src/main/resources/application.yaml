@@ -7,6 +7,6 @@ spring:
     password: Seeyou1!
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create
   flyway:
     enabled: false
