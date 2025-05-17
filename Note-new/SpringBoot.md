@@ -3269,16 +3269,17 @@ Model-first approach
 
     - 说明：示例涵盖了常见 CRUD 操作，均无需手写 SQL，Spring Data JPA 自动实现。
 
-## 实体生命周期与状态
+### 实体生命周期与状态
 
 > 简述：实体状态描述了一个 Java 对象（实体）相对于持久化上下文（Persistence Context）和数据库的当前关系和管理情况。理解这些状态对于有效使用 ORM 框架（如 Hibernate）进行数据操作至关重要，尤其是在调试和优化性能时。
 
 **知识树**
 
-1.  持久化上下文 (Persistence Context):
+1.  持久化上下文与事务:
 
-    - 定义：由 Hibernate 管理的实体实例的容器，用于跟踪实体变化并同步到数据库。
-    - 生命周期：通常与一个事务 (Transaction) 的生命周期绑定。
+    - 定义：持久化上下文 (Persistence Context)是管理的实体实例的容器，用于跟踪实体变化并同步到数据库。
+    - 仓库方法：仓库方法（如 `save`, `findById`, `delete`）默认自动开启和提交事务，每次方法调用为独立的事务边界。
+    - 生命周期：每个事务有独立的持久化上下文（Persistence Context），生命周期仅限于方法执行期间。
 
 2.  实体状态 (Entity States):
 
@@ -3289,10 +3290,11 @@ Model-first approach
     - 持久态 (Persistent):
 
         - 已与持久化上下文建立关联并由其管理的实体对象。它通常源自瞬时态实体经持久化操作（如保存）转换而来，或是从数据库中加载得到。持久态实体拥有数据库 ID，其任何状态变更都会被持久化框架追踪，并在事务提交时同步到数据库。
+        - 需要注意的是：持久态为在持久化上下文，也就是在事务中才有的状态
 
     - 游离态 (Detached):
 
-        - 曾经是持久态，但因持久化上下文关闭或被显式分离等原因而脱离了管理的实体对象。它拥有数据库 ID，但其后续的状态变更不再被持久化框架自动追踪。游离态实体可能重新关联回持久态，或保持游离直至不再被引用而被回收，也可能在其他操作中被删除。
+        - 曾经是持久态，但因持久化上下文关闭（事务结束）或被显式分离等原因而脱离了管理的实体对象。它拥有数据库 ID，但其后续的状态变更不再被持久化框架自动追踪。游离态实体可能重新关联回持久态，或保持游离直至不再被引用而被回收，也可能在其他操作中被删除。
 
     - 移除态 (Removed):
 
@@ -3316,4 +3318,81 @@ Model-first approach
      |              V                   |
      |        Removed (移除态) ----------|--事务成功提交-----> Transient (瞬时态)
      |__________________________________|
+    ```
+
+### 管理事务
+
+> 简述：事务（Transaction）是保证一组数据库操作要么全部成功、要么全部回滚的机制，用于维护数据一致性。Spring Data JPA 默认方法具备事务性，操作实体的持久化状态紧随事务边界变化。
+
+**知识树**
+
+1. 事务基本概念
+
+    - 定义：一组数据库操作的最小原子单元，确保要么全部成功，要么全部失败。
+    - 作用：保障数据一致性，防止部分操作成功、部分失败导致的数据异常。
+    - 应用场景：如下单扣库存、转账等需要多步操作的业务。
+
+2. Spring Data JPA 的事务处理
+
+    - 仓库方法（如 `save`、`findById`、`delete`）每次调用都自动开启和提交独立事务。
+    - 每个事务内有独立的持久化上下文（Persistence Context），只在事务周期内存在。
+    - 若希望多个数据库操作共享同一事务（即同一持久化上下文），需使用 `@Transactional` 注解。
+
+3. `@Transactional` 注解用法
+
+    - 作用：将方法内所有数据库操作包裹为一个原子事务，确保操作一致。
+    - 约束：仅能用于实例方法，不能用于 `static` 方法（如 `main`）。
+    - 常用于 Service 层，聚合多个操作，统一事务边界。
+
+4. 实体状态与事务生命周期
+
+    - 新建实体为瞬时态（Transient），未纳入持久化上下文。
+    - 调用 `save` 等持久化操作后，实体进入持久态（Persistent），事务期间状态被追踪。
+    - 事务结束（提交/回滚）后，实体变为游离态（Detached），与上下文断开。
+
+**代码示例**
+
+1. Service 层演示事务与实体状态
+
+    ```java
+    @AllArgsConstructor
+    @Service
+    public class UserService {
+        private final UserRepository userRepository;
+        private final EntityManager entityManager;
+
+        @Transactional
+        public void showEntityStates() {
+            var user = User.builder()
+                    .name("John")
+                    .email("john@example.com")
+                    .password("password")
+                    .build();
+
+            // 初始状态：瞬时态
+            System.out.println(entityManager.contains(user) ? "持久态" : "瞬时/游离态");
+            // 保存，进入持久化上下文
+            userRepository.save(user);
+            // 保存后状态
+            System.out.println(entityManager.contains(user) ? "持久态" : "瞬时/游离态");
+        }
+    }
+    ```
+
+    - 描述：本例通过在 Service 层方法添加或省略 `@Transactional` 注解，对比实体在不同事务管理下的状态变化。
+        - 未加 `@Transactional`：每次 `save` 方法单独开启并提交事务，保存后持久化上下文立即关闭，实体变为游离态（Detached），不再受 Hibernate 追踪管理。
+        - 加上 `@Transactional`：整个方法体内操作处于同一事务与持久化上下文，`save` 后实体保持持久态（Persistent），直到方法结束或事务提交，所有变更会被自动追踪并最终同步到数据库。
+
+2. main 方法调用 Service
+
+    ```java
+    @SpringBootApplication
+    public class StoreApplication {
+        public static void main(String[] args) {
+            ApplicationContext context = SpringApplication.run(StoreApplication.class, args);
+
+            UserService userService = context.getBean(UserService.class);
+            userService.showEntityStates();
+        }
+    }
     ```
