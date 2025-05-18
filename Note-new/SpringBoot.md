@@ -3665,7 +3665,7 @@ Model-first approach
 
     - 说明：配置 `cascade = CascadeType.PERSIST` 后，保存 `User` 将自动保存 `Address`，无需手动调用 `addressRepository.save()`。
 
-## 删除关联实体
+### 删除关联实体
 
 > 简述：删除具有实体关联的对象时，需确保数据库外键约束安全。可使用 JPA 提供的级联删除（CascadeType.REMOVE）或孤儿移除（orphanRemoval），以控制是否同时删除关联实体，防止产生孤立数据。
 
@@ -3830,3 +3830,128 @@ Model-first approach
           }
         }
         ```
+
+### Ex: 复杂关联操作与事务完整性实践
+
+> **要求**：综合练习实体间的关联、级联保存、事务一致性和数据库外键约束。依次完成如下目标并解决过程中的异常：
+>
+> 1. 创建新产品并关联新分类，保存产品并
+> 2. 使用已存在的分类为新产品赋值，保存新产品
+> 3. 将所有现有产品加入某一用户的心愿单，并保存用户。
+> 4. 删除一个产品。
+
+**解法**：
+
+1. **创建新产品并关联新分类**
+
+    - Step1：创建并初始化 `Product` 和 `Category` 对象，将 `Category` 赋给 `Product`，直接调用 `productRepository.save(product)`，会报持久化异常。
+    - Step2：解决方法一，先手动保存分类，再保存产品；方法二（推荐），在 `Product` 中的 `@ManyToOne` 关系上添加 `cascade = CascadeType.PERSIST`，允许保存产品时自动保存新分类。
+    - 备注：方法二不加@Transaction 没有影响，因为只有一步 save 是持久化操作
+
+2. **使用已存在的分类赋值并保存产品**
+
+    - Step1：通过 `categoryRepository.findById` 获取已有分类对象（注意类型转换，如 `byte`），赋给新产品。
+    - Step2：直接保存产品会报“Detached entity passed to persist”异常。原因是持久化上下文已结束，分类为游离态。
+    - Step3：为方法添加 `@Transactional`，确保持久化上下文覆盖查询和保存全过程，消除游离异常。
+
+3. **将所有产品加入用户心愿单并保存**
+
+    - Step1：查询目标用户、所有产品对象。
+    - Step2：遍历所有产品，调用用户的 `addWishlistProduct`（或类似方法），逐一添加至心愿单集合。
+    - Step3：保存用户，自动完成心愿单中间表的关联。
+    - Step4：可在数据库验证心愿单表数据和控制台 SQL。
+
+4. **删除产品并确保从心愿单也移除**
+
+    - Step1：直接调用 `productRepository.deleteById(productId)` 删除产品，会因 wishlist 表的外键约束（NO ACTION）导致删除失败。
+    - Step2：新建 Flyway migration 文件，修改 wishlist 的外键为 `ON DELETE CASCADE`，并运行迁移。
+    - Step3：再次删除产品，数据库自动删除 wishlist 表中相关记录。
+
+**代码**
+
+1. 创建新产品并关联新分类
+
+    ```java
+    public void manageProducts() {
+        var category = Category.builder()
+                .name("Category 1")
+                .build();
+
+
+        var products = Product.builder()
+                .name("Product 1")
+                .description("Product description 1")
+                .price(BigDecimal.valueOf(10.99))
+                .category(category)
+                .build();
+
+        productRepository.save(products);
+    }
+    ```
+
+    - 描述：需要在 Product 类的 Category 设置 PERSIST
+
+2. 使用已存在的分类赋值并保存产品
+
+    ```java
+    @Transactional
+    public void manageProducts() {
+        var category = categoryRepository.findById(1L).orElseThrow();
+
+
+        var products = Product.builder()
+                .name("Product 2")
+                .description("Product description 2")
+                .price(BigDecimal.valueOf(10.99))
+                .category(category)
+                .build();
+
+        productRepository.save(products);
+    }
+    ```
+
+    - 描述：加个@Transactional 就解决了
+
+3. 将所有产品加入用户心愿单并保存
+
+    ```java
+    @Transactional
+    public void manageProducts() {
+        var user = userRepository.findById(8L).orElseThrow();
+        var products = productRepository.findAll();
+
+        // User内添加
+        // public void addWishlist(Product product) {
+        //     products.add(product);
+        // }
+
+        products.forEach(user::addWishlist);
+        userRepository.save(user);
+    }
+    ```
+
+4. 删除产品并确保从心愿单也移除
+
+    ```java
+    @Transactional
+    public void manageProducts() {
+        productRepository.deleteById(4L);
+    }
+
+    ```
+
+    - 描述：这一步报错的原因是没有给中间表设置正确的级联关系，修改完关系使用 flyway 保存版本
+
+5. flyway 脚本：`V9__enable_cascade_on_wishlist.sql`
+
+    ```java
+    alter table wishlist
+    drop foreign key fk_wishlist_on_product;
+
+    alter table wishlist
+        add constraint fk_wishlist_on_product
+            foreign key (product_id) references products (id)
+                on delete cascade;
+    ```
+
+    - 说明：上述 SQL 先删除原外键，再新增带级联的外键，确保删除产品时关联 wishlist 记录也被清理。
