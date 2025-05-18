@@ -1,6 +1,9 @@
 package com.codewithmosh.store.services;
 
+import com.codewithmosh.store.entities.Profile;
+import com.codewithmosh.store.entities.Tag;
 import com.codewithmosh.store.entities.User;
+import com.codewithmosh.store.repositories.ProfileRepository;
 import com.codewithmosh.store.repositories.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Table;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final ProfileRepository profileRepository;
     private final EntityManager entityManager;
 
     @Transactional
@@ -28,5 +32,12 @@ public class UserService {
         userRepository.save(user);
         // 保存后状态
         System.out.println(entityManager.contains(user) ? "持久态" : "瞬时/游离态");
+    }
+
+    @Transactional
+    public void showRelatedEntities() {
+        Profile profile = profileRepository.findById(2L).get();
+        System.out.println(profile.getBio());
+        // System.out.println(profile.getUser().getEmail());
     }
 }

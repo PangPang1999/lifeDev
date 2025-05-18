@@ -3396,3 +3396,106 @@ Model-first approach
         }
     }
     ```
+
+## 关联实体加载策略
+
+> 简述：JPA 支持两种实体关联加载方式：立即加载（Eager）与延迟加载（Lazy）。合理选择加载策略，有助于提升性能，避免懒加载异常。
+
+**知识树**
+
+1. 加载策略类型
+
+    - Eager（立即加载）：查询主实体时同步加载全部关联对象，适合总是需要用到的关系。
+    - Lazy（延迟加载）：仅在首次访问关联属性时再发起数据库查询，适合不常用或大集合关联。
+
+2. 默认行为
+
+    - `@OneToOne`、`@ManyToOne`：默认 Eager
+    - `@OneToMany`、`@ManyToMany`：默认 Lazy
+
+3. 显式指定加载策略
+
+    - 拥有方：通过在关系注解中加上 `fetch = FetchType.LAZY/EAGER` 明确指定加载策略
+    - 非拥有方：始终无法使用加载策略，只能使用默认策略。
+        - 解决方案：最实用的方法是去除必要字段，其他方法后续介绍
+
+4. 事务边界与懒加载异常
+
+    - Lazy 加载仅在持久化上下文（通常为事务）存活时有效。若在事务外访问未加载的属性，会抛出 `LazyInitializationException`
+    - 解决方案：在 Service 层方法加 `@Transactional`，确保方法执行期间持久化上下文有效
+
+**代码示例**
+
+1. 默认加载策略演示
+
+    ```java
+    @AllArgsConstructor
+    @Service
+    public class UserService {
+        private final UserRepository userRepository;
+        private final EntityManager entityManager;
+
+    	//省略部分方法...
+
+        public void showRelatedEntities() {
+            User user = userRepository.findById(2L).get();
+            System.out.println(user.getProfile());   // Eager 加载，无异常
+            System.out.println(user.getAddresses()); // Lazy 加载，事务外报异常
+        }
+    }
+    ```
+
+    - 描述：
+        - User 与 Profile 是一对一关系，默认 Eager，可以输出结果
+        - User 与 Addresses 是一对多关系，默认为 Lazy，输出时报 LazyInitializationException 异常，在方法上标注@Transaction 后，能正常输出。
+    - 补充：
+        - 输出为 null 是因为暂时没有存储数据，建议手动增加一个数据作测试，稍后介绍关联数据存储
+
+2. 显式设置为 Lazy
+
+    ```java
+    @ToString
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "profiles")
+    public class Profile {
+
+    	// 省略部分字段和方法
+
+    	// 默认为EAGER，修改为LAZY
+    	@OneToOne(fetch = FetchType.LAZY)
+    	@JoinColumn(name = "id")
+    	@MapsId
+    	@ToString.Exclude
+    	private User user;
+    }
+    ```
+
+    - 描述：将一对一关联改为 Lazy，仅在调用 `getUser()` 时加载。
+
+3. 事务内访问 Lazy 属性
+
+    ```java
+    @AllArgsConstructor
+    @Service
+    public class UserService {
+
+    	// 省略部分字段和方法
+
+
+      @Transactional
+      public void showRelatedEntities() {
+    	  Profile profile = profileRepository.findById(2L).get();
+    	  System.out.println(profile.getBio());
+    	  // System.out.println(profile.getUser().getEmail());
+      }
+    }
+    ```
+
+    - 描述：查询 profile 自身属性时，只查询 profile 表，查询关联的 user 属性时，会额外执行一条 SQL 语句查询。
+        - 查询关联属性的前提是，需要在方法体上设置`@Transactional`，否则查询到 profile 之后，事务结束成为游离态，不受持久化上下文追踪，无法查询 User 信息。
+    - 备注：这里需要额外创建 `ProfileRepository` 类，这里不再演示
