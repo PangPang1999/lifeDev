@@ -3,6 +3,7 @@ package com.codewithmosh.store.services;
 import com.codewithmosh.store.entities.Profile;
 import com.codewithmosh.store.entities.Tag;
 import com.codewithmosh.store.entities.User;
+import com.codewithmosh.store.repositories.AddressRepository;
 import com.codewithmosh.store.repositories.ProfileRepository;
 import com.codewithmosh.store.repositories.UserRepository;
 import jakarta.persistence.EntityManager;
@@ -17,6 +18,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final EntityManager entityManager;
+    private final AddressRepository addressRepository;
 
     @Transactional
     public void showEntityStates() {
@@ -39,5 +41,9 @@ public class UserService {
         Profile profile = profileRepository.findById(2L).get();
         System.out.println(profile.getBio());
         // System.out.println(profile.getUser().getEmail());
+    }
+
+    public void fetchAddress() {
+        var address = addressRepository.findById(2L).get();
     }
 }

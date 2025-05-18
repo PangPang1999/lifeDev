@@ -3499,3 +3499,64 @@ Model-first approach
     - 描述：查询 profile 自身属性时，只查询 profile 表，查询关联的 user 属性时，会额外执行一条 SQL 语句查询。
         - 查询关联属性的前提是，需要在方法体上设置`@Transactional`，否则查询到 profile 之后，事务结束成为游离态，不受持久化上下文追踪，无法查询 User 信息。
     - 备注：这里需要额外创建 `ProfileRepository` 类，这里不再演示
+
+## Ex: 关联加载策略实战
+
+> **要求**：编写代码检索指定 ID 的 Address，观察控制台输出的 SQL。修改加载策略，让加载地址时不加载用户信息（之前由于是多对一，默认会加载）
+
+> **解法**：
+
+1. 使用 `AddressRepository` 按 ID 查询 Address，观察控制台 SQL 输出。
+2. 发现 Address 默认 `@ManyToOne` 关联 User，User 又 `@OneToOne` 关联 Profile，均为 EAGER，导致一次 Address 查询时会级联加载用户与用户档案，产生多表数据查询。
+3. 修改 Address 的 `@ManyToOne(fetch = FetchType.LAZY)`，再运行，观察只查询 Address，不再自动联表加载 User、Profile。
+
+**代码**
+
+1. 默认情况
+
+    ```java
+    @AllArgsConstructor
+    @Service
+    public class UserService {
+
+    	// 省略部分代码
+
+        @Transactional
+        public void showRelatedEntities() {
+            Profile profile = profileRepository.findById(2L).get();
+            System.out.println(profile.getBio());
+            // System.out.println(profile.getUser().getEmail());
+        }
+
+        public void fetchAddress() {
+            var address = addressRepository.findById(2L).get();
+        }
+    }
+
+    ```
+
+    - 描述：默认情况下，加载 address 时，会默认加载 User 的信息，如邮箱，密码，还会加载 Profile 中的信息，这些在查询地址时非必要。
+
+2. 修改加载策略
+
+    ```java
+    @ToString
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "addresses")
+    public class Address {
+
+    	// 省略部分代码
+
+        @ManyToOne(fetch = FetchType.LAZY)
+        @JoinColumn(name = "user_id")// 指向数据库中的外键
+        @ToString.Exclude
+        private User user;
+    }
+    ```
+
+    - 描述：设置 `fetch = FetchType.LAZY` 后，只有实际访问 `address.getUser()` 时，才会去查询 User，实现懒加载，大幅减少不必要的数据检索和传输。
