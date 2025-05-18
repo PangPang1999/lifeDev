@@ -13,6 +13,8 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @AllArgsConstructor
 @Service
 public class UserService {
@@ -63,5 +65,13 @@ public class UserService {
         user.addAddress(address);
         userRepository.save(user);
         // addressRepository.save(address);
+    }
+
+    @Transactional
+    public void deleteRelated() {
+        User user = userRepository.findById(8L).orElseThrow();
+        var address = user.getAddresses().get(0);
+        user.removeAddress(address);
+        userRepository.save(user);
     }
 }

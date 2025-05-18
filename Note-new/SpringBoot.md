@@ -13,6 +13,7 @@
     - ⌘G：选中后查找下一个相同内容
         - ⌘⇧G：选中后查找上一个相同内容
         - ⇧⌃G：选中后，选中所有相同内容
+    - ⌘F12(🌐)：查看类中的成员，可通过输入进行匹配，比 ⌘F 好用
 
 3. 基础
 
@@ -35,6 +36,7 @@
 3. 一对多关系单关系
 4. 将中间表建模为显式实体类，待理解写入操作后进行编写
 5. JPA 乐观锁与悲观锁支持
+6. CrudRepository 等仓库类，删除的返回值都是 void，没有判断影响行数，待补充
 
 ## 符号
 
@@ -3397,7 +3399,7 @@ Model-first approach
     }
     ```
 
-## 关联实体加载策略
+### 关联实体加载策略
 
 > 简述：JPA 支持两种实体关联加载方式：立即加载（Eager）与延迟加载（Lazy）。合理选择加载策略，有助于提升性能，避免懒加载异常。
 
@@ -3500,7 +3502,7 @@ Model-first approach
         - 查询关联属性的前提是，需要在方法体上设置`@Transactional`，否则查询到 profile 之后，事务结束成为游离态，不受持久化上下文追踪，无法查询 User 信息。
     - 备注：这里需要额外创建 `ProfileRepository` 类，这里不再演示
 
-## Ex: 关联加载策略实战
+### Ex: 关联加载策略实战
 
 > **要求**：编写代码检索指定 ID 的 Address，观察控制台输出的 SQL。修改加载策略，让加载地址时不加载用户信息（之前由于是多对一，默认会加载）
 
@@ -3562,7 +3564,7 @@ Model-first approach
 
     - 描述：设置 `fetch = FetchType.LAZY` 后，只有实际访问 `address.getUser()` 时，才会去查询 User，实现懒加载，大幅减少不必要的数据检索和传输。
 
-## 关联实体的持久化
+### 关联实体的持久化
 
 > 简述：在保存具有实体关联（如一对多）的对象时，JPA 默认不会自动保存关联对象。需手动保存或配置级联（Cascade）策略以实现自动保存。理解并正确配置级联，是保障实体关系完整性的重要手段。
 
@@ -3662,3 +3664,169 @@ Model-first approach
     ```
 
     - 说明：配置 `cascade = CascadeType.PERSIST` 后，保存 `User` 将自动保存 `Address`，无需手动调用 `addressRepository.save()`。
+
+## 删除关联实体
+
+> 简述：删除具有实体关联的对象时，需确保数据库外键约束安全。可使用 JPA 提供的级联删除（CascadeType.REMOVE）或孤儿移除（orphanRemoval），以控制是否同时删除关联实体，防止产生孤立数据。
+
+**知识树**
+
+1. 删除实体时的默认行为
+
+    - 默认情况下，删除主实体时，不会自动删除关联实体
+    - Hibernate 会检查关联约束，若未配置级联删除且外键约束限制，则不会执行删除，确保数据安全（安全删除机制）
+
+2. 级联删除（CascadeType.REMOVE）
+
+    - 设置方法：
+        - 在主实体关系注解中设置：`cascade = CascadeType.REMOVE`
+    - 作用：
+        - 删除主实体时，自动删除关联实体
+        - 覆盖数据库的级联约束设置
+    - 使用场景：
+        - 主实体删除时，明确关联实体也不再需要的情况
+
+3. 孤儿移除（orphanRemoval）
+
+    - 设置方法：
+        - 在一对多关系的主实体端配置：`orphanRemoval = true`
+    - 作用：
+        - 当从主实体的关联集合中移除一个关联对象时，该对象自动从数据库删除，防止“孤立记录”存在
+    - 使用场景：
+        - 从集合中移除某个子实体，且希望自动清理该实体，无需显式调用删除操作
+
+4. 安全删除与级联关系配置
+
+    - Hibernate 默认安全删除：
+        - 无级联删除配置且有数据库级别外键约束时，Hibernate 不执行 DELETE，避免外键约束异常
+        - 删除配置： REMOVE 以及 ALL
+    - 级联删除配置后：
+        - Hibernate 会自动删除关联实体，安全删除机制失效，覆盖数据库外键约束设置
+        - 建议谨慎配置，防止意外删除重要数据
+
+**代码示例**
+
+1. 级联删除
+
+    - 实现：删除主实体时，自动删除其所有关联实体（如用户及其所有地址/档案）
+
+        ```java
+        @ToString
+        @Setter
+        @Getter
+        @AllArgsConstructor
+        @NoArgsConstructor
+        @Builder
+        @Entity
+        @Table(name = "users")
+        public class User {
+
+        	// 省略部分代码
+
+            @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+            @Builder.Default
+            private List<Address> addresses = new ArrayList<>();
+
+            public void addAddress(Address address) {
+                addresses.add(address);
+                address.setUser(this);
+            }
+
+            public void removeAddress(Address address) {
+                addresses.remove(address);
+                address.setUser(null);
+            }
+
+        	// 省略部分代码
+
+            @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE)
+            private Profile profile;
+
+            public void addProfile(Profile profile) {
+                this.profile = profile;
+                profile.setUser(this);
+            }
+
+            public void removeProfile(Profile profile) {
+                this.profile = null;
+                profile.setUser(null);
+            }
+        }
+        ```
+
+        - 描述：只需删除 User，所有关联的 Address 和 Profile 也会被自动删除，无需手动处理，适用于主实体与从属实体“共生死”的场景。
+
+    - 服务层调用
+
+        ```java
+        @AllArgsConstructor
+        @Service
+        public class UserService {
+
+          	// 省略部分代码
+
+            @Transactional
+            public void deleteRelated() {
+                userRepository.deleteById(8L);
+            }
+        }
+        ```
+
+2. 孤儿删除
+
+    - 实现：从主实体的集合属性中移除子对象时，被移除的子对象自动从数据库删除，防止“孤立数据”残留
+
+        ```java
+        @ToString
+        @Setter
+        @Getter
+        @AllArgsConstructor
+        @NoArgsConstructor
+        @Builder
+        @Entity
+        @Table(name = "users")
+        public class User {
+
+            	// 省略部分代码
+
+            @OneToMany(mappedBy = "user",
+                    cascade = {CascadeType.PERSIST, CascadeType.REMOVE},
+                    orphanRemoval = true)
+            @Builder.Default
+            private List<Address> addresses = new ArrayList<>();
+
+            public void addAddress(Address address) {
+                addresses.add(address);
+                address.setUser(this);
+            }
+
+            public void removeAddress(Address address) {
+                addresses.remove(address);
+                address.setUser(null);
+        	}
+
+            	// 省略部分代码
+
+        }
+        ```
+
+        - 描述：只删除某个 Address（如从集合中移除），不影响 User 或其他 Address，常用于动态维护一对多关系的场景。
+
+    - 服务层调用
+
+        ```java
+        @AllArgsConstructor
+        @Service
+        public class UserService {
+
+        	// 省略部分代码
+
+          @Transactional
+          public void deleteRelated() {
+              User user = userRepository.findById(8L).orElseThrow();
+              var address = user.getAddresses().get(0);
+              user.removeAddress(address);
+              userRepository.save(user);
+          }
+        }
+        ```
