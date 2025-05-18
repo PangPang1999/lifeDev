@@ -3536,6 +3536,7 @@ Model-first approach
     ```
 
     - 描述：默认情况下，加载 address 时，会默认加载 User 的信息，如邮箱，密码，还会加载 Profile 中的信息，这些在查询地址时非必要。
+    - 备注：需要手动去数据库补充一条地址数据
 
 2. 修改加载策略
 
@@ -3560,3 +3561,104 @@ Model-first approach
     ```
 
     - 描述：设置 `fetch = FetchType.LAZY` 后，只有实际访问 `address.getUser()` 时，才会去查询 User，实现懒加载，大幅减少不必要的数据检索和传输。
+
+## 关联实体的持久化
+
+> 简述：在保存具有实体关联（如一对多）的对象时，JPA 默认不会自动保存关联对象。需手动保存或配置级联（Cascade）策略以实现自动保存。理解并正确配置级联，是保障实体关系完整性的重要手段。
+
+**知识树**
+
+1. JPA 持久化行为默认规则
+
+    - 默认情况下，保存一个实体对象（如 `User`）时，并不会自动保存它的关联对象（如 `Address`）
+    - 关联对象需单独持久化，除非启用级联操作（Cascade）
+
+2. 手动持久化方式
+
+    - 分步保存：先保存主实体，再手动保存关联实体
+    - 缺点：冗余代码，维护困难，事务一致性难以保障
+
+3. 级联（Cascade）机制
+
+    - 定义：设置在关系注解（如 `@OneToMany`）中的 `cascade` 属性，用于定义操作传播行为
+    - 常用级联类型：
+        - `PERSIST`：主实体保存时，自动保存关联实体
+        - `MERGE`：主实体更新时，自动更新关联实体
+        - `REMOVE`：主实体删除时，自动删除关联实体
+        - `ALL`：包含以上全部操作，**慎用**
+        - `REFRESH` / `DETACH`：不常与仓库操作一起使用
+    - 使用建议：
+        - 根据具体场景精细控制，不推荐 `CascadeType.ALL`
+
+4. 使用 `CascadeType.PERSIST` 自动保存关联对象
+
+    - 通过 `@OneToMany(cascade = CascadeType.PERSIST)` 配置，主实体保存时自动保存子实体
+    - 避免手动分步保存，提高代码清晰度和一致性
+
+**代码示例**
+
+1. Service 方法：手动保存用户和地址
+
+    ```java
+    @AllArgsConstructor
+    @Service
+    public class UserService {
+
+    	// 省略部分代码
+
+        public void persistRelated() {
+            var user = User.builder()
+                    .name("Nancy")
+                    .email("nancy@example.com")
+                    .password("password")
+                    .build();
+            var address = Address.builder()
+                    .street("street")
+                    .city("city")
+                    .state("state")
+                    .zip("zip")
+                    .build();
+            user.addAddress(address);
+            userRepository.save(user);
+            // addressRepository.save(address);
+        }
+    }
+    ```
+
+    - 描述：查看输出的 SQL，会发现只保存了 user，没有保存 address，需要手动保存
+
+2. 启用级联：自动保存关联对象
+
+    ```java
+    @ToString
+    @Setter
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    @Entity
+    @Table(name = "users")
+    public class User {
+
+    	// 省略部分代码
+
+        @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
+        @Builder.Default
+        private List<Address> addresses = new ArrayList<>();
+
+        public void addAddress(Address address) {
+            addresses.add(address);
+            address.setUser(this);
+        }
+
+        public void removeAddress(Address address) {
+            addresses.remove(address);
+            address.setUser(null);
+        }
+
+    	// 省略部分代码
+
+    }
+    ```
+
+    - 说明：配置 `cascade = CascadeType.PERSIST` 后，保存 `User` 将自动保存 `Address`，无需手动调用 `addressRepository.save()`。
