@@ -331,7 +331,8 @@
 4. InteliJ IDEA 插件
 
     0. Setting 快捷键：`Command+，`
-    1. Settings--插件--Chinese (Simplified) ：中文界面（可选）
+    1. Settings--插件--Chinese (Simplified) ：中文界面（已内置）
+        1. 外观与行为-系统设置-语言地区
     2. Settings--插件--MyBatisX：xml 文件跳转
     3. Settings--插件--GitHub Copilot：代码补全
     4. Settings--插件--Nyan Progress Bar：彩虹进度条
@@ -340,9 +341,10 @@
 5. InteliJ IDEA 其他配置
 
     1. Settings--工具--保存时的操作--重新格式化代码（保存时格式化代码）
-    2. Settings--编译器--代码风格--Java--代码生成
-        1. Line comment at first column 顶格注释：取消勾选
-        2. Add a space comment start 注释前加空格：勾选
+    2. Settings--编译器--代码风格--Java--
+        1. 代码生成--Line comment at first column 顶格注释：取消勾选
+        2. 代码生成--Add a space comment start 注释前加空格：勾选
+        3. 空行-- Around method in interface 设置为 0：避免接口中的方法多导致文件过长检索困难
     3. Settings--编译器--代码风格--Java--代码生成
         1. 第一栏调整锁进，个人偏好 888
     4. Settings--外观与行为--外观--亮色主题

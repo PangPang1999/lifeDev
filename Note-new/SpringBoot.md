@@ -4,10 +4,10 @@
 
 ## 快捷键
 
-1. 高级
+1.  高级
     - 提取方法/接口： （选取代码）置顶菜单 Refactor——Extract/Introduce——Method/Interface
         - 提取方法默认为 private
-2. 进阶
+2.  进阶
 
     - ⌘P：查看构造参数，如在`new User();`的括号内按下此快捷键
     - ⌘G：选中后查找下一个相同内容
@@ -15,7 +15,7 @@
         - ⇧⌃G：选中后，选中所有相同内容
     - ⌘F12(🌐)：查看类中的成员，可通过输入进行匹配，比 ⌘F 好用
 
-3. 基础
+3.  基础
 
     - ⌘⇧A，搜索 rearrange：调整代码结构
     - ⌘⇧↑ /↓：移动方法
@@ -23,9 +23,15 @@
     - ⌃R：运行
     - ⌃D：调试运行
     - `⌘,`：设置
-    - ⌘1：打开/关闭视图
     - ⌘E：最近文件
     - ⌃⇥：切换文件
+
+4.  视图（必须熟悉）
+
+    - ⇧⎋：打开/关闭所有视图
+    - ⌘1：打开/关闭左侧项目视图
+    - ⌘7：打开/关闭数据库视图
+    - ⌘9/0：打开/关闭 Git 视图
 
 ## 待补充
 
@@ -40,16 +46,20 @@
 
 ## 符号
 
-⇥
-⇧
-🌐
-⌃
-⌥
-⌘
-↩
-␣
-⌫
-↑ ↓ ← →
+⇥ Tab（制表键）
+⇧ Shift（上档键）
+🌐 Globe（地球/输入法切换键，有些键盘无此键）
+⌃ Control（控制键）
+⌥ Option（选项/Alt 键）
+⌘ Command（命令键/苹果键）
+↩ Return（回车/Enter）
+␣ Space（空格键）
+⌫ Delete（退格键/向后删除）
+⎋ Esc（Escape/退出键） ← 常见符号为 `⎋`，有些文档也会用 `esc` 或 `Esc`
+↑ 上箭头（上方向键）
+↓ 下箭头（下方向键）
+← 左箭头（左方向键）
+→ 右箭头（右方向键）
 
 # Prerequisites
 
@@ -3955,3 +3965,83 @@ Model-first approach
     ```
 
     - 说明：上述 SQL 先删除原外键，再新增带级联的外键，确保删除产品时关联 wishlist 记录也被清理。
+
+## CUSTOM QUERIES
+
+Derived query methods
+Custom queries using @Query
+Projections
+@EntityGraph
+N+1 problem
+Calling stored procedures
+
+### Spring Data JPA 衍生查询
+
+> 简述：Spring Data JPA 支持通过方法命名定义查询，在继承 Repository 的接口中，手动按方法名创建接口，Spring Data JPA 会根据方法名自动生成实现，无需手写实现。
+
+**知识树**
+
+1. 衍生查询（Derived query）
+
+    -
+
+### @Query
+
+默认使用 JQL
+
+普通的衍生查询可以直接转为 JQL
+
+使用 SQL 支持更多语法，使用 value...
+
+参数用@P
+
+只有使用@Query 并加上@M 才能进行更新操作
+
+### 投影
+
+默认操作选择所有列
+
+投影是可以只返回具体列
+
+存放这类的地址一般命名为 projections 或者 dtos
+存放的可以是接口或者实体类
+
+使用接口时需要注意修改选中的列
+使用实体类相对麻烦需要全类名，并将参数放在括号内
+
+### @Query 修改单次默认加载策略
+
+### 懒加载带来的 n+1
+
+方式一是 EAGER
+
+使用上一节的知识
+
+### 使用存储过程
+
+怎么将逻辑保存在存储过程，以及怎么调用存储过程
+
+使用@Pruc..就可以还是使用衍生查询，存储过程必须加@TRan
+
+## DYNAMIC QUERIES
+
+**JAP**
+
+Query by example
+Criteria API
+Specifications
+Sorting and pagination
+
+### Example
+
+限制
+No support for nested properties
+No support for matching collections/maps
+Database-specific support for matching strings
+Exact matching for other types (e.g. numbers/dates)
+
+### Criteria API
+
+### Specification
+
+### Sort&Pagination
