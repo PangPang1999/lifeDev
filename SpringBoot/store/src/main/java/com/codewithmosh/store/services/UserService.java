@@ -78,5 +78,9 @@ public class UserService {
         productRepository.deleteById(4L);
     }
 
+    @Transactional
+    public void derivedQuery() {
+        productRepository.deleteByName("Product 2");
+    }
 
 }

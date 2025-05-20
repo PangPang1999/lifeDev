@@ -3122,10 +3122,22 @@ Model-first approach
 
 1. Repository 接口家族
 
-    - `Repository<T, ID>`：顶层标记接口，无实际方法，仅作为体系基础。
-    - `CrudRepository<T, ID>`：提供基础 CRUD（增删查改）操作，如 `save`、`findById`、`findAll`、`delete`、`count` 等。
-    - `PagingAndSortingRepository<T, ID>`：在 `CrudRepository` 基础上扩展分页与排序能力。
-    - `JpaRepository<T, ID>`：最常用接口，继承所有上层接口，额外支持批量操作、刷新、延迟加载等 JPA 特性。
+    - `Repository<T, ID>`：
+
+        - 顶层标记接口，无实际方法，仅作为体系基础。
+
+    - `CrudRepository<T, ID>`：
+
+        - 提供基础 CRUD（增删查改）操作，如 `save`、`findById`、`findAll`、`delete`、`count` 等。
+        - 提供根据方法名自动生成实现，无需手写实现的功能（下节介绍）
+
+    - `PagingAndSortingRepository<T, ID>`：
+
+        - 在 `CrudRepository` 基础上扩展分页与排序能力。
+
+    - `JpaRepository<T, ID>`：
+
+        - 最常用接口，继承所有上层接口，支持各种高级特性。
 
 2. 常用选择
 
@@ -3975,15 +3987,97 @@ Projections
 N+1 problem
 Calling stored procedures
 
-### Spring Data JPA 衍生查询
+### 衍生查询
 
-> 简述：Spring Data JPA 支持通过方法命名定义查询，在继承 Repository 的接口中，手动按方法名创建接口，Spring Data JPA 会根据方法名自动生成实现，无需手写实现。
+> 简述：Spring Data JPA 支持通过方法命名定义查询，在继承 Repository 的接口中，通过规范化的方法名即可完成实体的多条件、排序、分页等常用查询，极大简化了数据访问层开发。
 
 **知识树**
 
-1. 衍生查询（Derived query）
+1.  衍生查询（Derived Queries）
 
-    -
+    - 原理：
+        - 通过接口方法名解析生成 JPQL，JPA 实现（如 Hibernate）在运行时把 JPQL 转译成对应数据库的原生 SQL，
+    - 特点：
+        - 无需手写 SQL 或 JPQL，无需关注存储引擎
+        - 支持单表、多条件、投影、排序、分页等基础操作
+
+2.  JPQL（Java Persistence Query Language）
+
+    - 概念：
+        - JPQL 是 JPA 规范定义的对象化查询语言，面向“实体类”与其属性。类似 SQL，但操作的是 Java 实体而不是数据库表、字段
+    - 例：`SELECT u FROM User u WHERE u.name = :name`
+    - 优势：具备 ORM 的数据库无关性，不关心底层表结构
+
+3.  支持能力
+
+    - 支持单实体，即单表条件查询
+    - 支持 and、or、not、like、in、between、isNull、isNotNull、top、first、orderBy 等基本操作
+    - 支持种类查询，传入具体类的对象，根据对象的主键进行查询
+    - 支持投影 projection，返回接口，或者 DTO（普通衍生查询无法满足，需使用`@Query`）
+    - 支持分页和动态排序（`CrudRepository` 无法满足，需要接口继承 `PagingAndSortingRepository`）
+
+    - **本节介绍基本操作，后续逐一介绍其他操作**
+
+4.  局限性（在不使用`@Query`的前提下）
+
+    - 不支持自定义多表 JOIN，只能按实体类声明的关系间接查询。
+    - 不支持复杂聚合与分组（如 GROUP BY、HAVING）
+    - 不支持自定义子查询、EXISTS/IN/UNION 等复杂 SQL
+    - 仅支持查询删除，不能执行更新（更新需 @Modifying + @Query）
+
+5.  命名规范与关键字
+
+    - 查询前缀：findBy、readBy、getBy
+    - 计数前缀：countBy
+    - 存在前缀：existsBy
+    - 删除前缀：deleteBy、removeBy
+    - 常用关键词：And、Or、Between、LessThan、GreaterThan、Like、In、OrderBy、Top/First（限制结果条数）
+    - 常见操作示例见**代码示例**
+
+**代码示例**
+
+1.  基础派生查询方法示例
+
+    ```java
+    public interface ProductRepository extends CrudRepository<Product, Long> {
+        // Delete
+        List<Product> deleteByName(String name);
+
+        // Find（以find示例）
+        // String
+        List<Product> findByName(String name);
+        List<Product> findByNameLike(String name);
+        List<Product> findByNameNotLike(String name);
+        List<Product> findByNameContaining(String name);
+        List<Product> findByNameStartingWith(String name);
+        List<Product> findByNameEndingWith(String name);
+        List<Product> findByNameEndingWithIgnoreCase(String name);
+
+        // Numbers
+        List<Product> findByPrice(BigDecimal price);
+        List<Product> findByPriceGreaterThan(BigDecimal price);
+        List<Product> findByPriceGreaterThanEqual(BigDecimal price);
+        List<Product> findByPriceLessThanEqual(BigDecimal price);
+        List<Product> findByPriceBetween(BigDecimal min, BigDecimal max);
+
+        // Null
+        List<Product> findByDescriptionNull();
+        List<Product> findByDescriptionNotNull();
+
+        // Multiple conditions
+        List<Product> findByDescriptionNullAndNameNull();
+
+        // Sort (OrderBy)
+        List<Product> findByNameOrderByPrice(String name);
+
+        // Limit (Top/First)
+        List<Product> findTop5ByNameOrderByPrice(String name);
+        List<Product> findFirst5ByNameLikeOrderByPrice(String name);
+
+        // Between
+        List<Product> findByPriceBetweenOrderByPriceAsc(BigDecimal min, BigDecimal max);
+    }
+    ```
 
 ### @Query
 
