@@ -80,7 +80,7 @@ public class UserService {
 
     @Transactional
     public void derivedQuery() {
-        productRepository.deleteByName("Product 2");
+        productRepository.updatePriceByCategory(BigDecimal.valueOf(100.00), 1L);
     }
 
 }

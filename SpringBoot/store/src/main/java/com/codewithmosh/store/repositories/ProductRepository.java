@@ -1,52 +1,26 @@
 package com.codewithmosh.store.repositories;
 
-import com.codewithmosh.store.entities.Category;
 import com.codewithmosh.store.entities.Product;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 public interface ProductRepository extends CrudRepository<Product, Long> {
 
-    // Find（以find示例）
-    List<Product> findByName(String name);
+    // SQL 示例
+    @Query(value = "select * from products p where  p.price between :min and :max by p.name", nativeQuery = true)
+    List<Product> findByPriceSQL(@Param("min") BigDecimal min, @Param("max") BigDecimal max);
 
-    // Delete
-    List<Product> deleteByName(String name);
+    // JPQL示例
+    @Query("select p from Product p join p.category where p.price between :min and :max order by p.name")
+    List<Product> findByPrice(@Param("min") BigDecimal min, @Param("max") BigDecimal max);
 
-    // String
-    List<Product> findByNameLike(String name);
-    List<Product> findByNameNotLike(String name);
-    List<Product> findByNameContaining(String name);
-    List<Product> findByNameStartingWith(String name);
-    List<Product> findByNameEndingWith(String name);
-    List<Product> findByNameEndingWithIgnoreCase(String name);
-
-    // Numbers
-    List<Product> findByPrice(BigDecimal price);
-    List<Product> findByPriceGreaterThan(BigDecimal price);
-    List<Product> findByPriceGreaterThanEqual(BigDecimal price);
-    List<Product> findByPriceLessThanEqual(BigDecimal price);
-    List<Product> findByPriceBetween(BigDecimal min, BigDecimal max);
-
-    // Null
-    List<Product> findByDescriptionNull();
-    List<Product> findByDescriptionNotNull();
-
-    // Multiple conditions
-    List<Product> findByDescriptionNullAndNameNull();
-
-    // Sort (OrderBy)
-    List<Product> findByNameOrderByPrice(String name);
-
-    // Limit (Top/First)
-    List<Product> findTop5ByNameOrderByPrice(String name);
-    List<Product> findFirst5ByNameLikeOrderByPrice(String name);
-
-    // Between
-    List<Product> findByPriceBetweenOrderByPriceAsc(BigDecimal min, BigDecimal max);
+    // 更新示例
+    @Modifying
+    @Query("update Product p set p.price = :newPrice where p.category.id = :categoryId")
+    void updatePriceByCategory(@Param("newPrice") BigDecimal newPrice, @Param("categoryId") Long categoryId);
 }

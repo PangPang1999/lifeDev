@@ -4079,17 +4079,77 @@ Calling stored procedures
     }
     ```
 
-### @Query
+### `@Query` 注解
 
-默认使用 JQL
+> 简述：当派生查询（基于方法名推导）无法满足业务需求，或需要执行复杂查询和更新操作时，Spring Data JPA 提供 `@Query` 注解，允许在 Repository 接口中直接编写 JPQL 或原生 SQL，实现灵活的数据访问控制。
 
-普通的衍生查询可以直接转为 JQL
+**知识树**
 
-使用 SQL 支持更多语法，使用 value...
+1. `@Query` 注解核心用法
 
-参数用@P
+    - 定义：
+        - 在接口方法上直接声明 JPQL（Java Persistence Query Language）或 SQL 查询，实现复杂筛选、聚合、连接、多表等操作。
+    - 基本语法：
 
-只有使用@Query 并加上@M 才能进行更新操作
+        - JPQL：
+            - `@Query("select ... from 实体 ... where ...")`（默认，基于实体和属性名，具备数据库无关性）
+        - 原生 SQL：
+            - `@Query(value = "select ... from ...", nativeQuery = true)`（数据库相关，需保证兼容性）
+
+    - 参数绑定：
+        - 支持命名参数（`:name`，结合 `@Param` 注解，推荐）或位置参数（`?1`）
+        - 建议优先使用命名参数，代码更清晰、易维护
+
+2. JPQL 与原生 SQL 对比
+
+    - JPQL：
+        - 面向实体与属性，屏蔽底层表结构细节
+        - 支持大部分业务查询需求
+        - 迁移数据库时无须更改查询语句
+        - 受限于 JPA 规范，部分数据库特有操作不支持
+    - 原生 SQL：
+        - 直接书写数据库语法，支持所有数据库能力
+        - 可实现数据库方言特有的函数和优化（如 MySQL 的 `DATE_FORMAT()`，PostgreSQL 的 `ILIKE`）
+        - 迁移性差、依赖特定数据库结构
+
+3. 数据&批量更新
+
+    - 更新必须配合 `@Modifying` 注解，并在事务环境下运行（如方法上添加 `@Transactional`）
+    - 普通衍生函数理论上支持批量删除操作，批量保存和批量更新需要使用`@Modifying` 注解
+
+4. 快速生成与场景建议
+
+    - 派生查询难以覆盖的复杂查询，建议直接使用 `@Query`
+    - 常见场景包括：多表联合、复杂聚合、动态查询、批量更新、分页优化等
+
+5. 快速生成 `@Query` 注解
+
+    - 对于已有的派生查询（方法名推导），可使用 IDEA 或 JPA Buddy 等工具的快捷操作，将其自动转换为等价的 JPQL `@Query` 注解方式，便于扩展查询逻辑或进行优化。
+    - 若需实现更新或删除操作，可先通过工具生成方法名风格的模板，再一键转换为 `@Query` 注解的 JPQL 更新语句模版，修改完毕后**务必**加上 `@Modifying` 注解，否则更新操作不会被正确执行。
+
+**代码示例**
+
+1. JPQL 与 SQL 查询
+
+    ```java
+    public interface ProductRepository extends CrudRepository<Product, Long> {
+
+        // SQL 示例
+        @Query(value = "select * from products p where  p.price between :min and :max by p.name", nativeQuery = true)
+        List<Product> findByPriceSQL(@Param("min") BigDecimal min, @Param("max") BigDecimal max);
+
+        // JPQL示例
+        @Query("select p from Product p join p.category where p.price between :min and :max order by p.name")
+        List<Product> findByPrice(@Param("min") BigDecimal min, @Param("max") BigDecimal max);
+
+        // 更新示例
+        @Modifying
+        @Query("update Product p set p.price = :newPrice where p.category.id = :categoryId")
+        void updatePriceByCategory(@Param("newPrice") BigDecimal newPrice, @Param("categoryId") Long categoryId);
+    }
+    ```
+
+    - 说明：通过 `@Query` 实现复杂条件、原生 SQL 调用与批量更新。
 
 ### 投影
 
