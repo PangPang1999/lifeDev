@@ -79,8 +79,9 @@ public class UserService {
     }
 
     @Transactional
-    public void derivedQuery() {
-        productRepository.updatePriceByCategory(BigDecimal.valueOf(100.00), 1L);
+    public void fetchProducts() {
+        var category = Category.builder().id(1L).build();
+        productRepository.findAllByCategory(category);
     }
 
 }

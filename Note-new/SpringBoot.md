@@ -4079,6 +4079,17 @@ Calling stored procedures
     }
     ```
 
+2.  根据数据查询方法示例
+
+    ```java
+    public interface ProductRepository extends CrudRepository<Product, Long> {
+
+        // 传入的category仅需id属性，默认根据id查询
+        List<Product> findAllByCategory(Category category);
+
+    }
+    ```
+
 ### `@Query` 注解
 
 > 简述：当派生查询（基于方法名推导）无法满足业务需求，或需要执行复杂查询和更新操作时，Spring Data JPA 提供 `@Query` 注解，允许在 Repository 接口中直接编写 JPQL 或原生 SQL，实现灵活的数据访问控制。
@@ -4151,17 +4162,70 @@ Calling stored procedures
 
     - 说明：通过 `@Query` 实现复杂条件、原生 SQL 调用与批量更新。
 
-### 投影
+### 投影（Projection）
 
-默认操作选择所有列
+> 简述：JPA 投影（Projection）允许仅查询所需的字段，而不是加载完整实体，从而提升性能、节省资源。可通过接口或 DTO 类实现，适用于大部分只读数据展示或轻量数据传输场景。
 
-投影是可以只返回具体列
+**知识树**
 
-存放这类的地址一般命名为 projections 或者 dtos
-存放的可以是接口或者实体类
+1. 投影（Projection）概念
 
-使用接口时需要注意修改选中的列
-使用实体类相对麻烦需要全类名，并将参数放在括号内
+    - 作用：只加载需要的字段，减少无用数据传输，提升查询效率
+    - 应用：表数据量大、列数多或只需展示部分属性时效果显著
+
+2. 投影类型
+
+    - 接口投影（Interface-based Projection）
+        - 定义接口，仅包含需要的 getter 方法
+        - JPA 动态生成代理对象作为结果，适合大多数查询场景
+    - 类投影（Class-based Projection/DTO）
+        - 使用 POJO 类（DTO），定义字段和构造方法
+            - POJO 是无特定继承或依赖的普通 Java 对象，仅做数据存储。
+        - 适合需要业务逻辑封装或更复杂处理的场景
+        - JPQL 需用 `new` 语法创建对象
+
+3. 存放位置
+
+    - 一般使用 dtos 或者 projections 包用于存放各个投影
+    - dtos 的意思是 data transfer objects
+
+4. 投影的使用场景和注意事项
+
+    - 投影方法可用于派生查询和自定义 JPQL 查询
+    - 使用接口时语法简洁，推荐优先使用
+    - 使用类（DTO）时，JPQL 必须用 `select new ...` 创建新对象
+    - 若 JPQL 查询 select 了整个实体，投影无效，会加载所有字段
+
+5. 实践建议
+
+    - 只读/展示用接口投影（简洁、性能好）
+    - 需业务逻辑或复杂转换用 DTO 类投影
+
+**代码示例**
+
+1. 接口投影、类投影示例
+
+    ```java
+    public interface ProductRepository extends CrudRepository<Product, Long> {
+
+        // 普通查询（全列查询）
+        // List<Product> findAllByCategory(Category category);
+
+        // 接口投影 + 普通衍生查询
+        // List<ProductSummary> findAllByCategory(Category category);
+
+        // 类投影 + 普通衍生查询
+        // List<ProductSummaryDTO> findAllByCategory(Category category);
+
+        // 接口投影 + @Query 查询，需要修改 select
+        // @Query("select p.id, p.name from Product p where p.category = ?1")
+        // List<ProductSummary> findAllByCategory(Category category);
+
+        // 类投影 + @Query 查询，需要使用全类名，非必要不推荐
+        @Query("select new com.codewithmosh.store.dtos.ProductSummaryDTO(p.id, p.name ) from Product p where p.category = ?1")
+        List<ProductSummaryDTO> findAllByCategory(Category category);
+    }
+    ```
 
 ### @Query 修改单次默认加载策略
 

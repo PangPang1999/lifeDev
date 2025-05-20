@@ -1,5 +1,8 @@
 package com.codewithmosh.store.repositories;
 
+import com.codewithmosh.store.dtos.ProductSummary;
+import com.codewithmosh.store.dtos.ProductSummaryDTO;
+import com.codewithmosh.store.entities.Category;
 import com.codewithmosh.store.entities.Product;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -11,16 +14,20 @@ import java.util.List;
 
 public interface ProductRepository extends CrudRepository<Product, Long> {
 
-    // SQL 示例
-    @Query(value = "select * from products p where  p.price between :min and :max by p.name", nativeQuery = true)
-    List<Product> findByPriceSQL(@Param("min") BigDecimal min, @Param("max") BigDecimal max);
+    // 普通查询（全列查询）
+    // List<Product> findAllByCategory(Category category);
 
-    // JPQL示例
-    @Query("select p from Product p join p.category where p.price between :min and :max order by p.name")
-    List<Product> findByPrice(@Param("min") BigDecimal min, @Param("max") BigDecimal max);
+    // 接口投影 + 普通衍生查询
+    // List<ProductSummary> findAllByCategory(Category category);
 
-    // 更新示例
-    @Modifying
-    @Query("update Product p set p.price = :newPrice where p.category.id = :categoryId")
-    void updatePriceByCategory(@Param("newPrice") BigDecimal newPrice, @Param("categoryId") Long categoryId);
+    // 类投影 + 普通衍生查询
+    // List<ProductSummaryDTO> findAllByCategory(Category category);
+
+    // 接口投影 + @Query 查询，需要修改 select
+    // @Query("select p.id, p.name from Product p where p.category = ?1")
+    // List<ProductSummary> findAllByCategory(Category category);
+
+    // 类投影 + @Query 查询，需要使用全类名，非必要不推荐
+    @Query("select new com.codewithmosh.store.dtos.ProductSummaryDTO(p.id, p.name ) from Product p where p.category = ?1")
+    List<ProductSummaryDTO> findAllByCategory(Category category);
 }
