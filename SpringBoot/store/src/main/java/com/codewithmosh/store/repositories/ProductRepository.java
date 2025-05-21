@@ -6,6 +6,7 @@ import com.codewithmosh.store.entities.Category;
 import com.codewithmosh.store.entities.Product;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
@@ -30,4 +31,10 @@ public interface ProductRepository extends CrudRepository<Product, Long> {
     // 类投影 + @Query 查询，需要使用全类名，非必要不推荐
     @Query("select new com.codewithmosh.store.dtos.ProductSummaryDTO(p.id, p.name ) from Product p where p.category = ?1")
     List<ProductSummaryDTO> findAllByCategory(Category category);
+
+    @Procedure("findProductsByPrice")
+    List<Product> findProducts(BigDecimal min, BigDecimal max);
+
+    // @Query("select p from Product p join p.category where p.price between :min and :max order by p.name")
+    // List<Product> findProducts(@Param("min") BigDecimal min, @Param("max") BigDecimal max);
 }

@@ -7,6 +7,9 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 @AllArgsConstructor
 @Service
 public class UserService {
@@ -74,20 +77,10 @@ public class UserService {
         productRepository.deleteById(4L);
     }
 
-    @Transactional
-    public void fetchProducts() {
-        var category = Category.builder().id(1L).build();
-        productRepository.findAllByCategory(category);
-    }
 
     @Transactional
-    public void fetchUsers() {
-        var users = userRepository.findAllWithJoin();
-        users.forEach(
-                user -> {
-                    // System.out.println(user.getName());
-                    System.out.println(user.getAddresses());
-                }
-        );
+    public void fetchProducts() {
+        List<Product> products = productRepository.findProducts(new BigDecimal("1"), new BigDecimal("5"));
+        products.forEach(System.out::println);
     }
 }

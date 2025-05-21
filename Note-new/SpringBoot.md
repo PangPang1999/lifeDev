@@ -2829,6 +2829,7 @@ Model-first approach
         @Column(name = "name")
         private String name;
 
+        @ToString.Exclude
         @OneToMany(mappedBy = "category")
         private Set<Product> products = new HashSet<>();
     }
@@ -4407,11 +4408,90 @@ Calling stored procedures
         List<User> findAllWithJoin();
         ```
 
-### 使用存储过程
+### 调用存储过程
 
-怎么将逻辑保存在存储过程，以及怎么调用存储过程
+> 简述：存储过程（Stored Procedure）是数据库端的可复用 SQL 逻辑。将复杂或高频查询迁移至存储过程，有利于提升性能、简化代码维护，并支持事务、权限、复杂流程控制。Spring Data JPA 支持在 Repository 接口通过注解调用存储过程，实现数据库与应用层的解耦。
 
-使用@Pruc..就可以还是使用衍生查询，存储过程必须加@TRan
+**知识树**
+
+1. 存储过程基础
+
+    - 定义：预先编写并存储在数据库中的一段 SQL 逻辑，可带参数、多语句执行，复用性强。
+    - 场景：适合复杂查询、批量操作、数据聚合，或性能敏感的批量业务。
+    - 优势：数据库端执行，减少网络传输与解析开销，支持事务、权限、流程控制。
+
+2. 创建与迁移
+
+    - 使用 Flyway 编写迁移脚本创建存储过程（语法依赖数据库类型，MySQL 示例见下）。
+    - 注意 delimiter（语句分隔符）需手动设置，避免多语句冲突。
+    - 推荐只选择必要字段，避免 SELECT \* 带来性能与安全隐患。
+
+3. Spring Data JPA 调用存储过程
+
+    - Repository 接口方法使用 `@Procedure` 注解，指定存储过程名称。
+    - 方法参数自动映射为存储过程入参。
+    - 如需事务，需在调用方法上标注 `@Transactional`，否则会抛出事务异常。
+
+4. 使用建议
+
+    - 尽量保持业务与存储过程解耦，仅在必要场景使用。
+    - 保持参数顺序与数据类型一致，方便维护与调用。
+    - 可结合 DTO 或 Projection 精准映射查询结果。
+
+**代码示例**
+
+1. 创建存储过程的迁移脚本：`V10__add_find_products_proc.sql`
+
+    ```sql
+    DELIMITER $$
+
+    CREATE PROCEDURE findProductsByPrice(
+        minPrice DECIMAL(10, 2),
+        maxPrice DECIMAL(10, 2)
+    )
+    BEGIN
+        SELECT id, name, description, price, category_id
+        FROM products
+        WHERE price BETWEEN minPrice AND maxPrice
+        ORDER BY name;
+
+    END $$
+
+    DELIMITER ;
+    ```
+
+2. Repository 调用存储过程
+
+    ```java
+    public interface ProductRepository extends CrudRepository<Product, Long> {
+
+        @Procedure("findProductsByPrice")
+        List<Product> findProducts(BigDecimal min, BigDecimal max);
+
+        // @Query("select p from Product p join p.category where p.price between :min and :max order by p.name")
+        // List<Product> findProducts(@Param("min") BigDecimal min, @Param("max") BigDecimal max);
+    }
+    ```
+
+    - 描述：`@Procedure` 标注存储过程名称，方法参数对应入参，自动调用数据库存储过程，不必再写 SQL。Service 调用时必须加 `@Transactional`，否则 JPA 执行存储过程时会抛出事务异常。
+
+3. Service 层调用存储过程
+
+    ```java
+    @Transactional
+    public void fetchProducts() {
+        List<Product> products = productRepository.findProducts(new BigDecimal("1"), new BigDecimal("5"));
+        products.forEach(System.out::println);
+    }
+    ```
+
+4. 控制台手动调用存储过程（MySQL）
+
+    ```sql
+    CALL findProductsByPrice(1, 5);
+    ```
+
+    - 描述：数据库客户端或控制台可直接测试存储过程结果。
 
 ## DYNAMIC QUERIES
 
