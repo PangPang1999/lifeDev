@@ -2,11 +2,13 @@ package com.codewithmosh.store.services;
 
 import com.codewithmosh.store.entities.*;
 import com.codewithmosh.store.repositories.*;
+import com.codewithmosh.store.repositories.specifications.ProductSpec;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -93,6 +95,30 @@ public class UserService {
             System.out.println(p);
         });
     }
+
+
+    public void fetchProductsByCriteria() {
+        var products = productRepository.findProductsByCriteria(null, BigDecimal.valueOf(1), BigDecimal.valueOf(20));
+        System.out.println(products);
+    }
+
+    public void fetchProductsBySpecifications(String name, BigDecimal min, BigDecimal max) {
+        Specification<Product> spec = Specification.where(null);
+        if (name != null) {
+            spec = spec.and(ProductSpec.hasName(name));
+        }
+        if (max != null) {
+            spec = spec.and(ProductSpec.hasPriceGreaterThanOrEqualTo(max));
+        }
+        if (min != null) {
+            spec = spec.and(ProductSpec.hasPriceLessThanOrEqualTo(min));
+        }
+
+        productRepository.findAll(spec).forEach(p -> {
+            System.out.println(p);
+        });
+    }
+
 
     @Transactional
     public void printLoyaltyProfiles() {

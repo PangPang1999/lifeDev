@@ -4524,7 +4524,7 @@ Criteria API
 Specifications
 Sorting and pagination
 
-## Example（Query by Example）
+### Example
 
 > 简述：Example 是 Spring Data JPA 的动态查询机制。通过“样例对象”与匹配器（ExampleMatcher），自动生成 SQL，无需自定义方法名或手写 JPQL，适合快速构建灵活的单表查询。
 
@@ -4574,14 +4574,171 @@ Sorting and pagination
         - 仅支持单表，不支持嵌套、集合、区间等复杂场景。
         - 非字符串字段仅支持等值比较。
 
-限制
-No support for nested properties
-No support for matching collections/maps
-Database-specific support for matching strings
-Exact matching for other types (e.g. numbers/dates)
-
 ### Criteria API
 
-### Specification
+> 简述：Criteria API 是 JPA 提供的类型安全、动态构建查询的 Java API。通过链式构建条件，能灵活应对多变的查询参数，无需手写 JPQL 或 SQL，适合运行时拼装复杂查询。
+
+**知识树**
+
+1. 核心原理
+
+    - 以 Java 代码（而非字符串）描述查询逻辑，类型安全，编译期检查。
+    - 支持动态拼装查询条件，适合多参数、多分支的场景。
+
+2. 用法流程
+
+    1. 接口定义：
+        - 由于作为常规接口如`ProductRepository`接口的补充，建议单独定义接口如`ProductCriteriaRepository`
+    2. 方法定义
+        - 在创建的接口中定义方法，方法可以具备多个参数，这些参数表示的是动态查询的各个条件，若参数给指为 null（后续代码判断），即代表查询时不用这个条件
+    3. 实现类：
+        - 需要手动为接口写实现类，实现类中代码核心是增加条件判断，以及修改名称，不同的情况，代码大致雷同
+
+3. 动态条件拼装
+
+    - 可根据参数是否为 null，动态选择是否拼接该条件。
+    - 支持 like、等值、范围、in、not in 等所有 SQL 条件。
+    - 支持复杂查询（分组、聚合、排序、分页等）。
+
+4. 特性与优势
+
+    - 零字符串拼接，避免拼写错误和 SQL 注入风险。
+    - 运行时动态组装，可应对多变业务查询。
+    - 支持多表联合（Join）、子查询、分组、聚合等。
+    - Specification 优化了 Criteria API，将在下一节介绍
+
+**代码示例**
+
+1. 接口定义
+
+    ```java
+    public interface ProductCriteriaRepository {
+        List<Product> findProductsByCriteria(String name, BigDecimal minPrice, BigDecimal maxPrice);
+    }
+    ```
+
+2. 实现类
+
+    ```java
+    @AllArgsConstructor
+    @Repository
+    public class ProductCriteriaRepositoryImpl implements ProductCriteriaRepository {
+        @PersistenceContext
+        private EntityManager entityManager;
+
+        @Override
+        public List<Product> findProductsByCriteria(String name, BigDecimal minPrice, BigDecimal maxPrice) {
+            CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+            CriteriaQuery<Product> criteria = builder.createQuery(Product.class);
+            Root<Product> product = criteria.from(Product.class);
+
+            List<Predicate> predicates = new ArrayList<>();
+            if (name != null) {
+                predicates.add(builder.like(product.get("name"), "%" + name + "%"));
+            }
+            if (minPrice != null) {
+                predicates.add(builder.greaterThanOrEqualTo(product.get("price"), minPrice));
+            }
+            if (maxPrice != null) {
+                predicates.add(builder.lessThanOrEqualTo(product.get("price"), maxPrice));
+            }
+
+            criteria.select(product).where(predicates.toArray(new Predicate[predicates.size()]));
+
+            return entityManager.createQuery(criteria).getResultList();
+        }
+    }
+    ```
+
+3. 调用
+
+    ```java
+    public void fetchProductsByCriteria() {
+        var products = productRepository.findProductsByCriteria(null, BigDecimal.valueOf(1), BigDecimal.valueOf(20));
+        System.out.println(products);
+    }
+    ```
+
+### Specification API
+
+> 简述：Specification 是基于 JPA Criteria API 的声明式动态查询规范。它以组合式 API 构建可复用的查询条件，通过链式组合满足任意复杂的动态查询需求，无需手写 JPQL 或 SQL。
+
+**知识树**
+
+1. 基本原理
+
+    - `Specification` 本质是函数式接口，内部只有一个 `toPredicate` 方法，用于构建单个查询条件。
+    - 多个 `Specification` 可通过 `.and()`、`.or()`、`.not()` 等方法自由组合，实现复杂逻辑。
+
+2. 用法流程
+
+    1. 仓库接口扩展
+        - Repository 需继承 `JpaSpecificationExecutor<T>`，以支持 Specification 相关方法（如 `findAll(Specification)`）。
+    2. 条件工具类编写
+        - 创建条件工具类如`ProductSpec`用于定义“基本筛选条件”方法。在类中定义以 `Specification<T>` 为返回值的方法，方法名一般以`hasProperty`命名，return 时 IDEA 一般会根据方法以及参数自动补全（新版 IDEA）
+    3. 使用 `Specification` 查询
+        - 在 Service 层方法中，先创建一个空的 Specification 对象，再通过 and 等方法，配合关联类中的方法，进行条件组合
+
+3. 优势与实践
+
+    - 代码结构清晰，查询逻辑与业务解耦。
+    - 支持类型安全、运行时组装、条件无限扩展。
+    - 适用于复杂筛选、灵活多变的查询场景。
+
+4. 推荐实践
+
+    - 一般在 repositories 包下创建 specifications 包，用于存放条件工具类，便于集中管理。
+    - 工具类方法命名以 `hasXxx`、`withXxx` 等语义型动词开头，提升可读性。
+
+**代码示例**
+
+1. 仓库接口扩展
+
+    ```java
+    public interface ProductRepository extends JpaSpecificationExecutor<Product>{
+
+    }
+    ```
+
+2. Specification 条件工具类
+
+    ```java
+    public class ProductSpec {
+        public static Specification<Product> hasName(String name) {
+            return (root, query, criteriaBuilder) -> criteriaBuilder.like(root.get("name"), "%" + name + "%");
+        }
+
+        public static Specification<Product> hasPriceGreaterThanOrEqualTo(BigDecimal price) {
+            return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get("price"), price);
+        }
+
+        public static Specification<Product> hasPriceLessThanOrEqualTo(BigDecimal price) {
+            return (root, query, criteriaBuilder) -> criteriaBuilder.lessThan(root.get("price"), price);
+        }
+    }
+    ```
+
+3. 动态组装与查询
+
+    ```java
+    public void fetchProductsBySpecifications(String name, BigDecimal min, BigDecimal max) {
+        Specification<Product> spec = Specification.where(null);
+        if (name != null) {
+            spec = spec.and(ProductSpec.hasName(name));
+        }
+        if (max != null) {
+            spec = spec.and(ProductSpec.hasPriceGreaterThanOrEqualTo(max));
+        }
+        if (min != null) {
+            spec = spec.and(ProductSpec.hasPriceLessThanOrEqualTo(min));
+        }
+
+        productRepository.findAll(spec).forEach(p -> {
+            System.out.println(p);
+        });
+    }
+    ```
+
+    - 描述：按需拼装任意查询条件，查询逻辑高内聚、可拓展。
 
 ### Sort&Pagination
