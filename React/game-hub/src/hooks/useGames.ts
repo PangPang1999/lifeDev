@@ -2,9 +2,16 @@ import { useEffect, useState } from "react";
 import apiClient from "../service/api-client";
 import { CanceledError } from "axios";
 
-interface Game {
+export interface Platform {
+  id: number;
+  name: string;
+  slug: string;
+}
+export interface Game {
   name: string;
   id: number;
+  background_image: string;
+  parent_platforms: { platform: Platform }[];
 }
 interface FetchGamesResponse {
   count: number;
@@ -21,7 +28,8 @@ const useGames = () => {
         setGameList(res.data.results);
       })
       .catch((err) => {
-        if (err instanceof CanceledError) setError(err.message);
+        if (err instanceof CanceledError) return;
+        setError(err.message);
       });
     return () => controller.abort();
   }, []);
