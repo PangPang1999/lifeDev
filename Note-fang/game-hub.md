@@ -932,22 +932,30 @@
 > 简述：为游戏卡片实现加载骨架屏 (Loading Skeletons)，以在数据获取期间改善感知性能。这包括在 `useGames` 钩子中跟踪加载状态，并创建一个 `GameCardSkeleton` 组件。
 
 **知识树**
-
-1.  加载状态跟踪  `(useGames.ts)`:
+1. 思路：
+	1. 跟踪hook中的Loading state（定义isLoading的useState）
+	2. 创建一个组件，看起来像gameCard， 在没有game object的情况下，建一个骨架屏组件
+		1. skeleton：被加载的图像的占位符
+		2. CardBody:模仿CardBody的结构
+	3. 渲染骨架层，需要一个数组skeleton，6个skeleton，不随时间变化的局部变量或常量
+		1. 处于加载状态时，我们将数组中得每个项映射到一个骨架组件
+		2. `{isLoading &&skeletons.map((skeletons) => <GameCardSkeleton key={skeletons} />)}`
+		3. 调整骨架层的样式:给骨架层和真实层的Card设置相同的样式属性
+2.  加载状态跟踪  `(useGames.ts)`:
     - 在 `useGames` (或其底层的 `useData`) 钩子中添加 `isLoading`布尔状态变量。
     - 在 API 调用开始前设为 `true`，在数据返回或发生错误后设为 `false`。
     - 从钩子中返回 `isLoading`状态。
-2.  骨架屏组件创建 (`GameCardSkeleton.tsx`):
+3.  骨架屏组件创建 (`GameCardSkeleton.tsx`):
     - 该组件的视觉结构应模仿 `GameCard` 组件。
-3.  Chakra UI 骨架屏组件:
+4.  Chakra UI 骨架屏组件:
     - `Skeleton`: 用于替代图片等块级元素的占位符，可以设置 `height`。
     - `SkeletonText`: 用于替代文本内容的占位符。
-4.  条件渲染 (在 `GameGrid.tsx` 中):
+5.  条件渲染 (在 `GameGrid.tsx` 中):
     - 如果 `isLoading` 为 `true`，则渲染一组 `GameCardSkeleton` 组件。
     - 否则，渲染实际的 `GameCard` 组件。
-5.  骨架屏数组:
+6.  骨架屏数组:
     - 创建一个临时的数字数组 (例如 `[1, 2, 3, 4, 5, 6]`)，用于 `map` 操作来渲染多个骨架屏。
-6.  样式一致性:
+7.  样式一致性:
     - 确保骨架屏卡片和实际游戏卡片具有相似的尺寸和圆角，以避免加载完成时布局跳动。
     - 初始实现可能涉及在两个组件中复制宽度和圆角值，后续会进行重构。
 
