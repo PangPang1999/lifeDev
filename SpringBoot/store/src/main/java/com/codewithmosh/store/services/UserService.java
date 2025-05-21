@@ -3,13 +3,9 @@ package com.codewithmosh.store.services;
 import com.codewithmosh.store.entities.*;
 import com.codewithmosh.store.repositories.*;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.Table;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
-import java.util.Optional;
 
 @AllArgsConstructor
 @Service
@@ -84,4 +80,14 @@ public class UserService {
         productRepository.findAllByCategory(category);
     }
 
+    @Transactional
+    public void fetchUsers() {
+        var users = userRepository.findAllWithJoin();
+        users.forEach(
+                user -> {
+                    // System.out.println(user.getName());
+                    System.out.println(user.getAddresses());
+                }
+        );
+    }
 }

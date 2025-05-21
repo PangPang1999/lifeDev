@@ -63,7 +63,6 @@ public class User {
         tag.getUsers().remove(this);
     }
 
-    // @OneToOne(mappedBy = "user")
     @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE)
     private Profile profile;
 
@@ -83,6 +82,7 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "product_id")
     )
+    @ToString.Exclude
     private Set<Product> products = new HashSet<>();
 
     public void addWishlist(Product product) {

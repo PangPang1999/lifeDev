@@ -15,8 +15,9 @@
         - ⇧⌃G：选中后，选中所有相同内容
     - ⌘F12(🌐)：查看类中的成员，可通过输入进行匹配，比 ⌘F 好用
 
-3.  基础
+3.  基础（必须熟悉）
 
+    - ⇧F6(🌐)：重命名字段，并修改其他影响地址
     - ⌘⇧A，搜索 rearrange：调整代码结构
     - ⌘⇧↑ /↓：移动方法
     - ⌘⇧O：查找文件
@@ -26,7 +27,7 @@
     - ⌘E：最近文件
     - ⌃⇥：切换文件
 
-4.  视图（必须熟悉）
+4.  视图
 
     - ⇧⎋：打开/关闭所有视图
     - ⌘1：打开/关闭左侧项目视图
@@ -2281,6 +2282,8 @@ Model-first approach
 
     - 默认值问题：`@Builder` 仅设置显式赋值字段，忽略字段定义时的默认初始化。需使用 `@Builder.Default` 显式标明默认值应保留
     - `@ToString` 的循环依赖问题：当两个实体类互相引用，且都标注了 `@ToString`，可能导致栈溢出，应在其中一方的关联字段上使用 `@ToString.Exclude` 排除该字段
+    - 后续补充
+        - `@ToString`如果包含懒加载的字段，可能有风险，这时需要考虑将所有懒加载字段加上 `@ToString.Exclude`或者手动充血 ToString 方法
 
 **代码示例**
 
@@ -3020,6 +3023,7 @@ Model-first approach
                 joinColumns = @JoinColumn(name = "user_id"),
                 inverseJoinColumns = @JoinColumn(name = "product_id")
         )
+        @ToString.Exclude
         private Set<Product> products = new HashSet<>();
     }
     ```
@@ -3447,6 +3451,10 @@ Model-first approach
 
     - Lazy 加载仅在持久化上下文（通常为事务）存活时有效。若在事务外访问未加载的属性，会抛出 `LazyInitializationException`
     - 解决方案：在 Service 层方法加 `@Transactional`，确保方法执行期间持久化上下文有效
+
+5. 补充
+    - `@ToString`如果包含懒加载的字段，可能有风险，这时需要考虑将所有懒加载字段加上 `@ToString.Exclude`或者手动充血 ToString 方法
+    - 该笔记内容以避免直接打印对象为主，未对 ToString 方法做过高要求，仅避免循环导致的栈溢出
 
 **代码示例**
 
@@ -4227,13 +4235,177 @@ Calling stored procedures
     }
     ```
 
-### @Query 修改单次默认加载策略
+### EntityGraph
 
-### 懒加载带来的 n+1
+> 简述：JPA 的 EntityGraph 允许在特定查询中灵活配置需要立刻加载（Eager Fetch）的关联对象，而无需更改全局的懒加载策略。适用于只在某些业务场景下批量加载特定关联关系，兼顾性能与灵活性。
 
-方式一是 EAGER
+**知识树**
 
-使用上一节的知识
+1. EntityGraph 概念与场景
+
+    - 定义：在方法级别临时指定哪些关联属性需要立即加载，避免全局 EAGER 带来的资源浪费。
+    - 典型场景：**默认懒加载的情况**，如用户-标签、用户-地址等多对多/一对多关系，仅在特定查询中需要批量加载。
+
+2. EntityGraph 的声明与用法
+
+    - 声明位置：Repository 接口方法上，配合派生查询、@Query 等一起使用
+    - 关键注解：`@EntityGraph(attributePaths = {...})`
+    - 可指定多级、嵌套属性：如 `"tags"`、`"addresses"`，甚至 `"addresses.country"`
+    - 推荐只在需要的查询方法上使用 EntityGraph，避免全局 eager 导致性能下降
+    - 多级属性需数组形式配置，支持递归加载
+
+3. 调试备注
+
+    - 如果字段未被唯一约束，可能导致查询出多条记录，建议先为字段（如 email）加唯一约束
+
+**代码示例**
+
+1. 基本 EntityGraph 用法
+
+    ```java
+    public interface UserRepository extends CrudRepository<User, Long> {
+        @EntityGraph(attributePaths = {"tags", "addresses"})
+        Optional<User> findByEmail(String email);
+    }
+    ```
+
+    - 描述：为某一查询临时配置需要 eager 加载的字段，如 tags、addresses、addresses.country 等。
+
+2. 调用
+
+    ```java
+    @Transactional
+    public void fetchUsers() {
+        var users = userRepository.findByEmail("nancy@example.com");
+    }
+    ```
+
+### N+1 查询问题
+
+> 简述：简述：N+1 问题是 ORM 框架（如 JPA/Hibernate）中常见的性能陷阱。指一次主查询（1），加上每个主对象关联属性的单独查询（N），共 N+1 条 SQL，极易造成数据库压力和性能瓶颈。
+
+1. 触发条件与典型表现
+
+    - 懒加载（Lazy）或默认 EAGER（集合型关联）场景下常见。
+    - 现象：控制台打印一条主查询 SQL，紧接着 N 条针对每个主对象的关联表查询
+
+2. 触发原理
+
+    - 加载主体时，默认加载策略为 EAGER 的属性，由于 EAGER 的实现并非 JOIN，而是单独 SQL 查询，这将导致 N+1
+    - 加载主体后，访问加载策略为 LAZY 的属性，会执行额外 SQL 查询，当主体每一条数据都需要访问该属性时，导致 N+1
+    - 传统意义上讲，只有懒加载导致的问题才是 N+1，但上述所列的两种情况都会导致性能问题
+
+3. 避免 N+1 问题的常用手段
+
+    1. 使用投影（Projection/DTO）
+
+        - 核心原理：
+            - 只查询/映射主实体的简单属性（如 id、name），不访问集合或嵌套对象，JPA/Hibernate 不会触发懒加载，无需访问关联表，因此天然避免 N+1。
+        - 注意事项：
+            - 仅限主表字段安全：只要你的接口或 DTO 没有嵌套 getter（如 getAddresses()、getTags()），就不会产生 N+1。
+            - 有嵌套属性风险：一旦 Projection/DTO 设计中包含了集合或其他实体属性，且代码/序列化/日志有访问行为，仍会触发 N+1。
+        - 适用场景：
+            - 前端只需要主表展示，或 API 响应无需嵌套集合属性时。
+
+    2. 使用 EntityGraph
+
+        - 核心原理：
+            - 通过注解（`@EntityGraph(attributePaths={"xxx"})`）告诉 JPA 在查询时一并加载指定的关联属性，即便它们默认是 LAZY。这样会自动生成 JOIN SQL，把所有相关数据一次性查询出来，彻底避免 N+1。
+        - 适用场景：
+            - 仅在部分查询中需要加载关联属性，且不想全局更改实体默认加载策略。
+        - 优点：
+            - 灵活控制哪些查询需要联表，兼顾懒加载的节省和特定场景的性能。
+
+    3. 使用 JOIN FETCH
+
+        - 核心原理：
+            - 在 JPQL 查询里用 `join fetch` 明确指定联表，JPA 会生成单条包含所有所需数据的 SQL。
+        - 示例：
+            ```java
+            @Query("SELECT u FROM User u LEFT JOIN FETCH u.addresses")
+            List<User> findAllWithAddresses();
+            ```
+        - 区别与优势：
+            - `JOIN`（无 fetch）：只用于筛选，不加载关联属性到实体中，除非显式选择字段。此时访问 LAZY 属性，仍会懒加载，**普通 JOIN 无法避免 N+1**。
+            - `JOIN FETCH`：不仅筛选，同时将关联数据装载到实体属性，**真正避免 N+1**。
+            - SQL 层面：`JOIN FETCH` 生成的是带联表和数据提取的 SQL，一次查完全部。
+        - 适用场景：
+            - 批量导出/复杂展示时，需一次查出全部数据避免频繁数据库访问。
+
+    4. 直接去掉不常用的字段，从设计上避免
+
+**代码示例**
+
+1. 解决 EAGER 导致的 N+1
+
+    1. 问题展示
+
+        ```java
+        @Transactional
+        public void fetchUsers() {
+            var users = userRepository.findAll();
+            users.forEach(
+                    user -> {
+                        System.out.println(user.getName());
+                    }
+            );
+        }
+        ```
+
+        - 描述：仅仅是遍历用户姓名，却需要先查询每一个用户的 profile
+
+    2. 通过 Projection 解决
+
+        ```java
+        @Query("SELECT u.id AS id, u.name AS name FROM User u")
+        List<UserSample> findAllProjected();
+
+
+        // Projection 接口
+        public interface UserSample {
+            Long getId();
+            String getName();
+        }
+        ```
+
+    3. 通过 JOIN (fetch)解决
+        ```java
+        @Query("select u from User u left join fetch u.profile")
+        List<User> findAllWithJoin();
+        ```
+
+2. 解决懒加载导致的 N+1
+
+    1. 问题展示（以使用 JOIN FETCH 方法为基础）
+
+        ```java
+        @Transactional
+        public void fetchUsers() {
+            var users = userRepository.findAllWithJoin();
+            users.forEach(
+                    user -> {
+                        System.out.println(user.getAddresses());
+                    }
+            );
+        }
+        ```
+
+        - 描述：遍历懒加载属性 address 时，每一个用户都需要单独一条 SQL
+
+    2. 通过 EntityGraph 解决
+
+        ```java
+        @EntityGraph(attributePaths = "addresses")
+        @Query("select u from User u left join fetch u.profile")
+        List<User> findAllWithJoin();
+        ```
+
+    3. 通过 JOIN (fetch)解决
+
+        ```java
+        @Query("select u from User u left join fetch u.profile left join fetch u.addresses")
+        List<User> findAllWithJoin();
+        ```
 
 ### 使用存储过程
 
