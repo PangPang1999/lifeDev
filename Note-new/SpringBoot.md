@@ -4524,7 +4524,55 @@ Criteria API
 Specifications
 Sorting and pagination
 
-### Example
+## Example（Query by Example）
+
+> 简述：Example 是 Spring Data JPA 的动态查询机制。通过“样例对象”与匹配器（ExampleMatcher），自动生成 SQL，无需自定义方法名或手写 JPQL，适合快速构建灵活的单表查询。
+
+**知识树**
+
+1. Query by Example 原理
+
+    - 基于一个“样例实体”对象，自动推导出 WHERE 条件。
+    - 只匹配被赋值的字段，未赋值的字段自动忽略。
+
+2. 用法流程
+
+    - 步骤 1：创建“样例对象”，只设置待查询的属性。
+        ```java
+        Product probe = new Product();
+        probe.setName("product");
+        ```
+    - 步骤 2：创建 ExampleMatcher，定制匹配规则（如模糊、忽略大小写）。
+        ```java
+        ExampleMatcher matcher = ExampleMatcher.matching()
+            .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+            .withIgnoreCase();
+        ```
+    - 步骤 3：构建 Example 查询条件。
+        ```java
+        Example<Product> example = Example.of(probe, matcher);
+        ```
+    - 步骤 4：Repository 查询。
+        ```java
+        List<Product> products = productRepository.findAll(example);
+        ```
+
+3. ExampleMatcher（匹配器）
+
+    - 用于定制字段匹配方式。
+        - 精确匹配（默认）、模糊、前缀、后缀。
+        - 可忽略字段、是否区分大小写、是否包含 null。
+    - 支持链式 API 配置。
+    - 若省略 matcher，默认所有字符串字段精确匹配。
+
+4. 特性与局限
+
+    - 优点：
+        - 零 SQL、零注解、零方法名推导。
+        - 支持动态条件组合，极简灵活。
+    - 局限：
+        - 仅支持单表，不支持嵌套、集合、区间等复杂场景。
+        - 非字符串字段仅支持等值比较。
 
 限制
 No support for nested properties

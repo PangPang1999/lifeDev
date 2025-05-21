@@ -5,6 +5,8 @@ import com.codewithmosh.store.repositories.*;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -80,18 +82,23 @@ public class UserService {
 
     @Transactional
     public void fetchProducts() {
-        var category = Category.builder().id(1L).build();
+        var probe = new Product();
+        probe.setName("product");
 
-        var products = productRepository.findAllByCategory(category);
-        products.forEach(p -> {
-            System.out.println(p.getName() + ": " + p.getId());
+        var matcher = ExampleMatcher.matching()
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
+        var example = Example.of(probe, matcher);
+        List<Product> all = productRepository.findAll(example);
+        all.forEach(p -> {
+            System.out.println(p);
         });
     }
-
 
     @Transactional
     public void printLoyaltyProfiles() {
         var profiles = profileRepository.findByLoyalProfiles(2);
         profiles.forEach(p -> System.out.println(p.getId() + ": " + p.getEmail()));
     }
+
+
 }
