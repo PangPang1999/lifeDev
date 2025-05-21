@@ -932,30 +932,34 @@
 > 简述：为游戏卡片实现加载骨架屏 (Loading Skeletons)，以在数据获取期间改善感知性能。这包括在 `useGames` 钩子中跟踪加载状态，并创建一个 `GameCardSkeleton` 组件。
 
 **知识树**
+
 1. 思路：
-	1. 跟踪hook中的Loading state（定义isLoading的useState）
-	2. 创建一个组件，看起来像gameCard， 在没有game object的情况下，建一个骨架屏组件
-		1. skeleton：被加载的图像的占位符
-		2. CardBody:模仿CardBody的结构
-	3. 渲染骨架层，需要一个数组skeleton，6个skeleton，不随时间变化的局部变量或常量
-		1. 处于加载状态时，我们将数组中得每个项映射到一个骨架组件
-		2. `{isLoading &&skeletons.map((skeletons) => <GameCardSkeleton key={skeletons} />)}`
-		3. 调整骨架层的样式:给骨架层和真实层的Card设置相同的样式属性
-2.  加载状态跟踪  `(useGames.ts)`:
+    1. 跟踪 hook 中的 Loading state（定义 isLoading 的 useState）
+    2. 创建一个组件，看起来像 gameCard， 在没有 game object 的情况下，建一个骨架屏组件
+        1. skeleton：被加载的图像的占位符
+        2. CardBody:模仿 CardBody 的结构
+    3. 渲染骨架层，需要一个数组 skeleton，6 个 skeleton，不随时间变化的局部变量或常量
+        1. 处于加载状态时，我们将数组中得每个项映射到一个骨架组件
+        2. `{isLoading &&skeletons.map((skeletons) => <GameCardSkeleton key={skeletons} />)}`
+        3. 调整骨架层的样式:给骨架层和真实层的 Card 设置相同的样式属性
+2. 加载状态跟踪  `(useGames.ts)`:
     - 在 `useGames` (或其底层的 `useData`) 钩子中添加 `isLoading`布尔状态变量。
     - 在 API 调用开始前设为 `true`，在数据返回或发生错误后设为 `false`。
     - 从钩子中返回 `isLoading`状态。
-3.  骨架屏组件创建 (`GameCardSkeleton.tsx`):
-    - 该组件的视觉结构应模仿 `GameCard` 组件。
-4.  Chakra UI 骨架屏组件:
-    - `Skeleton`: 用于替代图片等块级元素的占位符，可以设置 `height`。
-    - `SkeletonText`: 用于替代文本内容的占位符。
-5.  条件渲染 (在 `GameGrid.tsx` 中):
-    - 如果 `isLoading` 为 `true`，则渲染一组 `GameCardSkeleton` 组件。
-    - 否则，渲染实际的 `GameCard` 组件。
-6.  骨架屏数组:
-    - 创建一个临时的数字数组 (例如 `[1, 2, 3, 4, 5, 6]`)，用于 `map` 操作来渲染多个骨架屏。
-7.  样式一致性:
+3. **创建 `GameCardSkeleton` 组件 (`src/components/GameCardSkeleton.tsx`)**：
+    - 目的：创建一个视觉上模拟 `GameCard` 结构的占位组件。
+    - UI 结构：
+        - 使用 Chakra UI 的 `<Card>` 作为容器。
+        - 使用 `<Skeleton>` 组件（Chakra UI）替代 `GameCard` 中的 `<Image>`，用于显示图片占位。可以设置其 `height`。
+        - 使用 `<CardBody>`。
+        - 使用 `<SkeletonText>` 组件（Chakra UI）替代 `GameCard` 中的 `<Heading>` 或其他文本内容，用于显示文本占位。
+4. **在 `GameGrid.tsx` 中集成骨架屏**：
+    - 从 `useGames` (或 `useData`) Hook 中获取 `isLoading` 状态。
+    - 创建一个本地数组 `skeletons` (例如 `[1, 2, 3, 4, 5, 6]`，数量可根据一页显示的卡片数估算)，用于在加载时循环渲染多个骨架屏实例。这个数组本身的值不重要，仅用于 `map` 循环。
+    - **条件渲染逻辑**：
+        - 若 `isLoading` 为 `true`，则遍历 `skeletons` 数组，为每个元素渲染一个 `<GameCardSkeleton />` 组件（确保为每个骨架屏设置唯一的 `key` prop）。
+        - 若 `isLoading` 为 `false`，则遍历 `games` (或 `data`) 数组，渲染实际的 `<GameCard />` 组件。
+5. 样式一致性:
     - 确保骨架屏卡片和实际游戏卡片具有相似的尺寸和圆角，以避免加载完成时布局跳动。
     - 初始实现可能涉及在两个组件中复制宽度和圆角值，后续会进行重构。
 
@@ -968,27 +972,27 @@
     const useData = <T>(endpoint: string, /* ...其他参数 */) => {
       const [data, setData] = useState<T[]>([]);
       const [error, setError] = useState('');
-      const [isLoading, setLoading] = useState(false); // 添加 isLoading 状态
+      const [isLoading, setLoading] = useState(false); //1. 添加 isLoading 状态
 
       useEffect(() => {
         const controller = new AbortController();
-        setLoading(true); // 开始加载
+        setLoading(true); // 2.开始加载
         apiClient
           .get<FetchResponse<T>>(endpoint, { signal: controller.signal, /* ...其他配置 */ })
           .then((res) => {
             setData(res.data.results);
-            setLoading(false); // 加载完成
+            setLoading(false); // 3.加载完成
           })
           .catch((err) => {
             if (err instanceof CanceledError) return;
             setError(err.message);
-            setLoading(false); // 加载出错
+            setLoading(false); // 4.加载出错
           });
 
         return () => controller.abort();
       }, [/* 依赖项 */]);
 
-      return { data, error, isLoading }; // 返回 isLoading
+      return { data, error, isLoading }; // 5.返回 isLoading
     };
     // ...
     ```
@@ -1018,17 +1022,18 @@
     import { SimpleGrid, Text } from '@chakra-ui/react';
     import useGames from '../hooks/useGames';
     import GameCard from './GameCard';
-    import GameCardSkeleton from './GameCardSkeleton'; // 导入骨架屏组件
+    import GameCardSkeleton from './GameCardSkeleton'; // 1.导入骨架屏组件
 
     const GameGrid = () => {
-      const { data: games, error, isLoading } = useGames(); // 获取 isLoading
-      const skeletons = [1, 2, 3, 4, 5, 6]; // 用于渲染多个骨架屏
+      const { data: games, error, isLoading } = useGames(); // 2.获取 isLoading
+      const skeletons = [1, 2, 3, 4, 5, 6]; //3. 创建骨架屏占位数组 (数量可调)
 
       if (error) return <Text>{error}</Text>;
 
       return (
         <SimpleGrid columns={{ sm: 1, md: 2, lg: 3, xl: 4 }} padding="10px" spacing={6}>
-          {isLoading && skeletons.map(skeleton => <GameCardSkeleton key={skeleton} />)}
+          {isLoading && // 4. 如果正在加载
+          skeletons.map(skeleton => <GameCardSkeleton key={skeleton} />)}
           {!isLoading && games.map((game) => (
             <GameCard key={game.id} game={game} />
           ))}
@@ -1058,16 +1063,9 @@
 
 **知识树**
 
-1.  DRY 原则 (Don't Repeat Yourself): 避免在多处维护相同的代码或样式。
-2.  容器组件模式: 创建一个通用容器组件 (`GameCardContainer.tsx`) 来包裹其他组件并提供共享的外部样式或结构。
-3.  Chakra UI `Box` 组件: 一个基础的、类似 `div` 的组件，可以用作通用容器，并可轻松应用样式属性。
-4.  `children` Prop:
-    - React 组件可以通过 `props.children` 访问其子元素。
-    - 类型: `React.ReactNode`，允许传递任何可渲染的 React 内容。
-5.  应用共享样式: 将之前在 `GameCard` 和 `GameCardSkeleton` 中重复的 `width` 和 `borderRadius` 样式移至 `GameCardContainer` 的 `Box` 组件上。
-6.  使用容器组件:
-    - 在 `GameGrid.tsx` 中，用 `GameCardContainer` 分别包裹 `GameCard` 和 `GameCardSkeleton`。
-7.  VS Code 命令面板快捷方式:
+1.  问题识别: `GameCard.tsx` 和 `GameCardSkeleton.tsx` 中的 `Card` 组件应用了相同的 `borderRadius` 和 `overflow="hidden"` 样式，导致代码重复。
+2.  解决方案: 创建一个专门的容器组件 `GameCardContainer.tsx`。
+3.  VS Code 命令面板快捷方式:
     - `Shift + Command + P` (Mac) 或 `Shift + Control + P` (Windows) 打开命令面板。
     - 搜索 "Wrap with abbreviation" (Emmet 功能)，输入组件名 (如 `GameCardContainer`) 快速包裹选中内容。
 
@@ -1121,38 +1119,14 @@
 
 3.  `src/components/GameCardSkeleton.tsx` - 移除重复样式:
 
-    ```tsx
-    import { Card, CardBody, Skeleton, SkeletonText } from '@chakra-ui/react';
-
-    const GameCardSkeleton = () => {
-      return (
-        // <Card width="300px" borderRadius="10px" overflow="hidden"> 移除这些样式
-        <Card>
-          <Skeleton height="200px" />
-          <CardBody>
-            <SkeletonText />
-          </CardBody>
-        </Card>
-      );
-    };
-
-    export default GameCardSkeleton;
-    ```
-
 4.  `src/components/GameGrid.tsx` - 使用 `GameCardContainer`:
 
     ```tsx
-    import { SimpleGrid, Text } from '@chakra-ui/react';
-    import useGames from '../hooks/useGames';
-    import GameCard from './GameCard';
-    import GameCardSkeleton from './GameCardSkeleton';
+
     import GameCardContainer from './GameCardContainer'; // 导入容器组件
+    ```
 
-    const GameGrid = () => {
-      const { data: games, error, isLoading } = useGames();
-      const skeletons = [1, 2, 3, 4, 5, 6];
-
-      if (error) return <Text>{error}</Text>;
+...
 
       return (
         <SimpleGrid columns={{ sm: 1, md: 2, lg: 3, xl: 4 }} padding="10px" spacing={6}>
