@@ -4185,13 +4185,19 @@ Calling stored procedures
 2. 投影类型
 
     - 接口投影（Interface-based Projection）
-        - 定义接口，仅包含需要的 getter 方法
-        - JPA 动态生成代理对象作为结果，适合大多数查询场景
+
+        - 定义一个只包含需要字段 getter 方法的接口（如 `getId()`、`getEmail()`）。
+        - Spring Data JPA 动态生成实现该接口的代理对象，返回结果。
+        - 方法名派生查询时（如 `findBy...`）：无需手动指定 `as`，JPA 会自动按接口方法名匹配字段。
+        - 配合 `@Query` 注解（自定义 JPQL/SQL）时：select 语句中字段必须加 `as` 并与接口方法名一致，否则无法自动映射，返回值为 null。
+        - 适用于多数只需部分字段的只读查询场景，轻量高效。
+
     - 类投影（Class-based Projection/DTO）
-        - 使用 POJO 类（DTO），定义字段和构造方法
-            - POJO 是无特定继承或依赖的普通 Java 对象，仅做数据存储。
-        - 适合需要业务逻辑封装或更复杂处理的场景
-        - JPQL 需用 `new` 语法创建对象
+
+        - 定义一个普通 POJO 类，包含所需字段和全参构造方法，通常用作数据传输对象（DTO）。
+        - 适用于需封装业务逻辑或构造复杂对象的场景。
+        - 自定义 JPQL/SQL 查询时，需用 `new` 语法创建对象（如 `select new com.xxx.Dto(p.id, p.email) ...`）。
+        - 需确保 DTO 类有相应的构造器和字段名顺序匹配。
 
 3. 存放位置
 
@@ -4235,6 +4241,22 @@ Calling stored procedures
         List<ProductSummaryDTO> findAllByCategory(Category category);
     }
     ```
+
+2. 接口调用示例
+
+    ```java
+    @Transactional
+    public void fetchProducts() {
+        var category = Category.builder().id(1L).build();
+
+        var products = productRepository.findAllByCategory(category);
+        products.forEach(p -> {
+            System.out.println(p.getName() + ": " + p.getId());
+        });
+    }
+    ```
+
+    - 描述：如果使用的是接口投影+@Query，必须使用 as
 
 ### EntityGraph
 

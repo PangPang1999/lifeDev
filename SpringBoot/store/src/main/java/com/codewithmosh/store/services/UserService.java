@@ -80,7 +80,18 @@ public class UserService {
 
     @Transactional
     public void fetchProducts() {
-        List<Product> products = productRepository.findProducts(new BigDecimal("1"), new BigDecimal("5"));
-        products.forEach(System.out::println);
+        var category = Category.builder().id(1L).build();
+
+        var products = productRepository.findAllByCategory(category);
+        products.forEach(p -> {
+            System.out.println(p.getName() + ": " + p.getId());
+        });
+    }
+
+
+    @Transactional
+    public void printLoyaltyProfiles() {
+        var profiles = profileRepository.findByLoyalProfiles(2);
+        profiles.forEach(p -> System.out.println(p.getId() + ": " + p.getEmail()));
     }
 }

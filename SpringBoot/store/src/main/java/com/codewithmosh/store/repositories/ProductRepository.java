@@ -25,7 +25,7 @@ public interface ProductRepository extends CrudRepository<Product, Long> {
     // List<ProductSummaryDTO> findAllByCategory(Category category);
 
     // 接口投影 + @Query 查询，需要修改 select
-    // @Query("select p.id, p.name from Product p where p.category = ?1")
+    // @Query("select p.id as id, p.name as name from Product p where p.category = ?1")
     // List<ProductSummary> findAllByCategory(Category category);
 
     // 类投影 + @Query 查询，需要使用全类名，非必要不推荐
