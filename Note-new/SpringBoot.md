@@ -1887,10 +1887,6 @@ bean 的生命周期方法
     - 验证安装命令
         - `mysql -u root -p`
 
-# 分界
-
-由于对下面知识点内容较多（4 小时），我对其结构不够清晰，先简单整理一轮，然后再进行费曼式整理
-
 ## 添加 Spring Data JPA 依赖
 
 **知识树**
@@ -1940,17 +1936,9 @@ bean 的生命周期方法
         - 多对多 ←→ User
         - 多对一 → Category（一个分类对应多个产品，一个产品只归属一个分类）
 
-## 后续内容介绍
+# DATABASE
 
-DATABASE
-DOMAIN MODEL
-REPOSITORIES
-CUSTOM QUERIES
-DYNAMIC QUERIES
-
-## DATABASE
-
-### 创建表（视图方式）
+## 创建表（视图方式）
 
 > 简述：在 IntelliJ IDEA 中连接数据库后，可通过图形化视图工具创建数据表，适合初学者，底层为生成并执行 SQL 语句。
 
@@ -2010,7 +1998,7 @@ DYNAMIC QUERIES
 
     - 描述：先创建数据库 store，手动 SQL 与视图操作结果一致，建议初期使用视图方式辅助理解
 
-### Flyway 版本管理
+## Flyway 版本管理
 
 > 简述：Flyway 是一种数据库迁移工具，可自动执行版本化 SQL 脚本，实现跨环境数据库结构同步与演化控制。
 
@@ -2091,7 +2079,7 @@ DYNAMIC QUERIES
 
     - 描述：删除 `users` 中的错误字段，改为添加至 `addresses` 表
 
-### Flyway & Maven 插件集成
+## Flyway & Maven 插件集成
 
 > 简述：通过集成 Flyway Maven 插件，可在无需重启 Spring Boot 项目的前提下手动执行数据库迁移、校验或清理脚本，提升开发效率与灵活性。
 
@@ -2142,7 +2130,7 @@ DYNAMIC QUERIES
         ./mvnw flyway:validate
         ```
 
-### 其他表
+## 其他表
 
 1. `V4__add_profiles_table.sql`
 
@@ -2179,7 +2167,7 @@ CREATE TABLE profiles
     );
     ```
 
-## DOMAIN MODEL
+# DOMAIN MODEL
 
 定义实体类
 使用 lombok
@@ -3117,9 +3105,9 @@ Model-first approach
         password: Seeyou1!
     ```
 
-## Repository
+# Repository
 
-### Repository 接口
+## Repository 接口
 
 > 简述：Spring Data JPA 通过 Repository 接口体系极大简化了数据访问层开发。开发者只需声明接口，即可获得标准 CRUD、分页、排序及自定义查询等能力，无需手写实现。
 
@@ -3213,7 +3201,7 @@ Model-first approach
 
     - 说明：通过 JPA Buddy 插件选择实体和父接口后自动生成，结构一致。
 
-### Repository 使用
+## Repository 使用
 
 > 简述：Spring Data JPA 提供的 Repository 接口支持对实体的标准化 CRUD 操作，开发者无需手动编写 SQL，通过调用仓库方法即可执行数据库操作，极大简化了数据访问层代码编写。
 
@@ -3298,7 +3286,7 @@ Model-first approach
 
     - 说明：示例涵盖了常见 CRUD 操作，均无需手写 SQL，Spring Data JPA 自动实现。
 
-### 实体生命周期与状态
+## 实体生命周期与状态
 
 > 简述：实体状态描述了一个 Java 对象（实体）相对于持久化上下文（Persistence Context）和数据库的当前关系和管理情况。理解这些状态对于有效使用 ORM 框架（如 Hibernate）进行数据操作至关重要，尤其是在调试和优化性能时。
 
@@ -3349,7 +3337,7 @@ Model-first approach
      |__________________________________|
     ```
 
-### 管理事务
+## 管理事务
 
 > 简述：事务（Transaction）是保证一组数据库操作要么全部成功、要么全部回滚的机制，用于维护数据一致性。Spring Data JPA 默认方法具备事务性，操作实体的持久化状态紧随事务边界变化。
 
@@ -3426,7 +3414,7 @@ Model-first approach
     }
     ```
 
-### 关联实体加载策略
+## 关联实体加载策略
 
 > 简述：JPA 支持两种实体关联加载方式：立即加载（Eager）与延迟加载（Lazy）。合理选择加载策略，有助于提升性能，避免懒加载异常。
 
@@ -3533,7 +3521,7 @@ Model-first approach
         - 查询关联属性的前提是，需要在方法体上设置`@Transactional`，否则查询到 profile 之后，事务结束成为游离态，不受持久化上下文追踪，无法查询 User 信息。
     - 备注：这里需要额外创建 `ProfileRepository` 类，这里不再演示
 
-### Ex: 关联加载策略实战
+## Ex: 关联加载策略实战
 
 > **要求**：编写代码检索指定 ID 的 Address，观察控制台输出的 SQL。修改加载策略，让加载地址时不加载用户信息（之前由于是多对一，默认会加载）
 
@@ -3595,7 +3583,7 @@ Model-first approach
 
     - 描述：设置 `fetch = FetchType.LAZY` 后，只有实际访问 `address.getUser()` 时，才会去查询 User，实现懒加载，大幅减少不必要的数据检索和传输。
 
-### 关联实体的持久化
+## 关联实体的持久化
 
 > 简述：在保存具有实体关联（如一对多）的对象时，JPA 默认不会自动保存关联对象。需手动保存或配置级联（Cascade）策略以实现自动保存。理解并正确配置级联，是保障实体关系完整性的重要手段。
 
@@ -3696,7 +3684,7 @@ Model-first approach
 
     - 说明：配置 `cascade = CascadeType.PERSIST` 后，保存 `User` 将自动保存 `Address`，无需手动调用 `addressRepository.save()`。
 
-### 删除关联实体
+## 删除关联实体
 
 > 简述：删除具有实体关联的对象时，需确保数据库外键约束安全。可使用 JPA 提供的级联删除（CascadeType.REMOVE）或孤儿移除（orphanRemoval），以控制是否同时删除关联实体，防止产生孤立数据。
 
@@ -3862,7 +3850,7 @@ Model-first approach
         }
         ```
 
-### Ex: 复杂关联操作与事务完整性实践
+## Ex: 复杂关联操作与事务完整性实践
 
 > **要求**：综合练习实体间的关联、级联保存、事务一致性和数据库外键约束。依次完成如下目标并解决过程中的异常：
 >
@@ -3987,7 +3975,7 @@ Model-first approach
 
     - 说明：上述 SQL 先删除原外键，再新增带级联的外键，确保删除产品时关联 wishlist 记录也被清理。
 
-## CUSTOM QUERIES
+# CUSTOM QUERIES
 
 Derived query methods
 Custom queries using @Query
@@ -3996,7 +3984,7 @@ Projections
 N+1 problem
 Calling stored procedures
 
-### 衍生查询
+## 衍生查询
 
 > 简述：Spring Data JPA 支持通过方法命名定义查询，在继承 Repository 的接口中，通过规范化的方法名即可完成实体的多条件、排序、分页等常用查询，极大简化了数据访问层开发。
 
@@ -4099,7 +4087,7 @@ Calling stored procedures
     }
     ```
 
-### `@Query` 注解
+## `@Query` 注解
 
 > 简述：当派生查询（基于方法名推导）无法满足业务需求，或需要执行复杂查询和更新操作时，Spring Data JPA 提供 `@Query` 注解，允许在 Repository 接口中直接编写 JPQL 或原生 SQL，实现灵活的数据访问控制。
 
@@ -4171,7 +4159,7 @@ Calling stored procedures
 
     - 说明：通过 `@Query` 实现复杂条件、原生 SQL 调用与批量更新。
 
-### 投影（Projection）
+## 投影（Projection）
 
 > 简述：JPA 投影（Projection）允许仅查询所需的字段，而不是加载完整实体，从而提升性能、节省资源。可通过接口或 DTO 类实现，适用于大部分只读数据展示或轻量数据传输场景。
 
@@ -4258,7 +4246,7 @@ Calling stored procedures
 
     - 描述：如果使用的是接口投影+@Query，必须使用 as
 
-### EntityGraph
+## EntityGraph
 
 > 简述：JPA 的 EntityGraph 允许在特定查询中灵活配置需要立刻加载（Eager Fetch）的关联对象，而无需更改全局的懒加载策略。适用于只在某些业务场景下批量加载特定关联关系，兼顾性能与灵活性。
 
@@ -4303,7 +4291,7 @@ Calling stored procedures
     }
     ```
 
-### N+1 查询问题
+## N+1 查询问题
 
 > 简述：简述：N+1 问题是 ORM 框架（如 JPA/Hibernate）中常见的性能陷阱。指一次主查询（1），加上每个主对象关联属性的单独查询（N），共 N+1 条 SQL，极易造成数据库压力和性能瓶颈。
 
@@ -4430,7 +4418,7 @@ Calling stored procedures
         List<User> findAllWithJoin();
         ```
 
-### 调用存储过程
+## 调用存储过程
 
 > 简述：存储过程（Stored Procedure）是数据库端的可复用 SQL 逻辑。将复杂或高频查询迁移至存储过程，有利于提升性能、简化代码维护，并支持事务、权限、复杂流程控制。Spring Data JPA 支持在 Repository 接口通过注解调用存储过程，实现数据库与应用层的解耦。
 
@@ -4515,7 +4503,7 @@ Calling stored procedures
 
     - 描述：数据库客户端或控制台可直接测试存储过程结果。
 
-## DYNAMIC QUERIES
+# DYNAMIC QUERIES
 
 **JAP**
 
@@ -4524,7 +4512,7 @@ Criteria API
 Specifications
 Sorting and pagination
 
-### Example
+## Example
 
 > 简述：Example 是 Spring Data JPA 的动态查询机制。通过“样例对象”与匹配器（ExampleMatcher），自动生成 SQL，无需自定义方法名或手写 JPQL，适合快速构建灵活的单表查询。
 
@@ -4574,7 +4562,7 @@ Sorting and pagination
         - 仅支持单表，不支持嵌套、集合、区间等复杂场景。
         - 非字符串字段仅支持等值比较。
 
-### Criteria API
+## Criteria API
 
 > 简述：Criteria API 是 JPA 提供的类型安全、动态构建查询的 Java API。通过链式构建条件，能灵活应对多变的查询参数，无需手写 JPQL 或 SQL，适合运行时拼装复杂查询。
 
@@ -4659,7 +4647,7 @@ Sorting and pagination
     }
     ```
 
-### Specification API
+## Specification API
 
 > 简述：Specification 是基于 JPA Criteria API 的声明式动态查询规范。它以组合式 API 构建可复用的查询条件，通过链式组合满足任意复杂的动态查询需求，无需手写 JPQL 或 SQL。
 
@@ -4741,7 +4729,7 @@ Sorting and pagination
 
     - 描述：按需拼装任意查询条件，查询逻辑高内聚、可拓展。
 
-### Sort&Pagination
+## Sort&Pagination
 
 > 简述：Spring Data JPA 提供强大的排序 (Sorting) 与分页 (Paging) 机制，是高效处理和展示大数据集的关键。它通过简洁的 API 支持按需排序、灵活分页及结果切片，避免手写复杂 SQL，显著提升开发效率与查询性能。
 

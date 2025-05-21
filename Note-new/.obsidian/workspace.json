@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "d1a976fae48de1ac",
+        "id": "7793b544a6fe13a7",
         "type": "tabs",
         "children": [
           {
-            "id": "9ee1368ccaf66e39",
+            "id": "65df273483996ebf",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -22,7 +22,7 @@
             }
           },
           {
-            "id": "690937bfab55fabf",
+            "id": "e63775f7bc1c15ed",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -34,15 +34,29 @@
               "icon": "lucide-file",
               "title": "测试文件无需上传"
             }
+          },
+          {
+            "id": "ca6c1974c7b97f80",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Java.md",
+                "mode": "source",
+                "source": true
+              },
+              "icon": "lucide-file",
+              "title": "Java"
+            }
           }
         ]
       },
       {
-        "id": "5e1ace4c7c696d54",
+        "id": "2b7cfdd7593412d9",
         "type": "tabs",
         "children": [
           {
-            "id": "6e3c3ee4185e47b2",
+            "id": "8d2992f9c139f57f",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -112,8 +126,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "right": {
     "id": "4c76231ee1d676b9",
@@ -203,15 +216,17 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "9ee1368ccaf66e39",
+  "active": "65df273483996ebf",
   "lastOpenFiles": [
     "测试文件无需上传.md",
     "SpringBoot.md",
     "Java.md",
-    "JavaScript.md",
-    "Mac重装.md",
-    "搭建 VPN.md",
+    "Untitled.md",
     "Java回顾（非Moth版本）.md",
+    "老爸西安行安排.md",
+    "Mac重装.md",
+    "JavaScript.md",
+    "搭建 VPN.md",
     "未命名.md",
     "Screenshot 2025-04-19 at 1.48.14 PM.png",
     "es6-tooling-webpack/dist/index.html",
@@ -240,8 +255,6 @@
     "es6-tooling-webpack/node_modules/@babel/plugin-bugfix-safari-class-field-initializer-scope/README.md",
     "es6-tooling-webpack/node_modules/@babel/plugin-bugfix-v8-static-class-fields-redefine-readonly/README.md",
     "es6-tooling-webpack/node_modules/@babel/plugin-transform-class-properties/README.md",
-    "es6-tooling-webpack/node_modules/@babel/plugin-syntax-import-assertions/README.md",
-    "es6-tooling-webpack/node_modules/@babel/plugin-syntax-import-attributes/README.md",
     "es6-tooling-webpack/node_modules/renderkid/docs/images/usage.png",
     "es6-tooling-webpack/node_modules/renderkid/docs/images/display.png",
     "es6-tooling-webpack/node_modules/renderkid/docs/images/bullets-1.png",
