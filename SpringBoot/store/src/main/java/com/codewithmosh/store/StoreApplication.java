@@ -13,6 +13,7 @@ public class StoreApplication {
         ApplicationContext context = SpringApplication.run(StoreApplication.class, args);
 
         UserService userService = context.getBean(UserService.class);
-        userService.fetchProductsBySpecifications("prod", null, null);
+        // userService.fetchSortedProducts();
+        userService.fetchPaginatedProducts(0, 10);
     }
 }

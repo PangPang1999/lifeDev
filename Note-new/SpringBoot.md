@@ -4742,3 +4742,101 @@ Sorting and pagination
     - 描述：按需拼装任意查询条件，查询逻辑高内聚、可拓展。
 
 ### Sort&Pagination
+
+> 简述：Spring Data JPA 提供强大的排序 (Sorting) 与分页 (Paging) 机制，是高效处理和展示大数据集的关键。它通过简洁的 API 支持按需排序、灵活分页及结果切片，避免手写复杂 SQL，显著提升开发效率与查询性能。
+
+**知识树**
+
+1.  启用分页与排序
+
+    - Repository 接口需继承 `PagingAndSortingRepository` 或其子接口 `JpaRepository` (推荐，后者功能更全面，已默认集成分页与排序能力)。
+
+2.  排序 (Sorting)
+
+    - `Sort`作用
+        - 定义查询结果的排序规则。
+    - 常用创建方式
+        - `Sort.by(String... properties)`: 按指定属性升序。
+        - `Sort.by(Sort.Direction direction, String... properties)`: 按指定方向和属性排序。
+    - 组合排序
+        - `sort.and(Sort otherSort)`: 将当前 `Sort` 对象与另一个 `Sort` 对象组合，形成主次排序条件。此外还可以使用 not、xxx
+    - 默认方向
+        - 若未明确指定排序方向，默认为升序 (`ASC`)。
+    - 应用
+        - 作为参数传递给 Repository 的 `findAll(Sort sort)` 方法，或整合到 `Pageable` 对象中。
+
+3.  分页 (Paging)
+
+    - `Pageable`作用:
+        - 封装分页请求信息，包括页码、每页记录数以及可选的排序信息。Repository 方法可直接声明此类型参数以接收分页请求。
+    - 创建 `Pageable` 实例:
+        - 通常使用 `PageRequest`，它是 `Pageable` 的标准实现。
+        - `PageRequest.of(int page, int size)`:
+            - 创建基本的分页请求。`page`从 0 开始计数)。
+        - `PageRequest.of(int page, int size, Sort sort)`:
+            - 创建带排序信息的分页请求。
+        - `PageRequest.of(int page, int size, Sort.Direction direction, String... properties)`:
+            - 创建带排序信息的分页请求 (便捷方式)。
+    - 结果类型:
+        - Repository 分页查询可以自由决定返回值为 `Page<T>` 或 `Slice<T>`。
+        - `Page<T>`:
+            - 包含当前页的数据列表 (`getContent()`) 以及完整的元数据，如总记录数 (`getTotalElements()`)、总页数 (`getTotalPages()`)。通常会执行额外的 count 查询来获取总数。
+        - `Slice<T>`:
+            - 仅包含当前页的数据列表 (`getContent()`) 以及是否有下一页 (`hasNext()`) 或上一页 (`hasPrevious()`) 的布尔标记。不执行 count 查询，因此在不需要总记录数时性能更高，常用于无限滚动或“加载更多”等场景。
+    - 应用:
+        - 作为参数传递给 Repository 的 `findAll(Pageable pageable)` 方法。
+
+**代码示例**
+
+1.  排序查询 (Sorting Query)
+
+    ```java
+    public void fetchSortedProducts() {
+        // 示例1: 按单个属性 "name" 升序排序
+        Sort sortByNameAsc = Sort.by("name"); // 默认升序
+        List<Product> productsSortedByName = productRepository.findAll(sortByNameAsc);
+
+        // 示例2: 按单个属性 "price" 降序排序，下面两行等价
+        Sort sortByPriceDesc1 = Sort.by(Sort.Direction.DESC, "price");
+        Sort sortByPriceDesc2 = Sort.by("price").descending();
+        List<Product> productsSortedByPrice = productRepository.findAll(sortByPriceDesc1);
+
+        // 示例3: 组合排序 - 先按 "price" 升序，再按 "name" 降序
+        Sort sortByCategoryThenPrice = Sort.by("price").ascending()
+                .and(Sort.by("name").descending());
+        List<Product> productsSortedCombined = productRepository.findAll(sortByCategoryThenPrice);
+
+
+        Sort sort = Sort.by("name").and(
+                Sort.by("price").descending()
+        );
+        productRepository.findAll(sort).forEach(p -> {
+            System.out.println(p);
+        });
+    }
+    ```
+
+    - 描述：展示如何使用 `Sort.by()` 创建不同类型的排序规则，并将其应用于 `findAll` 方法。`Sort.by("property")` 默认升序；`Sort.Direction.DESC` 指定降序；`and()` 方法用于链接多个排序条件。
+
+2.  分页查询 (Paging Query)
+
+    ```java
+    public void fetchPaginatedProducts(int pageNumber, int size) {
+        Pageable firstPageWithFiveElements = PageRequest.of(0, 5);
+        Page<Product> productPage = productRepository.findAll(firstPageWithFiveElements);
+
+        List<Product> productsOnFirstPage = productPage.getContent(); // 获取当前页的 Product 列表
+        int totalPages = productPage.getTotalPages();                 // 获取总页数
+        long totalElements = productPage.getTotalElements();         // 获取总记录数
+        int currentPageNumber = productPage.getNumber();              // 获取当前页码 (0-indexed)
+        int currentPageSize = productPage.getSize();                  // 获取当前页大小
+
+        System.out.println("当前页码: " + currentPageNumber);
+        System.out.println("每页记录数: " + currentPageSize);
+        System.out.println("总页数: " + totalPages);
+        System.out.println("总记录数: " + totalElements);
+        productsOnFirstPage.forEach(System.out::println);
+    }
+    ```
+
+    - 描述：演示如何使用 `PageRequest.of(page, size)` 创建分页请求。返回的 `Page<Product>` 对象不仅包含当前页的数据列表，还提供了总页数、总记录数等分页元信息。

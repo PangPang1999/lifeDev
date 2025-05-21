@@ -6,8 +6,7 @@ import com.codewithmosh.store.repositories.specifications.ProductSpec;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -124,6 +123,47 @@ public class UserService {
     public void printLoyaltyProfiles() {
         var profiles = profileRepository.findByLoyalProfiles(2);
         profiles.forEach(p -> System.out.println(p.getId() + ": " + p.getEmail()));
+    }
+
+    public void fetchSortedProducts() {
+        // 示例1: 按单个属性 "name" 升序排序
+        Sort sortByNameAsc = Sort.by("name"); // 默认升序
+        List<Product> productsSortedByName = productRepository.findAll(sortByNameAsc);
+
+        // 示例2: 按单个属性 "price" 降序排序
+        Sort sortByPriceDesc1 = Sort.by(Sort.Direction.DESC, "price");
+        Sort sortByPriceDesc2 = Sort.by("price").descending();
+        List<Product> productsSortedByPrice = productRepository.findAll(sortByPriceDesc1);
+
+        // 示例3: 组合排序 - 先按 "price" 升序，再按 "name" 降序
+        Sort sortByCategoryThenPrice = Sort.by("price").ascending()
+                .and(Sort.by("name").descending());
+        List<Product> productsSortedCombined = productRepository.findAll(sortByCategoryThenPrice);
+
+
+        Sort sort = Sort.by("name").and(
+                Sort.by("price").descending()
+        );
+        productRepository.findAll(sort).forEach(p -> {
+            System.out.println(p);
+        });
+    }
+
+    public void fetchPaginatedProducts(int pageNumber, int size) {
+        Pageable firstPageWithFiveElements = PageRequest.of(pageNumber, size);
+        Page<Product> productPage = productRepository.findAll(firstPageWithFiveElements);
+
+        List<Product> productsOnFirstPage = productPage.getContent(); // 获取当前页的 Product 列表
+        int totalPages = productPage.getTotalPages();                 // 获取总页数
+        long totalElements = productPage.getTotalElements();         // 获取总记录数
+        int currentPageNumber = productPage.getNumber();              // 获取当前页码 (0-indexed)
+        int currentPageSize = productPage.getSize();                  // 获取当前页大小
+
+        System.out.println("当前页码: " + currentPageNumber);
+        System.out.println("每页记录数: " + currentPageSize);
+        System.out.println("总页数: " + totalPages);
+        System.out.println("总记录数: " + totalElements);
+        productsOnFirstPage.forEach(System.out::println);
     }
 
 
