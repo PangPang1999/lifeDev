@@ -69,3 +69,40 @@ Deployment
     - 过程：
         - 后端暴露 API，负责数据处理和安全控制。
         - 前端通过 API 发送/获取 JSON 数据，并据此渲染页面。
+
+## Spring MVC 基本原理
+
+> 简述：Spring MVC 是基于 MVC 架构的 Web 框架，简化了 HTTP 请求的分发、业务逻辑处理与结果展示，实现了数据、视图和控制逻辑的高内聚低耦合。Spring Boot 进一步提升了其易用性与开发效率。
+
+**知识树**
+
+1. MVC 设计模式
+
+    - Model（模型）：负责业务数据与逻辑处理，如实体类、服务、数据库操作等。
+    - View（视图）：负责界面展示，常见为 HTML、模板页面等。
+    - Controller（控制器）：中介者，接收请求、调用模型、选择视图、生成响应。
+
+2. 请求处理流程
+
+    - 客户端（如浏览器）向特定 URL 发起 HTTP 请求。
+    - Spring MVC 通过 DispatcherServlet 分发请求，定位匹配的 Controller。
+    - Controller 处理请求，执行业务逻辑，与 Model 交互，准备数据。
+    - Controller 返回结果，由 View 层渲染页面，或直接以 JSON 等格式返回数据。
+
+3. 结果响应模式
+
+    - 视图渲染：返回页面（如 Thymeleaf、Freemarker 等模板引擎渲染 HTML）。
+    - 数据响应：返回数据（如 JSON），适用于前后端分离或 RESTful API。
+
+4. Spring Boot 集成
+
+    - 自动配置：
+        - 自动完成大量底层组件（如 MVC、数据源、JSON 序列化等）的初始化和装配。开发者无需手动配置繁琐的 XML 或 Java 配置类，常见功能即装即用。
+    - 内嵌服务器，零配置启动
+        - Spring Boot 内置 Tomcat、Jetty、Undertow 等 Web 服务器，无需独立安装和配置应用服务器，开发/测试只需运行主类即可启动完整 Web 应用。
+    - 约定优于配置
+        - Spring Boot 预置了最佳实践和合理默认值，大部分常用配置无需关注，只有极少数个性化需求才需自定义。
+        - 示例：静态资源自动映射到 /static、模板页面自动放在 /templates。
+    - 简化依赖管理
+        - Starter 依赖（如 `spring-boot-starter-web`）一次性引入所需全部依赖，避免手动管理各种版本冲突和兼容性问题。
+    - Spring Boot 简化的是整个 Spring 开发生态，而不只是 MVC 本身
