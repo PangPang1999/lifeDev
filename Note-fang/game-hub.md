@@ -381,7 +381,7 @@
 
 **知识树**
 
-1.  RAWG API: 提供视频游戏数据的外部服务。需要注册获取 API 密钥。
+1.  RAWG API: 提供视频游戏数据的外部服务。需要注册获取 API 密钥。https://rawg.io/apidocs
 2.  Axios: 基于 Promise 的 HTTP 客户端，用于浏览器和 Node.js。
     - 安装: `npm install axios`
     - 创建实例 (`axios.create`): 配置基础 URL 和全局参数 (如 API 密钥)。
