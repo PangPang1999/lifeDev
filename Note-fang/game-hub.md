@@ -1310,12 +1310,12 @@
     import { useEffect, useState } from 'react';
     import apiClient from '../services/api-client';
     import { AxiosRequestConfig, CanceledError } from 'axios';
-
+    // 1. 定义通用的响应接口
     interface FetchResponse<T> {
       count: number;
       results: T[];
     }
-
+    // 2. 定义泛型Hook，接收端点和可选的请求配置及依赖项
     const useData = <T>(endpoint: string, requestConfig?: AxiosRequestConfig, deps?: any[]) => {
       const [data, setData] = useState<T[]>([]);
       const [error, setError] = useState('');
@@ -1325,6 +1325,7 @@
         const controller = new AbortController();
         setLoading(true);
         apiClient
+    	  // 3. 使用泛型T和FetchResponse<T>
           .get<FetchResponse<T>>(endpoint, { signal: controller.signal, ...requestConfig })
           .then((res) => {
             setData(res.data.results);
@@ -1338,7 +1339,7 @@
 
         return () => controller.abort();
       }, deps ? [...deps] : []); // 允许传入依赖项数组
-
+    // 5. 返回通用的data属性
       return { data, error, isLoading };
     };
 
@@ -1379,7 +1380,7 @@
 
     // FetchGamesResponse 接口不再需要在此定义
 
-    const useGames = () => useData<Game>('/games'); // 调用 useData
+    const useGames = () => useData<Game>('/games'); // 调用 useData，传入Game类型和端点
 
     export default useGames;
     ```
@@ -1393,24 +1394,11 @@
       const { data: genres, error, isLoading } = useGenres(); // 将 genres 重命名为 data
 
       // ... (其余部分不变，但使用 genres 变量)
-      if (error) return null;
-      if (isLoading) return <p>Loading genres...</p>;
-
-      return (
-        <ul>
-          {genres.map((genre) => ( // 确保这里使用的是 genres
-            <li key={genre.id}>{genre.name}</li>
-          ))}
-        </ul>
-      );
-    };
-
-    export default GenreList;
     ```
 
 5.  `src/components/GameGrid.tsx` (已在 `useGames` 返回 `data` 时调整过，无需额外修改)。
 
-## 19- 显示类型
+## 19- 美化类型列表
 
 > 简述：改进 `GenreList` 组件，使其能够显示每个游戏类型的图片和名称，并优化侧边栏和主内容区域的布局，确保响应式设计的正确性。
 
@@ -1647,12 +1635,11 @@
         - 将 `selectedGenre.id` (如果存在) 作为查询参数传递给 `useData.ts`。
     - `hooks/useData.ts`:
         - 修改以接受第二个可选参数 `requestConfig: AxiosRequestConfig`，用于传递查询参数 (如 `params: { genres: selectedGenre.id }`)。
+            - 使用`requestConfig`：在 get 请求接受的第二个对象中使用拓展运算符将`requestConfig`展开并作为参数传递
         - 修改以接受第三个可选参数 `deps: any[]`，作为 `useEffect` 的依赖项数组，确保当筛选条件变化时重新获取数据。
         - `useEffect` 依赖项数组包含 `requestConfig` 中的相关值 (例如 `selectedGenre.id`) 或整个 `deps` 数组。
 4.  API 参数: RAWG API `/games` 端点接受 `genres` 查询参数 (可为类型 ID 或 slug) 进行筛选。
-5.  React 列表 `key` 修正:
-    - 确保在 `GameGrid.tsx` 中为 `GameCardContainer` (当包裹 `GameCardSkeleton` 和 `GameCard` 时) 设置唯一的 `key`。
-    - 确保在 `PlatformIconList.tsx` 中为平台图标列表项设置唯一的 `key` (`platform.id`)。
+    - 因为这里查看接口文档，可以传递的查询参数有：genres:string，例如 4,51
 
 **代码示例**
 
