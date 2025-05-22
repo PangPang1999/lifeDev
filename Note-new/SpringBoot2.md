@@ -322,3 +322,76 @@ Deployment
         ```
 
         - 描述：访问 `/hello` 返回 `{"text":"hello world"}`，Spring Boot 自动将 Java 对象序列化为 JSON。
+
+    - 返回内容
+
+        ```JSON
+        {
+          "text": "hello world"
+        }
+        ```
+
+# RESTful APIs
+
+## 创建 RESTful API
+
+> 简述：通过 Spring Boot 构建 RESTful API，可以高效地暴露后端数据与业务逻辑，自动将数据库实体转换为 JSON 格式响应，实现与前端的标准化数据通信。
+
+**知识树**
+
+1. 核心注解
+
+    - `@RestController`：标记控制器为 REST API，所有方法默认返回 JSON。
+    - `@RequestMapping`：通用的请求映射注解，可指定类或方法级别的 URL 路径、HTTP 方法等。
+    - `@GetMapping`、`@PostMapping` 等：`@RequestMapping` 的语法糖，分别对应具体的 HTTP 方法（GET、POST、PUT、DELETE 等），简化常用请求的声明，推荐优先使用，语义更清晰。
+
+2. 返回值处理
+
+    - `findAll()` 默认返回 `Iterable<T>`，可直接作为接口返回值，提升代码简洁性。
+
+3. API 开发基础流程
+
+    - 创建控制器类（如 `UserController`），用 `@RestController` 注解声明。
+    - 注入对应的 Repository（如 `UserRepository`），通过方法访问数据。
+    - 使用 `@GetMapping("/users")` 等注解映射 URL 到具体方法。
+    - 方法返回数据库实体集合，Spring Boot 自动序列化为 JSON。
+    - 此流程为简略演示
+
+4. 安全与数据暴露
+
+    - 直接返回实体对象会暴露所有属性（如密码等敏感信息）。
+    - 实际开发需谨慎处理敏感字段，后面将介绍解决方案。
+
+**代码示例**
+
+1. 基础 RESTful 用户查询接口
+
+    ```java
+    @RestController
+    @AllArgsConstructor
+    public class UserController {
+
+        private final UserRepository userRepository;
+
+        @GetMapping("/users")
+        public Iterable<User> getAllUsers() {
+            return userRepository.findAll();
+        }
+    }
+    ```
+
+    - 描述：控制器注入仓库，`getAllUsers` 方法返回全部用户，自动转为 JSON。
+
+2. 测试数据 SQL
+
+    ```sql
+    insert into users (id, name, email, password) values
+    	  (1, 'Alice', 'alice@example.com', 'password1'),
+    	  (2, 'Bob', 'bob@example.com', 'password2'),
+    	  (3, 'Charlie', 'charlie@example.com', 'password3'),
+    	  (4, 'David', 'david@example.com', 'password4'),
+    	  (5, 'Eva', 'eva@example.com', 'password5');
+
+    ```
+
+    - 描述：执行 SQL 插入测试数据，便于 API 演示与调试。
