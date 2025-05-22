@@ -45,6 +45,9 @@
     - 微信、QQ、百度网盘、WPS、Eudic、DaisyDisk、Movist
 3. 考虑：
     - 钉钉、腾讯会议、网易云
+4. Safari 插件
+    - 沉浸式翻译
+    - JSON Peep
 
 ## Homebrew
 
