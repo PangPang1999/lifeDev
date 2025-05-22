@@ -7,6 +7,10 @@ Project: Building the Checkout and Order APls
 Payment Processing with Stripe
 Deployment
 
+# 待补充
+
+1.
+
 # 准备
 
 > 简述：依旧之前的项目，但项目中存在许多演示用代码，这里重新建一个项目
@@ -106,3 +110,70 @@ Deployment
     - 简化依赖管理
         - Starter 依赖（如 `spring-boot-starter-web`）一次性引入所需全部依赖，避免手动管理各种版本冲突和兼容性问题。
     - Spring Boot 简化的是整个 Spring 开发生态，而不只是 MVC 本身
+
+## Controller 基础使用
+
+> 简述：Spring MVC 的控制器（Controller）负责接收和处理 HTTP 请求，并返回页面视图或数据响应，是 Web 应用的核心入口。通过注解和方法映射，简化请求路由和结果处理。
+
+**知识树**
+
+1. 控制器定义与职责
+
+    - 使用 `@Controller` 注解标识，由 Spring 容器托管。
+    - 主要负责映射 HTTP 路径、处理请求、准备响应（如页面或 JSON）。
+
+2. 基本用法与流程
+
+    - 创建 Controller 类（建议放在 controllers 包）。
+    - 在方法上使用 `@RequestMapping`、`@GetMapping` 等注解，指定 URL 路径和请求类型。
+    - 控制器方法返回视图名（模板页面）、静态页面，或直接返回数据（如 JSON）。
+
+3. 补充说明
+
+    - 一个控制器可包含多个方法，映射不同路径。
+    - 视图页面通常放置于 `resources/templates`（用于模板引擎）或 `resources/static`（用于静态页面）。
+    - 使用`html:5`快捷输入，能快速创建 html 模版页面
+
+**代码示例**
+
+1. 基础 Controller 示例
+
+    ```java
+    @Controller
+    public class HomeController {
+        @RequestMapping("/")
+        public String index() {
+            return "index.html";
+        }
+
+        @RequestMapping("/hello")
+        public String hello() {
+            return "index.html";
+        }
+    }
+    ```
+
+    - 描述：
+        - `store` 包下创建 `controllers` 包，创建 `HomeController` 控制器
+        - 上述代码定义了两个路由，`/` 和 `/hello`，均返回 index.html 页面，实现首页和 hello 页面访问。
+
+2. 静态 HTML 示例（resources/static/index.html）
+
+    ```html
+    <!DOCTYPE html>
+    <html lang="en">
+    	<head>
+    		<meta charset="UTF-8" />
+    		<meta
+    			name="viewport"
+    			content="width=device-width, initial-scale=1"
+    		/>
+    		<title>Document</title>
+    	</head>
+    	<body>
+    		<h1>Hello World</h1>
+    	</body>
+    </html>
+    ```
+
+    - 说明：该 HTML 文件作为静态首页，随 Controller 返回至客户端。返回的方式是 SSR，稍后介绍动态 HTML。
