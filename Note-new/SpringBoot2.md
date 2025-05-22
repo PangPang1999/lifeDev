@@ -177,3 +177,70 @@ Deployment
     ```
 
     - 说明：该 HTML 文件作为静态首页，随 Controller 返回至客户端。返回的方式是 SSR，稍后介绍动态 HTML。
+
+## 模板引擎基础使用
+
+> 简述：模板引擎（如 Thymeleaf）让 Spring MVC 能在 HTML 页面中嵌入变量和逻辑，实现数据驱动的动态渲染。通过模板与控制器的数据绑定，实现灵活的内容展示。
+
+**知识树**
+
+1. 模板引擎概念
+
+    - 作用：将后端数据与 HTML 模板结合，动态生成最终页面。
+    - 常见实现：Thymeleaf（主流）、Freemarker、Mustache、JSP（已过时）。
+
+2. Thymeleaf 基本用法
+
+    - 依赖引入：在 `pom.xml` 添加 `spring-boot-starter-thymeleaf` 依赖。
+        - 通过 Add starter 的方式添加，搜索 `thymeleaf`
+    - 目录规范：模板文件需放于 `resources/templates`。
+    - 模板声明：在 `<html>` 标签中声明 Thymeleaf，如 `xmlns:th="http://www.thymeleaf.org"`。
+    - 动态语法：通过 `th:*` 属性（如 `th:text`）配合 `${}` 变量语法插值。
+
+3. 动态数据绑定与渲染
+
+    - 控制器通过 `Model` 传递数据至视图。
+        - 在控制器方法（如 `index(Model model)`）中声明参数为 Model，Spring MVC 在处理 HTTP 请求并调用该方法时，会自动创建一个 Model 对象并作为参数传入。
+    - 使用 `model.addAttribute("key", value)` 绑定变量。
+    - 模板内通过 `${key}` 读取后端变量。
+    - 控制器返回模板名（不带 `.html` 后缀），Spring 自动定位模板并渲染生成最终页面。
+
+**代码示例**
+
+1. Thymeleaf 动态页面示例（resources/templates/index.html）
+
+    ```html
+    <!DOCTYPE html>
+    <html lang="en" xmlns:th="http://www.thymeleaf.org">
+    	<head>
+    		<meta charset="UTF-8" />
+    		<meta
+    			name="viewport"
+    			content="width=device-width, initial-scale=1"
+    		/>
+    		<title>Document</title>
+    	</head>
+    	<body>
+    		<h1 th:text="'Hello, ' + ${name}"></h1>
+    	</body>
+    </html>
+    ```
+
+    - 说明：
+        - 创建 `templates`包，将 `index.html` 转移至其中
+        - 通过 `th:text` 动态渲染 `name` 变量，实现页面内容个性化。
+
+2. 控制器传递动态变量
+
+    ```java
+    @Controller
+    public class HomeController {
+        @RequestMapping("/")
+        public String index(Model model) {
+            model.addAttribute("name", "Mosh");
+            return "index";
+        }
+    }
+    ```
+
+    - 说明：控制器通过 Model 传递数据，返回 `index`，自动渲染 `resources/templates/index.html`。
