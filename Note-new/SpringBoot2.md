@@ -32,7 +32,7 @@ Deployment
 
 # Spring MVC
 
-## Web 工作原理
+## Web 基本工作原理
 
 > 简述：Web 应用本质是客户端（如浏览器）与服务器间通过 HTTP 协议完成请求与响应的数据交互，支撑现代互联网的所有信息传递。
 
@@ -243,4 +243,82 @@ Deployment
     }
     ```
 
-    - 说明：控制器通过 Model 传递数据，返回 `index`，自动渲染 `resources/templates/index.html`。
+    - 说明：
+        - `Model` 选择 `org.springframework.ui.Model;`
+        - 控制器通过 Model 传递数据，返回 `index`，自动渲染 `resources/templates/index.html`。
+
+## RESTful API 基础
+
+> 简述：RESTful API 是一种基于 HTTP 协议、强调资源和统一接口的 Web 服务设计风格，常用于系统间、前后端分离的高效数据通信。Spring Boot 提供 `@RestController` 注解，简化返回 JSON 的 API 开发。
+
+**知识树**
+
+1. RESTful API 概念
+
+    - REST（Representational State Transfer）：以资源为中心的无状态通信规范。
+    - API（应用编程接口）：定义应用之间的数据交换规则。
+    - RESTful API：遵循 REST 原则，基于 HTTP 进行资源操作（如 GET、POST、PUT、DELETE），数据常用 JSON 格式传递。
+
+2. `@RestController` 注解
+
+    - 标记类为 REST 控制器，所有方法默认返回 JSON 数据。
+    - 区别于 `@Controller`，后者用于返回 HTML 页面视图。
+
+3. API 方法定义
+
+    - 创建 Controller 类（如 `MessageController`），加上 `@RestController` 注解。
+    - 方法使用 `@RequestMapping` 等注解，定义接口路径和请求方式。
+    - 方法返回 Java 对象、字符串或集合，Spring Boot 自动序列化为 JSON。
+
+4. 典型应用场景
+
+    - 前后端分离的 Web 项目
+    - 移动端/小程序的数据服务
+    - 第三方系统集成、自动化服务、AI Agent 等
+
+5. JSON 辅助工具
+
+    - Chrome 建议安装 JSON Formatter 插件
+    - Safari 建议在 App store 免费下载 JSON Peep 插件
+
+**代码示例**
+
+1. REST 控制器基础用法
+
+    ```java
+    @RestController
+    public class MessageController {
+        @RequestMapping("/hello")
+        public String sayHello() {
+            return "Hello World!";
+        }
+    }
+    ```
+
+    - 描述：访问 `/hello` 返回纯文本内容，无 HTML 包裹。
+
+2. 返回对象并自动转为 JSON
+
+    - entities 包下创建 Message 对象
+
+        ```java
+          @AllArgsConstructor
+          @Getter
+          public class Message {
+              private String text;
+          }
+        ```
+
+    - 将返回类型更改为 Message 对象
+
+        ```java
+        @RestController
+        public class MessageController {
+            @RequestMapping("/hello")
+            public Message sayHello() {
+                return new Message("hello world");
+            }
+        }
+        ```
+
+        - 描述：访问 `/hello` 返回 `{"text":"hello world"}`，Spring Boot 自动将 Java 对象序列化为 JSON。

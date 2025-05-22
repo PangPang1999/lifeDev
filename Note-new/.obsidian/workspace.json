@@ -13,20 +13,6 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "SpringBoot.md",
-                "mode": "source",
-                "source": true
-              },
-              "icon": "lucide-file",
-              "title": "SpringBoot"
-            }
-          },
-          {
-            "id": "faf303fc4adef970",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
                 "file": "SpringBoot2.md",
                 "mode": "source",
                 "source": true
@@ -63,15 +49,14 @@
               "title": "Java"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       },
       {
-        "id": "2b7cfdd7593412d9",
+        "id": "a68e50c6b7534fa6",
         "type": "tabs",
         "children": [
           {
-            "id": "8d2992f9c139f57f",
+            "id": "05bdaaa85600276d",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -141,7 +126,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "4c76231ee1d676b9",
@@ -231,17 +217,17 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "faf303fc4adef970",
+  "active": "65df273483996ebf",
   "lastOpenFiles": [
-    "SpringBoot.md",
+    "测试文件无需上传.md",
     "SpringBoot2.md",
+    "Java.md",
+    "Mac重装.md",
+    "SpringBoot.md",
     "Untitled",
     "SpringBoot2",
-    "测试文件无需上传.md",
-    "Java.md",
     "Java回顾（非Moth版本）.md",
     "老爸西安行安排.md",
-    "Mac重装.md",
     "JavaScript.md",
     "搭建 VPN.md",
     "未命名.md",
