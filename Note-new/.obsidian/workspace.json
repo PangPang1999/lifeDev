@@ -22,6 +22,20 @@
             }
           },
           {
+            "id": "faf303fc4adef970",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "SpringBoot2.md",
+                "mode": "source",
+                "source": true
+              },
+              "icon": "lucide-file",
+              "title": "SpringBoot2"
+            }
+          },
+          {
             "id": "e63775f7bc1c15ed",
             "type": "leaf",
             "state": {
@@ -49,7 +63,8 @@
               "title": "Java"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       },
       {
         "id": "2b7cfdd7593412d9",
@@ -190,13 +205,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "SpringBoot.md",
+                "file": "SpringBoot2.md",
                 "followCursor": true,
                 "showSearch": true,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of SpringBoot"
+              "title": "Outline of SpringBoot2"
             }
           }
         ],
@@ -216,12 +231,14 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "65df273483996ebf",
+  "active": "faf303fc4adef970",
   "lastOpenFiles": [
-    "测试文件无需上传.md",
     "SpringBoot.md",
+    "SpringBoot2.md",
+    "Untitled",
+    "SpringBoot2",
+    "测试文件无需上传.md",
     "Java.md",
-    "Untitled.md",
     "Java回顾（非Moth版本）.md",
     "老爸西安行安排.md",
     "Mac重装.md",
@@ -237,8 +254,6 @@
     "es6-tooling-webpack/node_modules/browserslist/cli.js",
     "es6-tooling-webpack/node_modules/@babel/plugin-transform-computed-properties/package.json",
     "es6-tooling-webpack/node_modules/@babel/plugin-transform-exponentiation-operator/package.json",
-    "es6-tooling-webpack/node_modules/@babel/plugin-transform-computed-properties/lib/index.js.map",
-    "es6-tooling-webpack/node_modules/@babel/plugin-transform-computed-properties/lib/index.js",
     "es6-tooling-webpack/node_modules/@babel/plugin-transform-computed-properties/README.md",
     "es6-tooling-webpack/node_modules/@babel/plugin-transform-exponentiation-operator/README.md",
     "es6-tooling-webpack/node_modules/@babel/plugin-transform-destructuring/README.md",
@@ -254,7 +269,6 @@
     "es6-tooling-webpack/node_modules/@babel/plugin-bugfix-safari-id-destructuring-collision-in-function-expression/README.md",
     "es6-tooling-webpack/node_modules/@babel/plugin-bugfix-safari-class-field-initializer-scope/README.md",
     "es6-tooling-webpack/node_modules/@babel/plugin-bugfix-v8-static-class-fields-redefine-readonly/README.md",
-    "es6-tooling-webpack/node_modules/@babel/plugin-transform-class-properties/README.md",
     "es6-tooling-webpack/node_modules/renderkid/docs/images/usage.png",
     "es6-tooling-webpack/node_modules/renderkid/docs/images/display.png",
     "es6-tooling-webpack/node_modules/renderkid/docs/images/bullets-1.png",

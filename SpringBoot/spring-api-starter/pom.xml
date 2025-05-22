@@ -44,52 +44,49 @@
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-starter-web</artifactId>
                 </dependency>
-
                 <dependency>
-                        <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-starter-data-jpa</artifactId>
+                        <groupId>org.springframework.boot</groupId>
                 </dependency>
-
                 <dependency>
-                        <groupId>com.mysql</groupId>
                         <artifactId>mysql-connector-j</artifactId>
+                        <groupId>com.mysql</groupId>
                         <scope>runtime</scope>
                 </dependency>
-
                 <dependency>
-                        <groupId>org.flywaydb</groupId>
                         <artifactId>flyway-core</artifactId>
-                </dependency>
-
-                <dependency>
                         <groupId>org.flywaydb</groupId>
-                        <artifactId>flyway-mysql</artifactId>
                 </dependency>
-
                 <dependency>
-                        <groupId>org.projectlombok</groupId>
+                        <artifactId>flyway-mysql</artifactId>
+                        <groupId>org.flywaydb</groupId>
+                </dependency>
+                <dependency>
                         <artifactId>lombok</artifactId>
+                        <groupId>org.projectlombok</groupId>
                         <scope>annotationProcessor</scope>
                 </dependency>
+
 
         </dependencies>
 
         <build>
                 <plugins>
                         <plugin>
-                                <groupId>org.springframework.boot</groupId>
-                                <artifactId>spring-boot-maven-plugin</artifactId>
-                        </plugin>
-                        <plugin>
                                 <groupId>org.flywaydb</groupId>
                                 <artifactId>flyway-maven-plugin</artifactId>
-                                <version>10.20.0</version>
+                                <version>10.15.0</version>
                                 <configuration>
-                                        <url>jdbc:mysql://localhost:3306/store?createDatabaseIfNotExist=true</url>
+                                        <url>jdbc:mysql://localhost:3306/store_api?createDatabaseIfNotExist=true</url>
                                         <user>root</user>
-                                        <password>Seeyou1!</password>
+                                        <password>myPassword!</password>
                                         <cleanDisabled>false</cleanDisabled>
                                 </configuration>
+                        </plugin>
+
+                        <plugin>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-maven-plugin</artifactId>
                         </plugin>
                 </plugins>
         </build>
