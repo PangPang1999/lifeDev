@@ -21,9 +21,10 @@ Deployment
 
 2. 修改
 
-    - 修改 pom.xml 中的 JDK 版本，SpringBoot 版本，与先前一致（建议）
-    - 修改 pom.xml、application.yaml 中的数据库配置
-    - 修改 V1\_\_initial_migration.sql，将两个 TINYINT 修改为 BIGINT
+    - 修改 `pom.xml` 中的 JDK 版本，SpringBoot 版本，与先前一致（建议）
+    - 修改 `pom.xml`、`application.yaml` 中的数据库配置
+    - 修改 `V1__initial_migration.sql`，将两个 `TINYINT` 修改为 `BIGINT`
+    - 修改 `User.java`，注释掉 `Profile` 字段
 
 3. 数据库
 
@@ -431,7 +432,7 @@ Deployment
     - 推荐使用 Postman 进行日常接口开发调试、自动化测试与接口文档管理。
     - 后续使用 postman 访问接口测试
 
-## 动态查询
+## 动态参数查询
 
 > 简述：通过 RESTful API，可以根据请求参数动态检索资源，实现按需查询和灵活的数据访问。
 
@@ -820,3 +821,67 @@ Deployment
     ```
 
     - 说明：自动映射实体到 DTO，并动态赋值时间戳。测试完毕后恢复原代码
+
+## 查询参数与排序
+
+> 简述：查询参数（Query Parameter）使前端可通过 URL 动态传递过滤、排序等条件，后端利用 `@RequestParam` 获取参数，实现接口灵活性和可定制化的数据排序。
+
+**知识树**
+
+1. 查询参数机制
+
+    - 查询参数以 `key=value` 形式追加于 URL 问号（?）之后，支持多个参数（用 & 连接），如 `/users?sort=name&page=1`。
+    - 常用于前端自定义筛选、排序、分页等功能。
+
+2. `@RequestParam` 注解
+
+    - 用于 Controller 方法参数，自动映射 URL 查询参数。支持参数类型自动转换。
+    - 关键参数说明：
+        - `required=false`：非必需参数，接口更健壮。
+        - `defaultValue`：设置默认值，避免参数缺失导致异常。
+        - `name`：指定参数名，避免前后端字段不一致引发问题。
+
+3. 参数校验与容错
+
+    - 可通过集合（如 `Set.of(...)`）校验合法字段，非法输入回退默认值，提升健壮性。
+    - 推荐将 `defaultValue` 设为空字符串，通过代码后置判断，灵活适配字段变化。
+    - 参数名如变更，应同步修改 `@RequestParam(name = "...")`，确保接口兼容。
+
+4. 动态排序实现
+
+    - 将前端传入的排序字段，校验并传递给 Spring Data JPA 的 `Sort.by()`，实现后端数据动态排序。
+
+**代码示例**
+
+1. 基于查询参数的动态排序实现
+
+    ```java
+    @RestController
+    @AllArgsConstructor
+    @RequestMapping("/users")
+    public class UserController {
+
+        private final UserRepository userRepository;
+        private final UserMapper userMapper;
+
+        @GetMapping
+        public List<UserDto> getAllUsers(
+                @RequestParam(required = false, defaultValue = "", name = "sort") String sortBy
+        ) {
+            if (!Set.of("name", "email").contains(sortBy)) {
+                sortBy = "name";
+            }
+
+            return userRepository.findAll(Sort.by(sortBy).descending())
+                    .stream()
+                    .map(userMapper::toDto)
+                    .toList();
+        }
+
+
+    	// 省略
+
+    }
+    ```
+
+    - 说明：通过 `@RequestParam` 动态获取排序字段，验证有效性后传递给 `Sort.by()`，实现可扩展的数据排序。
