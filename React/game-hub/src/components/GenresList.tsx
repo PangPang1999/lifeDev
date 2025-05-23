@@ -10,10 +10,10 @@ import {
 import getCroppedImageUrl from "../services/image-url";
 import type { Genres } from "../hooks/useGenres";
 interface Props {
-  setSelectedGenre: (genre: Genres) => void;
+  onSelectedGenre: (genre: Genres) => void;
   selectedGenre: Genres | null;
 }
-const GenresList = ({ setSelectedGenre, selectedGenre }: Props) => {
+const GenresList = ({ onSelectedGenre, selectedGenre }: Props) => {
   const { data, isLoading, error } = useGenres();
   if (error) return null;
   if (isLoading) return <Spinner />;
@@ -28,7 +28,7 @@ const GenresList = ({ setSelectedGenre, selectedGenre }: Props) => {
               borderRadius={8}
             />
             <Button
-              onClick={() => setSelectedGenre(genre)}
+              onClick={() => onSelectedGenre(genre)}
               variant="link"
               fontSize="lg"
               fontWeight={selectedGenre?.id === genre.id ? "bold" : "normal"}

@@ -2456,3 +2456,907 @@
       );
     }
     ```
+
+## 30- 构建搜索输入框
+
+> 简述：在导航栏中添加一个用于游戏搜索的输入框组件 (`SearchInput`)。使用 Chakra UI 的`Input`, `InputGroup`, 和 `InputLeftElement` 构建 UI，并集成搜索图标。
+
+**知识树**
+
+1.  组件创建 (`SearchInput.tsx`):
+    - 使用 Chakra UI `Input` 组件。
+        - `borderRadius`: 设置圆角 (例如 `"20px"`)。
+        - `placeholder`: 设置占位文本 (例如 "Search games...")。
+        - `variant="filled"`: 使用填充样式，使输入框外观更佳。
+2.  图标集成:
+    - 使用 Chakra UI `InputGroup` 包裹 `Input` 组件。
+    - 使用 Chakra UI `InputLeftElement` 在输入框左侧添加图标。
+        - `children`: 设置为图标组件，例如 `BsSearch` (来自 `react-icons/bs`)。
+3.  集成到导航栏 (`Navbar.tsx`):
+    - 将 `SearchInput` 组件添加到 `Navbar` 的 `HStack` 中，通常位于 Logo 之后。
+4.  布局调整 (`ColorModeSwitch.tsx`):
+    - 为 `ColorModeSwitch` 中的 `Text` 组件设置 `whiteSpace="nowrap"`，防止因空间不足导致文本换行。
+5.  导航栏布局 (`Navbar.tsx`):
+    - 移除之前为两个元素设置的 `HStack` 的 `justifyContent="space-between"`，因为现在有三个或更多元素，默认的水平排列即可。
+6.  响应式检查: 确保搜索输入框在不同设备尺寸下显示正常。
+
+**代码示例**
+
+1.  `components/SearchInput.tsx`:
+
+    ```tsx
+    import { Input, InputGroup, InputLeftElement } from '@chakra-ui/react';
+    import { BsSearch } from 'react-icons/bs'; // 导入搜索图标
+
+    const SearchInput = () => {
+      return (
+        <InputGroup>
+          <InputLeftElement children={<BsSearch />} />
+          <Input
+            borderRadius={20}
+            placeholder="Search games..."
+            variant="filled"
+          />
+        </InputGroup>
+      );
+    };
+
+    export default SearchInput;
+    ```
+
+2.  `components/Navbar.tsx` (集成 `SearchInput`):
+
+    ```tsx
+    // ... imports ...
+    import SearchInput from './SearchInput'; // 导入 SearchInput
+
+    const Navbar = () => {
+      return (
+        // 移除了 justifyContent="space-between"
+        <HStack paddingX="10px">
+          <Image src={logo} boxSize="60px" />
+          <SearchInput /> {/* 添加搜索输入框 */}
+          <ColorModeSwitch />
+        </HStack>
+      );
+    };
+    ```
+
+3.  `components/ColorModeSwitch.tsx` (防止文本换行):
+    ```tsx
+    // ... imports ...
+    const ColorModeSwitch = () => {
+      // ... useColorMode ...
+      return (
+        <HStack>
+          <Switch /* ... */ />
+          <Text whiteSpace="nowrap">Dark Mode</Text> {/* 添加 whiteSpace */}
+        </HStack>
+      );
+    };
+    ```
+
+## 31- 搜索游戏
+
+> 简述：实现游戏搜索功能。用户在`SearchInput`中输入文本并提交（按 Enter 键）后，应用会根据搜索词筛选游戏。涉及使用`useRef`获取输入值，通过 prop 回调传递搜索词，更新`GameQuery`，并修改`useGames`钩子以包含搜索参数。
+
+**知识树**
+
+1.  表单处理 (`SearchInput.tsx`):
+    - 将 `InputGroup` 包裹在 HTML `<form>` 元素内。
+    - 处理表单的 `onSubmit` 事件。
+        - 调用 `event.preventDefault()` 阻止表单默认提交行为。
+2.  获取输入值 (`useRef`):
+    - 使用 `useRef<HTMLInputElement>(null)` 创建一个 ref 对象，用于引用`Input`组件底层的 HTML 输入元素。
+    - 将此 ref 对象赋给 Chakra UI `Input` 组件的 `ref` prop。
+    - 在 `onSubmit` 处理函数中，通过 `ref.current?.value` 获取输入框的值。
+3.  回调传递搜索词:
+    - `SearchInput` 组件:
+        - 添加 `onSearch: (searchText: string) => void` prop。
+        - 在表单提交时，如果 `ref.current?.value` 存在，则调用 `onSearch(ref.current.value)`。
+    - Prop 逐级传递:
+        - `App.tsx` -> `Navbar.tsx` -> `SearchInput.tsx`。
+        - `Navbar.tsx` 需要添加 `onSearch` prop 并将其透传给 `SearchInput`。
+        - （视频中提到这种深层 prop 传递不理想，高级主题中会介绍更优雅的解决方案，如状态管理库或 Context API）。
+4.  `GameQuery` 更新 (`App.tsx`):
+    - 为 `GameQuery` 接口添加 `searchText?: string` 属性。
+    - 在 `App` 组件中，当 `onSearch` 回调被触发时，使用 `setGameQuery({ ...gameQuery, searchText })` 更新查询对象。
+5.  `useGames.ts` 钩子修改:
+    - 从 `gameQuery` 对象中获取 `searchText`。
+    - 在 `useData` 的 `requestConfig.params` 中添加 `search: gameQuery.searchText`。API 使用 `search` 参数进行文本搜索。
+    - `gameQuery` 整体已是 `useData` 的依赖项，`searchText` 的变化会自动触发数据重新获取。
+6.  全局样式修复 (`index.css`):
+    - 视频中提到，在 `SearchInput` 外层添加 `<form>` 后可能导致布局问题（宽度未占满）。
+    - 通过在 `index.css` 中为 `form` 元素添加 `width: 100%;` 规则来解决。
+
+**代码示例**
+
+1.  `components/SearchInput.tsx` (表单处理与回调):
+
+    ```tsx
+    import { Input, InputGroup, InputLeftElement } from '@chakra-ui/react';
+    import { FormEvent, useRef } from 'react'; // 导入 useRef 和 FormEvent
+    import { BsSearch } from 'react-icons/bs';
+
+    interface Props {
+      onSearch: (searchText: string) => void;
+    }
+
+    const SearchInput = ({ onSearch }: Props) => {
+      const ref = useRef<HTMLInputElement>(null);
+
+      const handleSubmit = (event: FormEvent) => {
+        event.preventDefault();
+        if (ref.current) {
+          onSearch(ref.current.value);
+        }
+      };
+
+      return (
+        <form onSubmit={handleSubmit} style={{ width: '100%' }}> {/* 临时内联样式，后改为全局 */}
+          <InputGroup>
+            <InputLeftElement children={<BsSearch />} />
+            <Input
+              ref={ref} // 关联 ref
+              borderRadius={20}
+              placeholder="Search games..."
+              variant="filled"
+            />
+          </InputGroup>
+        </form>
+      );
+    };
+
+    export default SearchInput;
+    ```
+
+2.  `index.css` (全局样式):
+
+    ```css
+    /* ... 其他样式 ... */
+    form {
+      width: 100%;
+    }
+    ```
+
+3.  `components/Navbar.tsx` (透传 `onSearch` prop):
+
+    ```tsx
+    // ... imports ...
+    interface Props { // Navbar 现在也需要 Props
+      onSearch: (searchText: string) => void;
+    }
+
+    const Navbar = ({ onSearch }: Props) => { // 接收 onSearch
+      return (
+        <HStack paddingX="10px">
+          <Image src={logo} boxSize="60px" />
+          <SearchInput onSearch={onSearch} /> {/* 传递 onSearch */}
+          <ColorModeSwitch />
+        </HStack>
+      );
+    };
+    ```
+
+4.  `App.tsx` (更新 `GameQuery` 和传递回调):
+
+    ```tsx
+    export interface GameQuery {
+      // ... genre, platform, sortOrder ...
+      searchText?: string; // 添加 searchText
+    }
+
+    function App() {
+      const [gameQuery, setGameQuery] = useState<GameQuery>({} as GameQuery);
+
+      return (
+        <Grid /* ... */ >
+          <GridItem area="nav">
+            <Navbar onSearch={(searchText) => setGameQuery({ ...gameQuery, searchText })} /> {/* 传递回调 */}
+          </GridItem>
+          {/* ... Aside ... */}
+          <GridItem area="main">
+            {/* ... PlatformSelector, SortSelector ... */}
+            <GameGrid gameQuery={gameQuery} />
+          </GridItem>
+        </Grid>
+      );
+    }
+    ```
+
+5.  `hooks/useGames.ts` (添加 `search` 参数):
+    ```tsx
+    // ... GameQuery 导入 ...
+    const useGames = (gameQuery: GameQuery) => {
+      return useData<Game>(
+        '/games',
+        {
+          params: {
+            genres: gameQuery.genre?.id,
+            parent_platforms: gameQuery.platform?.id,
+            ordering: gameQuery.sortOrder,
+            search: gameQuery.searchText, // 添加搜索参数
+          },
+        },
+        [gameQuery]
+      );
+    };
+    ```
+
+## 32- 添加动态标题
+
+> 简述：在游戏列表上方添加一个动态标题 (`GameHeading`)，该标题能根据当前应用的筛选条件（如选中的类型、平台）自动更新，以反映当前显示的游戏内容。
+
+**知识树**
+
+1.  组件创建 (`GameHeading.tsx`):
+    - 使用 Chakra UI `Heading` 组件显示标题文本。
+        - `as="h1"`: 指定渲染为 `<h1>` 标签，符合语义。
+        - `marginY`, `fontSize`: 调整标题的垂直外边距和字体大小。
+2.  Props 接收:
+    - 接收 `gameQuery: GameQuery` 对象作为 prop，以便访问当前的筛选条件。
+3.  动态标题逻辑:
+    - 根据 `gameQuery` 中的 `platform` 和 `genre` 属性构建标题字符串。
+    - 基本格式: `[平台名称] [类型名称] Games`。
+    - 使用模板字符串和可选链 (`?.`) 处理平台或类型未选中的情况 (此时其值为 `null`)，避免渲染 "undefined"。
+        - 例如: `${gameQuery.platform?.name || ''} ${gameQuery.genre?.name || ''} Games`.
+        - `|| ''` 确保如果名称不存在，则插入空字符串。
+4.  集成到主应用 (`App.tsx`):
+    - 将 `GameHeading` 组件放置在主内容区 (`GridItem area="main"`) 的选择器组 (`Flex` 或 `HStack`) 上方。
+    - 将当前的 `gameQuery` 对象作为 prop 传递给 `GameHeading`。
+5.  布局对齐:
+    - 问题：`GameHeading` 的左侧可能与下方的筛选器和游戏卡片不对齐。
+    - 解决方案：将 `GameHeading` 和包含筛选器的 `Flex` (或 `HStack`) 组件一起包裹在一个新的 `Box` 组件中。然后，将原先应用于 `Flex` 的 `paddingLeft` 样式移至这个外层 `Box` 上，从而使标题和筛选器组共享相同的左内边距。
+
+**代码示例**
+
+1.  `components/GameHeading.tsx`:
+
+    ```tsx
+    import { Heading } from '@chakra-ui/react';
+    import { GameQuery } from '../App'; // 导入 GameQuery 接口
+
+    interface Props {
+      gameQuery: GameQuery;
+    }
+
+    const GameHeading = ({ gameQuery }: Props) => {
+      const platformName = gameQuery.platform?.name || '';
+      const genreName = gameQuery.genre?.name || '';
+
+      // 构建标题，确保在只有平台或只有类型时，或两者都没有时，文本仍然合理
+      // 例如，避免出现 " Platform Games" 或 " Genre Games" 或 "  Games"
+      let headingText = '';
+      if (platformName) headingText += platformName + ' ';
+      if (genreName) headingText += genreName + ' ';
+      headingText += 'Games';
+
+
+      return (
+        <Heading as="h1" marginY={5} fontSize="5xl">
+          {headingText.trim()} {/* trim() 移除可能的前后多余空格 */}
+        </Heading>
+      );
+    };
+
+    export default GameHeading;
+    ```
+
+    _视频中的简单模板字符串 `${platformName} ${genreName} Games` 在只有一方或双方都为空时，可能会产生多余空格。上述代码做了简单优化。_
+
+2.  `App.tsx` (集成 `GameHeading` 并调整布局):
+
+    ```tsx
+    // ... imports ...
+    import GameHeading from './components/GameHeading';
+    import { Box } from '@chakra-ui/react'; // 导入 Box
+
+    function App() {
+      const [gameQuery, setGameQuery] = useState<GameQuery>({} as GameQuery);
+
+      return (
+        <Grid /* ... */ >
+          {/* ... Nav, Aside GridItems ... */}
+          <GridItem area="main">
+            <Box paddingLeft={2}> {/* 外层 Box 应用 paddingLeft */}
+              <GameHeading gameQuery={gameQuery} /> {/* 添加动态标题 */}
+              <Flex marginBottom={5}> {/* 移除 Flex 上的 paddingLeft */}
+                <Box marginRight={5}>
+                  <PlatformSelector /* ... */ />
+                </Box>
+                <SortSelector /* ... */ />
+              </Flex>
+            </Box>
+            <GameGrid gameQuery={gameQuery} />
+          </GridItem>
+        </Grid>
+      );
+    }
+    ```
+
+## 33- 清理类型列表样式
+
+> 简述：改进侧边栏中游戏类型列表的视觉表现和可读性。包括处理长文本换行、文本对齐、图像宽高比以及添加列表标题。
+
+**知识树**
+
+1.  文本换行与对齐 (`GenreList.tsx` - 类型按钮):
+    - 问题：长类型名称（如 "Massively Multiplayer"）在按钮中可能不换行或与图像重叠。按钮内文本默认可能居中对齐。
+    - `Button` 组件样式:
+        - `whiteSpace="normal"`: 允许文本在按钮内正常换行 (覆盖按钮默认的 `nowrap`)。
+        - `textAlign="left"`: 使按钮内文本左对齐，与列表项中的图像对齐。
+2.  图像宽高比 (`GenreList.tsx` - 类型图像):
+    - 问题：不同类型的图像可能有不同的原始宽高比，导致在固定尺寸 (`boxSize`) 的 `Image` 组件中显示时被拉伸或压缩。
+    - `Image` 组件样式:
+        - `objectFit="cover"`: 缩放图像以保持其宽高比，同时填充元素的整个内容框。如果对象的宽高比与内容框不匹配，则对象将被裁剪以适应。
+3.  列表标题 (`GenreList.tsx`):
+    - 在类型列表 (`List`) 的上方添加一个 Chakra UI `Heading` 组件作为列表标题 (例如，文本为 "Genres")。
+    - `Heading` 样式:
+        - `fontSize` (例如 `"2xl"`) 调整标题大小。
+        - `marginBottom` (例如 `3`) 在标题和列表之间添加垂直间距。
+    - 由于现在 `GenreList` 返回多个顶级元素 (`Heading` 和 `List`)，需要用 React Fragment (`<>...</>`) 或一个共同的父元素 (如 `Box`) 包裹它们。
+
+**代码示例**
+
+1.  `components/GenreList.tsx` (样式改进):
+
+    ```tsx
+    import {
+      Button, Heading, HStack, Image, List, ListItem, Spinner, Text,
+    } from '@chakra-ui/react';
+    // ... 其他导入 ...
+
+    const GenreList = ({ selectedGenre, onSelectGenre }: Props) => {
+      const { data: genres, isLoading, error } = useGenres();
+
+      if (error) return null;
+      if (isLoading && genres.length === 0) return <Spinner />; // 仅当没有缓存数据时显示 Spinner
+
+      return (
+        <> {/* 使用 Fragment 包裹 */}
+          <Heading fontSize="2xl" marginBottom={3}>
+            Genres
+          </Heading>
+          <List>
+            {genres.map((genre) => (
+              <ListItem key={genre.id} paddingY="5px">
+                <HStack>
+                  <Image
+                    boxSize="32px"
+                    borderRadius={8}
+                    objectFit="cover" // 保持宽高比并填充
+                    src={getCroppedImageUrl(genre.image_background)}
+                    alt={genre.name}
+                  />
+                  <Button
+                    whiteSpace="normal" // 允许文本换行
+                    textAlign="left"    // 文本左对齐
+                    variant="link"
+                    fontSize="lg"
+                    fontWeight={genre.id === selectedGenre?.id ? 'bold' : 'normal'}
+                    onClick={() => onSelectGenre(genre)}
+                  >
+                    {genre.name}
+                  </Button>
+                </HStack>
+              </ListItem>
+            ))}
+          </List>
+        </>
+      );
+    };
+    ```
+
+    _注意：视频中 `isLoading` 的判断条件是 `isLoading`，但考虑到后续可能实现静态数据加载，此处修改为 `isLoading && genres.length === 0`，即仅在真正加载且无数据显示时才显示 Spinner。如果类型列表是静态数据，则 `isLoading` 始终为 `false`。_
+
+## 34- 清理游戏卡片样式
+
+> 简述：调整游戏卡片 (`GameCard`) 内部元素的布局顺序和间距，以及游戏网格 (`GameGrid`) 中卡片之间的间距，以优化视觉效果和信息层级。
+
+**知识树**
+
+1.  卡片内部元素顺序 (`GameCard.tsx`):
+    - 将游戏名称 (`Heading`) 移动到平台图标和评价分数 (`HStack`) 之后。
+    - 原顺序：名称 -> (图标 + 分数)。
+    - 新顺序：(图标 + 分数) -> 名称。
+2.  卡片内间距 (`GameCard.tsx`):
+    - 为包含平台图标和评价分数的 `HStack` 组件添加 `marginBottom` (例如 `3`)，使其与下方的游戏名称之间有适当的垂直间距。
+3.  游戏网格间距 (`GameGrid.tsx`):
+    - 增加 `SimpleGrid` 组件的 `spacing` 属性值 (例如从 `3` 改为 `6`)，以增大游戏卡片之间的水平和垂直间距，使页面布局更疏朗。
+4.  导航栏内边距调整 (`Navbar.tsx` - 视频中提及的次要调整):
+    - 减少导航栏 `HStack` 的 `paddingX` (例如从 `"10px"` 改为 `"0"` 或较小值)，如果之前的内边距显得过大或与其他元素不对齐。视频中似乎是减少了内边距，以使内容更贴近边缘或与其他全局内边距协调。
+
+**代码示例**
+
+1.  `components/GameCard.tsx` (调整元素顺序和间距):
+
+    ```tsx
+    // ... imports ...
+    // Emoji 组件 (下一节内容) 暂不包含
+
+    const GameCard = ({ game }: Props) => {
+      return (
+        <CardContainer>
+          <Card>
+            <Image src={getCroppedImageUrl(game.background_image)} />
+            <CardBody>
+              <HStack justifyContent="space-between" marginBottom={3}> {/* HStack 现在有 marginBottom */}
+                <PlatformIconList platforms={game.parent_platforms.map(p => p.platform)} />
+                <CriticScore score={game.metacritic} />
+              </HStack>
+              <Heading fontSize="2xl">{game.name}</Heading> {/* Heading 移到 HStack 之后 */}
+              {/* Emoji (下一节) */}
+            </CardBody>
+          </Card>
+        </CardContainer>
+      );
+    };
+    ```
+
+2.  `components/GameGrid.tsx` (调整卡片间距):
+
+    ```tsx
+    // ... imports ...
+    const GameGrid = ({ gameQuery }: Props) => {
+      // ... useGames ...
+      return (
+        <SimpleGrid
+          columns={{ sm: 1, md: 2, lg: 3, xl: 4 }}
+          spacing={6} // 增加 spacing 值
+          padding="10px" // padding 保持或按需调整
+        >
+          {/* ... 卡片渲染逻辑 ... */}
+        </SimpleGrid>
+      );
+    };
+    ```
+
+3.  `components/Navbar.tsx` (可选的内边距调整):
+    ```tsx
+    const Navbar = ({ onSearch }: Props) => {
+      return (
+        <HStack paddingX={0}> {/* 示例：减少或移除 paddingX */}
+          {/* ... Logo, SearchInput, ColorModeSwitch ... */}
+        </HStack>
+      );
+    };
+    ```
+
+## 35- 添加表情符号
+
+> 简述：根据游戏的顶级评分 (`rating_top`) 在游戏卡片上显示不同的表情符号（Emoji），为用户界面增添趣味性和直观的评价反馈。
+
+**知识树**
+
+1.  API 数据: 游戏对象包含 `rating_top` 属性，这是一个整数，通常范围是 1 到 5，代表游戏的顶级评分。
+2.  接口更新 (`Game` 接口):
+    - 为 `Game` 接口添加 `rating_top: number` 属性。
+3.  表情符号图像资源:
+    - 准备代表不同评分等级的表情符号图像 (例如：差评 `meh.webp`, 一般/推荐 `thumbs-up.webp`, 优秀 `bulls-eye.webp`)。
+    - 将这些图像放置在 `src/assets` 文件夹中。
+4.  组件创建 (`Emoji.tsx`):
+    - Props: `rating: number` (对应 `game.rating_top`)。
+    - 静态资源导入: 像导入模块一样导入表情符号图像。
+    - Emoji 映射对象 (`emojiMap`):
+        - 键: 评分数字 (例如 `3`, `4`, `5`)。
+        - 值: 一个对象，包含 Chakra UI `Image` 组件所需的 props，如 `src` (导入的图像变量), `alt` (可访问性文本), 和 `boxSize` (动态调整不同表情符号的显示大小，以求视觉均衡)。
+        - `emojiMap` 类型注解: `[key: number]: ImageProps` (其中 `ImageProps` 从 `@chakra-ui/react` 导入)，以解决 TypeScript 索引签名问题。
+    - 渲染逻辑:
+        - 如果 `rating < 3` (或某个阈值)，则不渲染任何内容 (返回 `null`)。
+        - 否则，使用 `rating` 作为键从 `emojiMap` 中查找对应的图像属性对象。
+        - 渲染 Chakra UI `Image` 组件，并使用扩展运算符 (`...`) 将从 `emojiMap` 中获取的属性对象应用到 `Image` 上。
+        - 为 `Image` 组件添加 `marginTop` (例如 `1` 或 `2`)，使其与上方的游戏名称有间距。
+5.  集成到游戏卡片 (`GameCard.tsx`):
+    - 在游戏名称 (`Heading`) 之后渲染 `Emoji` 组件。
+    - 将 `game.rating_top` 作为 `rating` prop 传递给 `Emoji` 组件。
+
+**代码示例**
+
+1.  `hooks/useGames.ts` (或相关类型文件) - 更新 `Game` 接口:
+
+    ```ts
+    export interface Game {
+      // ...其他属性...
+      rating_top: number; // 添加 rating_top
+    }
+    ```
+
+2.  `components/Emoji.tsx`:
+
+    ```tsx
+    import { Image, ImageProps } from '@chakra-ui/react'; // 导入 ImageProps
+    import bullsEye from '../assets/bulls-eye.webp';
+    import thumbsUp from '../assets/thumbs-up.webp';
+    import meh from '../assets/meh.webp';
+
+    interface Props {
+      rating: number;
+    }
+
+    const Emoji = ({ rating }: Props) => {
+      if (rating < 3) return null; // 低于3分不显示表情
+
+      const emojiMap: { [key: number]: ImageProps } = { // key 是数字
+        3: { src: meh, alt: 'meh', boxSize: '25px' },
+        4: { src: thumbsUp, alt: 'recommended', boxSize: '25px' },
+        5: { src: bullsEye, alt: 'exceptional', boxSize: '35px' }, // bullseye 可能需要更大尺寸
+      };
+
+      return <Image {...emojiMap[rating]} marginTop={1} />; // marginTop 添加间距
+    };
+
+    export default Emoji;
+    ```
+
+    _确保图像文件已放置在 `src/assets` 目录下。_
+
+3.  `components/GameCard.tsx` (集成 `Emoji` 组件):
+
+    ```tsx
+    // ... imports ...
+    import Emoji from './Emoji'; // 导入 Emoji 组件
+
+    const GameCard = ({ game }: Props) => {
+      return (
+        <CardContainer>
+          <Card>
+            <Image src={getCroppedImageUrl(game.background_image)} />
+            <CardBody>
+              <HStack justifyContent="space-between" marginBottom={3}>
+                <PlatformIconList platforms={game.parent_platforms.map(p => p.platform)} />
+                <CriticScore score={game.metacritic} />
+              </HStack>
+              <Heading fontSize="2xl">
+                {game.name}
+                <Emoji rating={game.rating_top} /> {/* 添加 Emoji 组件 */}
+              </Heading>
+            </CardBody>
+          </Card>
+        </CardContainer>
+      );
+    };
+    ```
+
+## 36- 打包静态数据
+
+> 简述：将不常变化的游戏类型数据（Genres）直接包含在应用代码中作为静态数据，而不是每次都从 API 获取。这样可以减少 API 请求，加快类型列表的显示速度，并移除相关的加载指示器（Spinner）。
+
+**知识树**
+
+1.  数据识别: 游戏类型列表变化频率低，适合作为静态数据。
+2.  获取静态数据:
+    - 通过浏览器开发者工具的网络(Network)标签，找到获取 `/genres` 的 API 请求。
+    - 复制响应体中 `results` 数组的值。
+3.  创建数据文件:
+    - 在 `src` 目录下创建 `data` 文件夹。
+    - 在 `src/data` 中创建 `genres.ts` 文件。
+    - 在 `genres.ts` 中，`export default` 粘贴的类型数据数组。
+4.  修改数据获取钩子 (`hooks/useGenres.ts`):
+    - 移除原先使用 `useData` (或 `apiClient`) 从 API 获取类型的逻辑。
+    - 直接导入 `src/data/genres.ts` 中的静态数据。
+    - 为了保持钩子对消费组件的接口一致性（即仍然返回 `{ data, isLoading, error }` 结构），手动构造这个返回对象：
+        - `data`: 设置为导入的静态类型数据。
+        - `isLoading`: 设置为 `false`，因为数据是即时可用的。
+        - `error`: 设置为 `null` (或空字符串)，因为没有 API 请求，不会发生获取错误。
+5.  消费组件 (`GenreList.tsx`) 的影响:
+    - 由于 `useGenres` 钩子的返回结构保持不变，`GenreList` 组件理论上不需要修改其数据解构和使用方式。
+    - 可以移除 `GenreList` 中处理 `isLoading` 和 `error` 的逻辑（例如显示 Spinner 或错误信息），因为这些状态现在是固定的 (`false` 和 `null`)。但视频中建议保留这些逻辑，以防未来改回动态获取。
+6.  平台列表的类似处理 (可选练习): 平台列表数据同样不常变化，也可以用此方法处理。
+
+**代码示例**
+
+1.  `src/data/genres.ts`:
+
+    ```ts
+    // 示例数据结构，实际应从API响应复制
+    export default [
+      {
+        "id": 4,
+        "name": "Action",
+        "slug": "action",
+        "games_count": 174179,
+        "image_background": "https://media.rawg.io/media/games/f87/f87457e8347484033cb34cde6101d08d.jpg"
+      },
+      {
+        "id": 51,
+        "name": "Indie",
+        "slug": "indie",
+        // ...更多属性和类型对象...
+      },
+      // ... 更多类型对象
+    ];
+    ```
+
+2.  `hooks/useGenres.ts` (使用静态数据):
+
+    ```ts
+    // import useData from './useData'; // 不再需要 useData
+    import staticGenres from '../data/genres'; // 导入静态数据
+    import { Genre } from './useGames'; // 假设 Genre 接口定义在 useGames 或共享文件
+
+    const useGenres = () => {
+      return {
+        data: staticGenres as Genre[], // 类型断言，确保符合 Genre[]
+        isLoading: false,
+        error: null,
+      };
+    };
+
+    export default useGenres;
+    // Genre 接口定义 (如果之前在此文件，现在可能移至共享类型文件或从 useGames 导入)
+    // export interface Genre { id: number; name: string; image_background: string; /* ... */ }
+    ```
+
+3.  `components/GenreList.tsx` (可以简化，但视频建议保留):
+
+    ```tsx
+    // ... imports ...
+    const GenreList = ({ selectedGenre, onSelectGenre }: Props) => {
+      const { data: genres, isLoading, error } = useGenres(); // 钩子返回结构不变
+
+      // 下面的 isLoading 和 error 判断理论上可以移除，因为它们现在是固定值
+      // 但保留它们可以使得未来切换回动态获取时无需修改此组件
+      if (error) return null;
+      // if (isLoading) return <Spinner />; // Spinner 不再显示，因为 isLoading 总是 false
+
+      return (
+        <>
+          <Heading fontSize="2xl" marginBottom={3}>
+            Genres
+          </Heading>
+          <List>
+            {/* ... genres.map(...) 逻辑不变 ... */}
+          </List>
+        </>
+      );
+    };
+    ```
+
+## 37- 自定义 Chakra 主题
+
+> 简述：通过扩展 Chakra UI 的默认主题，特别是修改颜色调色板中的灰色系，来使应用的暗色模式与 RAWG 网站的深灰色调更加接近，以提升视觉一致性和美感。
+
+**知识树**
+
+1.  Chakra UI 主题定制:
+    - 通过 `extendTheme` 函数扩展或覆盖默认主题配置。
+    - 自定义配置在 `src/theme.ts` 文件中进行。
+2.  颜色调色板:
+    - Chakra UI 的默认主题包含多种颜色，每种颜色有不同的色阶 (shades)，通常从 `50` (最浅) 到 `900` (最深)。
+    - 可以针对特定颜色 (如 `gray`) 提供一个全新的色阶对象来完全替换它。
+3.  获取颜色值:
+    - 可以使用颜色拾取工具 (如浏览器开发者工具的吸管) 从目标网站 (如 RAWG) 获取特定颜色的十六进制代码。
+    - 可以使用在线调色板生成工具 (视频中提到 Smart Swatch) 基于一个基准颜色生成一套和谐的色阶。
+4.  修改 `theme.ts`:
+    - 在 `extendTheme` 的参数对象中，添加 `colors` 属性。
+    - 在 `colors` 对象中，添加 `gray` 属性，其值为一个新的对象，该对象包含从 `50` 到 `900` 的所有灰色色阶及其对应的十六进制颜色值。
+    - 例如:
+        ```javascript
+        const theme = extendTheme({
+        	config, // 原有的 initialColorMode 等配置
+        	colors: {
+        		gray: {
+        			50: "#f9f9f9", // 示例值
+        			100: "#ededed",
+        			// ...
+        			800: "#1a202c", // 示例深灰色
+        			900: "#121212", // 示例更深的灰色
+        		},
+        	},
+        });
+        ```
+5.  影响范围: 修改主题中的颜色调色板会影响所有使用该颜色（及其色阶）的 Chakra UI 组件，以及通过主题系统（如 `color="gray.800"`）引用的自定义样式。
+
+**代码示例**
+
+1.  `src/theme.ts` (自定义灰色调色板):
+
+    ```ts
+    import { extendTheme, ThemeConfig } from '@chakra-ui/react';
+
+    const config: ThemeConfig = {
+      initialColorMode: 'dark',
+      useSystemColorMode: false,
+    };
+
+    const theme = extendTheme({
+      config,
+      colors: { // 添加自定义颜色
+        gray: { // 覆盖默认的灰色系
+          50: '#f9f9f9',  // 示例：非常浅的灰色 (亮色模式下可能用到)
+          100: '#ededed',
+          200: '#d3d3d3',
+          300: '#b3b3b3',
+          400: '#a0a0a0',
+          500: '#898989',
+          600: '#6c6c6c',
+          700: '#202020', // 示例：开始变深的灰色 (暗色模式背景)
+          800: '#121212', // 示例：更深的灰色 (暗色模式卡片等)
+          900: '#080808', // 示例：最深的灰色
+        },
+        // 可以添加或覆盖其他颜色
+      },
+    });
+
+    export default theme;
+    ```
+
+    _注意：上述颜色值为示例，实际应替换为从 RAWG 网站或调色板工具获取的期望颜色值。_
+
+## 38- 重构游戏网格
+
+> 简述：优化`GameGrid`组件的返回逻辑，当存在错误时直接返回错误信息，否则返回游戏网格。这样可以移除不必要的 React Fragment，使代码结构更清晰。
+
+**知识树**
+
+1.  条件返回 (Early Return):
+    - 在组件函数体的早期，检查是否存在错误状态 (`error` prop 或从钩子获取的 `error` 状态)。
+    - 如果存在错误，立即 `return` 一个显示错误信息的组件 (例如 Chakra UI `Text` 组件)。
+2.  主内容渲染:
+    - 如果错误检查未导致提前返回，则继续执行并 `return` 正常的游戏网格内容 (Chakra UI `SimpleGrid` 及其子组件)。
+3.  移除 Fragment:
+    - 由于现在错误情况和正常情况分别通过独立的 `return` 语句处理，它们不再是同一个 `return` 语句中的兄弟元素。
+    - 因此，之前可能用于包裹错误文本和 `SimpleGrid` 的 React Fragment (`<>...</>`) 不再需要，可以移除。
+
+**代码示例**
+
+1.  `components/GameGrid.tsx` (重构后):
+
+    ```tsx
+    import { SimpleGrid, Text } from '@chakra-ui/react';
+    import useGames from '../hooks/useGames'; // 或 useData
+    import { GameQuery } from '../App';
+    import GameCard from './GameCard';
+    import GameCardSkeleton from './GameCardSkeleton';
+    import GameCardContainer from './GameCardContainer';
+
+    interface Props {
+      gameQuery: GameQuery;
+    }
+
+    const GameGrid = ({ gameQuery }: Props) => {
+      const { data: games, error, isLoading } = useGames(gameQuery);
+      const skeletons = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; // 示例骨架数量
+
+      if (error) { // 如果有错误，直接返回错误文本
+        return <Text>{error}</Text>;
+      }
+
+      // 如果没有错误，返回游戏网格
+      return (
+        <SimpleGrid
+          columns={{ sm: 1, md: 2, lg: 3, xl: 4 }} // 响应式列数
+          spacing={6}
+          padding="10px"
+        >
+          {isLoading &&
+            skeletons.map((skeleton) => (
+              <GameCardContainer key={skeleton}>
+                <GameCardSkeleton />
+              </GameCardContainer>
+            ))}
+          {!isLoading &&
+            games.map((game) => (
+              <GameCardContainer key={game.id}>
+                <GameCard game={game} />
+              </GameCardContainer>
+            ))}
+        </SimpleGrid>
+      );
+    };
+
+    export default GameGrid;
+    ```
+
+## 39- 为生产环境构建
+
+> 简述：执行应用的生产构建过程，检查构建时可能出现的 TypeScript 编译错误，并了解构建输出（`dist`文件夹）的含义。
+
+**知识树**
+
+1.  生产构建命令:
+    - `npm run build` (通常由 Vite 或 Create React App 等脚手架工具在 `package.json` 的 `scripts` 中定义)。
+2.  构建目的:
+    - 将开发环境中的源代码（包括 TypeScript、JSX、CSS 预处理器文件等）转换为优化过的、可在浏览器中直接运行的静态资源（主要是 JavaScript、CSS 和 HTML 文件）。
+    - 优化包括：代码压缩（minification）、代码分割（code splitting）、tree shaking（移除未使用代码）、TypeScript 编译为 JavaScript 等。
+3.  构建时错误检查:
+    - TypeScript 编译器 (`tsc`) 会在构建过程中检查类型错误。如果存在编译错误，构建会失败并报告错误信息。
+    - 在部署前进行本地构建有助于及早发现并修复这些错误。
+4.  VS Code 构建任务:
+    - 可以通过 VS Code 的命令面板 (Mac: `Shift+Command+P`, Windows: `Shift+Control+P`) 运行构建任务。
+    - 搜索 "Run Build Task" 并选择 `npm: build`。
+    - 快捷键 (Mac: `Shift+Command+B`) 通常也配置为运行默认构建任务。
+5.  构建输出 (`dist` 文件夹):
+    - 构建成功后，会生成一个 `dist` (distributable 的缩写) 文件夹。
+    - 此文件夹包含所有部署到生产服务器所需的静态文件。
+    - 内容通常包括：
+        - `index.html`: 应用的入口 HTML 文件。
+        - JavaScript bundles (通常带有哈希值以利于缓存控制)。
+        - CSS bundles (同样可能带有哈希值)。
+        - 图像、字体等其他静态资源。
+6.  Bundle 大小警告:
+    - 构建过程可能会报告关于 bundle 大小的警告，尤其是当某些 chunk 超过预设阈值时。
+    - 视频中提到，即使是简单应用，由于依赖（如 Chakra UI），bundle 大小也可能触发警告。Bundle 优化是更高级的主题。
+
+**代码示例**
+
+1.  执行构建命令 (在项目根目录的终端中):
+
+    ```bash
+    npm run build
+    ```
+
+2.  模拟编译错误 (示例，非实际操作):
+    - 在任一 `.ts` 或 `.tsx` 文件中引入一个明显的类型错误，例如：
+        ```typescript
+        // 在 SortSelector.tsx 中
+        // const onSelectSortOrder: (sortOrder: string) => void = () => {};
+        // onSelectSortOrder(123); // 类型错误：期望 string，得到 number
+        ```
+    - 再次运行 `npm run build`，将会看到 TypeScript 编译错误导致构建失败。
+
+## 40- 部署到 Vercel
+
+> 简述：将构建好的 React 应用部署到 Vercel 平台，并配置与 GitHub 仓库的持续集成/持续部署 (CI/CD)，使得每次推送到 GitHub 时，Vercel 能自动构建和部署最新代码。
+
+**知识树**
+
+1.  Vercel 平台: 一个流行的用于部署前端应用和无服务器函数的平台，以其易用性和与现代前端框架的良好集成而闻名。
+2.  部署选项:
+    - Vite 文档 (`vitejs.dev/guide/static-deploy.html`) 列出了多种静态站点部署平台，如 Netlify, Vercel, GitHub Pages, Firebase 等。
+3.  GitHub 仓库准备:
+    - 为项目创建一个 GitHub 仓库。
+    - 将本地 Git 仓库与远程 GitHub 仓库关联，并推送代码。
+        - `git remote add origin <repository_url>`
+        - `git branch -M main` (或 `master`)
+        - `git push -u origin main` (或 `master`)
+4.  Vercel CLI (命令行工具):
+    - 安装: `npm install -g vercel` (全局安装)。
+    - 在 Mac/Linux 上，如果遇到权限错误，使用 `sudo npm install -g vercel`。
+5.  通过 Vercel CLI 部署:
+    - 在项目根目录运行 `vercel` 命令。
+    - 首次运行时，会要求登录 (例如通过 GitHub 账户)。
+    - 按照 CLI 提示进行项目设置：
+        - 确认项目名称。
+        - 选择部署范围 (scope/账户)。
+        - 链接到现有 Vercel 项目 (首次部署选 No)。
+        - 确认代码所在目录 (通常是当前目录，直接回车)。
+        - Vercel 会自动检测项目类型 (如 Vite) 并使用合适的构建设置。通常默认设置即可。
+6.  Vercel Dashboard (网页控制台):
+    - 登录 Vercel 账户后，可以在 Dashboard 中看到已部署的项目。
+7.  连接 GitHub 仓库实现 CI/CD:
+    - 在 Vercel Dashboard 中，找到已部署的项目。
+    - 选择 "Connect Git Repository"。
+    - 选择 GitHub，并授权 Vercel 访问你的 GitHub 仓库。
+    - 从列表中选择对应的项目仓库进行连接。
+8.  CI/CD 验证:
+    - 连接成功后，每当向已连接的 GitHub 仓库的主分支 (通常是 `main` 或 `master`) 推送新的 commit 时，Vercel 会自动触发新的构建和部署流程。
+    - 可以修改项目中的一些小内容 (如 `index.html` 的标题)，提交并推送到 GitHub，然后在 Vercel Dashboard 观察部署状态，并验证线上应用的更新。
+
+**代码示例**
+
+1.  GitHub 仓库关联与推送 (在本地项目终端):
+
+    ```bash
+    # 假设已 git init, git add ., git commit
+    git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPOSITORY_NAME.git
+    git branch -M main
+    git push -u origin main
+    ```
+
+2.  Vercel CLI 安装与部署 (在本地项目终端):
+
+    ```bash
+    npm install -g vercel  # 或 sudo npm install -g vercel
+    vercel                 # 启动部署流程，按提示操作
+    ```
+
+3.  验证 CI/CD (示例):
+    - 修改 `public/index.html` (Vite 项目) 或 `index.html` (Create React App 项目) 的 `<title>` 标签。
+    - 在本地项目终端:
+        ```bash
+        git add .
+        git commit -m "Update page title for Vercel CI/CD test"
+        git push origin main
+        ```
+    - 访问 Vercel Dashboard 查看部署进度，部署完成后刷新线上应用 URL 查看标题是否更新。
