@@ -395,3 +395,36 @@ Deployment
     ```
 
     - 描述：执行 SQL 插入测试数据，便于 API 演示与调试。
+
+## Postman 基础
+
+> 简述：Postman 是一款功能强大的 API 调试与测试工具，广泛应用于前后端开发、接口联调及自动化测试，极大提升 API 开发与协作效率。
+
+**知识树**
+
+1. Postman 工具简介
+
+    - 免费跨平台桌面应用，用于发送 HTTP 请求、管理 API 集合、调试接口、保存请求历史等。
+    - 支持多种请求类型（GET、POST、PUT、PATCH、DELETE 等）及批量管理和自动化测试。
+
+2. 基本操作与界面
+
+    - 新建请求：点击“+”号，创建新的请求标签页。
+    - 选择方法：左侧下拉选择请求类型（如 GET、POST）。
+    - 输入 URL：直接填写目标接口地址。
+    - 参数设置：
+        - Params：添加 URL 查询参数（key-value 形式）。
+        - Authorization：内置多种认证方式（如 Bearer Token、API Key、Basic Auth）。
+        - Headers：自定义或查看请求头（如 Content-Type、Authorization）。
+        - Body：配置请求体，支持多种格式（raw JSON、表单、文件等）。
+
+3. 响应查看与分析
+
+    - Response 面板：展示接口响应体、状态码、响应时间与体积等信息。
+    - Preview 视图：支持美化（Pretty）、原始（Raw）、预览（Preview）等多种视图，便于读取 JSON、HTML、图片等不同格式数据。
+    - Headers 视图：详细查看响应头信息。
+
+4. 实践建议
+
+    - 推荐使用 Postman 进行日常接口开发调试、自动化测试与接口文档管理。
+    - 后续使用 postman 访问接口测试
