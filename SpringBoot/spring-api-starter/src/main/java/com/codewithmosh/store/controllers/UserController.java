@@ -21,12 +21,8 @@ public class UserController {
 
     @GetMapping
     public List<UserDto> getAllUsers(
-            @RequestHeader(name = "x-auth-token") String authToken,
             @RequestParam(required = false, defaultValue = "", name = "sort") String sortBy
     ) {
-
-        System.out.println(authToken);
-
         if (!Set.of("name", "email").contains(sortBy)) {
             sortBy = "name";
         }
@@ -44,5 +40,11 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(userMapper.toDto(user));
+    }
+
+    @PostMapping
+    public UserDto createUser(@RequestBody UserDto data) {
+        // 实际业务省略，此处直接返回接收到的数据
+        return data;
     }
 }

@@ -857,7 +857,7 @@ Deployment
 2. `@RequestParam` 注解
 
     - 用于 Controller 方法参数，自动映射 URL 查询参数。支持参数类型自动转换。
-    - 关键参数说明：
+    - 参数说明：
         - `required`：默认 true，若缺失则抛 400 错误。
         - `defaultValue`：设置默认值，避免参数缺失导致异常。
         - `name`：指定参数名，避免前后端字段不一致引发问题。
@@ -1011,7 +1011,7 @@ Deployment
 2. `@RequestHeader` 注解
 
     - 用于将 HTTP 请求头的值绑定到控制器方法参数上。支持设置参数名、是否必填、默认值。且大小写不敏感。
-    - 关键参数说明：
+    - 参数说明：
         - `required`：是否必填（默认 true），，若缺失则抛 400 错误。
         - `name`：指定请求头名称，大小写不敏感。
         - `defaultValue`：未传递时使用默认值。
@@ -1054,3 +1054,59 @@ Deployment
     ```
 
     - 描述：`@RequestHeader` 读取名为 `x-auth-token` 的请求头，未携带时报错。测试完后去除参数复原代码
+
+## 提取请求体数据
+
+> 简述：请求体用于在 HTTP 请求中传递结构化数据（如 JSON），常见于数据新增、更新等操作。Spring Boot 通过 `@RequestBody` 注解，自动将 JSON 转为 Java 对象，实现前后端的数据直连
+
+**知识树**
+
+1. 请求体的作用与原理
+
+    - 请求体（body）在 HTTP 请求中承载主要数据，适用于 POST、PUT 等写操作。
+    - `@RequestBody` 注解可自动将 JSON、XML、表单等内容反序列化为方法参数对象。
+    - 要求参数对象字段名与 JSON 字段一致，否则无法正确映射。
+
+2. 使用方式
+
+    - 方法参数加 `@RequestBody`，Spring 自动完成反序列化。
+    - 常与 DTO 结合，解耦前后端数据结构。
+    - 若省略 `@RequestBody`，参数不会自动绑定 JSON，结果为 null。
+
+3. 序列化与反序列化
+
+    - 反序列化：前端 JSON → Java 对象（服务端参数）
+    - 序列化：Java 对象 → JSON（服务端响应）
+
+**代码示例**
+
+1. 接收 JSON 请求体
+
+    ```java
+    @RestController
+    @AllArgsConstructor
+    @RequestMapping("/users")
+    public class UserController {
+
+    	// 省略
+
+        @PostMapping
+        public UserDto createUser(@RequestBody UserDto data) {
+            // 实际业务省略，此处直接返回接收到的数据
+            return data;
+        }
+    }
+    ```
+
+    - 描述：POST `/users` 自动将请求体中的 JSON 转为 UserDto 实例。后续介绍存储与更新。
+
+2. 前端发送请求示例（JSON）
+
+    ```json
+    {
+    	"name": "Pang",
+    	"email": "ppp_melody@163.com"
+    }
+    ```
+
+    - 说明：通过 Postman ，设置 POST 请求，在 Body 中提交 JSON 数据，请求地址`http://localhost:8080/users`
