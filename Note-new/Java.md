@@ -12,6 +12,8 @@ CompletableFuture 异常处理？
 
 - List.getFirst()——JDK21
     - 获取 List 中的第一个元素
+- Stream.toList----JDK16
+    - 将 Strean 转为 List
 - var——JDK10
     - 自动推断变量类型，避免显式声明数据类型，使代码更简洁。
     - 仅用于局部变量（方法内部），不能用于字段、方法参数或返回值。

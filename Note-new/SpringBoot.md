@@ -2265,13 +2265,18 @@ Model-first approach
     - `@Builder`：生成链式构建器
     - `@ToString`：生成 `toString()` 方法，可排除字段
     - `@Builder.Default`：指定字段在使用 `@Builder` 构造时保留初始化值，否则将被默认重置（0/null/false）
+    - `@Data`：集成 `@Getter`、`@Setter`、`@ToString`、`@EqualsAndHashCode`、`@RequiredArgsConstructor` 等常用 Lombok 注解，自动生成数据类所需的全部方法。
+
+如需更精炼可以写：
+
+- `@Data`：一键生成 getter/setter、toString、equals/hashCode、部分构造方法等，适用于典型数据类。
 
 3. 使用细节与注意事项（后面介绍）
 
     - 默认值问题：`@Builder` 仅设置显式赋值字段，忽略字段定义时的默认初始化。需使用 `@Builder.Default` 显式标明默认值应保留
     - `@ToString` 的循环依赖问题：当两个实体类互相引用，且都标注了 `@ToString`，可能导致栈溢出，应在其中一方的关联字段上使用 `@ToString.Exclude` 排除该字段
     - 后续补充
-        - `@ToString`如果包含懒加载的字段，可能有风险，这时需要考虑将所有懒加载字段加上 `@ToString.Exclude`或者手动充血 ToString 方法
+        - `@ToString`如果包含懒加载的字段，可能有风险，这时需要考虑将所有懒加载字段加上 `@ToString.Exclude`或者手动重写 ToString 方法
 
 **代码示例**
 

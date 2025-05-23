@@ -25,11 +25,46 @@ Deployment
     - 修改 `pom.xml`、`application.yaml` 中的数据库配置
     - 修改 `V1__initial_migration.sql`，将两个 `TINYINT` 修改为 `BIGINT`
     - 修改 `User.java`，注释掉 `Profile` 字段
+    - 修改`Category.java`，将 Byte 修改为 Long
 
 3. 数据库
 
     - 通过 flyway 插件运行脚本
     - 连接数据库
+
+4. 测试数据 SQL
+
+    ```sql
+    -- Insert users
+    insert into users (id, name, email, password) values
+    	  (2, 'Alice', 'alice@example.com', 'password1'),
+    	  (3, 'Bob', 'bob@example.com', 'password2'),
+    	  (1, 'Charlie', 'charlie@example.com', 'password3'),
+    	  (5, 'David', 'david@example.com', 'password4'),
+    	  (4, 'Eva', 'eva@example.com', 'password5');
+
+    -- Insert categories
+    insert into categories (id, name) values
+    (1, 'Electronics'),
+    (2, 'Books');
+
+    -- Insert products
+    insert into products (id, name, price, description, category_id) values
+    (1, 'iPhone 15 Pro', 1199.00, 'Apple flagship smartphone with advanced camera and A17 chip.', 1),
+    (2, 'Sony Alpha 7 IV', 2499.00, 'Sony full-frame mirrorless camera with fast autofocus.', 1),
+    (3, 'MacBook Air M3', 1499.00, 'Apple ultra-thin laptop powered by M3 chip.', 1),
+    (4, 'Kindle Paperwhite', 139.00, 'Amazon e-reader with high-resolution display.', 1),
+    (5, 'Samsung Galaxy S24', 1099.00, 'Samsung flagship smartphone with dynamic AMOLED screen.', 1),
+    (6, 'Bose QuietComfort Earbuds', 299.00, 'Noise-cancelling wireless earbuds by Bose.', 1),
+    (7, 'Java: The Complete Reference', 69.00, 'Comprehensive book on Java programming language.', 2),
+    (8, 'Effective Java', 89.00, 'Best practices for Java programming by Joshua Bloch.', 2),
+    (9, 'The Art of Computer Programming', 159.00, 'Classic work on algorithms by Donald Knuth.', 2),
+    (10, 'Fu Sheng Liu Ji', 12.00, 'Autobiographical work by Shen Fu, a classic of Chinese literature.', 2),
+    (11, 'To Kill a Mockingbird', 18.00, 'Harper Lee’s classic novel about justice and race.', 2),
+    (12, 'Clean Code', 79.00, 'A Handbook of Agile Software Craftsmanship by Robert C. Martin.', 2);
+
+
+    ```
 
 # Spring MVC
 
@@ -383,20 +418,6 @@ Deployment
     ```
 
     - 描述：控制器注入仓库，`getAllUsers` 方法返回全部用户，自动转为 JSON。
-
-2. 测试数据 SQL
-
-    ```sql
-    insert into users (id, name, email, password) values
-    	  (1, 'Alice', 'alice@example.com', 'password1'),
-    	  (2, 'Bob', 'bob@example.com', 'password2'),
-    	  (3, 'Charlie', 'charlie@example.com', 'password3'),
-    	  (4, 'David', 'david@example.com', 'password4'),
-    	  (5, 'Eva', 'eva@example.com', 'password5');
-
-    ```
-
-    - 描述：执行 SQL 插入测试数据，便于 API 演示与调试。
 
 ## Postman 基础
 
@@ -885,3 +906,92 @@ Deployment
     ```
 
     - 说明：通过 `@RequestParam` 动态获取排序字段，验证有效性后传递给 `Sort.by()`，实现可扩展的数据排序。
+
+## Ex: 构建产品列表与详情 API
+
+> **要求**：
+>
+> 1. 创建两个产品相关 API：
+>     - 获取产品列表接口（支持按 categoryId 查询筛选，未指定则返回全部产品）
+>     - 获取单个产品详情接口（按 产品 id 查询，不存在返回 404）
+> 2. 返回值为 ProductDto，仅包含 id、name、description、price、categoryId 字段，不暴露完整实体。
+> 3. ProductDto 的 categoryId 字段通过自定义映射，将实体的 `category.id` 转为 dto 字段。
+> 4. 优化查询，避免 N+1 问题（如使用 join fetch 或 entity graph）。
+
+> **要点**：
+
+1. `ProductMapper`中处理`category.id`映射
+2. 通过 join fetch 或 entity graph 避免多个 SQL 查询
+
+**代码**
+
+1. `ProductDto`
+
+    ```java
+    @Data
+    public class ProductDto {
+        private Long id;
+        private String name;
+        private BigDecimal price;
+        private String description;
+        private Long categoryId;
+    }
+    ```
+
+2. `ProductMapper`
+
+    ```java
+    @Mapper(componentModel = "spring")
+    public interface ProductMapper {
+        @Mapping(target = "categoryId", source = "category.id")
+        ProductDto toDto(Product product);
+    }
+    ```
+
+3. `ProductRepository`
+
+    ```java
+    public interface ProductRepository extends JpaRepository<Product, Long> {
+        @EntityGraph(attributePaths = "category")
+        List<Product> findByCategoryId(Long categoryId);
+
+        @EntityGraph(attributePaths = "category")
+        @Query("SELECT p FROM Product p")
+        List<Product> findAllWithCategory();
+    }
+    ```
+
+4. `ProductController`
+
+    ```java
+    public class ProductController {
+        private final ProductRepository productRepository;
+        private final ProductMapper productMapper;
+
+        @GetMapping
+        public List<ProductDto> getAllProducts(
+                @RequestParam(name = "categoryId", required = false) Long categoryId
+        ) {
+            List<Product> products;
+            if (categoryId != null) {
+                products = productRepository.findByCategoryId(categoryId);
+            } else {
+                products = productRepository.findAllWithCategory();
+            }
+
+            return products
+                    .stream()
+                    .map(productMapper::toDto)
+                    .toList();
+        }
+
+        @GetMapping("/{id}")
+        public ResponseEntity<ProductDto> getProduct(@PathVariable Long id) {
+            var product = productRepository.findById(id).orElse(null);
+            if (product == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(productMapper.toDto(product));
+        }
+    }
+    ```
