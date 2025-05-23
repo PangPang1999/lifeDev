@@ -645,4 +645,85 @@ Deployment
 
     - 说明：控制器输出为 UserDto，屏蔽实体结构和敏感信息。实体结构变更时，只需调整映射逻辑，API 输出保持稳定。
 
-## MapStruct
+## 对象映射工具
+
+> 简述：对象映射工具用于在实体类与 DTO 之间自动转换，减少重复代码、提升开发效率，并避免手动映射易错和难维护的问题。
+
+**知识树**
+
+1. 手动映射的不足
+
+    - 每次手写转换逻辑易出错且代码冗余。
+    - 随着实体和 DTO 增长，维护难度加大。
+
+2. 主流对象映射工具
+
+    - ModelMapper：基于反射，使用简单但运行效率低，调试不便，适合快速原型。
+    - MapStruct（主要介绍）：编译期自动生成类型安全的转换代码，性能优异，推荐生产环境使用。
+
+3. MapStruct 快速入门
+
+    - 依赖引入
+
+        - 在 `pom.xml` 添加 `mapstruct` 和 `mapstruct-processor` 依赖。
+        - 建议选择与 Spring Boot 版本兼容的最新版本。
+
+    - 映射接口定义
+
+        - 在 `mappers` 包中创建映射接口（如 `UserMapper`）。
+        - 使用 `@Mapper(componentModel = "spring")` 标注，实现由 Spring 管理。
+        - 在接口中声明转换方法，如 `UserDto toDto(User user);`，无需手写实现。
+
+    - 使用方式
+
+        - 在 Controller 或 Service 层注入映射器，直接通过方法或方法引用（如 `userMapper::toDto`）完成实体到 DTO 转换。
+
+4. 自动生成与维护
+
+    - 映射实现自动生成于 `target/generated-sources` 目录，开发者无需手动维护。
+    - 实体或 DTO 字段变动后，重新编译项目即可同步映射逻辑。
+
+**代码示例**
+
+1. 映射接口定义
+
+    ```java
+    @Mapper(componentModel = "spring")
+    public interface UserMapper {
+        UserDto toDto(User user);
+    }
+    ```
+
+    - 说明：声明映射方法，MapStruct 会自动实现。
+
+2. Controller 层使用
+
+    ```java
+    @RestController
+    @AllArgsConstructor
+    @RequestMapping("/users")
+    public class UserController {
+
+        private final UserRepository userRepository;
+        private final UserMapper userMapper;
+
+        @GetMapping
+        public List<UserDto> getAllUsers() {
+            return userRepository.findAll()
+                    .stream()
+                    .map(userMapper::toDto)
+                    .toList();
+        }
+
+        @GetMapping("/{id}")
+        public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
+            var user = userRepository.findById(id).orElse(null);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(userMapper.toDto(user));
+        }
+    }
+    ```
+
+    - 说明：无需手写映射逻辑，提升类型安全，保证代码简洁。
