@@ -347,7 +347,8 @@ Deployment
 
 2. 返回值处理
 
-    - `findAll()` 默认返回 `Iterable<T>`，可直接作为接口返回值，提升代码简洁性。
+    - 使用 `CrudRepository` 时，`findAll()` 默认返回 `Iterable<T>`，可直接作为接口返回值，提升代码简洁性。
+    - `JpaRepository`的`findAll()` 默认返回 `List<T>`，可以调用 Stream 方法。
 
 3. API 开发基础流程
 
@@ -406,6 +407,7 @@ Deployment
 
     - 免费跨平台桌面应用，用于发送 HTTP 请求、管理 API 集合、调试接口、保存请求历史等。
     - 支持多种请求类型（GET、POST、PUT、PATCH、DELETE 等）及批量管理和自动化测试。
+    - 地址：https://www.postman.com/downloads/
 
 2. 基本操作与界面
 
@@ -428,3 +430,93 @@ Deployment
 
     - 推荐使用 Postman 进行日常接口开发调试、自动化测试与接口文档管理。
     - 后续使用 postman 访问接口测试
+
+## 动态查询
+
+> 简述：通过 RESTful API，可以根据请求参数动态检索资源，实现按需查询和灵活的数据访问。
+
+**知识树**
+
+1. 动态参数绑定
+
+    - 路径参数（Path Variable）：通过 URL 直接传递变量，如 `/users/{id}`。
+    - 参数映射：用 `@PathVariable` 注解将 URL 参数绑定到方法参数，类型需与主键一致（如 Long）。
+
+2. 查询与返回机制
+
+    - 根据主键动态检索实体，常用 `findById` 等方法。
+    - 查找成功返回实体对象，未找到返回 `null` 或空响应。
+    - 建议后续统一异常处理和状态码返回（如资源未找到返回 404）。
+
+3. RESTful 设计规范
+
+    - API 路径应清晰表达资源层级和操作语义。
+    - 建议所有接口保持一致的参数风格和异常处理逻辑。
+
+**代码示例**
+
+1. 动态路径参数查询用户
+
+    ```java
+    @RestController
+    @AllArgsConstructor
+    public class UserController {
+
+        private final UserRepository userRepository;
+
+        @GetMapping("/users")
+        public List<User> getAllUsers() {
+            return userRepository.findAll();
+        }
+
+        @GetMapping("/users/{id}")
+        public User getUserById(@PathVariable Long id) {
+            return userRepository.findById(id).orElse(null);
+        }
+    }
+    ```
+
+    - 描述：`/users/{id}` 路径中的 `{id}` 通过 `@PathVariable` 绑定为方法参数，实现动态查询；未找到返回 `null`，后续可优化为异常映射 404。
+
+## 路由前缀
+
+> 简述：通过在控制器类上统一设置路由前缀，可以避免方法级路径的重复书写，使 API 路径结构清晰
+
+**知识树**
+
+1. 路由前缀的定义
+
+    - 在控制器类上使用 `@RequestMapping("/前缀")` 统一指定基础路径，如 `/users`。
+    - 避免每个方法重复书写通用部分，提高一致性和可维护性。
+
+**代码示例**
+
+1. 路由前缀
+
+    ```java
+    @RestController
+    @AllArgsConstructor
+    @RequestMapping("/users")
+    public class UserController {
+
+        private final UserRepository userRepository;
+
+        @GetMapping
+        public List<User> getAllUsers() {
+            return userRepository.findAll();
+        }
+
+        @GetMapping("/{id}")
+        public User getUserById(@PathVariable Long id) {
+            return userRepository.findById(id).orElse(null);
+        }
+    }
+    ```
+
+    - 描述：类级 `@RequestMapping("/users")` 统一前缀，方法级 `@GetMapping` 实现不同子路由，无需每次重复 `/users`。
+
+## 设置状态码
+
+## DTO&map
+
+## MapStruct
