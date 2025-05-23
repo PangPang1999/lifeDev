@@ -843,7 +843,7 @@ Deployment
 
     - 说明：自动映射实体到 DTO，并动态赋值时间戳。测试完毕后恢复原代码
 
-## 查询参数与排序
+## 提取查询参数
 
 > 简述：查询参数（Query Parameter）使前端可通过 URL 动态传递过滤、排序等条件，后端利用 `@RequestParam` 获取参数，实现接口灵活性和可定制化的数据排序。
 
@@ -851,14 +851,14 @@ Deployment
 
 1. 查询参数机制
 
-    - 查询参数以 `key=value` 形式追加于 URL 问号（?）之后，支持多个参数（用 & 连接），如 `/users?sort=name&page=1`。
+    - 查询参数以 `key=value` 形式，追加于 URL 问号（?）之后，支持多个参数（用 & 连接），如 `/users?sort=name&page=1`。
     - 常用于前端自定义筛选、排序、分页等功能。
 
 2. `@RequestParam` 注解
 
     - 用于 Controller 方法参数，自动映射 URL 查询参数。支持参数类型自动转换。
     - 关键参数说明：
-        - `required=false`：非必需参数，接口更健壮。
+        - `required`：默认 true，若缺失则抛 400 错误。
         - `defaultValue`：设置默认值，避免参数缺失导致异常。
         - `name`：指定参数名，避免前后端字段不一致引发问题。
 
@@ -995,3 +995,62 @@ Deployment
         }
     }
     ```
+
+## 提取请求头参数
+
+> 简述：请求头（HTTP Header）允许客户端在请求中附加元数据（如认证、缓存等）。在 Spring Boot 控制器中，可通过 `@RequestHeader` 注解读取特定头部，实现认证、追踪等功能。
+
+**知识树**
+
+1. 请求头基本概念
+
+    - Header 以 `key-value` 形式，随每个 HTTP 请求/响应一起发送。
+    - 常用于携带元数据（如认证 token、内容类型、缓存控制等）。
+    - 可分为标准头部和自定义头部（自定义建议以 `x-` 前缀，如`x-auth-token`）。
+
+2. `@RequestHeader` 注解
+
+    - 用于将 HTTP 请求头的值绑定到控制器方法参数上。支持设置参数名、是否必填、默认值。且大小写不敏感。
+    - 关键参数说明：
+        - `required`：是否必填（默认 true），，若缺失则抛 400 错误。
+        - `name`：指定请求头名称，大小写不敏感。
+        - `defaultValue`：未传递时使用默认值。
+
+3. 调试与实践
+
+    - 推荐仅在需要时读取特定头部，避免滥用增加系统复杂度。
+    - Postman 等工具可添加自定义请求头进行测试。
+
+**代码示例**
+
+1. PostMan 测试
+
+    - 在 Postman 中设置 `Header`，添加参数`x-auth-token`，并设置值为 `1234`，并访问`http://localhost:8080/users?sort=name`
+
+2. 提取请求头参数
+
+    ```java
+    @RestController
+    @AllArgsConstructor
+    @RequestMapping("/users")
+    public class UserController {
+
+        private final UserRepository userRepository;
+        private final UserMapper userMapper;
+
+        @GetMapping
+        public List<UserDto> getAllUsers(
+                @RequestHeader(name = "x-auth-token") String authToken,
+                @RequestParam(required = false, defaultValue = "", name = "sort") String sortBy
+        ) {
+
+            System.out.println(authToken);
+
+    		// 省略
+        }
+
+    	// 省略
+    }
+    ```
+
+    - 描述：`@RequestHeader` 读取名为 `x-auth-token` 的请求头，未携带时报错。测试完后去除参数复原代码
