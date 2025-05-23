@@ -564,6 +564,85 @@ Deployment
 
     - 说明：未查到用户返回 404，无响应体；查到用户返回 200 和用户数据。
 
-## DTO&map
+## DTO 与实体解耦
+
+> 简述：DTO（数据传输对象）用于在不同应用层之间传递数据。通过在 API 层使用 DTO，可以隔离底层实体结构，防止敏感信息暴露，提升接口的安全性和稳定性。
+
+**知识树**
+
+1. 实体泄露与 API 设计风险
+
+    - 直接返回实体对象，容易暴露敏感字段（如密码、权限等）。
+    - 实体结构变动会影响外部接口，降低 API 稳定性和可维护性。
+
+2. DTO（数据传输对象）原理
+
+    - DTO 只包含对外需要暴露的字段，是专用于接口通信的数据结构。
+    - 典型用法是在 Controller 层将实体对象映射为 DTO，API 层仅暴露 DTO。
+
+3. DTO 映射实践
+
+    - Repository 层返回实体对象，无需变更接口定义。
+    - Controller 层负责将实体对象流式（stream）转换为 DTO。
+    - API 方法返回值类型改为 DTO，如 `List<UserDto>`，避免实体结构泄露。
+
+4. 规范与命名
+
+    - DTO 命名采用 PascalCase（如 `UserDto`）。
+    - 仅包含对外字段，隐藏内部实现细节与敏感属性。
+    - 建议在 `dtos` 包下定义。
+
+5. 性能与进阶思考
+
+    - 对于大表全量查询再流式映射 DTO，可能存在性能损耗。若表结构稳定，可在 Repository 层直接返回 DTO，进一步提升效率。
+    - 更优解：直接在 Repository 层返回 DTO
+
+**代码示例**
+
+1. 定义 DTO 类型
+
+    ```java
+    @AllArgsConstructor
+    @Getter
+    public class UserDto {
+        private Long id;
+        private String name;
+        private String email;
+    }
+    ```
+
+    - 描述：只包含安全对外的字段。store 下创建创建 dtos 包，其内创建 UserDto
+
+2. 控制器中实体到 DTO 的映射
+
+    ```java
+    @RestController
+    @AllArgsConstructor
+    @RequestMapping("/users")
+    public class UserController {
+
+        private final UserRepository userRepository;
+
+        @GetMapping
+        public List<UserDto> getAllUsers() {
+            return userRepository.findAll()
+                    .stream()
+                    .map(user -> new UserDto(user.getId(), user.getName(), user.getEmail()))
+                    .toList();
+        }
+
+        @GetMapping("/{id}")
+        public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
+            var user = userRepository.findById(id).orElse(null);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+            var userDto = new UserDto(user.getId(), user.getName(), user.getEmail());
+            return ResponseEntity.ok(userDto);
+        }
+    }
+    ```
+
+    - 说明：控制器输出为 UserDto，屏蔽实体结构和敏感信息。实体结构变更时，只需调整映射逻辑，API 输出保持稳定。
 
 ## MapStruct
