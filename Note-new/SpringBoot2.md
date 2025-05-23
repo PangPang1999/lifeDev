@@ -515,7 +515,54 @@ Deployment
 
     - 描述：类级 `@RequestMapping("/users")` 统一前缀，方法级 `@GetMapping` 实现不同子路由，无需每次重复 `/users`。
 
-## 设置状态码
+## ResponseEntity
+
+> 简述：`ResponseEntity` 是 Spring Web 提供的通用响应封装类型，可灵活设置响应体、状态码和 HTTP 头，支持细粒度控制 API 的返回内容和行为。
+
+**知识树**
+
+1. ResponseEntity 概念
+
+    - 封装 HTTP 响应内容，允许开发者自定义响应体、状态码和响应头。
+    - 适合需要灵活处理响应结果的场景，如异常处理、多分支返回等。
+
+2. 创建方式
+
+    - 构造方法：`new ResponseEntity<>(body, status)` 或仅指定状态。
+    - 工厂方法（推荐）：如 `ResponseEntity.ok(body)`、`ResponseEntity.notFound().build()`，语义清晰、简洁。
+
+3. 常用应用场景
+
+    - 查询不到资源时返回 404（Not Found）。
+    - 正常返回数据时使用 200（OK）。
+    - 可扩展链式设置自定义 HTTP 头，或返回其他状态码（如 201、204、400、500）。
+
+**代码示例**
+
+1. 根据查询结果返回不同响应
+
+    ```java
+    @RestController
+    @AllArgsConstructor
+    @RequestMapping("/users")
+    public class UserController {
+
+    	// 省略部分代码
+
+        @GetMapping("/{id}")
+        public ResponseEntity<User> getUserById(@PathVariable Long id) {
+            var user = userRepository.findById(id).orElse(null);
+            if (user == null) {
+                // return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                return ResponseEntity.notFound().build();
+            }
+            // return new ResponseEntity<>(user, HttpStatus.OK);
+            return ResponseEntity.ok(user);
+        }
+    }
+    ```
+
+    - 说明：未查到用户返回 404，无响应体；查到用户返回 200 和用户数据。
 
 ## DTO&map
 
