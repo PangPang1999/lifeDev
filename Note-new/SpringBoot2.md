@@ -645,7 +645,7 @@ Deployment
 
     - 说明：控制器输出为 UserDto，屏蔽实体结构和敏感信息。实体结构变更时，只需调整映射逻辑，API 输出保持稳定。
 
-## 对象映射工具
+## 对象映射 MapStruct
 
 > 简述：对象映射工具用于在实体类与 DTO 之间自动转换，减少重复代码、提升开发效率，并避免手动映射易错和难维护的问题。
 
@@ -682,6 +682,26 @@ Deployment
 
     - 映射实现自动生成于 `target/generated-sources` 目录，开发者无需手动维护。
     - 实体或 DTO 字段变动后，重新编译项目即可同步映射逻辑。
+
+5. `@Mapping`注解
+
+    - `source`
+        - 含义：源对象的字段名（即你要从哪个属性取值）
+        - 用法：`source = "userName"`
+    - `target`
+        - 含义：目标对象的字段名（即你要把值赋给哪个属性）
+        - 用法：`target = "name"`
+    - （可选）`expression`
+        - 含义：自定义表达式，用 Java 代码返回目标字段值，适合复杂场景（如动态赋值、类型转换等）如下
+            ```java
+            @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
+            ```
+    - （可选）`constant`
+        - 含义：为目标字段赋固定值（字符串）
+        - 用法：`constant = "ACTIVE"`
+    - （可选）`**ignore**`\*\*
+        - 含义：是否忽略该字段（不映射），布尔值
+        - 用法：`ignore = true`
 
 **代码示例**
 
@@ -727,3 +747,76 @@ Deployment
     ```
 
     - 说明：无需手写映射逻辑，提升类型安全，保证代码简洁。
+
+## JSON 序列化控制
+
+> 简述：Spring Boot 默认使用 Jackson 进行 Java 对象与 JSON 间的转换。通过 Jackson 注解，可精准控制序列化/反序列化的行为，实现字段过滤、重命名、格式化输出等，提升 API 安全性与前后端兼容性。
+
+**知识树**
+
+1. 序列化与反序列化
+
+    - 序列化：Java 对象转为 JSON 字符串，供前端/客户端消费。
+    - 反序列化：JSON 字符串转为 Java 对象，便于后端处理。
+
+2. 核心 Jackson 注解
+
+    - `@JsonIgnore`：排除字段，不参与序列化和反序列化。
+    - `@JsonProperty`：自定义 JSON 字段名，实现后端字段与前端字段解耦。
+    - `@JsonInclude`：按规则排除字段（如 null/空值）。
+        - 例如 `@JsonInclude(JsonInclude.Include.NON_NULL)`，字段为 null 时不输出。
+    - `@JsonFormat`：指定序列化格式，常用于日期时间字段。
+        - 如 `@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")`。
+
+3. 典型场景与用法
+
+    - 避免暴露敏感字段（如 id、密码）。
+    - 适配前端字段命名习惯或第三方接口要求。
+    - 精简输出，避免无效字段，提升网络传输效率。
+    - 格式化时间、金额等特殊类型。
+
+4. 配合对象映射工具
+
+    - 结合 MapStruct 的 `@Mapping` 注解测试，对 DTO 字段赋值和格式转换。
+
+**代码示例**
+
+1. DTO 序列化控制示例
+
+    ```java
+    @AllArgsConstructor
+    @Getter
+    public class UserDto {
+        // 设置JSON不包含用户id
+        @JsonIgnore
+        private Long id;
+
+        // 设置JSON中name改为user_name
+        @JsonProperty("user_name")
+        private String name;
+
+        private String email;
+
+        // 设置JSON中phoneNumber为空时不包含
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private String phoneNumber;
+
+        // 设置时间转换为标准格式
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        private LocalDateTime createdAt;
+    }
+    ```
+
+    - 说明：示例演示字段排除、重命名、非空输出及日期格式化。，测试完毕后恢复原代码
+
+2. 配合 MapStruct 映射动态赋值
+
+    ```java
+    @Mapper(componentModel = "spring")
+    public interface UserMapper {
+        @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
+        UserDto toDto(User user);
+    }
+    ```
+
+    - 说明：自动映射实体到 DTO，并动态赋值时间戳。测试完毕后恢复原代码
