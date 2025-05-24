@@ -783,7 +783,7 @@ Deployment
 
 2. 核心 Jackson 注解
 
-    - `@JsonIgnore`：排除字段，不参与序列化和反序列化。
+    - `@JsonIgnore`：排除字段，不参与**序列化和反序列化**。
     - `@JsonProperty`：自定义 JSON 字段名，实现后端字段与前端字段解耦。
     - `@JsonInclude`：按规则排除字段（如 null/空值）。
         - 例如 `@JsonInclude(JsonInclude.Include.NON_NULL)`，字段为 null 时不输出。
@@ -1110,3 +1110,107 @@ Deployment
     ```
 
     - 说明：通过 Postman ，设置 POST 请求，在 Body 中提交 JSON 数据，请求地址`http://localhost:8080/users`
+
+## 创建资源&201 状态码
+
+> 简述：RESTful API 中创建资源的标准是通过 POST 请求提交数据，响应时需返回 HTTP 状态码 `201 Created`，并在响应体提供新资源内容，同时通过响应头 `Location` 指定资源的唯一地址。
+
+**知识树**
+
+1. 创建资源流程
+
+    - 客户端使用 POST 方法，提交 JSON 数据。
+    - 后端使用 `@RequestBody` 注解，将请求数据转为输入 DTO。
+    - 使用映射工具（如 MapStruct），转换 DTO 到实体对象，持久化到数据库。
+
+2. DTO 明确职责划分
+
+    - 输入 DTO：
+        - 仅含创建必需字段（如用户名、邮箱、密码）。
+        - 无需主键（若数据库自动生成）。
+    - 输出 DTO：
+        - 用于响应客户端，仅含对外暴露字段，不包含敏感数据。
+
+3. 标准 REST 响应
+
+    - 状态码：
+        - 使用 `201 Created` 表示成功创建新资源。
+    - 响应体：
+        - 包含新资源的 DTO，客户端可直接使用。
+    - 响应头：
+        - `Location` 指明新资源访问地址，供客户端后续使用。
+        - 使用 Spring 提供的 `UriComponentsBuilder` 构建资源 URI。
+    - 流程：
+        - 控制器方法返回值类型为 `ResponseEntity`。
+        - 调用 `UriComponentsBuilder` 生成新资源的 URI，作为 `Location` 响应头。
+        - 同时将输出 DTO 作为响应体返回，设置状态码、响应头与内容。
+
+4. 最佳实践
+
+    - 严格区分输入、输出 DTO，避免使用 `@JsonIgnore` 控制序列化。
+    - 避免暴露敏感数据，保持接口安全与稳定。
+
+**代码示例**
+
+1. 输入 DTO 定义
+
+    ```java
+    @Data
+    public class RegisterUserRequest {
+        private String name;
+        private String email;
+        private String password;
+    }
+    ```
+
+    - 描述：仅包含注册必需字段。
+
+2. DTO 映射定义（MapStruct）
+
+    ```java
+    @Mapper(componentModel = "spring")
+    public interface UserMapper {
+        UserDto toDto(User user);// 输出DTO
+        User toEntity(RegisterUserRequest request);//输入DTO
+    }
+    ```
+
+3. 控制器中创建资源并响应 `201`
+
+    ```java
+    @RestController
+    @AllArgsConstructor
+    @RequestMapping("/users")
+    public class UserController {
+
+        private final UserRepository userRepository;
+        private final UserMapper userMapper;
+
+    	// 省略部分
+
+        @GetMapping("/{id}")
+        public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
+            var user = userRepository.findById(id).orElse(null);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(userMapper.toDto(user));
+        }
+
+        @PostMapping
+        public ResponseEntity<UserDto> createUser(
+                @RequestBody RegisterUserRequest request,
+                UriComponentsBuilder uriBuilder
+        ) {
+
+            User user = userMapper.toEntity(request);
+            userRepository.save(user);
+
+            var userDto = userMapper.toDto(user);
+            var uri = uriBuilder.path("/users/{id}").buildAndExpand(userDto.getId()).toUri();
+            return ResponseEntity.created(uri).body(userDto);
+        }
+    }
+    ```
+
+    - 描述：实现创建资源，规范返回 `201 Created` 状态码及响应头 `Location`。
