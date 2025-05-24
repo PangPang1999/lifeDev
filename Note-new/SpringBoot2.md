@@ -1630,3 +1630,144 @@ Deployment
 - 404 Not Found
 
     - 请求资源不存在。常用于路径错误、资源 id 查无此数据等情况。
+
+# Validating API Requests
+
+## 数据校验基础
+
+> 简述：通过 Jakarta Validation 提供的注解，可对请求数据自动进行格式和内容校验，无需手写校验逻辑，大幅提升 API 输入安全性与开发效率。
+
+**知识树**
+
+1. Jakarta Validation 概念
+
+    - 基于注解的声明式校验，无需手动实现逻辑。
+    - 集成于 `spring-boot-starter-validation`，即装即用。
+        - 通过 Add Starters，搜索 `Validation` 添加， 引入 `spring-boot-starter-validation` 依赖，自动集成 Jakarta Validation。
+    - 支持多注解组合，灵活定制规则与提示信息。
+
+2. 常用校验注解
+
+    - 字符串校验
+        - `@NotBlank`：非空且非空白字符（如姓名）。
+        - `@NotEmpty`：非空（字符串/集合）。
+        - `@Size`：限制长度（min/max）。
+        - `@Pattern`：正则表达式校验。
+        - `@Email`：校验邮箱格式。
+        - `@CreditCardNumber`：校验信用卡格式，适用于电商/支付业务
+    - 数值校验
+        - `@Min`、`@Max`：取值范围
+        - `@Positive`、`@PositiveOrZero`：大于/大于等于 0
+        - `@Negative`、`@NegativeOrZero`：小于/小于等于 0
+    - 日期/时间校验
+        - `@Past`、`@PastOrPresent`：早于当前时间/现在
+        - `@Future`、`@FutureOrPresent`：晚于当前时间/现在
+    - 通用校验
+        - `@NotNull`：字段不为 null。
+
+3. 校验触发与响应
+
+    - 请求数据不合规时自动阻断，响应 400 错误，后续介绍提示语意化的错误提示。
+    - 适用于所有请求体、表单及参数校验场景。
+
+**代码示例**
+
+1. DTO 字段校验注解
+
+    ```java
+    @Data
+    public class RegisterUserRequest {
+        @NotBlank(message = "Name is required")
+        @Size(max = 255, message = "Name must be less than 255 characters")
+        private String name;
+
+        @NotBlank(message = "Email is required")
+        @Email(message = "Email must be valid")
+        private String email;
+
+        @NotBlank(message = "Password is required")
+        @Size(min = 6, max = 25, message = "Password must be between 6 to 25 characters long")
+        private String password;
+    }
+    ```
+
+2. 控制器方法加 `@Valid`
+
+    ```java
+    @PostMapping
+    public ResponseEntity<UserDto> createUser(
+            @Valid @RequestBody RegisterUserRequest request,
+            UriComponentsBuilder uriBuilder
+    ) {
+
+        User user = userMapper.toEntity(request);
+        userRepository.save(user);
+
+        var userDto = userMapper.toDto(user);
+        var uri = uriBuilder.path("/users/{id}").buildAndExpand(userDto.getId()).toUri();
+        return ResponseEntity.created(uri).body(userDto);
+    }
+    ```
+
+    - 描述：数据不合规时自动返回 400，无需手动校验逻辑。
+
+## 处理校验错误
+
+> 简述：通过异常处理机制，将校验错误自动转换为结构化 JSON 响应，让客户端获得清晰的字段级提示，提升 API 友好性和可用性。
+
+**知识树**
+
+1. 校验错误的触发
+
+    - 控制器参数添加 `@Valid` 后，Spring 在方法执行前自动校验数据。
+    - 校验失败时抛出 `MethodArgumentNotValidException`，不会进入原方法体。
+
+2. 异常捕获与处理
+
+    - 可用 `@ExceptionHandler(MethodArgumentNotValidException.class)` 注解自定义处理逻辑。
+    - 方法接收异常对象，提取错误信息。
+
+3. 结构化响应设计
+
+    - 建议返回 `Map<字段名, 错误提示>`，便于前端逐字段定位和展示错误。
+    - 相比直接返回字符串，结构化响应更规范、可用性更高。
+
+4. 实现建议
+
+    - 可在单个控制器内处理，也可抽取为全局异常处理类（后续介绍）。
+
+**代码示例**
+
+1. 控制器内校验异常处理
+
+    ```java
+    @RestController
+    @AllArgsConstructor
+    @RequestMapping("/users")
+    public class UserController {
+
+    	// 省略
+
+        // 返回String，显示杂乱，语义不明
+        // @ExceptionHandler(MethodArgumentNotValidException.class)
+        // public ResponseEntity<String> handleValidationErrors(MethodArgumentNotValidException exception) {
+        //     return ResponseEntity.badRequest().body(exception.getMessage());
+        // }
+
+        // 返回键值对
+        @ExceptionHandler(MethodArgumentNotValidException.class)
+        public ResponseEntity<Map<String, String>> handleValidationErrors(
+                MethodArgumentNotValidException exception
+        ) {
+            var errors = new HashMap<String, String>();
+
+            exception.getBindingResult().getFieldErrors().forEach(error -> {
+                errors.put(error.getField(), error.getDefaultMessage());
+            });
+
+            return ResponseEntity.badRequest().body(errors);
+        }
+    }
+    ```
+
+    - 描述：自动捕获并转化所有字段校验错误，以 JSON 格式返回前端。
