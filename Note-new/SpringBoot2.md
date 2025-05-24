@@ -1297,3 +1297,62 @@ Deployment
     ```
 
     - 描述：查找目标 → 映射字段 → 保存 → 返回最新数据。
+
+4.  更新资源 JSON
+
+    ```json
+    {
+    	"name": "Melody",
+    	"email": "ppp_melody@163.com"
+    }
+    ```
+
+    - 描述：Postman 设置 body，访问 http://localhost:8080/users/6 ，修改之前添加到用户
+
+## 删除资源&204 状态码
+
+> 简述：RESTful API 使用 `DELETE` 方法删除资源。只需指定资源标识，无需请求体，通常采用“逻辑删除”（标记无效）而非物理删除。删除需校验资源是否存在，并规范返回 HTTP 状态码。
+
+**知识树**
+
+1. 删除操作流程
+
+    - 客户端发送 `DELETE` 请求，URL 指定主键，无需请求体。
+    - 控制器用 `@DeleteMapping` 处理，`@PathVariable` 绑定 ID。
+    - 先查找资源是否存在，未找到返回 404，存在则执行删除
+
+2. 响应状态设计
+
+    - 成功删除返回 204 No Content，无响应体。
+    - 未找到目标返回 404 Not Found，表明资源不存在或已删除。
+
+3. 实际开发补充
+
+    - 实际业务中多采用“逻辑删除”（如设置 `isActive` 为 false），避免直接物理删除数据。
+    - 需结合具体需求决定删除方式。
+
+**代码示例**
+
+1. 控制器实现 DELETE 删除
+
+    ```java
+    @RestController
+    @AllArgsConstructor
+    @RequestMapping("/users")
+    public class UserController {
+
+    	// 省略
+
+        @DeleteMapping("{id}")
+        public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+            var user = userRepository.findById(id).orElse(null);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+            userRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        }
+    }
+    ```
+
+    - 逻辑：查找用户，未找到返回 404，找到则删除并返回 204。
