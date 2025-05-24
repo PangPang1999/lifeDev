@@ -1213,6 +1213,18 @@ Deployment
 
     - 描述：实现创建资源，规范返回 `201 Created` 状态码及响应头 `Location`。
 
+4. 前端发送请求示例（JSON）
+
+    ```json
+    {
+    	"name": "Pang",
+    	"email": "ppp_melody@163.com",
+    	"password": "1234"
+    }
+    ```
+
+    - 说明：通过 Postman ，设置 POST 请求，在 Body 中提交 JSON 数据，请求地址`http://localhost:8080/users`
+
 ## 更新资源
 
 > 简述：RESTful API 通常使用 `PUT` 或 `PATCH` 方法更新资源，一般常用 `PUT`。`PUT` 用于整体替换资源，`PATCH` 适用于部分更新。更新操作通常需校验目标资源是否存在，并按需返回响应结果。
@@ -1833,3 +1845,100 @@ Deployment
     ```
 
     - 描述：`controller` 包下创建 `GlobalExceptionHandler`，剪切原有校验逻辑存放到该类。当前`GlobalExceptionHandler` 统一处理所有控制器的参数校验异常，与之前控制器内校验异常处理功能相同。
+
+## 自定义校验注解
+
+> 简述：自定义校验注解用于实现内置注解无法覆盖的业务规则，增强数据校验的灵活性和代码的可读性。开发者需分别定义注解本身及对应的校验器实现类。本节以实现一个注解校验字段值必须为小写字母为例，实现过程主要为样板代码（boilerplate code）。
+
+**知识树**
+
+1. 自定义注解原理
+
+    - 可将通用或特殊的业务校验逻辑封装为注解，便于复用和解耦。
+    - 注解需配合校验器实现，实现规则自动校验。
+
+2. 注解创建
+
+    - 创建注解类，使用元注解定义作用范围、生命周期及关联校验器：
+        - `@Target`：指定注解适用位置（如字段、方法等）。
+        - `@Retention`：定义注解在运行时有效。
+        - `@Constraint`：关联具体的校验逻辑类。
+    - 包含通用属性：
+        - `message`：校验失败时的错误提示信息。
+        - `groups`、`payload`：可选，用于分组校验和元数据传递。
+
+3. 校验器创建
+
+    - 新建校验器类， - 实现接口`ConstraintValidator<A, T>`，A 为自定义注解，T 为校验目标类型。
+    - 必须实现`isValid(value, context)`方法，编写具体校验逻辑（如判断字符串是否为小写）。
+    - 校验逻辑建议：空值（null）直接返回 true，避免与 @NotNull 重复。
+
+4. 注解与校验器关联
+
+    - 在自定义注解上使用`@Constraint(validatedBy = Validator.class)`明确指定实现类。
+
+5. 使用
+
+    - 在 DTO 字段上标注自定义注解，可配合 message 属性自定义错误提示。
+    - 支持与标准注解混合使用，校验失败时自动提示具体字段错误。
+
+**代码示例**
+
+1. 自定义注解创建
+
+    ```java
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Constraint(validatedBy = LowercaseValidator.class)
+    public @interface Lowercase {
+        String message() default "must be lowercase";
+        Class<?>[] groups() default {};
+        Class<? extends Payload>[] payload() default {};
+    }
+    ```
+
+    - 描述：注解声明基础结构及必要元注解
+
+2. 校验器创建
+
+    ```java
+    public class LowercaseValidator implements ConstraintValidator<Lowercase, String> {
+        @Override
+        public boolean isValid(String value, ConstraintValidatorContext constraintValidatorContext) {
+            if (value == null) return true;
+            return value.equals(value.toLowerCase());
+        }
+    }
+    ```
+
+    - 描述：实现具体业务逻辑，确保字符串为小写，空值视为合法。
+
+3. 在 DTO 字段使用自定义注解
+
+    ```java
+    @Data
+    public class RegisterUserRequest {
+    	// 省略
+
+        @NotBlank(message = "Email is required")
+        @Email(message = "Email must be valid")
+        @Lowercase(message = "Email must be in lowercase")
+        private String email;
+
+    	// 省略
+    }
+    ```
+
+    - 说明：DTO 中，在 email 字段上同时应用内置注解和自定义注解，确保邮箱有效并为小写，错误时返回自定义提示。
+
+4. 前端发送请求示例（JSON）
+
+    ```json
+    {
+    	"name": "Pang",
+    	"email": "ppp_melody@163.com",
+    	"password": "1234"
+    }
+    ```
+
+    - 说明：通过 Postman ，设置 POST 请求，在 Body 中提交 JSON 数据，请求地址`http://localhost:8080/users`
