@@ -26,6 +26,7 @@ Deployment
     - 修改 `V1__initial_migration.sql`，将两个 `TINYINT` 修改为 `BIGINT`
     - 修改 `User.java`，注释掉 `Profile` 字段
     - 修改`Category.java`，将 Byte 修改为 Long
+    - 修改`CategoryRepository.java`，将 Byte 修改为 Long
 
 3. 数据库
 
@@ -1445,3 +1446,161 @@ Deployment
     ```
 
     - 描述：Postman 在 body 中添加新旧密码，访问 http://localhost:8080/users/1/change-password 进行测试
+
+## Ex: 产品的 CUD
+
+> **要求**：实现产品的创建、更新和删除接口。创建与更新均使用同一个 ProductDTO，包含 id、name、description、price、categoryId 字段。创建和更新需正确关联分类，校验分类存在性，并返回规范响应。删除产品需校验资源存在，并返回合适状态码。
+
+> **解法**：
+
+1. 创建产品
+
+    - 接收 ProductDTO（无 id 字段）。
+    - 校验 categoryId 是否存在，若不存在，为请求格式/参数有误，返回 400 Bad Request。
+    - 将 DTO 转为实体，设置分类，保存。
+    - 保存后拿到 DTO 的 id 字段，返回 201 Created，响应头带 Location，响应体返回 ProductDTO。
+
+2. 更新产品
+
+    - 路径参数传 id，请求体为 ProductDTO。
+    - 校验产品是否存在，若不存在返回 404。
+    - 校验 categoryId 是否存在，若不存在返回 400。
+    - 用 Mapper 将 DTO 数据复制到实体（忽略 id 字段），设置分类。
+    - 保存实体，更新 DTO 的 id 字段，返回 200 OK，响应体为 ProductDTO。
+
+3. 删除产品
+
+    - 路径参数传 id。
+    - 校验产品是否存在，若不存在返回 404。
+    - 存在则删除，返回 204 No Content。
+
+4. 注意点
+
+    - DTO 中设置的是 categoryId，实体类中是 Category 类，需要先判断 categoryId 是否有效
+    - 对象映射时，若 DTO 映射给实体类对象，ID 通过查询参数设置，DTO 没有设置 ID，那么实体类对象的 ID 将被映射为 null，需要在 Mapper 使用 `@JsonIgnore`
+
+**代码**
+
+1. DTO
+
+    ```java
+    @Data
+    public class ProductDto {
+        private Long id;
+        private String name;
+        private BigDecimal price;
+        private String description;
+        private Long categoryId;
+    }
+    ```
+
+2. Mapper
+
+    ```java
+    @Mapper(componentModel = "spring")
+    public interface ProductMapper {
+        @Mapping(target = "categoryId", source = "category.id")
+        ProductDto toDto(Product product);
+
+        Product toEntity(ProductDto productDto);
+
+        @Mapping(target = "id", ignore = true)
+        void update(ProductDto productDto, @MappingTarget Product product);
+    }
+    ```
+
+3. Controller
+
+    ```java
+
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/products")
+    public class ProductController {
+        private final ProductRepository productRepository;
+        private final ProductMapper productMapper;
+        private final CategoryRepository categoryRepository;
+
+    	// 省略
+
+        @PostMapping
+        public ResponseEntity<ProductDto> createProduct(
+                @RequestBody ProductDto productDto,
+                UriComponentsBuilder uriBuilder) {
+            var category = categoryRepository.findById(productDto.getCategoryId()).orElse(null);
+            if (category == null) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            var product = productMapper.toEntity(productDto);
+            product.setCategory(category);
+            productRepository.save(product);
+            productDto.setId(product.getId());
+
+            var uri = uriBuilder.path("/products/{id}").buildAndExpand(productDto.getId()).toUri();
+
+            return ResponseEntity.created(uri).body(productDto);
+        }
+
+        @PutMapping("/{id}")
+        public ResponseEntity<ProductDto> updateProduct(
+                @PathVariable Long id,
+                @RequestBody ProductDto productDto) {
+            var category = categoryRepository.findById(productDto.getCategoryId()).orElse(null);
+            if (category == null) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            var product = productRepository.findById(id).orElse(null);
+            if (product == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            productMapper.update(productDto, product);
+            product.setCategory(category);
+            productRepository.save(product);
+            productDto.setId(product.getId());
+
+            return ResponseEntity.ok(productDto);
+        }
+
+        @DeleteMapping("/{id}")
+        public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+            var product = productRepository.findById(id).orElse(null);
+            if (product == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            productRepository.delete(product);
+
+            return ResponseEntity.noContent().build();
+        }
+    }
+
+    ```
+
+**示例**
+
+1. 创建操作：POST 访问 http://localhost:8080/products ，返回值 ID 为 13 的，添加成功
+
+    ```json
+    {
+    	"name": "Test Product",
+    	"price": "999",
+    	"description": "description",
+    	"categoryId": "1"
+    }
+    ```
+
+2. 更新操作：PUT 访问 http://localhost:8080/products/13 。返回值显示价格修改为 1，更新成功
+
+```json
+{
+	"name": "Test Product",
+	"price": "1",
+	"description": "description",
+	"categoryId": "1"
+}
+```
+
+3. 删除操作：DELETE 访问 http://localhost:8080/products/13 ，查询数据库，再执行 GET 访问 http://localhost:8080/products/13 ，或者直接访问数据库，查询不到数据，删除成功
