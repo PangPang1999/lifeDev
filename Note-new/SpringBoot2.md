@@ -1236,8 +1236,8 @@ Deployment
 
 4.  响应规范
 
-        - 成功更新返回 200 状态和最新资源数据。
-        - 资源不存在返回 404 Not Found。
+    - 成功更新返回 200 状态和最新资源数据。
+    - 资源不存在返回 404 Not Found。
 
 **代码示例**
 
@@ -1356,3 +1356,92 @@ Deployment
     ```
 
     - 逻辑：查找用户，未找到返回 404，找到则删除并返回 204。
+
+## 动作接口&401 状态码
+
+> 简述：RESTful API 中，业务动作（如修改密码、提交审核）通常不直接归属于资源本身的更新，而应作为“动作”通过 POST 单独建接口。未授权请求需返回 401 状态码，明确鉴权失败。
+
+**知识树**
+
+1. 动作型接口定义
+
+    - 适用场景：涉及业务流程或操作（如修改密码、审核、重置），而非单纯字段更新。
+    - 动作接口语义：用 POST 创建一项“动作”请求，区别于 PUT/PATCH 直接资源变更。
+
+2. 流程设计（以修改密码为例）
+
+    - 客户端发起 POST 请求，URL 通常为 `/资源/{id}/action`。
+    - 请求体包含业务所需参数（如旧密码、新密码）。
+    - 控制器用 `@PostMapping`，`@PathVariable` 绑定资源主键，`@RequestBody` 接收 DTO。
+    - 步骤：
+        - 查找目标资源，未找到返回 404。
+        - 校验业务逻辑（如旧密码是否正确），不符返回 401 Unauthorized。
+        - 通过校验则执行操作并保存。
+
+3. 鉴权与响应规范
+
+    - 目标不存在，返回 404 Not Found。
+    - 认证或校验失败，返回 401 Unauthorized（鉴权不足）。
+    - 操作成功，不返回实体内容，返回 204 No Content。
+
+4. 最佳实践
+
+    - 将业务动作接口与通用 CRUD 分离，保证 API 语义清晰、易扩展。
+    - 保持响应状态与 REST 规范一致，提高前后端协作效率与安全性。
+    - 当前密码为明文存储，Security 章节介绍解决方案。
+
+**代码示例**
+
+1. 动作请求 DTO（以修改密码为例）
+
+    ```java
+    @Data
+    public class ChangePasswordRequest {
+        private String oldPassword;
+        private String newPassword;
+    }
+    ```
+
+2. 控制器实现动作接口
+
+    ```java
+    @RestController
+    @AllArgsConstructor
+    @RequestMapping("/users")
+    public class UserController {
+
+    	// 省略
+
+        @PostMapping("/{id}/change-password")
+        public ResponseEntity<Void> changePassword(
+                @PathVariable Long id,
+                @RequestBody ChangePasswordRequest request
+        ) {
+            var user = userRepository.findById(id).orElse(null);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+            if (!user.getPassword().equals(request.getOldPassword())) {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+            user.setPassword(request.getNewPassword());
+            userRepository.save(user);
+
+            return ResponseEntity.noContent().build();
+
+        }
+    }
+    ```
+
+    - 说明：POST `/users/{id}/change-password`，查找用户，校验旧密码，失败返回 401，成功修改密码并返回 204。
+
+3. Postman 测试
+
+    ```json
+    {
+    	"oldPassword": "password3",
+    	"newPassword": "2345"
+    }
+    ```
+
+    - 描述：Postman 在 body 中添加新旧密码，访问 http://localhost:8080/users/1/change-password 进行测试
