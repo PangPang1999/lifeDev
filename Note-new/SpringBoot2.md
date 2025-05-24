@@ -667,7 +667,7 @@ Deployment
 
     - 说明：控制器输出为 UserDto，屏蔽实体结构和敏感信息。实体结构变更时，只需调整映射逻辑，API 输出保持稳定。
 
-## 对象映射 MapStruct
+## MapStruct 对象映射
 
 > 简述：对象映射工具用于在实体类与 DTO 之间自动转换，减少重复代码、提升开发效率，并避免手动映射易错和难维护的问题。
 
@@ -1119,23 +1119,20 @@ Deployment
 
 1. 创建资源流程
 
-    - 客户端使用 POST 方法，提交 JSON 数据。
-    - 后端使用 `@RequestBody` 注解，将请求数据转为输入 DTO。
-    - 使用映射工具（如 MapStruct），转换 DTO 到实体对象，持久化到数据库。
+    - 客户端通过 POST 请求提交数据（通常为 JSON）。
+    - 控制器用 `@PostMapping` 处理请求，`@RequestBody` 接收数据。
+    - 利用映射工具（如 MapStruct）将输入 DTO 转为实体，保存到数据库。
 
 2. DTO 明确职责划分
 
-    - 输入 DTO：
-        - 仅含创建必需字段（如用户名、邮箱、密码）。
-        - 无需主键（若数据库自动生成）。
-    - 输出 DTO：
-        - 用于响应客户端，仅含对外暴露字段，不包含敏感数据。
+    - 输入 DTO：仅含创建所需字段，不含主键或业务无关数据。
+    - 输出 DTO：仅含对外暴露字段，隐藏敏感信息。
 
 3. 标准 REST 响应
 
     - 状态码：
         - 使用 `201 Created` 表示成功创建新资源。
-    - 响应体：
+    - 响应体： q
         - 包含新资源的 DTO，客户端可直接使用。
     - 响应头：
         - `Location` 指明新资源访问地址，供客户端后续使用。
@@ -1214,3 +1211,89 @@ Deployment
     ```
 
     - 描述：实现创建资源，规范返回 `201 Created` 状态码及响应头 `Location`。
+
+## 更新资源
+
+> 简述：RESTful API 通常使用 `PUT` 或 `PATCH` 方法更新资源，一般常用 `PUT`。`PUT` 用于整体替换资源，`PATCH` 适用于部分更新。更新操作通常需校验目标资源是否存在，并按需返回响应结果。
+
+**知识树**
+
+1.  更新操作流程（PUT）
+
+    - 客户端发送 `PUT` 请求，携带 JSON 数据。
+    - 控制器用 `@PutMapping` 处理，`@PathVariable` 绑定资源主键，`@RequestBody` 接收更新 DTO。
+    - 先查找目标资源，未找到返回 404；存在则进行字段更新和保存。
+
+2.  输入 DTO 设计
+
+    - 专为更新操作定义 DTO（如 `UpdateUserRequest`），仅包含可修改字段。
+    - 不包含主键、敏感或只读字段，确保接口安全和语义明确。
+
+3.  字段映射与更新（MapStruct）
+
+    - 使用映射工具（如 MapStruct）将更新 DTO 字段批量赋值到已存在实体。
+    - `@MappingTarget` 标记目标实体，实现字段覆盖，无需手动赋值。
+
+4.  响应规范
+
+        - 成功更新返回 200 状态和最新资源数据。
+        - 资源不存在返回 404 Not Found。
+
+**代码示例**
+
+1.  更新请求 DTO
+
+    ```java
+    @Data
+    public class UpdateUserRequest {
+        public String name;
+        public String email;
+    }
+    ```
+
+    - 描述：仅定义可变更字段，不包含主键、敏感或只读字段
+
+2.  MapStruct 映射方法
+
+    ```java
+    @Mapper(componentModel = "spring")
+    public interface UserMapper {
+        UserDto toDto(User user);
+        User toEntity(RegisterUserRequest request);
+
+    	// 映射更新
+        void updateUser(UpdateUserRequest request, @MappingTarget User user);
+    }
+    ```
+
+    - 描述：`updateUser` 方法自动将 DTO 字段赋值到目标实体，`@MappingTarget` 指定更新目标，省略会报错无法启动。
+
+3.  控制器实现 PUT 更新
+
+    ```java
+    @RestController
+    @AllArgsConstructor
+    @RequestMapping("/users")
+    public class UserController {
+
+    	//省略
+
+        @PutMapping("{id}")
+        public ResponseEntity<UserDto> updateUser(
+                @PathVariable(name = "id") Long id,
+                @RequestBody UpdateUserRequest request
+        ) {
+            var user = userRepository.findById(id).orElse(null);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            userMapper.updateUser(request, user);
+            userRepository.save(user);
+
+            return ResponseEntity.ok(userMapper.toDto(user));
+        }
+    }
+    ```
+
+    - 描述：查找目标 → 映射字段 → 保存 → 返回最新数据。
