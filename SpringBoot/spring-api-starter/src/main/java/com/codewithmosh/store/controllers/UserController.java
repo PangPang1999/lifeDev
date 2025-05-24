@@ -109,24 +109,4 @@ public class UserController {
 
         return ResponseEntity.noContent().build();
     }
-
-    // 返回String，显示杂乱，语义不明
-    // @ExceptionHandler(MethodArgumentNotValidException.class)
-    // public ResponseEntity<String> handleValidationErrors(MethodArgumentNotValidException exception) {
-    //     return ResponseEntity.badRequest().body(exception.getMessage());
-    // }
-
-    // 返回键值对
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationErrors(
-            MethodArgumentNotValidException exception
-    ) {
-        var errors = new HashMap<String, String>();
-
-        exception.getBindingResult().getFieldErrors().forEach(error -> {
-            errors.put(error.getField(), error.getDefaultMessage());
-        });
-
-        return ResponseEntity.badRequest().body(errors);
-    }
 }

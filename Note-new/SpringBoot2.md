@@ -1771,3 +1771,65 @@ Deployment
     ```
 
     - 描述：自动捕获并转化所有字段校验错误，以 JSON 格式返回前端。
+
+2. 响应形式
+
+    ```json
+    {
+    	"password": "Password is required",
+    	"name": "Name is required",
+    	"email": "Email is required"
+    }
+    ```
+
+    - 描述：Postman 使用 POST 访问 http://localhost:8080/users ，设置请求体为`{}`时，得到上面回应
+
+## 全局异常处理
+
+> 简述：全局异常处理将所有控制器的异常集中管理，避免重复代码，实现统一的错误响应格式和更好的可维护性。
+
+**知识树**
+
+1. 设计动机
+
+    - 局部异常处理易造成逻辑分散、冗余，不利于维护和扩展。
+    - 通过集中异常处理，可对常见错误（如数据校验、参数非法、权限不足等）统一响应格式和语义。
+
+2. `@ControllerAdvice` 注解
+
+    - 标记全局异常处理类，Spring 自动扫描并拦截所有控制器抛出的异常。
+    - 适用于所有被 `@RestController` 或 `@Controller` 标记的控制器。
+
+3. 全局异常处理方法
+
+    - 在全局处理类中，通过 `@ExceptionHandler` 注解针对不同异常类型编写处理方法。
+    - 可自定义结构化错误响应，并支持扩展多种异常场景。
+
+4. 实践建议
+
+    - 建议将所有与 API 相关的异常统一处理，保证错误输出结构化、语义清晰，方便前端消费和用户体验。
+
+**代码示例**
+
+1. 定义全局异常处理类
+
+    ```java
+    @ControllerAdvice
+    public class GlobalExceptionHandler {
+
+        @ExceptionHandler(MethodArgumentNotValidException.class)
+        public ResponseEntity<Map<String, String>> handleValidationErrors(
+                MethodArgumentNotValidException exception
+        ) {
+            var errors = new HashMap<String, String>();
+
+            exception.getBindingResult().getFieldErrors().forEach(error -> {
+                errors.put(error.getField(), error.getDefaultMessage());
+            });
+
+            return ResponseEntity.badRequest().body(errors);
+        }
+    }
+    ```
+
+    - 描述：`controller` 包下创建 `GlobalExceptionHandler`，剪切原有校验逻辑存放到该类。当前`GlobalExceptionHandler` 统一处理所有控制器的参数校验异常，与之前控制器内校验异常处理功能相同。
