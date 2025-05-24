@@ -1092,7 +1092,7 @@ Deployment
     	// 省略
 
         @PostMapping
-        public UserDto createUser(@RequestBody UserDto data) {
+        public UserDto registerUser(@RequestBody UserDto data) {
             // 实际业务省略，此处直接返回接收到的数据
             return data;
         }
@@ -1196,7 +1196,7 @@ Deployment
         }
 
         @PostMapping
-        public ResponseEntity<UserDto> createUser(
+        public ResponseEntity<UserDto> registerUser(
                 @RequestBody RegisterUserRequest request,
                 UriComponentsBuilder uriBuilder
         ) {
@@ -1707,7 +1707,7 @@ Deployment
 
     ```java
     @PostMapping
-    public ResponseEntity<UserDto> createUser(
+    public ResponseEntity<UserDto> registerUser(
             @Valid @RequestBody RegisterUserRequest request,
             UriComponentsBuilder uriBuilder
     ) {
@@ -1937,8 +1937,83 @@ Deployment
     {
     	"name": "Pang",
     	"email": "ppp_melody@163.com",
-    	"password": "1234"
+    	"password": "123456"
     }
     ```
 
-    - 说明：通过 Postman ，设置 POST 请求，在 Body 中提交 JSON 数据，请求地址`http://localhost:8080/users`
+    - 说明：通过 Postman ，设置 POST 请求，在 Body 中提交 JSON 数据，请求地址`http://localhost:8080/users` ，测试时修改邮箱格式。
+
+## 业务规则校验
+
+> 简述：校验注解只是为了避免服务器对无效数据进行查询。业务规则校验是指在输入数据通过基本格式校验后，进一步检查数据是否满足具体的业务需求。这类校验通常涉及数据库查询，不适合用简单的字段注解完成，应单独处理，例如邮箱是否已被注册。
+
+**知识树**
+
+1. 实现业务校验的步骤：
+
+    - 在仓库（Repository）新增特定查询方法，返回结果用于校验。
+    - 控制器或服务层调用此方法，校验不通过则返回特定响应（如 400 状态码及详细错误信息）。
+
+2. 常见业务校验场景：
+
+    - 用户邮箱是否唯一
+    - 用户名是否存在
+    - 商品库存是否充足
+
+**代码示例**
+
+1. 控制器实现业务规则校验逻辑
+
+    ```java
+    @RestController
+    @AllArgsConstructor
+    @RequestMapping("/users")
+    public class UserController {
+
+        private final UserRepository userRepository;
+        private final UserMapper userMapper;
+
+        @PostMapping
+        public ResponseEntity<?> registerUser(
+                @Valid @RequestBody RegisterUserRequest request,
+                UriComponentsBuilder uriBuilder
+        ) {
+            if (userRepository.existsByEmail(request.getEmail())) {
+                return ResponseEntity.badRequest().body(
+                    Map.of("email", "Email is already registered")
+                );
+            }
+
+            User user = userMapper.toEntity(request);
+            userRepository.save(user);
+
+            var userDto = userMapper.toDto(user);
+            var uri = uriBuilder.path("/users/{id}").buildAndExpand(userDto.getId()).toUri();
+            return ResponseEntity.created(uri).body(userDto);
+        }
+    }
+    ```
+
+    - 描述：控制器先调用仓库方法校验邮箱唯一性，不通过则返回明确错误信息，通过则继续创建用户。
+
+2. 在仓库定义邮箱存在性校验方法（IDEA 自动生成带 message 方法）
+
+    ```java
+    public interface UserRepository extends JpaRepository<User, Long> {
+        boolean existsByEmail(@NotBlank(message = "Email is required") @Email(message = "Email must be valid") String email);
+    }
+    ```
+
+    - 描述：定义通过邮箱检查用户是否存在的方法。
+
+3. 前端发送请求示例（JSON）
+
+    ```json
+    {
+    	"name": "Pang",
+    	"email": "ppp_melody@163.com",
+    	"password": "123456"
+    }
+    ```
+
+    - 说明：通过 Postman ，设置 POST 请求，在 Body 中提交 JSON 数据，请求地址`http://localhost:8080/users`，提示邮箱重复。
