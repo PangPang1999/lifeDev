@@ -7,9 +7,30 @@ Project: Building the Checkout and Order APls
 Payment Processing with Stripe
 Deployment
 
-# 待补充
+## 技巧
 
-1.
+1. 数据库设计
+
+    1. UUID 主键设计
+
+        1. 使用二进制类型存储 UUID
+            - 推荐使用 `BINARY(16)` 类型，节省空间，提升索引性能。
+        2. MySQL 不直接支持 UUID 类型
+            - `UUID` 生成函数返回 `VARCHAR`，不能直接用于二进制字段。
+        3. 转换方式
+            - 通过 `UUID_TO_BIN()` 函数将 `UUID()` 生成的字符串转换为二进制。
+            - 必须用括号包裹整个表达式，否则会报错。
+        4. 示例语法
+            ```sql
+            create table carts
+            (
+                id           binary(16) default (uuid_to_bin(uuid())) not null
+                    primary key,
+                date_created date default (curdate()) not null
+            );
+            ```
+
+# 待补充
 
 # 准备
 
@@ -2017,3 +2038,74 @@ Deployment
     ```
 
     - 说明：通过 Postman ，设置 POST 请求，在 Body 中提交 JSON 数据，请求地址`http://localhost:8080/users`，提示邮箱重复。
+
+# Project 购物车 API
+
+> 结合当前的内容，逐步创建购物车 API，可能没有新的技术点
+
+## 创建购物车表结构
+
+> 简述：设计购物车 (`carts`) 与购物车物品 (`cart_items`) 两张数据表，并设置 UUID 主键、默认值、外键关系及唯一性约束。
+
+**知识树**
+
+1. 主键 UUID 存储优化
+
+    - 存储类型
+        - MySQL 不直接支持 UUID 类型
+        - 推荐 `BINARY(16)` 存储 UUID，提升索引性能，占用空间少。
+    - UUID 默认值设置
+        - `UUID` 生成函数返回 `VARCHAR`，不能直接用于二进制字段。
+        - 通过 `UUID_TO_BIN()` 函数将 `UUID()` 生成的字符串转换为二进制。
+        - 注意必须用括号 `()` 包裹表达式，否则 MySQL 报错。
+        - 使用方式见下方代码示例
+
+2. 字段默认值定义
+
+    - 定义方式
+        - 通过 `DEFAULT` 关键字或内置函数为字段设置默认值。
+    - 常见场景
+        - UUID 主键默认值
+            - `BINARY(16) DEFAULT (UUID_TO_BIN(UUID()))`
+        - 日期字段默认当前日期
+            - `DATE DEFAULT (CURDATE())`
+        - 数字字段默认值
+            - `INT DEFAULT 1`
+
+3. 表关系设计
+
+    - 级联删除
+        - 当购物车或商品被删除时，购物车条目自动级联删除（`ON DELETE CASCADE`）。
+    - 唯一约束
+        - 同一购物车内，不能重复添加同一商品。
+        - 应对购物车与商品的关联设置唯一约束（`UNIQUE`）。
+
+**代码示例**
+
+1. 创建购物车和购物车物品表结构 (`V2__create_cart_tables.sql`)
+
+    ```sql
+    create table carts
+    (
+        id           binary(16) default (uuid_to_bin(uuid())) not null
+            primary key,
+        date_created date default (curdate()) not null
+    );
+
+    create table cart_items
+    (
+        id         bigint auto_increment
+            primary key,
+        cart_id    binary(16)    not null,
+        product_id bigint        not null,
+        quantity   int default 1 not null,
+        constraint cart_items_cart_product_unique
+            unique (cart_id, product_id),
+        constraint cart_items_carts_id_fk
+            foreign key (cart_id) references carts (id)
+                on delete cascade,
+        constraint cart_items_products_id_fk
+            foreign key (product_id) references products (id)
+                on delete cascade
+    );
+    ```
