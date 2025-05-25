@@ -12,7 +12,7 @@
     - ⌘P：查看构造参数，如在`new User();`的括号内按下此快捷键
     - ⌘G：选中后查找下一个相同内容
         - ⌘⇧G：选中后查找上一个相同内容
-        - ⇧⌃G：选中后，选中所有相同内容
+        - ⌘⌃G：选中后，选中所有相同内容
     - ⌘F12(🌐)：查看类中的成员，可通过输入进行匹配，比 ⌘F 好用
 
 3.  基础（必须熟悉）
@@ -2266,11 +2266,11 @@ Model-first approach
     - `@Builder`：生成链式构建器
     - `@ToString`：生成 `toString()` 方法，可排除字段
     - `@Builder.Default`：指定字段在使用 `@Builder` 构造时保留初始化值，否则将被默认重置（0/null/false）
-    - `@Data`：集成 `@Getter`、`@Setter`、`@ToString`、`@EqualsAndHashCode`、`@RequiredArgsConstructor` 等常用 Lombok 注解，自动生成数据类所需的全部方法。
 
-如需更精炼可以写：
-
-- `@Data`：一键生成 getter/setter、toString、equals/hashCode、部分构造方法等，适用于典型数据类。
+    - `@Data`：
+        - 集成 `@Getter`、`@Setter`、`@ToString`、`@EqualsAndHashCode`、`@RequiredArgsConstructor` 等常用 Lombok 注解，自动生成数据类所需的全部方法。
+        - 不要在 JPA 实体类（Entity）、含敏感字段的类、领域模型、业务逻辑复杂的类上直接用 `@Data`可能会因为`@ToString` 导致懒加载存在问题。
+        - 仅在 DTO 等简单数据结构等纯数据载体类上使用 `@Data`。DTO 概念将在投影章节介绍。
 
 3. 使用细节与注意事项（后面介绍）
 

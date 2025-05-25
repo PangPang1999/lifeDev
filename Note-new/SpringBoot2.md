@@ -9,28 +9,41 @@ Deployment
 
 ## 技巧
 
-1. 数据库设计
+### 查询加速
 
-    1. UUID 主键设计
+1. UUID 主键设计（可提升查询性能 20-50%）
 
-        1. 使用二进制类型存储 UUID
-            - 推荐使用 `BINARY(16)` 类型，节省空间，提升索引性能。
-        2. MySQL 不直接支持 UUID 类型
-            - `UUID` 生成函数返回 `VARCHAR`，不能直接用于二进制字段。
-        3. 转换方式
-            - 通过 `UUID_TO_BIN()` 函数将 `UUID()` 生成的字符串转换为二进制。
-            - 必须用括号包裹整个表达式，否则会报错。
-        4. 示例语法
+    1. 存储类型优化
+        - 推荐使用 `BINARY(16)` 类型存储 UUID，相比 `VARCHAR(36)` 更节省空间，能显著提升索引与查询性能。
+    2. MySQL 支持说明
+        - MySQL 本身不直接支持 UUID 类型，`UUID()` 函数生成的是 `VARCHAR` 字符串，不能直接插入二进制字段。
+    3. 主键生成方式对比
+        - 数据库端生成：可通过 `UUID_TO_BIN(UUID())` 将字符串 UUID 转换为二进制，作为字段默认值。注意，表达式需用括号包裹，否则会报错。示例：
             ```sql
-            create table carts
-            (
-                id           binary(16) default (uuid_to_bin(uuid())) not null
-                    primary key,
-                date_created date default (curdate()) not null
-            );
+            id BINARY(16) NOT NULL DEFAULT (UUID_TO_BIN(UUID()))
             ```
+        - 应用层生成（推荐）：在实体类主键字段上使用 `@GeneratedValue(strategy = GenerationType.UUID)`，由框架（如 Hibernate 6+）自动生成 UUID 并存储为二进制。
+    4. 最佳实践建议
+        - 生产环境下建议选用一种方式，避免混用，以免主键生成冲突或失效。
+        - 更推荐在应用层由框架生成 UUID，即采用 `@GeneratedValue(strategy = GenerationType.UUID)`，便于分布式扩展和业务灵活性；而数据库自动生成仅适用于特定场景。
 
-# 待补充
+2. 存储引擎（可提升查询性能 20%~40%）
+
+    1. InnoDB：支持事务、行级锁、外键，写入安全，但每条记录有更多的事务和索引维护开销。
+    2. MyISAM（或类似不支持事务的引擎）：只支持表级锁，结构简单，读取速度快，写入简单，但不支持事务和外键。
+    3. 效率说明：
+        1. 1000 万条数据、简单索引、只做 SELECT，MyISAM 通常比 InnoDB 快 20%~40%（有些场景能快到 50%），但这个差距是“理论最大值”。
+        2. 如果涉及并发读写、表锁等待、写入操作，InnoDB 反而更优。
+
+3. 一般实际提升区间
+
+    - 真实测试下，BINARY(16) + MyISAM，查询性能可提升 40%~70%，极端理想场景甚至略高。
+    - 性能提升的上限受限于表结构、索引设计、硬件条件、SQL 查询方式等。多数情况下，50%左右的提升是很现实的。
+
+# 补充
+
+1. 购物车项目
+    1. 在设计表和实体类时，都为主键设置了 UUID 生成，实体类上设置的`@GeneratedValue(strategy = GenerationType.UUID)`将由框架生成 UUID，数据库设置的`(uuid_to_bin(uuid()))`将在没有给 UUID 值时自动生成 UUID，两者混用可能导致问题
 
 # 准备
 
@@ -2109,3 +2122,111 @@ Deployment
                 on delete cascade
     );
     ```
+
+## 创建购物车实体
+
+> 简述：使用数据库优先（Database-first）开发方式，基于已有的数据表结构，快速生成 JPA 实体类，并优化实体代码，保持实体定义的简洁性与明确性。
+
+**知识树**
+
+1.  JPA Buddy 快速生成实体：
+
+    - 选择需要生成实体的数据表（如 `carts` 和 `cart_items`）,勾选创建关系映射。
+    - 生成实体过程中明确指定字段类型（如将主键类型从 `String` 改为 `UUID`）。
+
+2.  实体注解修改：
+
+    - 概念：由于采用的是 Data-first，为了让实体类更加简洁，需要去除一部份仅用与 Model-first 的注解，此外还需要更改一部份生成后存在问题的代码
+    - 简化：
+        - `@Table`：保留表名即可，去除`schema`属性
+        - `@Id`：主键标识
+        - `@GeneratedValue()`：主键生成策略，仅主键可用，按需调整
+            - 设置为`strategy = GenerationType.IDENTITY`时，使用数据库自增策略
+            - 设置为`strategy = GenerationType.UUID`时，主键由框架自动生成 UUID
+        - `@Size`：如果设置了自动生成，则无需该注解，去除，校验在 DTO 层处理
+        - `@NotNull`：如果数据库设置了非空，去除，校验在 DTO 层处理
+        - `@Column`：仅保留 `name` 属性用于字段名映射，其余属性如无特殊需求可省略。
+            - 如果数据库字段由数据库自动生成（如时间戳/创建日期），可设置 `insertable = false, updatable = false`，让 JPA 在插入和更新时忽略该字段，实际值由数据库自动维护。
+        - `@ManyToOne`：根据条件修改或者删除加载策略（存在默认加载策略），optional 属性建议保留
+            - `optional = false`表示 JPA 这个多对一关联“必须有值”
+        - `@OnDelete`：如数据库已设置外键级联（如 `ON DELETE CASCADE`），则该注解可省略。
+        - `@ColumnDefault`：如果数据库已设置默认值，去除
+
+3.  `@Data` 使用注意
+
+    - 不建议在 JPA 实体类（Entity）上直接使用 `@Data`，因为它包含 `@ToString`，可能导致懒加载关联属性时出现性能问题或异常。
+    - 推荐仅在 DTO、VO 等简单数据载体类上使用 `@Data`，避免在有复杂关系或业务逻辑的类中使用。
+
+4.  UUID 主键设计
+
+    1. 存储类型优化
+        - 推荐使用 `BINARY(16)` 类型存储 UUID，相比 `VARCHAR(36)` 更节省空间，能显著提升索引与查询性能。
+    2. MySQL 支持说明
+        - MySQL 本身不直接支持 UUID 类型，`UUID()` 函数生成的是 `VARCHAR` 字符串，不能直接插入二进制字段。
+    3. 主键生成方式对比
+        - 数据库端生成：可通过 `UUID_TO_BIN(UUID())` 将字符串 UUID 转换为二进制，作为字段默认值。注意，表达式需用括号包裹，否则会报错。示例：
+            ```sql
+            id BINARY(16) NOT NULL DEFAULT (UUID_TO_BIN(UUID()))
+            ```
+        - 应用层生成（推荐）：在实体类主键字段上使用 `@GeneratedValue(strategy = GenerationType.UUID)`，由框架（如 Hibernate 6+）自动生成 UUID 并存储为二进制。
+    4. 最佳实践建议
+        - 生产环境下建议选用一种方式，避免混用，以免主键生成冲突或失效。
+        - 更推荐在应用层由框架生成 UUID，即采用 `@GeneratedValue(strategy = GenerationType.UUID)`，便于分布式扩展和业务灵活性；而数据库自动生成仅适用于特定场景。
+    5. 由于当前学习需求，暂采用两者并行
+
+5.  导入与代码清理
+
+    - 生成实体后需删除冗余 import，保持代码简洁、结构明晰。
+
+**代码示例**
+
+1. `Cart` 实体优化示例
+
+    ```java
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "carts")
+    public class Cart {
+        @Id
+        @GeneratedValue(strategy = GenerationType.UUID)
+        @Column(name = "id")
+        private UUID id;
+
+        @Column(name = "date_created", insertable = false, updatable = false)
+        private LocalDate dateCreated;
+
+        @OneToMany(mappedBy = "cart")
+        private Set<CartItem> cartItems = new LinkedHashSet<>();
+    }
+    ```
+
+    - 描述：UUID 主键由框架自动生成，日期由数据库自动填充。
+
+2. `CartItem` 实体优化示例
+
+    ```java
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "cart_items", schema = "store_api")
+    public class CartItem {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(name = "id")
+        private Long id;
+
+        @ManyToOne(optional = false)
+        @JoinColumn(name = "cart_id")
+        private Cart cart;
+
+        @ManyToOne(optional = false)
+        @JoinColumn(name = "product_id")
+        private Product product;
+
+        @Column(name = "quantity")
+        private Integer quantity;
+    }
+    ```
+
+    - 描述：去除非必要属性，定义明确的关系映射与字段。
