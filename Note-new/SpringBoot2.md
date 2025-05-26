@@ -2264,38 +2264,59 @@ Deployment
 
 > 简述：实现购物车的创建接口，标准化返回新购物车的结构，包括唯一 ID、购物项和总价。
 
+**API**
+
+1. Request Example
+
+    ```
+    POST /carts
+    ```
+
+2. Response Example
+
+    ```json
+    // 201 CREATED
+    // Location header contains the URI of the newly created resource
+
+    {
+    	"id": "45d901fc-bc68-4211-b126-6160d6010946",
+    	"items": [],
+    	"totalPrice": 0
+    }
+    ```
+
 **知识树**
 
-1. 接口与响应设计
+1. DTO 设计与初始化
 
-    - 创建购物车通常采用 POST `/carts` 路径，返回新购物车对象。
-    - 响应体为购物车 DTO，包含唯一标识、商品项列表及总价。
-    - 推荐返回 201 状态码，并在 Location 响应头中附带新资源 URI。
+    - 响应 DTO：`CartDto`，包含 `id: UUID`、`items: List<CartItemDto>`、`totalPrice: BigDecimal`。
+    - `items` 字段初始化为空列表，`totalPrice` 初始化为 `BigDecimal.ZERO`，防止返回 null。
 
-2. DTO 结构与初始化
+2. 接口与响应设计
 
-    - 购物车 DTO 包含 `id: UUID`、`items: List<CartItemDto>`、`totalPrice: BigDecimal` 字段。
-    - items 字段初始化为新 ArrayList，避免响应为 null。
-    - totalPrice 字段初始化为 BigDecimal.ZERO，避免空值。
+    - 使用 `POST /carts` 创建购物车。
+    - 成功返回 201 状态码，响应体为 `CartDto`，响应头 Location 指向新资源 URI。
 
-3. 实体到 DTO 的映射
+3. 控制器实现要点
 
-    - 建议通过 MapStruct 或类似映射工具自动转换实体为 DTO，减少重复代码，保持类型安全。
-    - DTO 字段类型需与实体一致（如 id 为 UUID）。
+    - `@RestController` + `@PostMapping("/carts")` 声明接口。
+    - 调用 JPA 仓库保存新购物车对象。
+    - 使用 Mapper（如 MapStruct）将实体转为 DTO。
+    - 返回 `ResponseEntity.created(uri).body(cartDto)`，标准化 REST 响应。
 
-4. Controller 实现要点
+4. 实体到 DTO 的映射
 
-    - 使用 `@RestController`、`@PostMapping("/carts")` 声明接口。
-    - 调用 JPA 仓库保存新购物车，使用映射器转为 DTO。
-    - 返回 ResponseEntity，推荐用 `created(uri).body(cartDto)` 构造标准 RESTful 响应。
+    - 使用 MapStruct 自动映射，保持类型安全。
+    - DTO 字段类型需与实体一致，尤其是主键类型。
 
-5. 开发流程
+5. 代码开发流程
 
-    - 实际开发时，可以从 controller 出发，遇到文件缺失时直接创建
+    - 推荐自顶向下开发，从 Controller 出发，缺失部分按需新建类或接口。
+    - 每一步以响应体结构和接口行为为核心驱动开发。
 
 **代码示例**
 
-1. Cart DTO 定义及初始化
+1. CartDTO 定义及初始化
 
     ```java
     @Data
@@ -2324,7 +2345,7 @@ Deployment
     ```java
     @AllArgsConstructor
     @RestController
-    @RequestMapping("/cart")
+    @RequestMapping("/carts")
     public class CartController {
 
         private final CartRepository cartRepository;
@@ -2338,7 +2359,7 @@ Deployment
             cartRepository.save(cart);
 
             var cartDto = cartMapper.toDto(cart);
-            var uri = uriBuilder.path("/cart/{id}").buildAndExpand(cartDto.getId()).toUri();
+            var uri = uriBuilder.path("/carts/{id}").buildAndExpand(cartDto.getId()).toUri();
 
             return ResponseEntity.created(uri).body(cartDto);
         }
@@ -2346,3 +2367,192 @@ Deployment
     ```
 
     - 描述：保存新购物车并返回 201 状态码，Location 响应头包含新资源 URI。
+
+## 添加商品到购物车
+
+> 简述：实现向购物车中添加商品的接口。要求校验购物车和商品的有效性，支持商品数量累加，并用专用 DTO 返回购物车项的详细信息。强调聚合根（Aggregate Root）设计与领域建模思想。
+
+**API**
+
+1. Request Example
+
+    ```json
+    // POST /carts/{catId}/items
+
+    {
+    	"productId": 1
+    }
+    ```
+
+2. Response Example
+
+    ```json
+    // 201 CREATED
+
+    {
+    	"productId": {
+    		"id": 1,
+    		"name": "Product 1",
+    		"price": 10
+    	},
+    	"quantity": 5,
+    	"totalPrice": 50
+    }
+    ```
+
+**知识树**
+
+1. DTO 设计与响应建模
+
+    - 添加商品请求 DTO：`AddItemToCartRequest`，用 `@NotNull` 确保 `productId` 必填。
+    - 响应 DTO：`CartItemDto`，包含 `product`（嵌套 `CartProductDto`），`quantity`，`totalPrice`。
+    - 商品信息抽象为 `CartProductDto`，避免直接复用 `ProductDto`，保持解耦。
+
+2. 核心业务流程
+
+    1. 校验购物车是否存在，未找到返回 404。
+    2. 校验商品是否存在，未找到返回 400。
+    3. 检查购物车是否已包含该商品：
+        - 若已存在，数量累加。
+        - 若不存在，创建新购物车项并加入购物车。
+    4. 持久化更新后的购物车（统一由聚合根 Cart 管理）。
+    5. 返回添加或更新后的购物车项信息。
+
+3. 领域建模与聚合根
+
+    - 购物车项的生命周期由购物车（Cart）聚合根统一管理。
+    - 持久化时通过购物车整体 save，实现级联保存。
+    - Cart 与 CartItem 的关系设置为 `CascadeType.MERGE`。
+
+4. 实体与 DTO 映射
+
+    - 在 `CartItem` 实体中实现 `getTotalPrice` 方法，返回总价。
+    - 使用 MapStruct 配置映射方法，通过表达式映射总价。
+    - 示例`@Mapping(target = "totalPrice", expression = "java(cartItem.getTotalPrice())")`
+
+**代码示例**
+
+1. DTO
+
+    1. 添加商品请求 DTO
+
+        ```java
+        @Data
+        public class AddItemToCartRequest {
+            @NotNull
+            private Long productId;
+        }
+        ```
+
+    2. 购物车单商品 DTO
+
+        ```java
+        @Data
+        public class CartItemDto {
+            private CartProductDto product;
+            private int quantity;
+            private BigDecimal totalPrice;
+        }
+        ```
+
+    3. 商品简介 DTO（配合上一 DTO 创建）
+
+        ```java
+        @Data
+        public class CartItemDto {
+            private CartProductDto product;
+            private int quantity;
+            private BigDecimal totalPrice;
+        }
+        ```
+
+2. CartItem 实体添加计算总价方法
+
+    ```java
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "cart_items", schema = "store_api")
+    public class CartItem {
+
+    	// 省略
+
+        public BigDecimal getTotalPrice() {
+            return product.getPrice().multiply(new BigDecimal(quantity));
+        }
+    }
+    ```
+
+3. CartMapper 映射方法
+
+    ```java
+    @Mapper(componentModel = "spring")
+    public interface CartMapper {
+        CartDto toDto(Cart cart);
+
+        @Mapping(target = "totalPrice", expression = "java(cartItem.getTotalPrice())")
+        CartItemDto toDto(CartItem cartItem);
+    }
+    ```
+
+4. Controller 逻辑
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/carts")
+    public class CartController {
+
+    	// 省略
+
+        @PostMapping("/{cartId}/items")
+        public ResponseEntity<CartItemDto> addItemToCart(
+                @PathVariable(name = "cartId") UUID cartId,
+                @RequestBody AddItemToCartRequest request
+        ) {
+            var cart = cartRepository.findById(cartId).orElse(null);
+
+            if (cart == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            var product = productRepository.findById(request.getProductId()).orElse(null);
+            if (product == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+
+            var cartItem = cart.getCartItems()
+                    .stream().
+                    filter(item -> item.getProduct().getId().equals(product.getId()))
+                    .findFirst().orElse(null);
+
+            if (cartItem == null) {
+                cartItem = new CartItem();
+                cartItem.setProduct(product);
+                cartItem.setQuantity(1);
+                cartItem.setCart(cart);
+                cart.getCartItems().add(cartItem);
+            } else {
+                cartItem.setQuantity(cartItem.getQuantity() + 1);
+            }
+
+            cartRepository.save(cart);
+
+            var cartItemDto = cartMapper.toDto(cartItem);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(cartItemDto);
+        }
+    }
+    ```
+
+    - 说明：先校验购物车和商品存在性，重复商品数量累加，否则新建购物车项。全部持久化由 Cart 聚合根统一管理。响应只包含必要的商品信息和总价。
+
+5. PostMan 测试
+
+    ```json
+    {
+    	"productId": "7"
+    }
+    ```
+
+    - 描述：查询数据库，拷贝购物车 UUID，访问 http://localhost:8080/carts/uuid/items 尝试添加购物车
