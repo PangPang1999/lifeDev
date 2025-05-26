@@ -1,200 +1,3 @@
-# 技巧
-
-1.[babeljs.io/repl ](https://www.babeljs.io/repl)这个网站可以看到 JavaScript XML（JavaScript 扩展语法）是如何转换成 JavaScript 的。
-
-```tsx
-<h1>Hello World</h1>
-```
-
-```js
-'use strict"
-/*#__PURE__*/ React.createElement("h1", null, "Hello World");
-```
-
-2.**命令面板**（按 `Ctrl + Shift + P` / `Cmd + Shift + P`）
-
-1.**Prettier 格式化代码**格式化代码时，我们可能会遇到格式化工具冲突。打开 **命令面板**，选择 `Format Document`。然后，选择 **Prettier** 作为默认代码格式化工具。
-
-- 快捷键：
-
-    - **Mac**：`Shift + Command + P`
-
-    - **Windows**：`Shift + Control + P`
-
-        2.通过 `<div>` 将所有元素包裹起来:**命令面板**搜索`wrap with abbreviation`,按 `Enter`，在输入框中输入 `div`，然后按 `Enter`
-
-        2.**快捷创建**：使用 VSCode 的 React 代码片段（rfc）快速生成函数式组件模板
-
-安装 vscode 扩展`ES7`,在`.tsx`文件中输入`rafce`可以快速输出
-
-```tsx
-import React from 'react'
-const Alert = () => {
-  return (
-    <div>
-    </div>
-  )
-}
-export default Alert
-```
-
-3.bootstrap
-
-4.vscode 中标签快捷键`div.mb-3>label.form-label+input.form-control`
-
-```js
-<div className="mb-3">
-	<label className="form-label" htmlFor="name">
-		Name
-	</label>
-	<input className="form-control" id="name" />
-</div>
-```
-
-# 目录
-
-> https://codewithmosh.com/p/the-ultimate-full-stack-javascript-developer-bundle-2024-edition
-> 按照 mosh 的课程顺序学习
-
-    ### 1. **Getting Started (2 分钟)**
-
-    1. 欢迎
-    2. 学习前提
-
-    ### 2. **Getting Started with React (18 分钟)**
-
-    3. 什么是 React
-    4. 设置开发环境
-    5. 创建 React 应用
-    6. 项目结构
-    7. 创建 React 组件
-    8. React 的工作原理
-
-    ### 3. **Building Components (1 小时)**
-
-    9. 介绍
-    10. 创建 ListGroup 组件
-    11. 使用 Fragments
-    12. 渲染列表
-    13. 条件渲染
-    14. 处理事件
-    15. 管理状态
-    16. 通过 Props 传递数据
-    17. 通过 Props 传递函数
-    18. 状态 vs Props
-    19. 传递 Children
-    20. 使用 React Dev Tools 检查组件
-    21. 练习：构建按钮组件
-    22. 练习：显示警告框
-
-    ### 4. **Styling Components (32 分钟)**
-
-    23. 介绍
-    24. 使用 Vanilla CSS（传统 CSS）
-    25. 使用 CSS Modules
-    26. 使用 CSS-in-JS
-    27. 关注点分离（Separation of Concerns）
-    28. 内联样式
-    29. 流行的 UI 库
-    30. 添加图标
-    31. 练习：使用 CSS Modules
-    32. 构建 Like 组件
-
-    ### 5. **Managing Component State (42 分钟)**
-
-    33. 介绍
-    34. 理解 State Hook
-    35. 选择 State 结构
-    36. 理解严格模式（Strict Mode）
-    37. 更新数组对象
-    38. 更新数组
-    39. 使用 Immer 简化更新逻辑
-    40. 更新嵌套对象
-    41. 保持组件的纯粹性
-    42. 共享 State between 组件
-    43. 更新对象
-    44. 练习：构建一个可展开的文本组件
-
-    ### 6. **Building Forms (71 分钟)**
-
-    45. 介绍
-    46. 构建表单
-    47. 受控组件
-    48. 访问输入字段
-    49. 提交表单
-    50. 使用 React Hook Form 管理表单
-    51. 应用表单验证
-    52. 使用 Zod 进行基于模式的验证
-    53. 禁用提交按钮
-    54. 构建 ExpenseForm（费用表单）
-    55. 构建 ExpenseFilter（费用过滤器）
-    56. 构建 ExpenseList（费用列表）
-    57. 添加费用
-    58. 集成 React Hook Form 和 Zod
-
-    ### 7. **Connecting to the Backend (69 分钟)**
-
-    59. 介绍
-    60. 理解 Effect Hook
-    61. 理解 HTTP 请求
-    62. 使用 Async/Await
-    63. 取消 Fetch 请求
-    64. 显示加载指示器
-    65. 提取可重用的 API 客户端
-    66. 创建数据
-    67. 更新数据
-    68. 删除数据
-    69. 处理错误
-    70. 创建自定义数据获取 Hook
-    71. 提取用户服务（User Service）
-    72. 提取通用 HTTP 服务
-    73. 更新数据
-    74. 清理 Effect
-    75. Effect 依赖关系
-
-    ### 8. **Project - Building a Video Game Discovery App (3 小时)**
-
-    76. 我们要构建什么
-    77. 设置项目
-    78. 安装 Chakra UI
-    79. 构建导航栏
-    80. 构建颜色模式切换
-    81. 实现暗黑模式
-    82. 创建响应式布局
-    83. 创建自定义的游戏数据获取 Hook
-    84. 获取游戏数据
-    85. 获取平台信息
-    86. 获取游戏的类型（Genres）
-    87. 显示平台图标
-    88. 创建游戏卡片
-    89. 获取优化的图片
-    90. 改进用户体验，使用加载骨架屏
-    91. 显示评论分数（Critic Score）
-    92. 重构：去除重复样式
-    93. 显示游戏类型（Genres）
-    94. 按类型过滤游戏
-    95. 显示加载中的 spinner
-    96. 修复 Chakra 菜单的问题
-    97. 按平台过滤游戏
-    98. 构建排序选择器
-    99. 构建平台选择器
-    100. 处理没有图片的游戏
-    101. 排序游戏
-    102. 高亮显示所选类型
-    103. 重构：提取查询对象
-    104. 自定义 Chakra 主题
-    105. 添加表情符号（Emojis）
-    106. 清理游戏卡片
-    107. 添加动态标题
-    108. 提交静态数据
-    109. 搜索游戏
-    110. 构建搜索输入框
-    111. 清理游戏类型
-    112. 重构游戏网格
-    113. 部署到 Vercel
-    114. 课程总结
-    115. 接下来的步骤
-
 # React 应用的构建
 
 ## 初始化 react
@@ -8117,3 +7920,200 @@ function App() {
     ```
 
 React 项目
+
+# 技巧
+
+1.[babeljs.io/repl ](https://www.babeljs.io/repl)这个网站可以看到 JavaScript XML（JavaScript 扩展语法）是如何转换成 JavaScript 的。
+
+```tsx
+<h1>Hello World</h1>
+```
+
+```js
+'use strict"
+/*#__PURE__*/ React.createElement("h1", null, "Hello World");
+```
+
+2.**命令面板**（按 `Ctrl + Shift + P` / `Cmd + Shift + P`）
+
+1.**Prettier 格式化代码**格式化代码时，我们可能会遇到格式化工具冲突。打开 **命令面板**，选择 `Format Document`。然后，选择 **Prettier** 作为默认代码格式化工具。
+
+- 快捷键：
+
+    - **Mac**：`Shift + Command + P`
+
+    - **Windows**：`Shift + Control + P`
+
+        2.通过 `<div>` 将所有元素包裹起来:**命令面板**搜索`wrap with abbreviation`,按 `Enter`，在输入框中输入 `div`，然后按 `Enter`
+
+        2.**快捷创建**：使用 VSCode 的 React 代码片段（rfc）快速生成函数式组件模板
+
+安装 vscode 扩展`ES7`,在`.tsx`文件中输入`rafce`可以快速输出
+
+```tsx
+import React from 'react'
+const Alert = () => {
+  return (
+    <div>
+    </div>
+  )
+}
+export default Alert
+```
+
+3.bootstrap
+
+4.vscode 中标签快捷键`div.mb-3>label.form-label+input.form-control`
+
+```js
+<div className="mb-3">
+	<label className="form-label" htmlFor="name">
+		Name
+	</label>
+	<input className="form-control" id="name" />
+</div>
+```
+
+# 目录
+
+> https://codewithmosh.com/p/the-ultimate-full-stack-javascript-developer-bundle-2024-edition
+> 按照 mosh 的课程顺序学习
+
+    ### 1. **Getting Started (2 分钟)**
+
+    1. 欢迎
+    2. 学习前提
+
+    ### 2. **Getting Started with React (18 分钟)**
+
+    3. 什么是 React
+    4. 设置开发环境
+    5. 创建 React 应用
+    6. 项目结构
+    7. 创建 React 组件
+    8. React 的工作原理
+
+    ### 3. **Building Components (1 小时)**
+
+    9. 介绍
+    10. 创建 ListGroup 组件
+    11. 使用 Fragments
+    12. 渲染列表
+    13. 条件渲染
+    14. 处理事件
+    15. 管理状态
+    16. 通过 Props 传递数据
+    17. 通过 Props 传递函数
+    18. 状态 vs Props
+    19. 传递 Children
+    20. 使用 React Dev Tools 检查组件
+    21. 练习：构建按钮组件
+    22. 练习：显示警告框
+
+    ### 4. **Styling Components (32 分钟)**
+
+    23. 介绍
+    24. 使用 Vanilla CSS（传统 CSS）
+    25. 使用 CSS Modules
+    26. 使用 CSS-in-JS
+    27. 关注点分离（Separation of Concerns）
+    28. 内联样式
+    29. 流行的 UI 库
+    30. 添加图标
+    31. 练习：使用 CSS Modules
+    32. 构建 Like 组件
+
+    ### 5. **Managing Component State (42 分钟)**
+
+    33. 介绍
+    34. 理解 State Hook
+    35. 选择 State 结构
+    36. 理解严格模式（Strict Mode）
+    37. 更新数组对象
+    38. 更新数组
+    39. 使用 Immer 简化更新逻辑
+    40. 更新嵌套对象
+    41. 保持组件的纯粹性
+    42. 共享 State between 组件
+    43. 更新对象
+    44. 练习：构建一个可展开的文本组件
+
+    ### 6. **Building Forms (71 分钟)**
+
+    45. 介绍
+    46. 构建表单
+    47. 受控组件
+    48. 访问输入字段
+    49. 提交表单
+    50. 使用 React Hook Form 管理表单
+    51. 应用表单验证
+    52. 使用 Zod 进行基于模式的验证
+    53. 禁用提交按钮
+    54. 构建 ExpenseForm（费用表单）
+    55. 构建 ExpenseFilter（费用过滤器）
+    56. 构建 ExpenseList（费用列表）
+    57. 添加费用
+    58. 集成 React Hook Form 和 Zod
+
+    ### 7. **Connecting to the Backend (69 分钟)**
+
+    59. 介绍
+    60. 理解 Effect Hook
+    61. 理解 HTTP 请求
+    62. 使用 Async/Await
+    63. 取消 Fetch 请求
+    64. 显示加载指示器
+    65. 提取可重用的 API 客户端
+    66. 创建数据
+    67. 更新数据
+    68. 删除数据
+    69. 处理错误
+    70. 创建自定义数据获取 Hook
+    71. 提取用户服务（User Service）
+    72. 提取通用 HTTP 服务
+    73. 更新数据
+    74. 清理 Effect
+    75. Effect 依赖关系
+
+    ### 8. **Project - Building a Video Game Discovery App (3 小时)**
+
+    76. 我们要构建什么
+    77. 设置项目
+    78. 安装 Chakra UI
+    79. 构建导航栏
+    80. 构建颜色模式切换
+    81. 实现暗黑模式
+    82. 创建响应式布局
+    83. 创建自定义的游戏数据获取 Hook
+    84. 获取游戏数据
+    85. 获取平台信息
+    86. 获取游戏的类型（Genres）
+    87. 显示平台图标
+    88. 创建游戏卡片
+    89. 获取优化的图片
+    90. 改进用户体验，使用加载骨架屏
+    91. 显示评论分数（Critic Score）
+    92. 重构：去除重复样式
+    93. 显示游戏类型（Genres）
+    94. 按类型过滤游戏
+    95. 显示加载中的 spinner
+    96. 修复 Chakra 菜单的问题
+    97. 按平台过滤游戏
+    98. 构建排序选择器
+    99. 构建平台选择器
+    100. 处理没有图片的游戏
+    101. 排序游戏
+    102. 高亮显示所选类型
+    103. 重构：提取查询对象
+    104. 自定义 Chakra 主题
+    105. 添加表情符号（Emojis）
+    106. 清理游戏卡片
+    107. 添加动态标题
+    108. 提交静态数据
+    109. 搜索游戏
+    110. 构建搜索输入框
+    111. 清理游戏类型
+    112. 重构游戏网格
+    113. 部署到 Vercel
+    114. 课程总结
+    115. 接下来的步骤
