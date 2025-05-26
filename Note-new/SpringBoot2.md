@@ -2685,7 +2685,8 @@ Deployment
 ## 更新购物车商品数量
 
 > 简述：实现将购物车内某商品数量更新的 RESTful API。关注资源层级建模、参数校验、错误响应标准化、以及通过聚合根统一变更和持久化。
-> **API**
+
+**API**
 
 1. Request Example
 
@@ -2700,7 +2701,7 @@ Deployment
 2. Response Example
 
     ```json
-    // 201 CREATED
+    // 200
 
     {
     	"productId": {
@@ -2923,3 +2924,108 @@ Deployment
         }
     }
     ```
+
+## 购物车移除商品接口
+
+> 简述：实现从购物车中删除指定商品项的 RESTful API。接口需保证幂等性和健壮性，通过领域模型封装移除逻辑，结合 JPA `orphanRemoval`，自动维护数据库一致性。
+
+**API**
+
+1. Request Example
+
+   ```
+   DELETE /carts/{cartId}/items/{productId}
+   ```
+
+2. Response Example
+
+    ```
+    204
+    ```
+
+**知识树**
+
+1. 业务流程设计
+
+    - 查询购物车，若不存在返回 404，并返回标准化错误响应。
+    - 在购物车中查找目标商品项，若存在则移除，不存在则直接返回。
+    - 仅在商品被移除时持久化购物车，无需额外处理不存在的情况。
+    - 返回 204，无响应体，保证幂等性。
+
+2. RESTful 设计与幂等性
+
+    - 通过购物车 ID 和商品 ID 唯一定位目标商品项。
+    - 无需请求体，接口操作幂等：无论商品项是否存在，调用多次效果一致且返回成功。
+
+3. 信息专家原则
+
+    - 在 `Cart` 实体中封装 `removeItem(Long productId)` 方法，由实体自身负责管理集合。
+
+4. 数据一致性 与 orphanRemoval
+
+    - 配置`@OneToMany(mappedBy = "cart", orphanRemoval = true)`，保证商品项被从购物车移除且无其他父对象时，自动在数据库中物理删除，防止 `cart_id` 变为 `null` 破坏外键约束。
+
+**代码示例**
+
+1. Cart 实体中实现移除商品方法
+
+    ```java
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "carts")
+    public class Cart {
+
+    	//省略
+
+        @OneToMany(mappedBy = "cart", cascade = CascadeType.MERGE, orphanRemoval = true)
+        private Set<CartItem> items = new LinkedHashSet<>();
+
+    	//省略
+
+        public Boolean removeItem(Long productId) {
+            var cartItem = getItem(productId);
+            if (cartItem != null) {
+                items.remove(cartItem);
+                cartItem.setCart(null);
+                return true;
+            }
+            return false;
+        }
+    }
+    ```
+
+    - 描述：购物车负责商品项的删除，`orphanRemoval` 自动物理删除孤儿对象，防止 `cart_id` 为 `null`。
+
+2. 控制器实现
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/carts")
+    public class CartController {
+
+    	// 省略
+
+        @DeleteMapping("/{cartId}/items/{productId}")
+        public ResponseEntity<?> removeItem(
+                @PathVariable("cartId") UUID cartId,
+                @PathVariable("productId") Long productId
+        ) {
+            var cart = cartRepository.getCartWithItems(cartId).orElse(null);
+            if (cart == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                        Map.of("error", "Cart was not found.")
+                );
+            }
+
+            if (cart.removeItem(productId)) {
+                cartRepository.save(cart);
+            }
+
+            return ResponseEntity.noContent().build();
+        }
+    }
+    ```
+
+    - 描述：先查找购物车，不存在则 404。无论商品项是否存在，都直接执行移除，如商品项存在，持久化，如不存在，返回 204，无需响应体。
