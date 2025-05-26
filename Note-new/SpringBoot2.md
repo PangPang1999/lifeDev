@@ -2226,7 +2226,7 @@ Deployment
         private LocalDate dateCreated;
 
         @OneToMany(mappedBy = "cart")
-        private Set<CartItem> cartItems = new LinkedHashSet<>();
+        private Set<CartItem> items = new LinkedHashSet<>();
     }
     ```
 
@@ -2521,7 +2521,7 @@ Deployment
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
 
-            var cartItem = cart.getCartItems()
+            var cartItem = cart.getItems()
                     .stream().
                     filter(item -> item.getProduct().getId().equals(product.getId()))
                     .findFirst().orElse(null);
@@ -2531,7 +2531,7 @@ Deployment
                 cartItem.setProduct(product);
                 cartItem.setQuantity(1);
                 cartItem.setCart(cart);
-                cart.getCartItems().add(cartItem);
+                cart.getItems().add(cartItem);
             } else {
                 cartItem.setQuantity(cartItem.getQuantity() + 1);
             }
@@ -2556,3 +2556,105 @@ Deployment
     ```
 
     - 描述：查询数据库，拷贝购物车 UUID，访问 http://localhost:8080/carts/uuid/items 尝试添加购物车
+
+## 查询购物车详情接口
+
+> 简述：实现根据购物车 ID 查询购物车详情的 API，返回购物车基本信息、所有商品项及总价。重点关注高效加载聚合数据、标准化响应建模、DTO 映射和性能优化。
+
+**API**
+
+1. Request Example
+
+    ```
+    POST /carts/{id}
+    ```
+
+**知识树**
+
+1. 查询流程与响应结构
+
+    - 根据购物车 ID 查询，返回标准化的 `CartDto`，包含购物车 ID、商品项列表 (`List<CartItemDto>`) 及总价 (`totalPrice`)。
+    - 未找到购物车返回 404 Not Found。
+
+2. 总价聚合计算
+
+    - 在 `Cart` 实体实现 `getTotalPrice()`，按购物车内所有商品项实时聚合总价，确保金额准确一致。
+    - MapStruct DTO 映射时通过表达式同步映射总价，保持控制层零重复。
+
+3. 数据加载与性能优化
+
+    - 采用 JPQL + `@EntityGraph`，一次性加载购物车、全部商品项及对应商品信息，避免多次数据库查询（此处非 N+1）。
+    - 说明：JPA 规范下，只有外键拥有方的 fetch 策略有效，`mappedBy` 侧的 `fetch` 无实际作用，聚合查询需用 `@EntityGraph` 或自定义查询优化。
+
+**代码示例**
+
+1. Controller 层实现
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/carts")
+    public class CartController {
+
+    	// 省略
+
+        @GetMapping("/{cartId}")
+        public ResponseEntity<CartDto> getCart(@PathVariable UUID cartId) {
+            var cart = cartRepository.getCartWithItems(cartId).orElse(null);
+            if (cart == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            return ResponseEntity.ok(cartMapper.toDto(cart));
+        }
+    }
+    ```
+
+    - 说明：通过定制查询一次性加载购物车、全部商品项及商品信息，高效响应。
+
+2. Cart 实体添加总价计算方法
+
+    ```java
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "carts")
+    public class Cart {
+
+    	// 省略
+
+        public BigDecimal getTotalPrice() {
+            return items.stream()
+                    .map(CartItem::getTotalPrice)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
+    }
+    ```
+
+    - 说明：通过流式 API 聚合所有项的总价。
+
+3. MapStruct 映射接口
+
+    ```java
+    @Mapper(componentModel = "spring")
+    public interface CartMapper {
+        @Mapping(target = "totalPrice", expression = "java(cart.getTotalPrice())")
+        CartDto toDto(Cart cart);
+
+    	// 省略
+    }
+    ```
+
+    - 说明：通过表达式直接映射总价，无需在控制器中计算。
+
+4. CartRepository 优化查询方法
+
+    ```java
+    public interface CartRepository extends JpaRepository<Cart, UUID> {
+        @EntityGraph(attributePaths = "items.product")
+        @Query("SELECT c FROM Cart c WHERE c.id = :cartId")
+        Optional<Cart> getCartWithItems(@Param("cartId") UUID cartId);
+    }
+    ```
+
+    - 说明：通过 @EntityGraph 实现聚合加载，避免 N+1 查询，提升接口性能。
