@@ -2788,3 +2788,138 @@ Deployment
     ```
 
     - 说明：多层次资源查找，严格错误分流，响应体格式标准化。
+
+## 信息专家原则
+
+> 简述：信息专家原则（Information Expert Principle）的核心思想是将某个职责赋予拥有该职责所需信息最多的类。这样可以提升系统内聚性，减少重复代码，让业务逻辑更靠近数据本身。
+
+**知识树**
+
+1. 信息专家原则核心
+
+    - 定义：将操作分配给最有数据和行为能力的对象，由“最懂得如何做”者承担职责。
+    - En：we should assign the responsibility to the class that has the necessary data to do the job
+    - 优势：提升内聚性、简化控制层、减少业务重复、增强模型表达力。
+
+2. 行为下沉到领域模型
+
+    - 查找商品项
+        - 通过 `Cart#getItem(Long productId)` 在购物车内部查找商品项，避免外部冗余遍历。
+    - 添加商品逻辑
+        - `Cart#addItem(Product product)` 内部判断商品是否已存在，自动处理数量累加或新建
+    - 计算总价（之前已添加）
+        - `Cart#getTotalPrice()` 聚合计算所有商品项总价。
+        - `CartItem#getTotalPrice()` 商品项自行负责总价计算。
+
+3. 贫血模型 vs. 充血模型
+
+    - 贫血模型（Anemic Model）：对象仅有字段和 getter/setter，业务全在服务或控制器，违背面向对象设计。
+    - 充血模型（Rich Model）：领域对象既有数据也有核心行为，主导自身状态与逻辑变更，代码健壮且易扩展。
+
+4. 责任分离与协作
+
+    - 控制器：仅作为协调者，负责请求参数校验、调用领域行为、转换响应，不承担核心业务。
+    - 领域模型：主导业务状态变更和一致性维护。
+    - 服务层：承载领域的复杂业务流程（稍后介绍）。
+
+**代码示例**
+
+1. 在 Cart 实体中添加查找商品项方法，以及添加商品方法
+
+    ```java
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "carts")
+    public class Cart {
+
+    	// 省略
+
+        public CartItem getItem(Long productId) {
+            return items.stream()
+                    .filter(item -> item.getProduct().getId().equals(productId))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        public CartItem addItem(Product product) {
+            var cartItem = getItem(product.getId());
+            if (cartItem != null) {
+                cartItem.setQuantity(cartItem.getQuantity() + 1);
+            } else {
+                cartItem = new CartItem();
+                cartItem.setProduct(product);
+                cartItem.setQuantity(1);
+                cartItem.setCart(this);
+                items.add(cartItem);
+            }
+            return cartItem;
+        }
+    }
+    ```
+
+    - 描述：购物车负责管理和查找其内部的商品项。
+
+2. 简化后的控制器，仅调用领域方法（影响方法 `addItemToCart`、`updateItem`）
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/carts")
+    public class CartController {
+
+    	// 省略
+
+        @PostMapping("/{cartId}/items")
+        public ResponseEntity<CartItemDto> addItemToCart(
+                @PathVariable(name = "cartId") UUID cartId,
+                @RequestBody AddItemToCartRequest request
+        ) {
+            var cart = cartRepository.getCartWithItems(cartId).orElse(null);
+
+            if (cart == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            var product = productRepository.findById(request.getProductId()).orElse(null);
+            if (product == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+
+            var cartItem = cart.addItem(product);
+            cartRepository.save(cart);
+
+            var cartItemDto = cartMapper.toDto(cartItem);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(cartItemDto);
+        }
+
+    	// 省略
+
+        @PutMapping("/{cartId}/items/{productId}")
+        public ResponseEntity<?> updateItem(
+                @PathVariable("cartId") UUID cartId,
+                @PathVariable("productId") Long productId,
+                @Valid @RequestBody UpdateCartItemRequest request
+        ) {
+            var cart = cartRepository.getCartWithItems(cartId).orElse(null);
+            if (cart == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                        Map.of("error", "Cart not found.")
+                );
+            }
+
+            var cartItem = cart.getItem(productId);
+            if (cartItem == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                        Map.of("error", "Product was not found in the cart.")
+                );
+            }
+
+            cartItem.setQuantity(request.getQuantity());
+            cartRepository.save(cart);
+
+            return ResponseEntity.ok(cartMapper.toDto(cartItem));
+        }
+    }
+    ```
