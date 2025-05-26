@@ -2054,7 +2054,7 @@ Deployment
 
 # Project 购物车 API
 
-> 结合当前的内容，逐步创建购物车 API，可能没有新的技术点
+> 结合当前的内容，逐步创建购物车 API
 
 ## 创建购物车表结构
 
@@ -2230,3 +2230,90 @@ Deployment
     ```
 
     - 描述：去除非必要属性，定义明确的关系映射与字段。
+
+## 创建购物车 API
+
+> 简述：实现购物车的创建接口，标准化返回新购物车的结构，包括唯一 ID、购物项和总价。
+
+**知识树**
+
+1. 接口与响应设计
+
+    - 创建购物车通常采用 POST `/carts` 路径，返回新购物车对象。
+    - 响应体为购物车 DTO，包含唯一标识、商品项列表及总价。
+    - 推荐返回 201 状态码，并在 Location 响应头中附带新资源 URI。
+
+2. DTO 结构与初始化
+
+    - 购物车 DTO 包含 `id: UUID`、`items: List<CartItemDto>`、`totalPrice: BigDecimal` 字段。
+    - items 字段初始化为新 ArrayList，避免响应为 null。
+    - totalPrice 字段初始化为 BigDecimal.ZERO，避免空值。
+
+3. 实体到 DTO 的映射
+
+    - 建议通过 MapStruct 或类似映射工具自动转换实体为 DTO，减少重复代码，保持类型安全。
+    - DTO 字段类型需与实体一致（如 id 为 UUID）。
+
+4. Controller 实现要点
+
+    - 使用 `@RestController`、`@PostMapping("/carts")` 声明接口。
+    - 调用 JPA 仓库保存新购物车，使用映射器转为 DTO。
+    - 返回 ResponseEntity，推荐用 `created(uri).body(cartDto)` 构造标准 RESTful 响应。
+
+5. 开发流程
+
+    - 实际开发时，可以从 controller 出发，遇到文件缺失时直接创建
+
+**代码示例**
+
+1. Cart DTO 定义及初始化
+
+    ```java
+    @Data
+    public class CartDto {
+        private UUID id;
+        public List<CartItemDto> items = new ArrayList<>();
+        private BigDecimal totalPrice = BigDecimal.ZERO;
+    }
+    ```
+
+    - 描述：初始化 items 和 totalPrice，避免响应体为 null。`CartItemDto` 暂时设置为空类，后面继续介绍。
+
+2. CartMapper 映射接口
+
+    ```java
+    @Mapper(componentModel = "spring")
+    public interface CartMapper {
+        CartDto toDto(Cart cart);
+    }
+    ```
+
+    - 说明：自动实现实体到 DTO 的转换。
+
+3. 创建购物车 Controller
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/cart")
+    public class CartController {
+
+        private final CartRepository cartRepository;
+        private final CartMapper cartMapper;
+
+        @PostMapping
+        public ResponseEntity<CartDto> createCart(
+                UriComponentsBuilder uriBuilder
+        ) {
+            var cart = new Cart();
+            cartRepository.save(cart);
+
+            var cartDto = cartMapper.toDto(cart);
+            var uri = uriBuilder.path("/cart/{id}").buildAndExpand(cartDto.getId()).toUri();
+
+            return ResponseEntity.created(uri).body(cartDto);
+        }
+    }
+    ```
+
+    - 描述：保存新购物车并返回 201 状态码，Location 响应头包含新资源 URI。
