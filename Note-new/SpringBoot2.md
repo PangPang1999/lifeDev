@@ -2933,9 +2933,9 @@ Deployment
 
 1. Request Example
 
-   ```
-   DELETE /carts/{cartId}/items/{productId}
-   ```
+    ```
+    DELETE /carts/{cartId}/items/{productId}
+    ```
 
 2. Response Example
 
@@ -3029,3 +3029,92 @@ Deployment
     ```
 
     - 描述：先查找购物车，不存在则 404。无论商品项是否存在，都直接执行移除，如商品项存在，持久化，如不存在，返回 204，无需响应体。
+
+## 清空购物车接口
+
+> 简述：实现将购物车中的所有商品项一次性移除的接口。该操作不删除购物车本身，仅清空其内容。
+
+**API**
+
+1. Request Example
+
+    ```
+    DELETE /carts/{cartId}/items
+    ```
+
+2. Response Example
+
+    ```
+    204
+    ```
+
+**知识树**
+
+1. 功能定位
+
+    - 仅移除购物车内所有商品项，保留购物车实体本身。
+    - 避免因误删购物车带来的用户体验问题。
+
+2. 核心业务流程
+
+    - 查询购物车，若不存在返回 404 并。
+    - 若存在，移除所有商品项（无论原本是否为空）。
+    - 返回 204，无响应体。
+
+3. 领域模型封装与幂等性
+
+    - 在 `Cart` 实体内实现 `clear()` 方法，由实体负责维护集合一致性。
+    - 接口幂等：多次清空操作结果一致，始终返回 204。
+
+4. 数据一致性与 JPA 管理
+
+    - 利用 `orphanRemoval`，移除集合元素时自动级联物理删除，保证数据库和实体状态一致。
+
+**代码示例**
+
+1. Cart 实体实现清空方法
+
+    ```java
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "carts")
+    public class Cart {
+
+    	// 省略
+
+        public void clear() {
+            items.clear();
+        }
+    }
+    ```
+
+    - 描述：通过断开所有商品项关联并清空集合，JPA 会认为这些元素是“孤儿”，会在事务提交时自动物理删除这些 CartItem 对象。
+
+2. 控制器实现
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/carts")
+    public class CartController {
+
+    	// 省略
+
+        @DeleteMapping("/{cartId}/items")
+        public ResponseEntity<Void> clearCart(@PathVariable UUID cartId) {
+            var cart = cartRepository.getCartWithItems(cartId).orElse(null);
+            if (cart == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+
+            cart.clear();
+
+            cartRepository.save(cart);
+
+            return ResponseEntity.noContent().build();
+        }
+    }
+    ```
+
+    - 描述：查找购物车，若不存在返回 404，否则清空商品项并保存，始终返回 204。
