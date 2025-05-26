@@ -1651,31 +1651,60 @@ Deployment
 
 3. 删除操作：DELETE 访问 http://localhost:8080/products/13 ，查询数据库，再执行 GET 访问 http://localhost:8080/products/13 ，或者直接访问数据库，查询不到数据，删除成功
 
-## 响应码补充
+## REST &常用响应码
 
-- 200 OK
+1. 200 OK
 
-    - 请求成功。通常用于 GET、PUT、DELETE 等操作后，表示请求被正常处理，响应体一般包含所请求的数据（如查询结果、资源详情等）。
+    - 含义：请求成功，常用于 GET、PUT、DELETE 等操作。响应体通常包含所请求的数据（如资源详情、查询结果等）。
+    - 默认行为：未显式设置响应码时，成功响应默认为 200。
 
-- 201 Created
+2. 201 Created
 
-    - 新资源创建成功。用于 POST 创建资源时，响应体可返回新建资源的内容，并在 Location 响应头中指明资源的 URL。
+    - 含义：资源创建成功，常用于 POST 操作。响应体应包含新建资源内容，`Location` 响应头指定新资源的 URL。
+    - 返回方式示例：
+        ```java
+        var uri = uriBuilder.path("/users/{id}").buildAndExpand(userDto.getId()).toUri();
+        return ResponseEntity.created(uri).body(userDto);
+        ```
+    - 简化方式（不返回 Location）：
+        ```java
+        return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
+        ```
 
-- 204 No Content
+3. 204 No Content
 
-    - 请求成功，但无响应内容。常用于 DELETE 操作或部分 PUT、POST，不返回任何数据，仅表示操作完成。
+    - 含义：请求成功，但无响应内容。常用于 DELETE 或部分 PUT、POST 操作，仅表示操作已完成。
+    - 返回方式示例：
 
-- 400 Bad Request
+        ```java
+        return ResponseEntity.noContent().build();
+        ```
 
-    - 请求参数有误或格式不正确。服务器无法理解该请求。常见于参数校验失败、格式错误等场景。
+4. 400 Bad Request
 
-- 401 Unauthorized
+    - 含义：请求参数有误或格式不正确，服务器无法处理该请求。常见于参数校验失败或格式错误等。
+    - 示例：如购物车添加商品时，商品 ID 不存在或格式错误。
+    - 返回方式示例：
 
-    - 未认证。请求缺少有效的身份认证信息（如未登录、token 失效），需先认证。
+        ```java
+        return ResponseEntity.badRequest().build();
+        ```
 
-- 404 Not Found
+5. 404 Not Found
 
-    - 请求资源不存在。常用于路径错误、资源 id 查无此数据等情况。
+    - 含义：请求资源不存在，常用于路径错误或指定资源 ID 不存在等场景。
+    - 返回方式示例：
+        ```java
+        return ResponseEntity.notFound().build();
+        ```
+
+6. 401 Unauthorized
+
+    - 含义：未认证。请求缺少有效身份认证（如未登录或 token 失效），需先进行认证。
+    - 返回方式示例：
+        ```java
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        ```
 
 # Validating API Requests
 
