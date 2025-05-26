@@ -1640,18 +1640,27 @@ Deployment
 
 2. 更新操作：PUT 访问 http://localhost:8080/products/13 。返回值显示价格修改为 1，更新成功
 
-```json
-{
-	"name": "Test Product",
-	"price": "1",
-	"description": "description",
-	"categoryId": "1"
-}
-```
+    ```json
+    {
+    	"name": "Test Product",
+    	"price": "1",
+    	"description": "description",
+    	"categoryId": "1"
+    }
+    ```
 
 3. 删除操作：DELETE 访问 http://localhost:8080/products/13 ，查询数据库，再执行 GET 访问 http://localhost:8080/products/13 ，或者直接访问数据库，查询不到数据，删除成功
 
 ## REST &常用响应码
+
+**风格设计**
+
+1. 层级明确
+
+    - 采用查询参数区分层级
+    - 如`/carts/{catId}/items/{productId}`
+
+**响应码**
 
 1. 200 OK
 
@@ -1677,7 +1686,10 @@ Deployment
     - 返回方式示例：
 
         ```java
+        // 简单返回
         return ResponseEntity.noContent().build();
+        // 带内容返回
+        return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
         ```
 
 4. 400 Bad Request
@@ -1687,7 +1699,10 @@ Deployment
     - 返回方式示例：
 
         ```java
+        // 简单返回
         return ResponseEntity.badRequest().build();
+        // 带内容返回
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(userDto);
         ```
 
 5. 404 Not Found
@@ -1695,7 +1710,10 @@ Deployment
     - 含义：请求资源不存在，常用于路径错误或指定资源 ID 不存在等场景。
     - 返回方式示例：
         ```java
+        // 简单返回
         return ResponseEntity.notFound().build();
+        // 带内容返回
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userDto);
         ```
 
 6. 401 Unauthorized
@@ -1703,6 +1721,7 @@ Deployment
     - 含义：未认证。请求缺少有效身份认证（如未登录或 token 失效），需先进行认证。
     - 返回方式示例：
         ```java
+        // 简单返回，可带body
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         ```
 
@@ -2287,7 +2306,7 @@ Deployment
 
 **知识树**
 
-1. DTO 设计与初始化
+1. DTO 设计
 
     - 响应 DTO：`CartDto`，包含 `id: UUID`、`items: List<CartItemDto>`、`totalPrice: BigDecimal`。
     - `items` 字段初始化为空列表，`totalPrice` 初始化为 `BigDecimal.ZERO`，防止返回 null。
@@ -2402,7 +2421,7 @@ Deployment
 
 **知识树**
 
-1. DTO 设计与响应建模
+1. DTO 设计
 
     - 添加商品请求 DTO：`AddItemToCartRequest`，用 `@NotNull` 确保 `productId` 必填。
     - 响应 DTO：`CartItemDto`，包含 `product`（嵌套 `CartProductDto`），`quantity`，`totalPrice`。
@@ -2429,6 +2448,11 @@ Deployment
     - 在 `CartItem` 实体中实现 `getTotalPrice` 方法，返回总价。
     - 使用 MapStruct 配置映射方法，通过表达式映射总价。
     - 示例`@Mapping(target = "totalPrice", expression = "java(cartItem.getTotalPrice())")`
+
+5. 数据加载与性能优化
+
+    - 由于需要通过 Stream 便利商品进行判断，建议采用 JPQL + `@EntityGraph`，一次性加载购物车、全部商品项及对应商品信息，避免多次数据库查询（此处非 N+1）。
+    - 说明：JPA 规范下，只有外键拥有方的 fetch 策略有效，`mappedBy` 侧的 `fetch` 无实际作用，聚合查询需用 `@EntityGraph` 或自定义查询优化。
 
 **代码示例**
 
@@ -2510,7 +2534,7 @@ Deployment
                 @PathVariable(name = "cartId") UUID cartId,
                 @RequestBody AddItemToCartRequest request
         ) {
-            var cart = cartRepository.findById(cartId).orElse(null);
+            var cart = cartRepository.getCartWithItems(cartId).orElse(null);
 
             if (cart == null) {
                 return ResponseEntity.notFound().build();
@@ -2547,7 +2571,19 @@ Deployment
 
     - 说明：先校验购物车和商品存在性，重复商品数量累加，否则新建购物车项。全部持久化由 Cart 聚合根统一管理。响应只包含必要的商品信息和总价。
 
-5. PostMan 测试
+5. CartRepository 优化查询方法
+
+    ```java
+    public interface CartRepository extends JpaRepository<Cart, UUID> {
+        @EntityGraph(attributePaths = "items.product")
+        @Query("SELECT c FROM Cart c WHERE c.id = :cartId")
+        Optional<Cart> getCartWithItems(@Param("cartId") UUID cartId);
+    }
+    ```
+
+    - 说明：通过 @EntityGraph 实现聚合加载，提升接口性能。
+
+6. PostMan 测试
 
     ```json
     {
@@ -2555,7 +2591,7 @@ Deployment
     }
     ```
 
-    - 描述：查询数据库，拷贝购物车 UUID，访问 http://localhost:8080/carts/uuid/items 尝试添加购物车
+    - 描述：查询数据库，拷贝购物车 UUID，POST 访问 http://localhost:8080/carts/uuid/items 尝试添加购物车
 
 ## 查询购物车详情接口
 
@@ -2583,8 +2619,7 @@ Deployment
 
 3. 数据加载与性能优化
 
-    - 采用 JPQL + `@EntityGraph`，一次性加载购物车、全部商品项及对应商品信息，避免多次数据库查询（此处非 N+1）。
-    - 说明：JPA 规范下，只有外键拥有方的 fetch 策略有效，`mappedBy` 侧的 `fetch` 无实际作用，聚合查询需用 `@EntityGraph` 或自定义查询优化。
+    - 采用 JPQL + `@EntityGraph`，一次性加载购物车、全部商品项及对应商品信息，避免多次数据库查询（此处非 N+1），使用上一节创建的`getCartWithItems`方法。
 
 **代码示例**
 
@@ -2647,14 +2682,109 @@ Deployment
 
     - 说明：通过表达式直接映射总价，无需在控制器中计算。
 
-4. CartRepository 优化查询方法
+## 更新购物车商品数量
 
-    ```java
-    public interface CartRepository extends JpaRepository<Cart, UUID> {
-        @EntityGraph(attributePaths = "items.product")
-        @Query("SELECT c FROM Cart c WHERE c.id = :cartId")
-        Optional<Cart> getCartWithItems(@Param("cartId") UUID cartId);
+> 简述：实现将购物车内某商品数量更新的 RESTful API。关注资源层级建模、参数校验、错误响应标准化、以及通过聚合根统一变更和持久化。
+> **API**
+
+1. Request Example
+
+    ```json
+    // PUT /carts/{catId}/items/{productId}
+
+    {
+    	"quantity": 1
     }
     ```
 
-    - 说明：通过 @EntityGraph 实现聚合加载，避免 N+1 查询，提升接口性能。
+2. Response Example
+
+    ```json
+    // 201 CREATED
+
+    {
+    	"productId": {
+    		"id": 1,
+    		"name": "Product 1",
+    		"price": 10
+    	},
+    	"quantity": 5,
+    	"totalPrice": 50
+    }
+    ```
+
+**知识树**
+
+1. DTO 设计
+
+    - 请求 DTO：`UpdateCartItemRequest`，包含 `quantity`，并设置合适注解与提示友好型 message
+    - 响应 DTO：使用之前创建的`CartItemDto`
+
+2. 核心业务流程
+
+    1. 查询购物车，未找到返回 404，以及标准化错误响应
+    2. 在购物车内查找指定商品项，未找到同样返回 404，以及标准化错误响应
+    3. 校验通过后，更新对应商品项的数量
+    4. 返回最新的购物车项 DTO，包含商品信息、最新数量与总价。
+
+3. 错误处理与响应规范
+
+    - 错误体为 JSON 键值对，将返回值类型改为`ResponseEntity<?>`以便提供灵活返回值（成功时 DTO，失败时 Map）。
+
+**代码示例**
+
+1. 更新请求 DTO
+
+    ```java
+    @Data
+    public class UpdateCartItemRequest {
+        @NotNull(message = "Quantity must be provided.")
+        @Min(value = 1, message = "Quantity must be greater than zero.")
+        @Max(value = 1000, message = "Quantity must be less than or equal to 100.")
+        private Integer quantity;
+    }
+    ```
+
+    - 说明：用 Integer 便于区分“缺失”与“非法值”，结合注解精确提示错误。
+
+2. Controller 层实现
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/carts")
+    public class CartController {
+
+        private final CartRepository cartRepository;
+        private final CartMapper cartMapper;
+
+        @PutMapping("/{cartId}/items/{productId}")
+        public ResponseEntity<?> updateItem(
+                @PathVariable UUID cartId,
+                @PathVariable Long productId,
+                @Valid @RequestBody UpdateCartItemRequest request
+        ) {
+            var cart = cartRepository.getCartWithItems(cartId).orElse(null);
+            if (cart == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "cart not found"));
+            }
+
+            var cartItem = cart.getItems().stream()
+                    .filter(item -> item.getProduct().getId().equals(productId))
+                    .findFirst().orElse(null);
+
+            if (cartItem == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "product was not found in the cart"));
+            }
+
+            cartItem.setQuantity(request.getQuantity());
+            cartRepository.save(cart);
+
+            return ResponseEntity.ok(cartMapper.toDto(cartItem));
+        }
+    }
+    ```
+
+    - 说明：多层次资源查找，严格错误分流，响应体格式标准化。
