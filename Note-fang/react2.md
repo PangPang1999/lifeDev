@@ -151,6 +151,14 @@
 
 > 简述：React Query 是一个强大的库，用于管理 React 应用中的数据获取和缓存。它解决了传统数据获取方式（如使用`useState`和`useEffect`）中存在的请求取消、关注点分离、失败重试、自动刷新和缓存等问题，且相比 Redux 等状态管理库在处理服务端状态时更简单轻量。
 
+1. todolist的缺点：
+	1. 没有清除请求，=》没有取消请求，如果组件被卸载（strict mode)
+	2. 没有做到组件化，将可复用组件分离出来=>提取查询逻辑，并将其封装在一个钩子函数中
+	3. 没有重试失败的请求 
+	4. 没有自动刷新
+	5. 没有缓存
+2. react query的作用：获取和缓存数据
+
 **知识树**
 
 1.  传统数据获取方式的问题 (以`useState` + `useEffect`为例)：
@@ -222,7 +230,7 @@
 
 1.  安装:
     - 命令: `npm install @tanstack/react-query`
-    - （视频中可能指定了版本以保证一致性，如 `@tanstack/react-query@4.29.19`）
+    - （视频中可能指定了版本以保证一致性，如 `@tanstack/react-query@4.28.0）
 2.  核心对象与 Provider:
     - `QueryClient`: React Query 的核心，用于管理和缓存远程数据。
     - `QueryClientProvider`: React 组件，用于将`QueryClient`实例注入到组件树中，使其对所有子组件可用。
@@ -237,7 +245,7 @@
 1.  安装命令 (终端):
 
     ```bash
-    npm install @tanstack/react-query
+    npm install @tanstack/react-query@4.28.0
     # 或指定版本: npm install @tanstack/react-query@4.29.19
     ```
 
@@ -258,7 +266,7 @@
         <QueryClientProvider client={queryClient}> {/* 提供 client */}
           <App />
         </QueryClientProvider>
-      </React.StrictMode>,
+      </React.StrictMode>
     );
     ```
 
@@ -266,12 +274,22 @@
 
 > 简述：使用 React Query 的`useQuery`钩子从后端获取数据。`useQuery`接收一个配置对象，其中包含`queryKey`（用于缓存的唯一标识符）和`queryFn`（执行实际数据获取的函数）。钩子返回一个包含数据、错误、加载状态等属性的查询对象。
 
+useQuery:只关心管理和缓存数据
+1. queryKey：是这个query的唯一标识符，在内部用于缓存，每当我们从后端检索一条数据时，诗句存储在缓存中，可通过此键访问
+	1. 设置：一个或多个值的数组，标识了我们要在这里存储的数据类型
+2. queryFn： react query在运行时会在promise resolved的时候调用这个函数，然后得到一个数组，这个十足会储存在这个queryKey的`['todos']`中
+
+自动重试
+自动刷新
+缓存 
+
+
 **知识树**
 
-1.  `useQuery` 钩子:
+3.  `useQuery` 钩子:
     - 从 `@tanstack/react-query` 导入。
     - 基本用法: `useQuery(options)`。
-2.  `useQuery` 配置对象 (`options`):
+4.  `useQuery` 配置对象 (`options`):
     - `queryKey: QueryKey`: 查询的唯一标识符，用于内部缓存。
         - 类型为数组，例如 `['todos']` 或 `['todos', { completed: true }]`。
         - 第一个元素通常是标识数据类型的字符串。后续元素可用于更细致的区分，如筛选条件。
@@ -279,21 +297,21 @@
         - Promise 应解析为所需数据，或在出错时抛出错误。
         - 可以使用任何 HTTP 客户端 (如 Axios, fetch API)。
         - 通常需要从 HTTP 响应中提取实际数据 (例如 `response.data` for Axios)。
-3.  `queryFn` 的类型注解:
+5.  `queryFn` 的类型注解:
     - 为了 TypeScript 的类型安全，应明确`queryFn`返回的 Promise 所解析的数据类型。
-    - 例如，使用 Axios 时: `axios.get<Todo[]>('url').then(res => res.data)`，这里 `Todo[]` 是期望的数据类型。
-4.  `useQuery` 返回的查询对象:
+    - 例如，使用 Axios 时: `axios.get<Todo[]>('url').then(res => res.data)`，这里 `Todo[]` 是期望的数据类型。是fetchTodo返回的promise对象：todo[]
+6.  `useQuery` 返回的查询对象:
     - 包含多个属性，如：
         - `data: TData | undefined`: 获取到的数据。初始时或错误时为 `undefined`。
         - `error: TError | null`: 错误对象。成功时为 `null`。
         - `isLoading: boolean`: 是否正在加载数据 (首次加载)。
         - （还有 `isFetching`, `status`, `isSuccess`, `isError` 等更多状态）。
     - 可以直接解构所需属性: `const { data, error, isLoading } = useQuery(...)`。
-5.  数据使用:
+7.  数据使用:
     - 在组件中使用 `data` 属性渲染数据。
     - 由于 `data` 可能为 `undefined` (例如初始加载或错误时)，在访问其属性或调用其方法 (如 `.map()`) 时，需要使用可选链 (`?.`) 或进行空值检查。
-    - 可以通过解构重命名 `data`，例如 `const { data: todos } = useQuery(...)`。
-6.  React Query 带来的好处 (回顾):
+    - 可以通过解构重命名 `data`，例如 `const { data: todos } = useQuery(...)`。  
+8.  React Query 带来的好处 (回顾):
     - 自动重试失败请求。
     - 自动刷新数据 (可配置)。
     - 内置缓存机制。
@@ -633,8 +651,7 @@
         - 默认值：`0`。数据获取后立即变为过时 (stale)。
         - 过时数据在下次需要时会尝试从后端重新获取，同时可能返回缓存中的过时数据给 UI。
         - 设置为 `Infinity` 表示数据永不过期 (除非手动失效)。
-3.  自动重新获取 (Refetching) 行为:
-    - React Query 在以下三种情况下默认会自动重新获取过时数据：
+3.  自动重新获取 (Refe-    - React Query 在以下三种情况下默认会自动重新获取过时数据：
         - `refetchOnWindowFocus: boolean`: 窗口重新获得焦点时。默认 `true`。
         - `refetchOnReconnect: boolean`: 网络重新连接时。默认 `true`。
         - `refetchOnMount: boolean`: 组件挂载时 (如果数据已过时)。默认 `true`。
@@ -809,6 +826,14 @@
 
 > 简述：React Query 是一个强大的库，专门用于简化 React 应用中数据获取、缓存、同步和更新服务器状态的复杂性，解决了传统`useEffect` + `useState`方式带来的诸多问题。
 
+1. todolist的缺点：
+	1. 没有清除请求，=》没有取消请求，如果组件被卸载（strict mode)
+	2. 没有做到组件化，将可复用组件分离出来=>提取查询逻辑，并将其封装在一个钩子函数中
+	3. 没有重试失败的请求 
+	4. 没有自动刷新
+	5. 没有缓存
+2. react query的作用：获取和缓存数据
+
 **知识树**
 
 1.  传统数据获取方式 ( `useEffect` + `useState` ) 的问题：
@@ -876,7 +901,7 @@
 **知识树**
 
 1.  安装 React Query：
-    - 命令：`npm install @tanstack/react-query`
+    - 命令：`npm install @tanstack/react-query@4.28.0`
     - 版本锁定：为保证教程一致性，可安装特定版本，如 `@tanstack/react-query@4.28.0`。
 2.  核心组件与对象：
     - `QueryClient`：
@@ -889,7 +914,7 @@
     - 在项目主入口文件（如`main.tsx`或`index.js`）中：
         1.  导入`QueryClient`和`QueryClientProvider`：
             `import { QueryClient, QueryClientProvider } from '@tanstack/react-query';`
-        2.  创建`QueryClient`实例。
+        2.  创建`QueryClient`新实例: `const queryClient = new QueryClien
         3.  使用`QueryClientProvider`包裹根应用组件，并将`queryClient`实例通过`client` prop 传递。
 
 **代码示例**
@@ -920,6 +945,8 @@
 
 > 简述：React Query 使用`useQuery` Hook 来执行数据获取操作。通过配置`queryKey`（用于缓存的唯一标识）和`queryFn`（实际获取数据的函数），`useQuery`会自动处理加载状态、错误、数据缓存及重试等。
 
+
+
 **知识树**
 
 1.  `useQuery` Hook：
@@ -947,6 +974,7 @@
         - `isFetching`: (boolean) 查询是否正在获取数据（包括后台刷新）。
         - `status`: ('loading' | 'error' | 'success') 查询的当前状态。
         - 其他状态和方法：`isSuccess`, `isError`, `refetch`等。
+	- 可以直接解构所需属性: `const { data, error, isLoading } = useQuery(...)`。
 5.  TypeScript 类型支持：
     - 为`axios.get<Todo[]>(...)`等 HTTP 请求库调用指定泛型参数，确保`queryFn`返回的 Promise 类型正确。
     - `useQuery`本身也可以接受泛型参数来指定`data`和`error`的类型，例如`useQuery<Todo[], Error>(...)`。
@@ -998,6 +1026,8 @@
 ## 5- 处理错误
 
 > 简述：`useQuery` Hook 返回的查询对象中包含`error`属性，用于捕获和处理数据获取过程中发生的错误。通过为`useQuery`指定错误类型，可以获得更好的 TypeScript 类型支持。
+
+需要为`useQuery`指定错误类型
 
 **知识树**
 
@@ -1072,9 +1102,6 @@
 2.  在 UI 中显示加载状态：
     - 条件渲染：检查`isLoading`属性，如果为`true`，则渲染加载指示器。
     - 示例：`if (isLoading) return <p>Loading...</p>;`
-3.  模拟慢速网络连接进行测试：
-    - 浏览器开发者工具：大多数浏览器（如 Chrome）的 Network（网络）面板提供节流（Throttling）功能，可以选择预设的慢速网络配置（如"Slow 3G"）或自定义。
-    - 目的：在开发过程中观察和调试加载状态的 UI 表现。
 
 **代码示例**
 
@@ -1107,6 +1134,9 @@
 ## 7- 创建自定义查询 Hook
 
 > 简述：为了实现关注点分离和代码复用，应将与特定数据获取相关的`useQuery`逻辑封装到自定义 Hook 中。这个自定义 Hook 将负责数据获取的细节，并返回查询结果，使组件本身只关注 UI 渲染。
+
+ 
+
 
 **知识树**
 
@@ -1171,7 +1201,7 @@
     function TodoList() {
       const { data: todos, error, isLoading } = useTodos(); // 使用自定义Hook
 
-      if (isLoading) return <p>Loading...</p>;
+       
       if (error) return <p>{error.message}</p>;
 
       return (
@@ -1191,10 +1221,10 @@
 
 1.  React Query DevTools：
     - 类型：一个 React 组件，集成到应用中以提供调试界面。
-    - 安装：`npm install @tanstack/react-query-devtools` (注意包名，视频中可能是旧版名称)。
-2.  集成到应用：
-    - 导入：`import { ReactQueryDevtools } from '@tanstack/react-query-devtools';` (确保从正确的包路径导入)。
-    - 渲染位置：在应用的根组件（如`App`）之后，`QueryClientProvider`内部渲染`ReactQueryDevtools`组件。
+    - 安装：`npm install @tanstack/react-query-devtools@4.28` 
+2.  集成到应用： (`main.tsx`):
+    - 导入：`import { ReactQueryDevtools } from '@tanstack/react-query-devtools';` (通常带有蓝色图标提示
+    - 渲染位置：在 `QueryClientProvider` 内部，通常在 `App` 组件之后，添加 `<ReactQueryDevtools />` 组件。
     - `<ReactQueryDevtools initialIsOpen={false} />` ( `initialIsOpen` 可选，控制初始是否展开)。
     - 仅限开发模式：DevTools 组件通常只在开发构建中包含，生产构建会自动移除。
 3.  DevTools 界面与功能：
@@ -1247,22 +1277,23 @@
 
 **知识树**
 
-1.  配置层级：
-    - **全局配置**：在创建`QueryClient`实例时，通过`defaultOptions.queries`对象设置所有查询的默认行为。
-    - **局部配置**：在调用`useQuery`时，在其配置对象中直接覆盖全局设置或指定特定行为。
-2.  常用可配置选项：
-    - `retry`: (number | boolean | (failureCount: number, error: TError) => boolean)
-        - 定义失败请求的重试次数。默认 3 次。
-        - 设为`false`可禁用重试。
-    - `cacheTime`: (number)
-        - 定义非活动查询（无观察者）在缓存中保留的时长（毫秒）。默认 5 分钟 (`5 * 60 * 1000`)。
-        - 超时后，非活动查询的数据会被垃圾回收。
+1.  全局默认设置 (`QueryClient` 构造函数):
+    - 在 `new QueryClient(options)` 时传入配置对象。
+    - `defaultOptions`: 对象，包含针对不同操作类型的默认设置。
+        - `queries`: 对象，用于配置所有查询的默认行为。
+2.  常用查询配置项 (`defaultOptions.queries` 或 `useQuery` 选项):
+    - `retry: number | boolean | (failureCount: number, error: TError) => boolean`: 失败重试次数。
+        - 默认值：`3`。
+        - 设置为 `false` 或 `0` 可禁用重试。
+    - `cacheTime: number`: 非活动 (inactive) 查询结果在缓存中保留的时间 (毫秒)。
+        - 默认值：`5 * 60 * 1000` (5 分钟)。
+        - 非活动查询指没有组件正在观察 (使用) 的查询。
     - `staleTime`: (number)
         - 定义数据在被视为“过时”（stale）之前保持“新鲜”（fresh）的时长（毫秒）。默认 0。
         - 新鲜数据：直接从缓存返回，不触发网络请求。
         - 过时数据：仍会从缓存返回（若存在），但 React Query 会在后台尝试重新获取最新数据。
     - `refetchOnWindowFocus`: (boolean | "always" | ((query: Query) => boolean | "always"))
-        - 当浏览器窗口重新获得焦点时，是否自动重新获取过时的数据。默认`true`。
+        - 当浏览器窗口重新获得焦点时，是否自动重新获取过时的数据。默认`true`。]
     - `refetchOnReconnect`: (boolean | "always" | ((query: Query) => boolean | "always"))
         - 当网络连接恢复时，是否自动重新获取过时的数据。默认`true`。
     - `refetchOnMount`: (boolean | "always" | ((query: Query) => boolean | "always"))

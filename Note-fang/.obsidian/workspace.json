@@ -98,7 +98,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 200,
+    "collapsed": true
   },
   "right": {
     "id": "b839df162c42938e",
@@ -188,12 +189,12 @@
       "command-palette:打开命令面板": false
     }
   },
-  "active": "741d0fa9088e1bb8",
+  "active": "d2644bb1d8a4b71e",
   "lastOpenFiles": [
+    "未命名 1.md",
     "react1.md",
     "react2.md",
     "react旧.md",
-    "未命名 1.md",
     "game-hub-detail.md",
     "game-hub.md",
     "学习教程.md",
