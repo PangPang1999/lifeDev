@@ -3327,7 +3327,7 @@ Deployment
     }
     ```
 
-## 集成与定制 Swagger API 文档
+## Swagger
 
 > 简述：Swagger 是自动生成 REST API 交互式文档的工具，能实时展示所有接口，便于前后端协作、测试。
 
@@ -3401,3 +3401,65 @@ Deployment
     ```
 
     - 描述：`@Tag` 控制分组显示名与描述，`@Operation` 为接口提供摘要说明，`@Parameter` 注解参数细节。
+
+# Security
+
+## 认证方式&JWT
+
+> 简述：常见用户认证模式包括基于会话（Session-based）和基于令牌（Token-based，如 JWT）。Session 依赖服务端状态，而 Token 自包含用户身份，更适合 REST API 和分布式架构。
+
+**知识树**
+
+**知识树**
+
+1. 基于会话认证（Session-based Authentication）
+
+    - 流程
+        - 用户登录后，服务端生成 Session，并将 Session ID 存入 Cookie 返回给客户端。
+        - 客户端后续请求自动携带 Cookie，服务端通过 Session ID 识别用户。
+    - 特点
+        - 服务器端有状态，需维护所有用户会话。
+        - 内存消耗随用户数增长，扩展性较差。
+
+2. 基于令牌认证（Token-based Authentication）
+
+    - 流程
+        - 用户登录后，服务端生成 Token（如 JWT），返回给客户端。
+        - Token 自包含用户信息，客户端每次请求都在 Header 中携带 Token。
+        - 服务端仅通过 Token 验证用户身份，无需维护会话状态。
+    - 特点
+        - 服务端无状态，天然适用于 REST API、分布式和前后端分离架构。
+
+3. JWT（JSON Web Token）原理与结构
+
+    - 结构
+        - Header：指定签名算法与类型（如 HS256/JWT）。
+        - Payload：存储用户公开信息（如用户 ID、角色、签发时间），不应包含敏感数据。
+        - Signature：服务端用 secret 和算法对 Header+Payload 签名，防止篡改。
+    - 验证流程
+        - 服务端解析 Token，重算签名并对比，确保未被伪造。
+        - 客户端每次请求都带上 JWT，服务端仅验签与解析，无需存储任何会话状态。
+
+4. JWT 生成与验证示例
+
+    - 生成
+
+        ```java
+        // 编码 header 和 payload
+        String base64Header = base64UrlEncode(headerJson);
+        String base64Payload = base64UrlEncode(payloadJson);
+        String signature = HMAC_SHA256(secret, base64Header + "." + base64Payload);
+        String jwt = base64Header + "." + base64Payload + "." + signature;
+        ```
+
+    - 验证
+
+        ```java
+        // 拆分 JWT
+        String[] parts = jwt.split("\\.");
+        // 重算签名并比对
+        String expectedSignature = HMAC_SHA256(secret, parts[0] + "." + parts[1]);
+        if (expectedSignature.equals(parts[2])) {
+            // 验证通过
+        }
+        ```
