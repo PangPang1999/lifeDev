@@ -3326,3 +3326,78 @@ Deployment
     public class ProductNotFoundException extends RuntimeException {
     }
     ```
+
+## 集成与定制 Swagger API 文档
+
+> 简述：Swagger 是自动生成 REST API 交互式文档的工具，能实时展示所有接口，便于前后端协作、测试。
+
+**知识树**
+
+1. Swagger 基本概念
+
+    - 网站：
+        - https://springdoc.org
+    - Swagger（OpenAPI）用于自动生成 REST API 的交互式文档页面，便于开发、测试与接口对接。
+    - 提供端点一览、参数/响应说明、在线调试（如 Swagger UI）。
+
+2. 集成步骤
+
+    - 引入依赖：在 `pom.xml` 添加 Springdoc OpenAPI（官网 Getting Started 章节查看）
+    - 启动项目后访问 `/swagger-ui/index.html`（具体根据官网）获取文档页面。
+    - 所有被 `@RestController` 注解的接口将自动被收录展示。
+
+3. 文档页面使用
+
+    - 按 Controller 分组展示所有接口。
+    - 支持点选查看参数说明、请求体、响应体示例，并可在线发起调试请求。
+
+4. 定制与扩展
+
+    - `@Tag` 注解可为 Controller 自定义分组名和描述（如将 CartController 分组名设为 “Carts”）。
+    - `@Operation` 注解可为方法添加摘要、详细说明。
+    - `@Parameter` 注解用于描述参数用途、限制等。
+    - 可排除特定接口，修改页面风格，嵌入自定义说明，实现企业级文档标准化。
+
+**代码示例**
+
+1. 引入 Swagger 依赖（pom.xml）
+
+    ```xml
+    <dependency>
+         <groupId>org.springdoc</groupId>
+         <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+         <version>2.8.8</version>
+    </dependency>
+    ```
+
+    - 描述：引入官方 Springdoc OpenAPI UI 依赖，无需手动配置，开箱即用。
+
+2. Controller 分组与接口描述定制
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/carts")
+    @Tag(name = "Carts")
+    public class CartController {
+
+    	// 省略
+
+        @PostMapping("/{cartId}/items")
+        @Operation(summary = "Add a product to the cart")
+        public ResponseEntity<CartItemDto> addItemToCart(
+                @Parameter(description = "The ID of the cart")
+                @PathVariable(name = "cartId") UUID cartId,
+                @RequestBody AddItemToCartRequest request
+        ) {
+            var cartItemDto = cartService.addToCart(cartId, request.getProductId());
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(cartItemDto);
+        }
+
+    	// 省略
+
+    }
+    ```
+
+    - 描述：`@Tag` 控制分组显示名与描述，`@Operation` 为接口提供摘要说明，`@Parameter` 注解参数细节。
