@@ -3486,3 +3486,56 @@ Deployment
 3. 实践与扩展
 
     - 默认所有接口均需登录，实际项目常需开放部分接口（如商品浏览、购物车等），稍后介绍
+
+## 配置与开放接口
+
+> 简述：通过编写自定义配置类，可以灵活控制 API 的访问权限，实现对特定接口的开放或保护。
+
+**知识树**
+
+1. 安全配置核心
+
+    - 在 `config` 包中创建 `SecurityConfig` 类。
+    - 用 `@Configuration` 和 `@EnableWebSecurity` 标记为安全配置入口。
+    - 通过定义 `SecurityFilterChain` Bean，集中配置所有安全策略。
+
+2. RESTful 场景下的安全最佳实践
+
+    - 无状态：使用 `SessionCreationPolicy.STATELESS`，每个请求独立，无需服务端保存登录状态。
+    - 关闭 CSRF：REST API 通常用 Token 鉴权，无需防护 CSRF（主要针对基于 Cookie 的认证场景）。
+    - 显式声明开放与保护的路由：
+
+        - 公开路由如 `/carts/**`（购物车）、`POST /users`（用户注册）。
+        - 其余接口默认需要认证。
+
+3. 路由权限粒度控制
+
+    - 可按 HTTP 方法、路径模式进行细粒度授权。
+    - 支持 `.permitAll()`（允许匿名访问）、`.authenticated()`（需要认证）。
+
+**知识树**
+
+1. Spring Security 配置示例
+
+    ```java
+    @Configuration
+    @EnableWebSecurity
+    public class SecurityConfig {
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+            http
+                    .sessionManagement(c ->
+                            c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .authorizeHttpRequests(c -> c
+                            .requestMatchers("/carts/**").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/users").permitAll()
+                            .anyRequest().authenticated()
+                    );
+
+            return http.build();
+        }
+    }
+    ```
+
+    - 说明：此配置关闭 Session 和 CSRF，仅对指定接口开放匿名访问，其他接口需登录或携带 Token。
