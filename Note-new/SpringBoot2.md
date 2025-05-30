@@ -3539,3 +3539,100 @@ Deployment
     ```
 
     - 说明：此配置关闭 Session 和 CSRF，仅对指定接口开放匿名访问，其他接口需登录或携带 Token。
+
+## 密码加密与安全存储
+
+> 简述：安全系统绝不能以明文存储用户密码，应采用哈希算法（如 BCrypt）将密码加密存储，实现不可逆防护，保障用户隐私和数据安全。
+
+**知识树**
+
+1. 密码哈希（Hashing）原理
+
+    - 哈希是单向加密，将原密码变为固定长度的随机字符，无法还原为明文。
+
+2. 密码存储与验证流程
+
+    - 注册时：先对明文密码 `encode`，保存哈希值到数据库。
+    - 登录时：将用户输入密码 `encode` 后与数据库中哈希值比对，不存明文。
+
+3. Spring Security 中密码加密实现
+
+    1. 将 `PasswordEncoder` 接口实现通过`@Bean` 注入容器，全局自动注入。推荐使用主流的 `BCryptPasswordEncoder`，生产环境使用。
+    2. 在需要处调用 `PasswordEncoder` 实现，处理加密操作
+
+4. 代码最佳实践
+
+    - 任何涉及密码处理的场景（注册、修改密码），都必须显式加密。
+    - 用户表中永远只保存加密后的密码，不存明文，不暴露原始密码。
+
+**代码示例**
+
+1. 注册 BCryptPasswordEncoder Bean
+
+    ```java
+    @Configuration
+    @EnableWebSecurity// 仅配置密码时非必须
+    public class SecurityConfig {
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+            return new BCryptPasswordEncoder();
+        }
+
+    // 省略
+
+    }
+    ```
+
+    - 说明：全局提供 BCrypt 加密器，供所有组件依赖注入。
+
+2. 注册用户时加密密码
+
+    ```java
+    @RestController
+    @AllArgsConstructor
+    @RequestMapping("/users")
+    public class UserController {
+
+        private final PasswordEncoder passwordEncoder;
+
+    	// 省略
+
+        @PostMapping
+        public ResponseEntity<?> registerUser(
+                @Valid @RequestBody RegisterUserRequest request,
+                UriComponentsBuilder uriBuilder
+        ) {
+
+            if (userRepository.existsByEmail(request.getEmail())) {
+                return ResponseEntity.badRequest().body(
+                        Map.of("email", "Email is already registered.")
+                );
+            }
+
+            User user = userMapper.toEntity(request);
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            userRepository.save(user);
+
+            var userDto = userMapper.toDto(user);
+            var uri = uriBuilder.path("/users/{id}").buildAndExpand(userDto.getId()).toUri();
+            return ResponseEntity.created(uri).body(userDto);
+        }
+
+    	// 省略
+
+    }
+    ```
+
+    - 说明：保存前加密原始密码，数据库永远不留明文。
+
+3. PostMan 测试
+
+    ```json
+    {
+    	"name": "Pang",
+    	"email": "pang@example.com",
+    	"password": "123456"
+    }
+    ```
+
+    - 描述：删除之前创建的用户，发送 POST 请求访问 http://localhost:8080/users ，访问数据库，查看 hash 加密的密码，如`$2a$10$qOOmP77r3xM4WY2HaJHGq`
