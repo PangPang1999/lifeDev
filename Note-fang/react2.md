@@ -969,24 +969,24 @@
     - **状态管理**：
         - 使用`useState`管理当前页码 (`page`)。
         - 页面大小 (`pageSize`) 可以是常量或另一个状态变量（如果允许用户更改）。
-    - **查询对象 (`PostQuery`)**：
+    - **查询参数封装 (`PostQuery`)**：
         - 创建一个接口（如`PostQuery`）来封装所有查询参数（`page`, `pageSize`, 以及未来可能的其他过滤条件）。
         - 将此查询对象作为参数传递给自定义查询 Hook（如`usePosts`）。
-    - **动态`queryKey`**：
+    - **查询键(queryKey)设计`**：
         - `queryKey`应包含整个查询对象，以确保查询参数变化时能触发数据重新获取并正确缓存。
         - 示例：`queryKey: ['posts', query]` (其中`query`是`PostQuery`实例)。
     - **动态`queryFn`**：
         - `queryFn`需根据查询对象中的`page`和`pageSize`来构建 API 请求。
         - API 端点通常支持通过查询参数（如`_start`, `_limit` for JSONPlaceholder）来控制分页。
         - 计算`_start`：`(query.page - 1) * query.pageSize`。
-    - **UI 交互**：
+    - **分页导航 UI 实现**：
         - 提供“上一页”和“下一页”按钮。
         - 按钮的`onClick`事件处理器负责更新`page`状态。
         - 禁用逻辑：第一页时禁用“上一页”，最后一页时禁用“下一页”（如果后端 API 提供总记录数信息）。
 3.  优化用户体验 (`keepPreviousData`)：
-    - 问题：切换页面时，如果新数据加载需要时间，UI 可能会短暂显示加载状态，导致内容跳动。
-    - `keepPreviousData: true`：在`useQuery`的配置中设置此选项。
-    - 效果：当查询参数变化导致重新获取数据时，React Query 会继续显示上一份有效数据，直到新数据加载完成。新数据加载完成后，UI 会平滑过渡到新数据，避免了加载状态的闪烁和内容跳动。
+    - 保留前一页数据：使用 `keepPreviousData` 属性避免加载状态闪烁
+    - 无缝过渡：在新数据加载完成前显示当前页数据
+    - 加载状态处理：适当处理加载和错误状态
     - `isPreviousData`：`useQuery`返回的查询对象中会包含此布尔属性，指示当前显示的是否为先前的数据。
 4.  API 限制：
     - JSONPlaceholder 等模拟 API 可能不提供总记录数，使得难以判断是否到达最后一页。真实 API 应提供此信息。

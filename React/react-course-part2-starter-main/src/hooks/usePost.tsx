@@ -7,21 +7,24 @@ interface Post {
   body: string;
   userId: number;
 }
-const fetchData = (userId?: number): Promise<Post[]> => {
-  const params = userId ? { userId } : {};
+interface PostQuery {
+  page: number;
+  pageSize: number;
+}
 
-  const endpoint = "https://jsonplaceholder.typicode.com/posts";
-  return axios
-    .get<Post[]>(endpoint, {
-      params,
-    })
-    .then((res) => res.data);
-};
-const usePost = (userId: number | undefined) => {
-  const queryKey = userId ? ["users", userId, "posts"] : ["posts"];
+const usePost = (query: PostQuery) => {
   return useQuery<Post[], Error>({
-    queryKey: queryKey,
-    queryFn: () => fetchData(userId),
+    queryKey: ["posts", query],
+    queryFn: () =>
+      axios
+        .get<Post[]>("https://jsonplaceholder.typicode.com/posts", {
+          params: {
+            _start: (query.page - 1) * query.pageSize,
+            _limit: query.pageSize,
+          },
+        })
+        .then((res) => res.data),
+    keepPreviousData: true,
   });
 };
 
