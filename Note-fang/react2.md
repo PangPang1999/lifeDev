@@ -120,681 +120,6 @@
 
 # 第二章
 
-## 1- 简介 (React Query 部分)
-
-> 简述：本节将深入探讨如何使用 React Query 进行数据获取和更新。内容分为三部分：查询数据、变更数据和项目实践，最终目标是为 Game Hub 项目添加缓存和无限滚动功能，并重构代码库。
-
-**知识树**
-
-1.  React Query 核心功能：数据获取与更新。
-2.  内容结构：
-    - 第一部分：数据查询
-        - 从 API 获取数据。
-        - 错误处理。
-        - 实现分页查询和无限滚动查询。
-        - 使用 React Query DevTools 调试查询。
-    - 第二部分：数据变更 (Mutations)
-        - 处理 CRUD (创建、读取、更新、删除) 操作。
-        - 实现乐观更新。
-        - 创建自定义钩子和可复用服务进行数据变更。
-    - 第三部分：项目实践
-        - 将所学技能应用于 Game Hub 项目。
-        - 实现缓存和无限滚动。
-        - 代码重构与改进。
-3.  最终成果：Game Hub 项目具备缓存和无限滚动功能，代码库得到优化。
-
-**代码示例**
-
-（本节无代码）
-
-## 2- React Query 是什么？
-
-> 简述：React Query 是一个强大的库，用于管理 React 应用中的数据获取和缓存。它解决了传统数据获取方式（如使用`useState`和`useEffect`）中存在的请求取消、关注点分离、失败重试、自动刷新和缓存等问题，且相比 Redux 等状态管理库在处理服务端状态时更简单轻量。
-
-1. todolist的缺点：
-	1. 没有清除请求，=》没有取消请求，如果组件被卸载（strict mode)
-	2. 没有做到组件化，将可复用组件分离出来=>提取查询逻辑，并将其封装在一个钩子函数中
-	3. 没有重试失败的请求 
-	4. 没有自动刷新
-	5. 没有缓存
-2. react query的作用：获取和缓存数据
-
-**知识树**
-
-1.  传统数据获取方式的问题 (以`useState` + `useEffect`为例)：
-    - 请求取消：组件卸载时未取消 HTTP 请求，可能导致内存泄漏或状态更新错误，尤其在严格模式下（组件渲染两次）。
-    - 关注点分离缺失：查询逻辑耦合在组件内部，难以复用和模块化。需手动提取到自定义钩子。
-    - 无失败重试机制：请求失败后通常直接显示错误，用户体验不佳。
-    - 无自动刷新：数据在后端更新后，前端页面除非手动刷新，否则无法看到最新数据。
-    - 无内置缓存：频繁请求相同数据会增加服务器负载，影响应用性能。
-2.  React Query 的优势：
-    - 内置上述问题的解决方案：自动处理请求取消、提供重试机制、支持自动刷新、强大的缓存策略。
-    - 简化数据获取逻辑：开发者无需手动编写大量样板代码。
-3.  与 Redux 的比较 (用于缓存服务端状态)：
-    - Redux：流行的全局状态管理库，常被用作客户端缓存。
-        - 缺点：学习曲线陡峭，样板代码多，增加应用复杂度和调试难度。
-    - React Query：更专注于服务端状态管理，更简单、轻量。
-        - 建议：在新项目中，对于服务端状态的缓存，优先考虑 React Query 而非 Redux。
-
-**代码示例**
-
-1.  传统数据获取 (示例 `TodoList` 组件，展示问题点):
-
-    ```tsx
-    // src/react-query/TodoList.tsx (初始版本，展示问题)
-    import { useEffect, useState } from 'react';
-    import axios from 'axios';
-
-    interface Todo {
-      id: number;
-      title: string;
-      userId: number;
-      completed: boolean;
-    }
-
-    const TodoList = () => {
-      const [todos, setTodos] = useState<Todo[]>([]);
-      const [error, setError] = useState('');
-
-      useEffect(() => {
-        axios
-          .get<Todo[]>('https://jsonplaceholder.typicode.com/todos')
-          .then((res) => setTodos(res.data))
-          .catch((err) => setError(err.message));
-        // 问题1: 没有取消请求的逻辑
-        // 问题2: 查询逻辑在组件内，不易复用
-        // 问题3: 没有重试
-        // 问题4: 没有自动刷新
-        // 问题5: 没有缓存
-      }, []);
-
-      if (error) return <p>{error}</p>;
-
-      return (
-        <ul>
-          {todos.map((todo) => (
-            <li key={todo.id}>{todo.title}</li>
-          ))}
-        </ul>
-      );
-    };
-
-    export default TodoList;
-    ```
-
-## 3- 设置 React Query
-
-> 简述：安装 React Query 并进行基本配置。需要在应用根组件处创建`QueryClient`实例，并通过`QueryClientProvider`将其提供给整个应用。
-
-**知识树**
-
-1.  安装:
-    - 命令: `npm install @tanstack/react-query`
-    - （视频中可能指定了版本以保证一致性，如 `@tanstack/react-query@4.28.0）
-2.  核心对象与 Provider:
-    - `QueryClient`: React Query 的核心，用于管理和缓存远程数据。
-    - `QueryClientProvider`: React 组件，用于将`QueryClient`实例注入到组件树中，使其对所有子组件可用。
-3.  配置步骤 (`main.tsx`):
-    - 导入 `QueryClient` 和 `QueryClientProvider`。
-    - 创建 `QueryClient` 的新实例: `const queryClient = new QueryClient();`。
-    - 用 `QueryClientProvider` 包裹根 `App` 组件。
-    - 将创建的 `queryClient` 实例通过 `client` prop 传递给 `QueryClientProvider`。
-
-**代码示例**
-
-1.  安装命令 (终端):
-
-    ```bash
-    npm install @tanstack/react-query@4.28.0
-    # 或指定版本: npm install @tanstack/react-query@4.29.19
-    ```
-
-2.  `main.tsx` (或应用入口文件) 配置:
-
-    ```tsx
-    import React from 'react';
-    import ReactDOM from 'react-dom/client';
-    import { QueryClient, QueryClientProvider } from '@tanstack/react-query'; // 导入
-    import App from './App.tsx';
-    import './index.css';
-
-    // 创建 QueryClient 实例
-    const queryClient = new QueryClient();
-
-    ReactDOM.createRoot(document.getElementById('root')!).render(
-      <React.StrictMode>
-        <QueryClientProvider client={queryClient}> {/* 提供 client */}
-          <App />
-        </QueryClientProvider>
-      </React.StrictMode>
-    );
-    ```
-
-## 4- 获取数据
-
-> 简述：使用 React Query 的`useQuery`钩子从后端获取数据。`useQuery`接收一个配置对象，其中包含`queryKey`（用于缓存的唯一标识符）和`queryFn`（执行实际数据获取的函数）。钩子返回一个包含数据、错误、加载状态等属性的查询对象。
-
-useQuery:只关心管理和缓存数据
-1. queryKey：是这个query的唯一标识符，在内部用于缓存，每当我们从后端检索一条数据时，诗句存储在缓存中，可通过此键访问
-	1. 设置：一个或多个值的数组，标识了我们要在这里存储的数据类型
-2. queryFn： react query在运行时会在promise resolved的时候调用这个函数，然后得到一个数组，这个十足会储存在这个queryKey的`['todos']`中
-
-自动重试
-自动刷新
-缓存 
-
-
-**知识树**
-
-3.  `useQuery` 钩子:
-    - 从 `@tanstack/react-query` 导入。
-    - 基本用法: `useQuery(options)`。
-4.  `useQuery` 配置对象 (`options`):
-    - `queryKey: QueryKey`: 查询的唯一标识符，用于内部缓存。
-        - 类型为数组，例如 `['todos']` 或 `['todos', { completed: true }]`。
-        - 第一个元素通常是标识数据类型的字符串。后续元素可用于更细致的区分，如筛选条件。
-    - `queryFn: () => Promise<TData>`: 一个返回 Promise 的函数，负责实际获取数据。
-        - Promise 应解析为所需数据，或在出错时抛出错误。
-        - 可以使用任何 HTTP 客户端 (如 Axios, fetch API)。
-        - 通常需要从 HTTP 响应中提取实际数据 (例如 `response.data` for Axios)。
-5.  `queryFn` 的类型注解:
-    - 为了 TypeScript 的类型安全，应明确`queryFn`返回的 Promise 所解析的数据类型。
-    - 例如，使用 Axios 时: `axios.get<Todo[]>('url').then(res => res.data)`，这里 `Todo[]` 是期望的数据类型。是fetchTodo返回的promise对象：todo[]
-6.  `useQuery` 返回的查询对象:
-    - 包含多个属性，如：
-        - `data: TData | undefined`: 获取到的数据。初始时或错误时为 `undefined`。
-        - `error: TError | null`: 错误对象。成功时为 `null`。
-        - `isLoading: boolean`: 是否正在加载数据 (首次加载)。
-        - （还有 `isFetching`, `status`, `isSuccess`, `isError` 等更多状态）。
-    - 可以直接解构所需属性: `const { data, error, isLoading } = useQuery(...)`。
-7.  数据使用:
-    - 在组件中使用 `data` 属性渲染数据。
-    - 由于 `data` 可能为 `undefined` (例如初始加载或错误时)，在访问其属性或调用其方法 (如 `.map()`) 时，需要使用可选链 (`?.`) 或进行空值检查。
-    - 可以通过解构重命名 `data`，例如 `const { data: todos } = useQuery(...)`。  
-8.  React Query 带来的好处 (回顾):
-    - 自动重试失败请求。
-    - 自动刷新数据 (可配置)。
-    - 内置缓存机制。
-
-**代码示例**
-
-1.  `TodoList.tsx` (使用 `useQuery` 获取数据):
-
-    ```tsx
-    import { useQuery } from '@tanstack/react-query';
-    import axios from 'axios';
-
-    interface Todo {
-      id: number;
-      title: string;
-      // ...其他属性
-    }
-
-    // 提取的查询函数
-    const fetchTodos = (): Promise<Todo[]> =>
-      axios
-        .get<Todo[]>('https://jsonplaceholder.typicode.com/todos')
-        .then((res) => res.data);
-
-    const TodoList = () => {
-      const { data: todos, error, isLoading } = useQuery<Todo[], Error>({ // 指定数据和错误类型
-        queryKey: ['todos'], // 查询键
-        queryFn: fetchTodos,  // 查询函数
-      });
-
-      // isLoading 和 error 的处理见后续小节
-
-      return (
-        <ul>
-          {/* 使用可选链，因为 todos 可能为 undefined */}
-          {todos?.map((todo) => (
-            <li key={todo.id}>{todo.title}</li>
-          ))}
-        </ul>
-      );
-    };
-
-    export default TodoList;
-    ```
-
-## 5- 处理错误
-
-> 简述：React Query 的`useQuery`钩子返回的查询对象中包含`error`属性，用于捕获数据获取过程中发生的错误。通过为`useQuery`指定泛型错误类型，可以获得更准确的错误对象类型提示。
-
-**知识树**
-
-1.  `error` 属性:
-    - `useQuery` 返回的查询对象包含 `error` 属性。
-    - 当 `queryFn` 抛出错误或返回的 Promise 被拒绝时，`error` 属性会被设置为该错误对象。
-    - 如果请求成功，`error` 为 `null`。
-2.  错误类型:
-    - 默认情况下，`error` 属性的类型是 `unknown`，因为 React Query 不知道`queryFn`可能抛出何种类型的错误。
-    - 为了获得更好的类型支持，可以在调用 `useQuery` 时指定泛型参数：
-        - `useQuery<TData, TError>(options)`
-        - `TData`: 数据的类型 (例如 `Todo[]`)。
-        - `TError`: 错误的类型 (例如 `Error`，如果使用 Axios，错误通常是 `Error` 接口的实例)。
-3.  渲染错误信息:
-    - 在组件中检查 `error` 属性是否为真值。
-    - 如果存在错误，可以渲染错误信息，例如 `error.message`。
-4.  自动重试:
-    - React Query 默认会在请求失败时自动重试若干次。错误信息通常在所有重试均失败后才会通过 `error` 属性暴露给组件。
-
-**代码示例**
-
-1.  `TodoList.tsx` (处理并显示错误):
-
-    ```tsx
-    import { useQuery } from '@tanstack/react-query';
-    import axios from 'axios';
-
-    interface Todo { /* ... */ }
-
-    const fetchTodos = (): Promise<Todo[]> =>
-      axios
-        .get<Todo[]>('https://jsonplaceholder.typicode.com/todos') // 模拟错误可改URL
-        .then((res) => res.data);
-
-    const TodoList = () => {
-      const { data: todos, error, isLoading } = useQuery<Todo[], Error>({ // 指定 TError 为 Error
-        queryKey: ['todos'],
-        queryFn: fetchTodos,
-      });
-
-      // isLoading 处理见下一节
-
-      if (error) { // 检查错误
-        return <p>Error: {error.message}</p>; // 显示错误消息
-      }
-
-      return (
-        <ul>
-          {todos?.map((todo) => (
-            <li key={todo.id}>{todo.title}</li>
-          ))}
-        </ul>
-      );
-    };
-
-    export default TodoList;
-    ```
-
-2.  在 `App.tsx` 中使用 `TodoList` 以便在浏览器中查看效果:
-
-    ```tsx
-    // App.tsx
-    import TodoList from './react-query/TodoList';
-
-    function App() {
-      return <TodoList />;
-    }
-
-    export default App;
-    ```
-
-    - 要模拟错误，可以在 `fetchTodos` 函数中将 URL 修改为一个无效的地址。
-
-## 11- 显示加载指示器
-
-> 简述：React Query 的`useQuery`钩子返回的查询对象中包含`isLoading`布尔属性，用于指示数据是否正在进行初始加载。利用此属性可以在数据获取期间向用户显示加载提示。
-
-**知识树**
-
-1.  `isLoading` 属性:
-    - `useQuery` 返回的查询对象包含 `isLoading` 属性。
-    - 当查询首次执行且数据尚未获取完成时，`isLoading` 为 `true`。
-    - 数据获取成功或失败后，`isLoading` 变为 `false`。
-    - 注意与 `isFetching` 的区别：`isLoading` 仅指首次加载；`isFetching` 在任何数据获取活动（包括后台刷新）期间都为 `true`。
-2.  渲染加载指示器:
-    - 在组件中检查 `isLoading` 属性是否为 `true`。
-    - 如果是，则渲染加载提示，例如文本 "Loading..." 或一个 Spinner 组件。
-3.  模拟慢速网络:
-    - 可以使用浏览器开发者工具的网络(Network)标签页中的网络限速功能 (例如 "Slow 3G") 来模拟慢速连接，以便更清晰地观察加载状态。
-
-**代码示例**
-
-1.  `TodoList.tsx` (显示加载指示器):
-
-    ```tsx
-    // ... imports and fetchTodos function ...
-
-    const TodoList = () => {
-      const { data: todos, error, isLoading } = useQuery<Todo[], Error>({
-        queryKey: ['todos'],
-        queryFn: fetchTodos,
-      });
-
-      if (isLoading) { // 检查是否正在加载
-        return <p>Loading...</p>; // 显示加载文本
-      }
-
-      if (error) {
-        return <p>Error: {error.message}</p>;
-      }
-
-      return (
-        <ul>
-          {todos?.map((todo) => (
-            <li key={todo.id}>{todo.title}</li>
-          ))}
-        </ul>
-      );
-    };
-
-    export default TodoList;
-    ```
-
-## 12- 创建自定义查询钩子
-
-> 简述：将与特定数据获取相关的 React Query 逻辑（包括`useQuery`的调用、`queryKey`的定义、`queryFn`的实现以及相关的类型接口）封装到一个自定义钩子中。这有助于实现关注点分离，使组件代码更简洁，并提高数据获取逻辑的可复用性。
-
-**知识树**
-
-1.  关注点分离:
-    - 组件的主要职责是渲染 UI 和处理用户交互。
-    - 数据获取逻辑（如何获取、缓存键、错误处理等）应从组件中分离出来。
-2.  自定义钩子 (Custom Hook):
-    - 以 `use` 开头的 JavaScript 函数，允许在不同组件间共享有状态逻辑。
-    - 命名约定：例如，获取 todos 的钩子可以命名为 `useTodos`。
-3.  封装内容:
-    - 相关的类型接口 (例如 `Todo` 接口)。
-    - 实际的数据获取函数 (`queryFn` 的实现，如 `fetchTodos`)。
-    - `useQuery` 的调用，包括 `queryKey` 和 `queryFn` 的配置。
-    - 自定义钩子直接返回 `useQuery` 的结果 (查询对象)。
-4.  使用自定义钩子:
-    - 在组件中，导入并调用自定义钩子，例如 `const { data, error, isLoading } = useTodos();`。
-    - 组件不再直接与 `useQuery` 或数据获取细节打交道。
-5.  优点:
-    - 组件更简洁，只关注 UI。
-    - 数据获取逻辑集中管理，易于维护和修改。
-    - 数据获取逻辑可在多个组件中复用。
-
-**代码示例**
-
-1.  创建 `hooks` 文件夹 (如果尚不存在) 和 `useTodos.ts` 文件:
-
-    ```ts
-    // src/hooks/useTodos.ts
-    import { useQuery } from '@tanstack/react-query';
-    import axios from 'axios';
-
-    // 将 Todo 接口移到这里
-    export interface Todo {
-      id: number;
-      title: string;
-      userId: number;
-      completed: boolean;
-    }
-
-    // 数据获取函数也移到这里
-    const fetchTodos = (): Promise<Todo[]> =>
-      axios
-        .get<Todo[]>('https://jsonplaceholder.typicode.com/todos')
-        .then((res) => res.data);
-
-    // 自定义钩子
-    const useTodos = () => {
-      return useQuery<Todo[], Error>({ // 返回 useQuery 的结果
-        queryKey: ['todos'],
-        queryFn: fetchTodos,
-        // staleTime 等配置也可以在这里设置
-      });
-    };
-
-    export default useTodos;
-    ```
-
-2.  `TodoList.tsx` (使用自定义钩子 `useTodos`):
-
-    ```tsx
-    // src/react-query/TodoList.tsx
-    // 移除了 axios, Todo 接口, fetchTodos 函数的导入和定义
-    import useTodos from '../../hooks/useTodos'; // 导入自定义钩子
-
-    const TodoList = () => {
-      const { data: todos, error, isLoading } = useTodos(); // 调用自定义钩子
-
-      if (isLoading) return <p>Loading...</p>;
-      if (error) return <p>Error: {error.message}</p>;
-
-      return (
-        <ul>
-          {todos?.map((todo) => ( // todo 类型现在由 useTodos 内部的 useQuery 推断
-            <li key={todo.id}>{todo.title}</li>
-          ))}
-        </ul>
-      );
-    };
-
-    export default TodoList;
-    ```
-
-## 13- 使用 React Query DevTools
-
-> 简述：React Query DevTools 是一个用于调试和监控 React Query 查询的强大工具。它作为一个组件集成到应用中，在开发模式下提供一个可视化界面来查看缓存内容、查询状态、手动触发查询操作等。
-
-**知识树**
-
-1.  安装 DevTools:
-    - 命令: `npm install @tanstack/react-query-devtools`
-2.  集成到应用 (`main.tsx`):
-    - 从 `@tanstack/react-query-devtools` 导入 `ReactQueryDevtools` 组件。
-        - 注意导入路径，确保选择正确的组件 (通常带有蓝色图标提示，区别于 `@tanstack/react-query` 中的同名类型)。
-    - 在 `QueryClientProvider` 内部，通常在 `App` 组件之后，添加 `<ReactQueryDevtools />` 组件。
-    - DevTools 仅在开发构建中包含，生产构建时会自动移除。
-3.  DevTools 界面与功能:
-    - 触发方式：通常在页面角落显示一个 React Query 图标，点击可切换 DevTools 面板的显示/隐藏。
-    - 缓存内容查看：
-        - 列出当前缓存中的所有查询及其 `queryKey`。
-        - 点击某个 `queryKey` 可查看详细信息。
-    - 查询详情：
-        - `queryKey`。
-        - Observers (观察者数量)：正在使用此查询的组件数量。
-            - 当组件卸载，观察者数量减少。若减至 0，查询变为 `inactive`。
-        - Last Updated (最后更新时间)。
-    - 操作按钮：
-        - Refetch: 手动重新获取查询数据。
-        - Invalidate: 将查询标记为过时 (stale)，通常会导致在下次需要时重新获取。
-        - Trigger Loading/Error: 手动模拟加载或错误状态，便于调试 UI。
-    - Data Explorer: 显示与当前 `queryKey` 关联的缓存数据内容。
-    - Query Explorer: 显示查询对象的完整属性列表，包括状态 (`status`: `loading`, `error`, `success`) 和数据新鲜度 (`dataUpdatedAt`, `isStale()`)。
-    - `staleTime`: 查询数据被认为是新鲜的持续时间，默认为 0。
-    - `cacheTime`: 非活动查询 (`inactive`) 在被垃圾回收从缓存中移除前保持的时间，默认为 5 分钟。
-
-**代码示例**
-
-1.  安装 DevTools (终端):
-
-    ```bash
-    npm install @tanstack/react-query-devtools
-    ```
-
-2.  `main.tsx` (集成 DevTools):
-
-    ```tsx
-    import React from 'react';
-    import ReactDOM from 'react-dom/client';
-    import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-    import { ReactQueryDevtools } from '@tanstack/react-query-devtools'; // 从 devtools 导入
-    import App from './App.tsx';
-    import './index.css';
-
-    const queryClient = new QueryClient();
-
-    ReactDOM.createRoot(document.getElementById('root')!).render(
-      <React.StrictMode>
-        <QueryClientProvider client={queryClient}>
-          <App />
-          <ReactQueryDevtools /> {/* 添加 DevTools 组件 */}
-        </QueryClientProvider>
-      </React.StrictMode>,
-    );
-    ```
-
-## 14- 自定义查询设置
-
-> 简述：React Query 允许通过在创建`QueryClient`时配置`defaultOptions`来全局自定义查询的默认行为，或在单个`useQuery`调用中覆盖这些设置。常用可配置项包括重试次数(`retry`)、缓存时间(`cacheTime`)、数据新鲜期(`staleTime`)以及各种自动重新获取行为的开关。
-
-**知识树**
-
-1.  全局默认设置 (`QueryClient` 构造函数):
-    - 在 `new QueryClient(options)` 时传入配置对象。
-    - `defaultOptions`: 对象，包含针对不同操作类型的默认设置。
-        - `queries`: 对象，用于配置所有查询的默认行为。
-2.  常用查询配置项 (`defaultOptions.queries` 或 `useQuery` 选项):
-    - `retry: number | boolean | (failureCount: number, error: TError) => boolean`: 失败重试次数。
-        - 默认值：`3`。
-        - 设置为 `false` 或 `0` 可禁用重试。
-    - `cacheTime: number`: 非活动 (inactive) 查询结果在缓存中保留的时间 (毫秒)。
-        - 默认值：`5 * 60 * 1000` (5 分钟)。
-        - 非活动查询指没有组件正在观察 (使用) 的查询。
-    - `staleTime: number | Infinity`: 数据被认为是新鲜 (fresh) 的持续时间 (毫秒)。
-        - 默认值：`0`。数据获取后立即变为过时 (stale)。
-        - 过时数据在下次需要时会尝试从后端重新获取，同时可能返回缓存中的过时数据给 UI。
-        - 设置为 `Infinity` 表示数据永不过期 (除非手动失效)。
-3.  自动重新获取 (Refe-    - React Query 在以下三种情况下默认会自动重新获取过时数据：
-        - `refetchOnWindowFocus: boolean`: 窗口重新获得焦点时。默认 `true`。
-        - `refetchOnReconnect: boolean`: 网络重新连接时。默认 `true`。
-        - `refetchOnMount: boolean`: 组件挂载时 (如果数据已过时)。默认 `true`。
-    - 这些行为均可在 `defaultOptions.queries` 或单个 `useQuery` 中配置为 `false` 来禁用。
-4.  数据返回策略 (当数据过时):
-    - 如果数据已过时 (`staleTime` 已过)，React Query 会尝试从后端获取新数据。
-    - 同时，它会立即从缓存中返回当前的过时数据给组件，以快速响应 UI。
-    - 当新数据获取成功后，缓存会更新，并通知组件重新渲染以显示最新数据。
-5.  按查询配置:
-    - 大多数情况下，全局默认设置可能适用。
-    - `staleTime` 是最常需要根据具体查询的特性进行单独配置的选项。数据更新不频繁的查询可以设置较长的 `staleTime`。
-    - 在 `useQuery` 的配置对象中直接提供这些选项即可覆盖全局默认值。
-
-**代码示例**
-
-1.  全局配置示例 (`main.tsx`):
-
-    ```tsx
-    const queryClient = new QueryClient({
-      defaultOptions: {
-        queries: {
-          retry: 1, // 全局默认重试1次
-          cacheTime: 10 * 60 * 1000, // 10分钟缓存时间
-          staleTime: 1 * 60 * 1000,  // 1分钟数据新鲜期
-          refetchOnWindowFocus: false, // 禁用窗口聚焦时重新获取
-          // refetchOnReconnect: true, (默认)
-          // refetchOnMount: true, (默认)
-        },
-      },
-    });
-    ```
-
-2.  按查询配置示例 (在自定义钩子 `useTodos.ts` 中):
-    ```ts
-    // src/hooks/useTodos.ts
-    const useTodos = () => {
-      return useQuery<Todo[], Error>({
-        queryKey: ['todos'],
-        queryFn: fetchTodos,
-        staleTime: 10 * 60 * 1000, // 此查询的数据新鲜期为10分钟
-        // retry: 5, // 可覆盖全局重试次数
-      });
-    };
-    ```
-    _视频中最终决定移除全局配置，仅在需要时按查询配置 `staleTime`。_
-
-## 15- 练习：获取数据
-
-> 简述：练习将前面学到的 React Query 知识应用于一个新的场景：创建一个自定义钩子`usePosts`来获取帖子列表数据，并在`PostList`组件中使用该钩子，替换原有的`useState`和`useEffect`实现。
-
-**知识树**
-
-1.  目标组件: `src/react-query/PostList.tsx` (初始为传统数据获取方式)。
-2.  任务步骤:
-    - 创建自定义钩子 `src/hooks/usePosts.ts`。
-    - 在 `usePosts.ts` 中:
-        - 定义 `Post` 接口 (包含 `id`, `title`, `body`, `userId`)。
-        - 实现 `fetchPosts` 函数，使用 Axios 从 `https://jsonplaceholder.typicode.com/posts` 获取帖子数据。
-        - 调用 `useQuery<Post[], Error>()`：
-            - `queryKey: ['posts']`。
-            - `queryFn: fetchPosts`。
-            - (可选) 设置 `staleTime` (例如 1 分钟：`1 * 60 * 1000`)。
-        - 导出 `usePosts` 钩子。
-    - 修改 `PostList.tsx`:
-        - 移除原有的 `useState` (用于 `posts` 和 `error`) 和 `useEffect`。
-        - 调用 `usePosts()` 获取 `data: posts`, `error`, `isLoading`。
-        - 根据 `isLoading` 和 `error` 状态渲染加载提示或错误信息。
-        - 使用 `posts` 数据渲染列表。注意处理 `posts` 可能为 `undefined` 的情况 (使用可选链 `?.`)。
-3.  测试:
-    - 修改 `App.tsx`，将 `TodoList` 替换为 `PostList` 以在浏览器中查看结果。
-
-**代码示例**
-
-1.  `src/hooks/usePosts.ts`:
-
-    ```ts
-    import { useQuery } from '@tanstack/react-query';
-    import axios from 'axios';
-
-    export interface Post { // Post 接口定义
-      id: number;
-      title: string;
-      body: string;
-      userId: number;
-    }
-
-    const fetchPosts = (): Promise<Post[]> =>
-      axios
-        .get<Post[]>('https://jsonplaceholder.typicode.com/posts')
-        .then((res) => res.data);
-
-    const usePosts = () => {
-      return useQuery<Post[], Error>({
-        queryKey: ['posts'],
-        queryFn: fetchPosts,
-        staleTime: 1 * 60 * 1000, // 1分钟 staleTime
-      });
-    };
-
-    export default usePosts;
-    ```
-
-2.  `src/react-query/PostList.tsx` (使用 `usePosts`):
-
-    ```tsx
-    // 移除了 axios, Post 接口, fetchPosts 的导入和定义
-    import usePosts from '../../hooks/usePosts'; // 导入自定义钩子
-
-    const PostList = () => {
-      const { data: posts, error, isLoading } = usePosts();
-
-      if (isLoading) return <p>Loading posts...</p>;
-      if (error) return <p>Error: {error.message}</p>;
-
-      return (
-        <ul>
-          {posts?.map((post) => (
-            <li key={post.id}>
-              <h3>{post.title}</h3>
-              <p>{post.body}</p>
-            </li>
-          ))}
-        </ul>
-      );
-    };
-
-    export default PostList;
-    ```
-
-3.  `App.tsx` (用于测试):
-
-    ```tsx
-    // import TodoList from './react-query/TodoList';
-    import PostList from './react-query/PostList'; // 替换为 PostList
-
-    function App() {
-      // return <TodoList />;
-      return <PostList />;
-    }
-
-    export default App;
-    ```
-
 ## 1- 简介
 
 > 简述：本节将深入探讨使用 React Query 库进行数据获取和更新的核心机制。内容分为数据查询、数据变更及项目实践三部分，旨在全面掌握 React Query 在构建复杂应用中的数据交互能力。
@@ -826,13 +151,13 @@ useQuery:只关心管理和缓存数据
 
 > 简述：React Query 是一个强大的库，专门用于简化 React 应用中数据获取、缓存、同步和更新服务器状态的复杂性，解决了传统`useEffect` + `useState`方式带来的诸多问题。
 
-1. todolist的缺点：
-	1. 没有清除请求，=》没有取消请求，如果组件被卸载（strict mode)
-	2. 没有做到组件化，将可复用组件分离出来=>提取查询逻辑，并将其封装在一个钩子函数中
-	3. 没有重试失败的请求 
-	4. 没有自动刷新
-	5. 没有缓存
-2. react query的作用：获取和缓存数据
+1. todolist 的缺点：
+    1. 没有清除请求，=》没有取消请求，如果组件被卸载（strict mode)
+    2. 没有做到组件化，将可复用组件分离出来=>提取查询逻辑，并将其封装在一个钩子函数中
+    3. 没有重试失败的请求
+    4. 没有自动刷新
+    5. 没有缓存
+2. react query 的作用：获取和缓存数据
 
 **知识树**
 
@@ -941,11 +266,9 @@ useQuery:只关心管理和缓存数据
     );
     ```
 
-## 4- 获取数据
+## 4- useQuery 获取数据
 
 > 简述：React Query 使用`useQuery` Hook 来执行数据获取操作。通过配置`queryKey`（用于缓存的唯一标识）和`queryFn`（实际获取数据的函数），`useQuery`会自动处理加载状态、错误、数据缓存及重试等。
-
-
 
 **知识树**
 
@@ -954,19 +277,102 @@ useQuery:只关心管理和缓存数据
     - 用途：用于声明式地获取、缓存和同步异步数据。
     - 配置对象参数：接收一个包含至少`queryKey`和`queryFn`的对象。
 2.  `queryKey`：
-    - 定义：一个数组，用作查询的唯一标识符，React Query 内部使用它来缓存和管理数据。
+
+    - 定义：一个数组，查询键用于唯一标识和缓存一次数据请求，React Query 内部使用它来缓存和管理数据。同时，它也允许你手动与缓存交互，例如在数据变更后更新缓存或手动使某些查询失效。
     - 结构：
         - 第一个元素通常是描述数据类型的字符串（如`['todos']`）。
         - 可以包含更多元素以区分不同的查询实例（如`['todos', { completed: true }]`或`['todo', todoId]`）。
-    - 重要性：`queryKey`的唯一性和稳定性对缓存行为至关重要。
-3.  `queryFn`：
+
+3.  `queryKey`用法和特点：
+
+    1.  唯一标识 ：
+        - queryKey 必须是唯一的，用于区分不同的查询数据。
+        - React Query 内部使用 queryKey 来存储和检索缓存数据。
+    2.  格式 ：
+        - queryKey 必须是一个数组。
+        - 数组的元素可以是字符串、数字或可序列化的对象。
+    3.  简单用法 (常量数组) ：
+
+        - 适用于通用的列表或非层级资源。
+        - 例如： ['todos'] 用于获取所有待办事项， ['something', 'special'] 用于其他特定数据。
+
+        ```
+        useQuery({ queryKey: ['todos'], queryFn: 
+        fetchTodos });
+        useQuery({ queryKey: ['something', 
+        'special'], queryFn: 
+        fetchSomethingSpecial });
+        ```
+
+    4.  带变量的数组键 ：
+
+        - 当查询需要额外信息来唯一描述数据时使用。
+        - 适用于层级或嵌套资源，通常传递 ID、索引或其他参数。
+        - 也适用于带有额外参数的查询，通常传递一个包含选项的对象。
+        - 例如：
+            - 获取单个 todo： ['todo', 5] (5 是 todo 的 ID)
+            - 获取预览格式的单个 todo： ['todo', 5, { preview: true }]
+            - 获取已完成的 todos 列表： ['todos', { type: 'done' }]
+
+        ```
+        // 获取 ID 为 5 的 todo
+        useQuery({ queryKey: ['todo', 5], queryFn: 
+        () => fetchTodoById(5) });
+
+        // 获取已完成的 todos，并按名称排序
+        useQuery({ queryKey: ['todos', { type: 
+        'done', sortBy: 'name' }], queryFn: 
+        fetchFilteredTodos });
+        ```
+
+    5.  作为查询函数的依赖项 ：
+
+        - queryKey 的行为类似于 React useEffect Hook 的依赖数组。 2
+        - 如果你的查询函数依赖于某个变量，那么这个变量 必须 包含在 queryKey 中。 2
+        - 当 queryKey 中的任何依赖变量发生变化时，React Query 会自动重新获取数据（取决于 staleTime 等配置）。 1 2
+
+        ```
+        function Todos({ todoId }) {
+          const result = useQuery({
+            queryKey: ['todos', todoId], // todoId 
+            是依赖项
+            queryFn: () => fetchTodoById(todoId),
+          });
+        }
+        ```
+
+    6.  确定性哈希 ：
+
+        - queryKey 会被确定性地哈希。这意味着对象中键的顺序不影响最终的哈希值。
+        - 例如， ['todos', { status, page }] 和 ['todos', { page, status }] 会被认为是相同的键。
+        - 但是，数组中元素的顺序 确实 重要。 ['todos', status, page] 和 ['todos', page, status] 是不同的键。
+
+    7.  与 useInfiniteQuery 的区别 ：
+
+        - 不能为 useQuery 和 useInfiniteQuery 使用相同的 queryKey ，因为它们共享同一个查询缓存，但无限查询的数据结构与普通查询不同。
+
+        ```
+        // 正确的做法
+        useQuery({ queryKey: ['todos'], queryFn: 
+        fetchTodos });
+        useInfiniteQuery({ queryKey: 
+        ['infiniteTodos'], queryFn: 
+        fetchInfiniteTodos });
+        ```
+
+    8.  手动交互 ：
+        - queryKey 对于手动与缓存交互（如 invalidateQueries , setQueryData ）至关重要。这些方法通常支持模糊匹配 queryKey 。
+            总而言之， queryKey 是 React Query 中用于数据缓存、自动刷新和手动缓存管理的核心机制。合理地组织和使用 queryKey 对于构建高效、可维护的 React Query 应用非常重要。
+        - 重要性：`queryKey`的唯一性和稳定性对缓存行为至关重要。
+
+4.  `queryFn`：
     - 定义：一个返回 Promise 的函数，负责实际执行数据获取操作（如 API 调用）。
     - Promise 结果：
         - 成功时：Promise 应 resolve 为获取到的数据。
         - 失败时：Promise 应 reject 或抛出一个错误。
     - 数据提取：通常需要从 HTTP 响应中提取实际数据（如`response.data`）。
     - 可封装性：可以将`queryFn`的逻辑提取到独立的函数中，以提高可读性和复用性。
-4.  `useQuery`的返回值：
+5.  `useQuery`的返回值：
     - 一个查询对象，包含多个有用的属性，如：
         - `data`: (any | undefined) 查询成功时获取到的数据。
         - `error`: (Error | null) 查询失败时的错误对象。
@@ -974,11 +380,11 @@ useQuery:只关心管理和缓存数据
         - `isFetching`: (boolean) 查询是否正在获取数据（包括后台刷新）。
         - `status`: ('loading' | 'error' | 'success') 查询的当前状态。
         - 其他状态和方法：`isSuccess`, `isError`, `refetch`等。
-	- 可以直接解构所需属性: `const { data, error, isLoading } = useQuery(...)`。
-5.  TypeScript 类型支持：
+    - 可以直接解构所需属性: `const { data, error, isLoading } = useQuery(...)`。
+6.  TypeScript 类型支持：
     - 为`axios.get<Todo[]>(...)`等 HTTP 请求库调用指定泛型参数，确保`queryFn`返回的 Promise 类型正确。
     - `useQuery`本身也可以接受泛型参数来指定`data`和`error`的类型，例如`useQuery<Todo[], Error>(...)`。
-6.  React Query 的内置优势：
+7.  React Query 的内置优势：
     - 自动重试：默认情况下，失败的请求会自动重试若干次。
     - 自动刷新：可配置在特定条件下（如窗口聚焦、网络重连）自动重新获取数据。
     - 缓存：获取的数据会自动缓存，后续对相同`queryKey`的请求可能直接从缓存读取。
@@ -1135,9 +541,6 @@ useQuery:只关心管理和缓存数据
 
 > 简述：为了实现关注点分离和代码复用，应将与特定数据获取相关的`useQuery`逻辑封装到自定义 Hook 中。这个自定义 Hook 将负责数据获取的细节，并返回查询结果，使组件本身只关注 UI 渲染。
 
- 
-
-
 **知识树**
 
 1.  关注点分离原则：
@@ -1201,7 +604,7 @@ useQuery:只关心管理和缓存数据
     function TodoList() {
       const { data: todos, error, isLoading } = useTodos(); // 使用自定义Hook
 
-       
+
       if (error) return <p>{error.message}</p>;
 
       return (
@@ -1221,7 +624,7 @@ useQuery:只关心管理和缓存数据
 
 1.  React Query DevTools：
     - 类型：一个 React 组件，集成到应用中以提供调试界面。
-    - 安装：`npm install @tanstack/react-query-devtools@4.28` 
+    - 安装：`npm install @tanstack/react-query-devtools@4.28`
 2.  集成到应用： (`main.tsx`):
     - 导入：`import { ReactQueryDevtools } from '@tanstack/react-query-devtools';` (通常带有蓝色图标提示
     - 渲染位置：在 `QueryClientProvider` 内部，通常在 `App` 组件之后，添加 `<ReactQueryDevtools />` 组件。
@@ -1350,43 +753,38 @@ useQuery:只关心管理和缓存数据
 
 ## 10- 练习 - 获取数据
 
-> 简述：此练习要求将一个使用传统`useEffect`和`useState`方式获取帖子列表（Posts）的组件，改造成使用 React Query 并通过自定义 Hook (`usePosts`) 来获取数据，应用之前学到的 React Query 核心概念。
+> 简述：练习将前面学到的 React Query 知识应用于一个新的场景：创建一个自定义钩子`usePosts`来获取帖子列表数据，并在`PostList`组件中使用该钩子，替换原有的`useState`和`useEffect`实现。
 
 **知识树**
 
-1.  练习目标：
-    - 创建一个自定义 Hook `usePosts`，封装使用`React Query`获取帖子列表的逻辑。
-    - 在`PostList`组件中使用`usePosts` Hook 来获取和展示数据。
-    - 处理加载状态和错误状态。
-2.  `usePosts.ts` 自定义 Hook 实现：
-    - 定义`Post`接口（描述单个帖子对象的结构）。
-    - 创建`fetchPosts`函数 (作为`queryFn`)：
-        - 使用`axios` (或其他 HTTP 客户端) 从指定 API 端点获取帖子数据。
-        - 确保返回一个解析为`Post[]`的 Promise。
-    - 在`usePosts`函数内部调用`useQuery<Post[], Error>({...})`：
-        - `queryKey`: `['posts']` (或更具体的键)。
-        - `queryFn`: `fetchPosts`。
-        - 可选配置：设置`staleTime` (如 1 分钟)。
-    - 导出`usePosts` Hook。
-3.  `PostList.tsx` 组件改造：
-    - 移除原有的`useState` (用于`posts`和`error`) 和`useEffect` (用于数据获取)。
-    - 导入并调用`usePosts` Hook：`const { data: posts, error, isLoading } = usePosts();`
-    - UI 渲染逻辑：
-        - 如果`isLoading`为`true`，显示加载指示器。
-        - 如果`error`存在，显示错误消息 (`error.message`)。
-        - 如果数据加载成功 (`posts`有值)，遍历`posts`数组并渲染列表项。
-        - 使用可选链 (`posts?.map(...)`) 处理`posts`可能为`undefined`的情况。
-    - 移除未使用的导入。
+1.  目标组件: `src/react-query/PostList.tsx` (初始为传统数据获取方式)。
+2.  任务步骤:
+    - 创建自定义钩子 `src/hooks/usePosts.ts`。
+    - 在 `usePosts.ts` 中:
+        - 定义 `Post` 接口 (包含 `id`, `title`, `body`, `userId`)。
+        - 实现 `fetchPosts` 函数，使用 Axios 从 `https://jsonplaceholder.typicode.com/posts` 获取帖子数据。
+        - 调用 `useQuery<Post[], Error>()`：
+            - `queryKey: ['posts']`。
+            - `queryFn: fetchPosts`。
+            - (可选) 设置 `staleTime` (例如 1 分钟：`1 * 60 * 1000`)。
+        - 导出 `usePosts` 钩子。
+    - 修改 `PostList.tsx`:
+        - 移除原有的 `useState` (用于 `posts` 和 `error`) 和 `useEffect`。
+        - 调用 `usePosts()` 获取 `data: posts`, `error`, `isLoading`。
+        - 根据 `isLoading` 和 `error` 状态渲染加载提示或错误信息。
+        - 使用 `posts` 数据渲染列表。注意处理 `posts` 可能为 `undefined` 的情况 (使用可选链 `?.`)。
+3.  测试:
+    - 修改 `App.tsx`，将 `TodoList` 替换为 `PostList` 以在浏览器中查看结果。
 
 **代码示例**
 
-1.  `src/hooks/usePosts.ts`
+1.  `src/hooks/usePosts.ts`:
 
     ```ts
     import { useQuery } from '@tanstack/react-query';
     import axios from 'axios';
 
-    export interface Post {
+    export interface Post { // Post 接口定义
       id: number;
       title: string;
       body: string;
@@ -1396,47 +794,66 @@ useQuery:只关心管理和缓存数据
     const fetchPosts = (): Promise<Post[]> =>
       axios
         .get<Post[]>('https://jsonplaceholder.typicode.com/posts')
-        .then(res => res.data);
+        .then((res) => res.data);
 
     const usePosts = () => {
       return useQuery<Post[], Error>({
         queryKey: ['posts'],
         queryFn: fetchPosts,
-        staleTime: 1 * 60 * 1000, // 1 minute
+        staleTime: 1 * 60 * 1000, // 1分钟 staleTime
       });
     };
 
     export default usePosts;
     ```
 
-2.  `src/react-query/PostList.tsx` (改造后)
+2.  `src/react-query/PostList.tsx` (使用 `usePosts`):
 
     ```tsx
-    import usePosts from '../hooks/usePosts'; // 导入自定义Hook
+    // 移除了 axios, Post 接口, fetchPosts 的导入和定义
+    import usePosts from '../../hooks/usePosts'; // 导入自定义钩子
 
-    function PostList() {
+    const PostList = () => {
       const { data: posts, error, isLoading } = usePosts();
 
       if (isLoading) return <p>Loading posts...</p>;
-      if (error) return <p>Error fetching posts: {error.message}</p>;
+      if (error) return <p>Error: {error.message}</p>;
 
       return (
-        <ul className="list-group">
-          {posts?.map(post => (
-            <li key={post.id} className="list-group-item">
-              <h5>{post.title}</h5>
+        <ul>
+          {posts?.map((post) => (
+            <li key={post.id}>
+              <h3>{post.title}</h3>
               <p>{post.body}</p>
             </li>
           ))}
         </ul>
       );
-    }
+    };
+
     export default PostList;
+    ```
+
+3.  `App.tsx` (用于测试):
+
+    ```tsx
+    // import TodoList from './react-query/TodoList';
+    import PostList from './react-query/PostList'; // 替换为 PostList
+
+    function App() {
+      // return <TodoList />;
+      return <PostList />;
+    }
+
+    export default App;
     ```
 
 ## 11- 参数化查询
 
 > 简述：参数化查询允许根据动态参数（如用户 ID）从 API 获取特定子集的数据。在 React Query 中，通过将这些参数包含在`queryKey`中，可以实现当参数变化时自动重新获取数据，并为不同参数组合的数据创建独立的缓存条目。
+
+1.声明一个 userId 状态变量来跟踪所选用户 2.为 select 添加 onChange 事件，将选择的变量 userId 传递给 usePost
+3.usePost 接收 userId ，并修改唯一的缓存键，供了 userId 来动态地生成一个合适的查询键
 
 **知识树**
 
@@ -1450,13 +867,13 @@ useQuery:只关心管理和缓存数据
         - 修改`usePosts`（或类似）自定义 Hook，使其接受`userId`作为参数。
         - `userId`参数可以是数字或`undefined`（表示未选择用户，获取所有帖子）。
     - **动态`queryKey`**：
-        - `queryKey`应包含`userId`，以便 React Query 能够区分不同用户的帖子数据并进行缓存。
-        - 层级化`queryKey`结构：推荐使用类似 API 路径的结构，如`['users', userId, 'posts']`。如果`userId`未定义，则`queryKey`可以是`['posts']`。
+        - 根据 `userId` 动态构建 `queryKey` ，确保不同查询有不同的缓存键
+        - 层级化`queryKey`结构：推荐使用类似 API 路径的结构(`user/1/posts`)，如`['users', userId, 'posts']`。如果`userId`未定义，则`queryKey`可以是`['posts']`。
         - 当`queryKey`中的任何部分（如此处的`userId`）发生变化时，React Query 会自动重新执行查询。
     - **动态`queryFn`**：
         - `queryFn`（如`fetchPosts`）需要根据传入的`userId`调整 API 请求。
-        - 通常通过在 API 请求的 URL 中添加查询参数（如`?userId=1`）或路径参数（如`/users/1/posts`）来实现。
-        - Axios 等库允许通过`params`配置对象传递查询参数。
+        - 在 `queryFn` 中调用此函数，注意使用箭头函数包装以延迟执行
+        - 使用 `Axios` 的 `params` 配置对象传递查询参数，自动转换为 URL 查询字符串（如 ?userId=1 ）来实现。
 3.  React Query DevTools 观察：
     - 当选择不同用户时，DevTools 中会显示对应`queryKey`的缓存条目。
     - 未被当前`userId`使用的缓存条目会变为`inactive`。
@@ -1464,6 +881,11 @@ useQuery:只关心管理和缓存数据
 4.  `queryKey`结构优化：
     - 避免在`queryKey`中出现`null`或`undefined`等值，可能导致不直观的键名。
     - 可以使用条件逻辑来构造`queryKey`，例如：`userId ? ['users', userId, 'posts'] : ['posts']`。
+5.  React Query 缓存机制观察
+    - 不同 userId 的查询会创建不同的缓存条目，可在 React Query DevTools 中观察
+    - 当切换用户时，之前的缓存条目会变为 inactive 状态但仍保留在缓存中
+    - 再次选择相同用户时，如果缓存未过期，数据会立即从缓存加载，无需发起新的网络请求
+    - 默认情况下，缓存数据会在一段时间后标记为过时（stale），可通过 staleTime 配置
 
 **代码示例**
 
@@ -1526,6 +948,7 @@ useQuery:只关心管理和缓存数据
       return useQuery<Post[], Error>({
         queryKey: queryKey,
         queryFn: () => fetchPosts(userId), // queryFn现在依赖userId
+        //注意使用箭头函数包装以延迟执行
         staleTime: 1 * 60 * 1000, // 1 minute
       });
     };
@@ -3607,4 +3030,977 @@ useQuery:只关心管理和缓存数据
       });
     };
     // export default useGames;
+    ```
+
+# ddd
+
+## 16- 参数化查询
+
+> 简述：实现根据用户选择（如此处选择特定用户）来筛选和获取相关数据（如该用户的帖子列表）。涉及在组件中管理筛选条件状态，将此状态传递给自定义查询钩子，并在钩子内部动态构建`queryKey`和 API 请求参数以实现数据筛选。
+
+**知识树**
+
+1.  UI 实现 (筛选条件选择):
+    - 在 `PostList` 组件中添加一个 HTML `<select>` 元素 (下拉列表) 用于选择用户。
+    - 为下拉列表硬编码几个用户选项 (例如 "User 1", "User 2", "User 3")，每个选项的 `value` 对应用户 ID。
+    - （真实应用中用户列表应动态获取）。
+2.  状态管理 (筛选条件):
+    - 在 `PostList` 组件中使用 `useState` 声明一个状态变量 `userId: number | undefined` 来存储当前选中的用户 ID。初始值为 `undefined` (或 `0` / `null`，取决于如何表示“未选择”)。
+    - 处理 `<select>` 元素的 `onChange` 事件，当用户选择不同选项时，更新 `userId` 状态。注意将 `event.target.value` (字符串) 转换为数字。
+    - 将 `<select>` 元素的 `value` prop 绑定到 `userId` 状态，以确保 UI 与状态同步。
+3.  自定义钩子参数化 (`usePosts.ts`):
+    - 修改 `usePosts` 钩子，使其接收 `userId: number | undefined` 作为参数。
+4.  动态 `queryKey`:
+    - `queryKey` 需要反映查询的参数，以便 React Query 能为不同参数组合缓存不同的数据。
+    - 当 `userId` 存在时，`queryKey` 可以设计为层级结构，例如 `['users', userId, 'posts']`。这模仿了 API URL 的结构 (`/users/:userId/posts`)。
+    - 当 `userId` 不存在 (未选择用户) 时，`queryKey` 可以是 `['posts']`，表示获取所有帖子。
+    - 在 `usePosts` 钩子内部，根据传入的 `userId` 动态构建 `queryKey`。
+5.  动态 API 请求参数:
+    - 在 `usePosts` 钩子内部的 `queryFn` (例如 `fetchPosts`) 中，如果 `userId` 存在，则将其作为查询参数传递给 API。
+    - JSONPlaceholder API 支持通过查询字符串筛选，例如 `?userId=1`。
+    - 在 Axios 请求中，可以通过 `params` 配置对象传递查询参数: `axios.get('/posts', { params: { userId } })`。
+6.  React Query 的行为:
+    - 当 `queryKey` 中的任何部分 (如此处的 `userId`) 发生变化时，React Query 会自动重新执行查询，获取与新参数匹配的数据。
+    - DevTools 会显示不同 `queryKey` 对应的缓存条目。当某个查询的参数不再匹配当前 UI 状态时，其缓存条目会变为 `inactive`。
+
+**代码示例**
+
+1.  `PostList.tsx` (添加用户选择下拉框并传递 `userId`):
+
+    ```tsx
+    import React, { useState } from 'react'; // 导入 React 和 useState
+    import usePosts from '../../hooks/usePosts';
+
+    const PostList = () => {
+      const [userId, setUserId] = useState<number | undefined>(); // 状态：选中的用户ID
+      const { data: posts, error, isLoading } = usePosts(userId); // 将 userId 传递给钩子
+
+      // ... isLoading, error handling ...
+
+      return (
+        <> {/* 使用 Fragment 包裹 */}
+          <select
+            onChange={(event) => setUserId(parseInt(event.target.value) || undefined)} // 更新 userId
+            value={userId || ''} // 绑定 value
+            className="form-select mb-3" // Bootstrap 样式
+          >
+            <option value="">All Users</option> {/* 默认选项 */}
+            <option value="1">User 1</option>
+            <option value="2">User 2</option>
+            <option value="3">User 3</option>
+          </select>
+          <ul>
+            {posts?.map((post) => (
+              <li key={post.id}>
+                <h3>{post.title}</h3>
+                <p>{post.body}</p>
+              </li>
+            ))}
+          </ul>
+        </>
+      );
+    };
+
+    export default PostList;
+    ```
+
+2.  `hooks/usePosts.ts` (接收 `userId` 并动态构建 `queryKey` 和请求):
+
+    ```ts
+    import { useQuery } from '@tanstack/react-query';
+    import axios from 'axios';
+    // Post 接口定义...
+
+    // fetchPosts 现在接收 userId
+    const fetchPosts = (userId: number | undefined): Promise<Post[]> =>
+      axios
+        .get<Post[]>('https://jsonplaceholder.typicode.com/posts', {
+          params: { userId }, // 如果 userId 是 undefined, Axios 会忽略此参数
+        })
+        .then((res) => res.data);
+
+    // usePosts 钩子接收 userId
+    const usePosts = (userId: number | undefined) => {
+      return useQuery<Post[], Error>({
+        // 动态 queryKey
+        queryKey: userId ? ['users', userId, 'posts'] : ['posts'],
+        queryFn: () => fetchPosts(userId), // queryFn 调用时传递 userId
+        staleTime: 1 * 60 * 1000,
+      });
+    };
+
+    export default usePosts;
+    ```
+
+## 17- 分页查询
+
+> 简述：使用 React Query 实现数据分页加载。涉及在组件中管理当前页码状态，将页码和每页大小作为参数传递给自定义查询钩子，并在钩子内部构建 API 请求以获取特定页的数据。同时，通过`keepPreviousData`选项优化分页切换时的用户体验。
+
+**知识树**
+
+1.  分页状态管理 (组件内):
+    - 使用 `useState` 声明 `page` 状态变量 (数字类型)，初始值为 `1`。
+    - 定义 `pageSize` 常量 (例如 `10`)。如果页面大小可变，则也需用 `useState` 管理。
+2.  查询对象模式 (推荐):
+    - 为了避免向自定义钩子传递过多独立参数 (如 `page`, `pageSize`, 未来可能还有其他筛选条件)，将这些参数封装到一个查询对象 (`postQuery`) 中。
+    - 在 `usePosts.ts` 中定义 `PostQuery` 接口 (例如 `{ page?: number; pageSize?: number; userId?: number; }`)。
+    - `usePosts` 钩子接收 `query: PostQuery` 作为参数。
+3.  动态 `queryKey` (包含查询对象):
+    - `queryKey` 应包含整个查询对象，以确保查询对象的任何变化都能触发新的查询并正确缓存。
+    - 例如: `queryKey: ['posts', query]` (其中 `query` 是 `PostQuery` 对象)。
+4.  API 分页参数:
+    - JSONPlaceholder API 支持 `_start` (起始索引，从 0 开始) 和 `_limit` (每页数量) 参数进行分页。
+    - 计算 `_start`: `(query.page - 1) * query.pageSize`。
+    - 在 `usePosts` 钩子内部的 `queryFn` 中，将这些计算出的参数传递给 API 请求。
+5.  分页导航 UI (组件内):
+    - 添加 "Previous" 和 "Next" 按钮。
+    - "Previous" 按钮：
+        - 当 `page === 1` 时禁用。
+        - 点击时调用 `setPage(page - 1)`。
+    - "Next" 按钮：
+        - (JSONPlaceholder 不提供总记录数，难以判断是否为最后一页，故此处不实现禁用逻辑)。
+        - 点击时调用 `setPage(page + 1)`。
+6.  优化用户体验 (`keepPreviousData`):
+    - 在 `useQuery` 的配置中设置 `keepPreviousData: true`。
+    - 效果：当请求下一页数据时，React Query 会继续显示当前页的数据，直到新数据加载完成，然后平滑切换。这避免了在加载新页面时出现短暂的加载状态或内容清空，从而减少了页面跳动。
+7.  移除用户筛选 (为简化分页示例): 视频中暂时移除了按用户 ID 筛选的功能。
+
+**代码示例**
+
+1.  `hooks/usePosts.ts` (使用查询对象和分页参数):
+
+    ```ts
+    import { useQuery } from '@tanstack/react-query';
+    import axios from 'axios';
+    // Post 接口定义...
+
+    // 定义 PostQuery 接口
+    export interface PostQuery {
+      page?: number;
+      pageSize?: number;
+      userId?: number; // 保留 userId 以便未来扩展
+    }
+
+    const fetchPosts = (query: PostQuery): Promise<Post[]> => {
+      const params: any = {
+        _start: query.page && query.pageSize ? (query.page - 1) * query.pageSize : undefined,
+        _limit: query.pageSize,
+        userId: query.userId, // 如果需要，可以继续传递 userId
+      };
+      // 移除 undefined 的参数，避免发送空参数
+      Object.keys(params).forEach(key => params[key] === undefined && delete params[key]);
+
+      return axios
+        .get<Post[]>('https://jsonplaceholder.typicode.com/posts', { params })
+        .then((res) => res.data);
+    }
+
+    const usePosts = (query: PostQuery) => {
+      return useQuery<Post[], Error>({
+        queryKey: ['posts', query], // queryKey 包含整个 query 对象
+        queryFn: () => fetchPosts(query),
+        staleTime: 1 * 60 * 1000,
+        keepPreviousData: true, // 保持上一页数据直到新数据加载完成
+      });
+    };
+
+    export default usePosts;
+    ```
+
+2.  `PostList.tsx` (管理分页状态和导航):
+
+    ```tsx
+    import React, { useState } from 'react';
+    import usePosts, { PostQuery } from '../../hooks/usePosts'; // 导入 PostQuery
+
+    const PostList = () => {
+      const pageSize = 10; // 每页大小
+      const [page, setPage] = useState(1); // 当前页码状态
+
+      // 构建查询对象
+      const postQuery: PostQuery = { page, pageSize };
+
+      const { data: posts, error, isLoading } = usePosts(postQuery);
+
+      // ... isLoading, error handling ...
+
+      return (
+        <>
+          {/* 移除了用户选择下拉框 */}
+          <ul>
+            {posts?.map((post) => (
+              <li key={post.id}>
+                <h3>{post.title}</h3>
+                <p>{post.body}</p>
+              </li>
+            ))}
+          </ul>
+          <button
+            disabled={page === 1}
+            onClick={() => setPage(page - 1)}
+            className="btn btn-primary my-3"
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => setPage(page + 1)}
+            className="btn btn-primary my-3 ms-1" // ms-1 for margin-start
+          >
+            Next
+          </button>
+        </>
+      );
+    };
+
+    export default PostList;
+    ```
+
+## 18- 无限查询
+
+> 简述：使用 React Query 的`useInfiniteQuery`钩子实现无限滚动（或点击加载更多）的数据加载模式。此模式下，数据分批获取并追加到现有数据列表中，而不是替换整个列表。涉及配置`getNextPageParam`函数来确定下一页的参数。
+
+**知识树**
+
+1.  `useInfiniteQuery` 钩子:
+    - 替代 `useQuery` 用于实现无限加载场景。
+    - 核心区别：`useInfiniteQuery` 返回的数据结构 (`data`) 包含一个 `pages` 数组 (每项代表一页数据) 和一个 `pageParams` 数组 (每项是获取对应页数据时使用的参数)。
+2.  配置 `useInfiniteQuery`:
+    - `queryKey`: 与 `useQuery` 类似，但通常不直接包含页码，因为页码由 React Query 内部管理。
+    - `queryFn: (context: QueryFunctionContext) => Promise<TData>`:
+        - 接收一个上下文对象 `context`，其中包含 `pageParam` 属性。
+        - `pageParam` 是由 `getNextPageParam` 函数返回的用于获取当前页的参数。首次调用时，`pageParam` 通常是初始值 (例如 `1` 或 `undefined`，取决于如何初始化)。
+        - `queryFn` 使用 `pageParam` 来构建 API 请求。
+    - `getNextPageParam: (lastPage: TData, allPages: TData[]) => TPageParam | undefined`:
+        - 一个函数，用于根据已加载的最后一页数据 (`lastPage`) 和所有已加载页面的数据数组 (`allPages`) 来确定获取下一页数据所需的参数 (`TPageParam`)。
+        - 如果已到达数据末尾，应返回 `undefined`，这将告知 React Query 没有更多数据可加载，`hasNextPage` 会变为 `false`。
+        - JSONPlaceholder 示例：如果 `lastPage` (当前获取的帖子数组) 为空，则表示已无更多数据。下一页页码可以通过 `allPages.length + 1` 计算。
+3.  `useInfiniteQuery` 返回的对象属性:
+    - `data: InfiniteData<TData> | undefined`:
+        - `data.pages: TData[]`: 一个数组，其中每个元素是获取到的一页数据。
+        - `data.pageParams: any[]`: 一个数组，记录了获取每一页数据时使用的 `pageParam`。
+    - `fetchNextPage: () => Promise<InfiniteQueryObserverResult>`: 函数，调用它会触发获取下一页数据。
+    - `hasNextPage: boolean | undefined`: 指示是否还有下一页数据可供加载 (基于 `getNextPageParam` 的返回值)。
+    - `isFetchingNextPage: boolean`: 指示是否正在获取下一页数据。
+    - 其他属性如 `error`, `isLoading` (初始加载) 与 `useQuery` 类似。
+4.  UI 实现:
+    - 移除原有的分页状态 (`page`) 和分页按钮。
+    - 添加 "Load More" 按钮。
+        - 按钮文本：根据 `isFetchingNextPage` 动态显示 "Loading..." 或 "Load More"。
+        - 按钮禁用：当 `isFetchingNextPage` 为 `true` 或 `!hasNextPage` (没有更多数据) 时禁用。
+        - 点击事件：调用 `fetchNextPage()`。
+    - 渲染数据：遍历 `data.pages` 数组，再对每个 `page` (即一页的数据数组) 进行遍历，渲染列表项。
+        - 由于 `data.pages` 是一个二维数组结构，渲染时需要两层 `map`。
+        - 外层 `map` 的 `key` 可以使用其索引。
+
+**代码示例**
+
+1.  `hooks/usePosts.ts` (使用 `useInfiniteQuery`):
+
+    ```ts
+    import { useInfiniteQuery } from '@tanstack/react-query'; // 导入 useInfiniteQuery
+    import axios from 'axios';
+    // Post 和 PostQuery 接口定义... (PostQuery 中的 page 属性不再直接使用)
+
+    const fetchPosts = async ({ pageParam = 1, pageSize = 10, userId }: { pageParam?: number, pageSize?: number, userId?: number }) => {
+      const params: any = {
+        _start: pageParam && pageSize ? (pageParam - 1) * pageSize : undefined,
+        _limit: pageSize,
+        userId: userId,
+      };
+      Object.keys(params).forEach(key => params[key] === undefined && delete params[key]);
+
+      const res = await axios.get<Post[]>('https://jsonplaceholder.typicode.com/posts', { params });
+      return res.data;
+    };
+
+    // PostQuery 现在主要用于 userId 等固定筛选条件
+    const usePosts = (query: PostQuery) => { // query 可能只包含 userId
+      const pageSize = 10; // 或从 query 中获取
+
+      return useInfiniteQuery<Post[], Error, Post[], Post[], number>({ // 明确泛型参数
+        queryKey: ['posts', query], // queryKey 包含固定筛选条件
+        queryFn: ({ pageParam }) => fetchPosts({ pageParam, pageSize, userId: query.userId }), // queryFn 接收 pageParam
+        initialPageParam: 1, // 初始页码参数
+        getNextPageParam: (lastPage, allPages) => {
+          // lastPage 是最近获取的一页数据 (Post[])
+          // allPages 是所有已获取页面的数据数组 (Post[][])
+          return lastPage.length > 0 ? allPages.length + 1 : undefined;
+        },
+        staleTime: 1 * 60 * 1000,
+        // keepPreviousData 在 useInfiniteQuery 中通常不直接设置，其行为不同
+      });
+    };
+
+    export default usePosts;
+    ```
+
+    _注意：`useInfiniteQuery` 的泛型参数顺序和含义与 `useQuery` 不同，通常是 `TData, TError, TQueryFnData, TQueryKey, TPageParam`。此处简化为 `Post[], Error, Post[], Post[], number` 分别对应：单页数据类型，错误类型，`queryFn`返回的单页数据类型，`queryKey`类型（此处用`Post[]`占位，实际应为`QueryKey`），页参数类型。_
+
+2.  `PostList.tsx` (实现无限加载 UI):
+
+    ```tsx
+    import React from 'react'; // 需要 React 用于 Fragment
+    import usePosts, { PostQuery } from '../../hooks/usePosts';
+
+    const PostList = () => {
+      // userId 可以从其他地方获取，或固定为 undefined
+      const postQuery: PostQuery = { userId: undefined };
+      const {
+        data,
+        error,
+        isLoading,
+        fetchNextPage,
+        isFetchingNextPage,
+        hasNextPage,
+      } = usePosts(postQuery);
+
+      if (isLoading) return <p>Loading...</p>;
+      if (error) return <p>Error: {error.message}</p>;
+
+      return (
+        <>
+          <ul>
+            {data?.pages.map((pageData, index) => ( // 遍历 pages 数组
+              <React.Fragment key={index}> {/* 外层 map 需要 key */}
+                {pageData.map((post) => ( // 遍历每页的数据
+                  <li key={post.id}>
+                    <h3>{post.title}</h3>
+                    <p>{post.body}</p>
+                  </li>
+                ))}
+              </React.Fragment>
+            ))}
+          </ul>
+          <button
+            disabled={isFetchingNextPage || !hasNextPage}
+            onClick={() => fetchNextPage()}
+            className="btn btn-primary my-3"
+          >
+            {isFetchingNextPage ? 'Loading more...' : hasNextPage ? 'Load More' : 'Nothing more to load'}
+          </button>
+        </>
+      );
+    };
+
+    export default PostList;
+    ```
+
+## 19- 第二部分：变更数据 (概述)
+
+> 简述：本节将进入 React Query 的第二部分，重点学习如何使用它来变更（创建、更新、删除）后端数据。将涵盖突变 (mutations)、突变错误处理、乐观更新的实现、创建自定义突变钩子，以及构建可复用的数据查询和变更服务。
+
+**知识树**
+
+1.  数据变更 (Mutations):
+    - React Query 中用于执行会改变服务端数据的操作 (POST, PUT, DELETE, PATCH)。
+2.  核心内容：
+    - 处理突变操作。
+    - 突变错误处理。
+    - 实现乐观更新 (Optimistic Updates)：在后端确认前即时更新 UI，提升用户体验。
+    - 创建自定义突变钩子：封装突变逻辑，提高复用性。
+    - 构建可复用的服务层：统一管理数据查询和变更的 API 交互。
+
+**代码示例**
+
+（本节为概述，无具体代码）
+
+## 20- 变更数据 (添加 Todo)
+
+> 简述：使用 React Query 的`useMutation`钩子向后端发送创建新待办事项 (Todo) 的请求。涉及处理表单提交，调用突变函数，并在成功后直接更新缓存以在 UI 上即时显示新增项，而非依赖缓存失效后重新获取。
+
+**知识树**
+
+1.  `useMutation` 钩子:
+    - 从 `@tanstack/react-query` 导入。
+    - 用于执行数据变更操作。
+    - 配置对象主要包含 `mutationFn`。
+2.  `mutationFn: (variables: TVariables) => Promise<TData>`:
+    - 一个返回 Promise 的函数，负责执行实际的变更操作 (例如发送 POST 请求)。
+    - `TVariables`: 发送给后端的数据类型 (例如 `Todo` 对象，但不包含 ID，因为 ID 由后端生成)。
+    - `TData`: 变更操作成功后，后端返回的数据类型 (例如包含 ID 的完整 `Todo` 对象)。
+3.  `useMutation` 返回的突变对象:
+    - 例如 `const addTodoMutation = useMutation(...)`。
+    - 包含 `mutate: (variables: TVariables, options?: MutateOptions) => void` 方法。
+        - 调用 `addTodoMutation.mutate(newTodo)` 来触发突变。
+    - 包含状态属性如 `isLoading`, `isError`, `error`, `data` (成功时后端返回的数据) 等。
+4.  表单处理 (`TodoForm.tsx`):
+    - 使用 `useRef` 获取输入框的值。
+    - 在表单 `onSubmit` 时：
+        - 阻止默认提交。
+        - 构造新的 `Todo` 对象 (不含 ID，`completed` 设为 `false`, `userId` 设为固定值或从上下文中获取)。
+        - 调用 `addTodoMutation.mutate(newTodo)`。
+5.  成功回调 (`onSuccess`):
+    - `useMutation` 配置对象中的 `onSuccess: (data: TData, variables: TVariables, context?: TContext) => void` 回调函数。
+    - 在突变成功后执行。
+    - `data`: 后端返回的数据 (`savedTodo`)。
+    - `variables`: 发送给后端的原始数据 (`newTodo`)。
+6.  缓存更新 (手动方式):
+    - 目标：新增 Todo 后，立即在 UI 的 Todo 列表中显示，而无需等待下一次完整列表的重新获取。
+    - 方法 1：缓存失效 (Invalidating Cache) - `queryClient.invalidateQueries({ queryKey: ['todos'] })`。
+        - 这会使与 `['todos']` 相关的查询变为过时，React Query 会自动重新获取它们。
+        - 对于 JSONPlaceholder 这种伪 API，新增的数据不会真的保存，所以失效后重新获取不会包含新增项。
+    - 方法 2：直接更新缓存数据 (Set Query Data) - `queryClient.setQueryData(queryKey, updaterFn | newData)`。
+        - `queryClient = useQueryClient()` 获取 `QueryClient` 实例。
+        - `queryClient.setQueryData<Todo[]>(['todos'], (oldTodos) => [savedTodo, ...(oldTodos || [])])`。
+            - `updaterFn` 接收旧的缓存数据 (`oldTodos`)，返回新的缓存数据。
+            - 以不可变方式更新：将后端返回的 `savedTodo` 添加到 `oldTodos` 数组的开头。
+            - 处理 `oldTodos` 可能为 `undefined` 的情况。
+7.  类型接口 (`Todo`):
+    - 需要从定义它的地方 (例如 `useTodos.ts`) 导出，以便在 `TodoForm.tsx` 和 `useMutation` 中使用。
+
+**代码示例**
+
+1.  `TodoForm.tsx` (使用 `useMutation` 添加 Todo):
+
+    ```tsx
+    import { FormEvent, useRef } from 'react';
+    import { useMutation, useQueryClient } from '@tanstack/react-query';
+    import axios from 'axios';
+    import { Todo } from '../../hooks/useTodos'; // 假设 Todo 接口从 useTodos 导出
+
+    // TodoForm 组件已在课程资料中提供基础结构
+    const TodoForm = () => {
+      const queryClient = useQueryClient(); // 获取 QueryClient 实例
+      const ref = useRef<HTMLInputElement>(null);
+
+      const addTodoMutation = useMutation<Todo, Error, Todo>({ // TData, TError, TVariables
+        mutationFn: (newTodo: Todo) => // TVariables (发送给后端的数据，可能不含id)
+          axios
+            .post<Todo>('https://jsonplaceholder.typicode.com/todos', newTodo) // TData (后端返回的数据)
+            .then((res) => res.data),
+        onSuccess: (savedTodo, newTodo) => { // data, variables
+          // 更新缓存：将新保存的 todo 添加到 'todos' 查询的缓存数据中
+          queryClient.setQueryData<Todo[]>(['todos'], (oldTodos = []) => [
+            savedTodo,
+            ...oldTodos,
+          ]);
+
+          // (可选) 清空输入框
+          if (ref.current) ref.current.value = '';
+        },
+      });
+
+      const handleSubmit = (event: FormEvent) => {
+        event.preventDefault();
+        if (ref.current && ref.current.value) {
+          addTodoMutation.mutate({
+            // 构造发送给后端的对象，id 通常由后端生成，此处为演示
+            id: 0, // JSONPlaceholder 会忽略客户端ID并分配新的
+            title: ref.current.value,
+            completed: false,
+            userId: 1, // 示例 userId
+          });
+        }
+      };
+
+      return (
+        <form onSubmit={handleSubmit} className="mb-3">
+          {/* ... input 和 button ... */}
+          <input type="text" ref={ref} className="form-control" />
+          <button className="btn btn-primary" type="submit">Add</button>
+        </form>
+      );
+    };
+
+    export default TodoForm;
+    ```
+
+2.  `App.tsx` (集成 `TodoForm` 和 `TodoList`):
+
+    ```tsx
+    // App.tsx
+    import TodoForm from './react-query/TodoForm';
+    import TodoList from './react-query/TodoList';
+    import React from 'react';
+
+    function App() {
+      return (
+        <React.Fragment>
+          <TodoForm />
+          <TodoList />
+        </React.Fragment>
+      );
+    }
+    ```
+
+## 21- 处理突变错误
+
+> 简述：在`useMutation`返回的突变对象中，利用`error`属性来捕获和显示数据变更操作（如添加 Todo）过程中发生的错误。通过为`useMutation`指定泛型错误类型，可以获得更准确的错误对象类型提示。
+
+**知识树**
+
+1.  `error` 属性 (突变对象):
+    - `useMutation` 返回的突变对象 (例如 `addTodoMutation`) 包含 `error` 属性。
+    - 当 `mutationFn` 抛出错误或返回的 Promise 被拒绝时，此 `error` 属性会被设置为该错误对象。
+    - 如果突变成功，`error` 为 `null`。
+2.  错误类型 (泛型参数):
+    - 与 `useQuery` 类似，`useMutation` 也接受泛型参数来指定错误类型。
+    - `useMutation<TData, TError, TVariables, TContext>(options)`
+        - `TError`: 错误的类型 (例如 `Error`)。
+    - 指定 `TError` 后，突变对象的 `error` 属性将具有更具体的类型，便于访问其属性 (如 `error.message`)。
+3.  渲染错误信息:
+    - 在组件中检查突变对象的 `error` 属性是否为真值。
+    - 如果存在错误，可以渲染一个提示组件 (例如带有 Bootstrap `alert alert-danger` 样式的 `div`)，并显示 `error.message`。
+
+**代码示例**
+
+1.  `TodoForm.tsx` (处理并显示突变错误):
+
+    ```tsx
+    // ... imports ...
+    // addTodoMutation 定义如上一节，确保泛型参数包含 Error
+
+    const TodoForm = () => {
+      // ... queryClient, ref, addTodoMutation ...
+      // addTodoMutation = useMutation<Todo, Error, Todo>({ ... });
+
+      // ... handleSubmit ...
+
+      return (
+        <> {/* 包裹表单和可能的错误提示 */}
+          {addTodoMutation.error && ( // 如果有错误
+            <div className="alert alert-danger">
+              {addTodoMutation.error.message} {/* 显示错误消息 */}
+            </div>
+          )}
+          <form onSubmit={handleSubmit} className="mb-3">
+            {/* ... input 和 button ... */}
+          </form>
+        </>
+      );
+    };
+
+    export default TodoForm;
+    ```
+
+    - 要模拟错误，可以在 `addTodoMutation` 的 `mutationFn` 中将 URL 修改为一个无效的地址。
+
+## 22- 显示突变进度
+
+> 简述：利用`useMutation`返回的突变对象中的`isLoading`属性，在数据变更操作（如添加 Todo）正在进行时，向用户显示加载指示（例如改变按钮文本为"Adding..."并禁用按钮）。同时，在操作成功后清空输入框。
+
+**知识树**
+
+1.  `isLoading` 属性 (突变对象):
+    - `useMutation` 返回的突变对象 (例如 `addTodoMutation`) 包含 `isLoading` (或在 v5 中更名为 `isPending`) 属性。
+    - 当 `mutationFn` 正在执行 (Promise 尚未解决) 时，`isLoading` 为 `true`。
+    - 突变完成 (成功或失败) 后，`isLoading` 变为 `false`。
+2.  动态按钮状态:
+    - 按钮文本：根据 `addTodoMutation.isLoading` 的值，动态设置按钮的文本 (例如 "Add" 或 "Adding...")。
+    - 按钮禁用：当 `addTodoMutation.isLoading` 为 `true` 时，设置按钮的 `disabled` 属性为 `true`，防止用户重复提交。
+3.  操作成功后清空输入框:
+    - 在 `useMutation` 的 `onSuccess` 回调中，如果 `ref.current` 存在，则设置 `ref.current.value = ''` 来清空输入框。
+
+**代码示例**
+
+1.  `TodoForm.tsx` (显示加载状态并清空输入框):
+
+    ```tsx
+    // ... imports ...
+    // addTodoMutation 定义如前，onSuccess 中已包含清空逻辑
+
+    const TodoForm = () => {
+      // ... queryClient, ref ...
+      const addTodoMutation = useMutation<Todo, Error, Todo>({
+        mutationFn: /* ... */,
+        onSuccess: (savedTodo, newTodo) => {
+          queryClient.setQueryData<Todo[]>(['todos'], (oldTodos = []) => [
+            savedTodo,
+            ...oldTodos,
+          ]);
+          if (ref.current) { // 确保 ref.current 存在
+            ref.current.value = ''; // 清空输入框
+          }
+        },
+      });
+
+      // ... handleSubmit ...
+
+      return (
+        <>
+          {/* ... error alert ... */}
+          <form onSubmit={handleSubmit} className="mb-3">
+            <div className="input-group">
+              <input type="text" ref={ref} className="form-control" />
+              <button
+                className="btn btn-primary"
+                type="submit"
+                disabled={addTodoMutation.isLoading} // 禁用按钮
+              >
+                {addTodoMutation.isLoading ? 'Adding...' : 'Add'} {/* 动态文本 */}
+              </button>
+            </div>
+          </form>
+        </>
+      );
+    };
+
+    export default TodoForm;
+    ```
+
+## 23- 乐观更新
+
+> 简述：实现乐观更新，即在向后端发送数据变更请求的同时，立即更新 UI，假设请求会成功。如果请求失败，则回滚 UI 到先前的状态。这能显著提升用户感知性能。涉及使用`onMutate`、`onError`和`onSuccess`回调，以及上下文对象在回调间传递先前状态。
+
+**知识树**
+
+1.  乐观更新流程:
+    - `onMutate(variables)`: 在 `mutationFn` 执行前调用。
+        - 立即更新缓存 (使用 `queryClient.setQueryData`)，将新项 (`variables`) 添加到 UI。
+        - (可选) 取消任何可能影响此更新的正在进行的查询。
+        - 获取并返回一个上下文对象 (context)，其中包含回滚所需的数据 (例如更新前的缓存状态 `previousTodos`)。
+    - `mutationFn(variables)`: 执行实际的后端请求。
+    - `onError(error, variables, context)`: 如果 `mutationFn` 失败。
+        - 使用 `context` 中保存的先前状态回滚缓存 (`queryClient.setQueryData(queryKey, context.previousTodos)`)。
+    - `onSuccess(data, variables, context)`: 如果 `mutationFn` 成功。
+        - 后端返回的数据 (`data`) 可能包含服务器生成的 ID 或其他更新信息。
+        - (可选) 使用 `data` 更新缓存中对应的项，确保与服务器状态一致。如果 `onMutate` 中添加的临时项与服务器返回的项结构不同（如 ID），则需要替换。
+    - `onSettled(data, error, variables, context)`: 无论成功或失败都会调用，可用于清理或重新获取数据。
+2.  上下文对象 (`TContext`):
+    - 在 `useMutation` 的泛型参数中指定上下文类型，例如 `AddTodoContext`。
+    - `interface AddTodoContext { previousTodos: Todo[] | undefined; }`。
+    - `onMutate` 返回此类型的对象。`onError`, `onSuccess`, `onSettled` 接收此对象。
+3.  缓存操作:
+    - `queryClient.getQueryData<Todo[]>(queryKey)`: 在 `onMutate` 中获取当前缓存数据，用于回滚。
+    - `queryClient.setQueryData<Todo[]>(queryKey, updaterFn | newData)`: 用于在 `onMutate`, `onError`, `onSuccess` 中更新缓存。
+4.  处理 `undefined` 缓存:
+    - `getQueryData` 可能返回 `undefined` (如果缓存为空)。在 `onMutate` 中返回上下文时，应处理此情况 (例如 `previousTodos: queryClient.getQueryData(...) || []`)。
+    - 在 `setQueryData` 的 `updaterFn` 中，旧数据参数也可能为 `undefined`。
+
+**代码示例**
+
+1.  定义上下文接口 (可在 `TodoForm.tsx` 或 `useAddTodo.ts` 中):
+
+    ```ts
+    interface AddTodoContext {
+      previousTodos: Todo[] | undefined;
+    }
+    ```
+
+2.  `TodoForm.tsx` (或后续提取到 `useAddTodo.ts` 中的逻辑):
+
+    ```tsx
+    // ... imports, Todo 接口 ...
+
+    const addTodoMutation = useMutation<Todo, Error, Todo, AddTodoContext>({ // 添加 TContext
+      mutationFn: (newTodo: Todo) =>
+        axios
+          .post<Todo>('https://jsonplaceholder.typicode.com/todos', newTodo)
+          .then((res) => res.data),
+
+      onMutate: async (newTodo: Todo) => { // newTodo 是传递给 mutate() 的变量
+        // (可选) 取消相关查询
+        // await queryClient.cancelQueries({ queryKey: ['todos'] });
+
+        // 获取当前缓存数据作为先前状态
+        const previousTodos = queryClient.getQueryData<Todo[]>(['todos']);
+
+        // 乐观地更新UI
+        queryClient.setQueryData<Todo[]>(['todos'], (oldTodos = []) => [
+          newTodo, // 注意：此时 newTodo 可能没有服务器生成的ID
+          ...oldTodos,
+        ]);
+
+        // 清空输入框 (UI即时反馈)
+        if (ref.current) ref.current.value = '';
+
+        // 返回包含先前状态的上下文
+        return { previousTodos };
+      },
+
+      onError: (error, newTodo, context) => {
+        // 如果有上下文且其中包含 previousTodos，则回滚
+        if (context?.previousTodos) {
+          queryClient.setQueryData<Todo[]>(['todos'], context.previousTodos);
+        }
+        // (可以显示错误提示)
+      },
+
+      onSuccess: (savedTodo, newTodo, context) => {
+        // (可选) 如果 onMutate 添加的 newTodo 与 savedTodo (来自服务器) 不同
+        // (例如ID不同)，则需要用 savedTodo 更新缓存中的对应项。
+        // 此处简化：假设 onMutate 添加的 newTodo 结构与列表项一致，
+        // 或者 JSONPlaceholder 的 POST 响应直接可用。
+        // 更复杂的场景可能需要遍历 context.previousTodos 找到 newTodo 并替换。
+        // 对于 JSONPlaceholder，它返回的 savedTodo 包含了服务器分配的ID。
+        // 我们需要用这个 savedTodo 替换掉 onMutate 时乐观添加的那个（可能ID为0或客户端临时ID的）newTodo。
+        queryClient.setQueryData<Todo[]>(['todos'], (oldTodos = []) =>
+          oldTodos.map(todo => todo.title === newTodo.title && todo.userId === newTodo.userId ? savedTodo : todo)
+          // 上述替换逻辑是一个简化示例，实际可能需要更可靠的匹配方式，或依赖 onMutate 时为 newTodo 生成唯一临时ID
+        );
+      },
+
+      // onSettled: () => {
+      //   // (可选) 无论成功失败，都重新获取 'todos' 以确保最终一致性
+      //   // queryClient.invalidateQueries({ queryKey: ['todos'] });
+      // },
+    });
+    ```
+
+    _注意：`onSuccess` 中的缓存更新逻辑对于乐观更新至关重要，确保 UI 最终与服务器状态一致，特别是 ID 等服务器生成的值。视频中的实现可能更简化，此处提供了更完整的思路。_
+
+## 24- 创建自定义突变钩子
+
+> 简述：将与特定数据变更操作（如添加 Todo）相关的 React Query 逻辑（包括`useMutation`的调用、`mutationFn`、乐观更新的回调`onMutate`, `onError`, `onSuccess`等）封装到一个自定义钩子中（例如`useAddTodo`）。这有助于实现关注点分离，使组件代码更简洁，并提高突变逻辑的可复用性。
+
+**知识树**
+
+1.  关注点分离与复用性:
+    - 组件应主要负责 UI 渲染和用户交互。
+    - 复杂的突变逻辑（包括 API 调用、缓存更新、乐观更新策略）应封装起来。
+2.  自定义突变钩子 (`useAddTodo.ts`):
+    - 命名约定：以 `use` 开头，例如 `useAddTodo`。
+    - 封装内容：
+        - `useQueryClient()` 的调用。
+        - `useMutation` 的完整配置，包括 `mutationFn` 和所有乐观更新相关的回调 (`onMutate`, `onError`, `onSuccess`, `onSettled`)。
+        - 相关的类型接口 (例如 `Todo`, `AddTodoContext`)。
+    - 参数与返回：
+        - 可以接收一个可选的回调函数作为参数 (例如 `onAddSuccess?: () => void`)，当突变成功且缓存更新后，钩子内部调用此回调，允许消费组件执行 UI 相关的清理操作 (如清空表单)。
+        - 返回 `useMutation` 的结果 (突变对象)，以便组件可以调用 `mutate` 方法并访问突变状态 (如 `isLoading`, `error`)。
+3.  UI 相关逻辑分离:
+    - 原先在 `onMutate` 或 `onSuccess` 中直接操作 DOM (如清空输入框 `ref.current.value = ''`) 的逻辑，应移出自定义钩子。
+    - 通过钩子参数传递的回调函数，在适当的时机由钩子调用，让消费组件自己处理 UI 更新。
+4.  常量提取 (`constants.ts`):
+    - 将多处使用的 `queryKey` (例如 `['todos']`) 提取为常量，存放在单独的文件 (例如 `src/react-query/constants.ts`) 中，以避免硬编码和潜在的拼写错误，并方便统一修改。
+
+**代码示例**
+
+1.  `src/react-query/constants.ts`:
+
+    ```ts
+    export const CACHE_KEY_TODOS = ['todos'];
+    ```
+
+2.  `src/hooks/useAddTodo.ts`:
+
+    ```ts
+    import { useMutation, useQueryClient } from '@tanstack/react-query';
+    import axios from 'axios';
+    import { Todo } from './useTodos'; // 假设 Todo 接口在 useTodos.ts
+    import { CACHE_KEY_TODOS } from '../react-query/constants';
+
+    interface AddTodoContext {
+      previousTodos: Todo[] | undefined;
+    }
+
+    interface UseAddTodoOptions {
+      onAddSuccess?: () => void; // 可选的回调，用于UI清理
+    }
+
+    const useAddTodo = (options?: UseAddTodoOptions) => {
+      const queryClient = useQueryClient();
+
+      return useMutation<Todo, Error, Todo, AddTodoContext>({
+        mutationFn: (newTodo: Todo) =>
+          axios
+            .post<Todo>('https://jsonplaceholder.typicode.com/todos', newTodo)
+            .then((res) => res.data),
+
+        onMutate: async (newTodo: Todo) => {
+          const previousTodos = queryClient.getQueryData<Todo[]>(CACHE_KEY_TODOS);
+          queryClient.setQueryData<Todo[]>(CACHE_KEY_TODOS, (oldTodos = []) => [
+            { ...newTodo, id: Date.now() }, // 乐观添加时给一个临时ID，或确保newTodo有可区分的特征
+            ...oldTodos,
+          ]);
+          // 不再直接清空表单，而是通过回调
+          return { previousTodos };
+        },
+
+        onSuccess: (savedTodo, newTodo) => { // newTodo 是 onMutate 时的输入
+          // 用服务器返回的 savedTodo 更新/替换掉乐观添加的项
+          queryClient.setQueryData<Todo[]>(CACHE_KEY_TODOS, (oldTodos) =>
+            oldTodos?.map(todo => todo.id === newTodo.id ? savedTodo : todo) // 假设 newTodo 在 onMutate 时被赋予了临时可匹配的 id
+          );
+          options?.onAddSuccess?.(); // 调用成功回调
+        },
+
+        onError: (error, newTodo, context) => {
+          if (!context) return;
+          queryClient.setQueryData<Todo[]>(CACHE_KEY_TODOS, context.previousTodos);
+        },
+      });
+    };
+
+    export default useAddTodo;
+    ```
+
+    _注意：乐观更新中，`onMutate` 添加的 `newTodo` 和 `onSuccess` 中用于匹配和替换的逻辑需要仔细设计。如果 `newTodo` 在 `onMutate` 时没有唯一 ID，则匹配会困难。一种常见做法是在 `onMutate` 时为 `newTodo` 生成一个临时的客户端唯一 ID，然后在 `onSuccess` 中用这个临时 ID 找到并替换为服务器返回的 `savedTodo`。视频中的实现可能更简化。_
+
+3.  `TodoForm.tsx` (使用 `useAddTodo`):
+
+    ```tsx
+    // ... imports ...
+    import useAddTodo from '../../hooks/useAddTodo'; // 导入自定义钩子
+
+    const TodoForm = () => {
+      const ref = useRef<HTMLInputElement>(null);
+      const addTodoMutation = useAddTodo({ // 调用自定义钩子
+        onAddSuccess: () => { // 传递成功回调
+          if (ref.current) ref.current.value = ''; // 在回调中清空表单
+        }
+      });
+
+      const handleSubmit = (event: FormEvent) => {
+        event.preventDefault();
+        if (ref.current && ref.current.value) {
+          addTodoMutation.mutate({
+            id: 0, // 示例
+            title: ref.current.value,
+            completed: false,
+            userId: 1,
+          });
+          // 注意：乐观更新时，表单清空逻辑已移至 onAddSuccess 或 onMutate (若不依赖服务器响应)
+          // 视频中可能在 onMutate 中清空，此处示例放在 onAddSuccess
+        }
+      };
+      // ... render form, error, button state ...
+      // 按钮的 isLoading 状态使用 addTodoMutation.isLoading (或 isPending)
+      // 错误显示使用 addTodoMutation.error
+    };
+    ```
+
+## 25- 创建可复用的 API 客户端
+
+> 简述：创建一个通用的`ApiClient`类，封装 Axios 实例和针对特定端点的 CRUD 操作方法。这有助于消除在多个自定义钩子中重复编写 Axios 请求和响应处理逻辑的问题，提高代码的模块化和可维护性。
+
+**知识树**
+
+1.  问题识别: 多个自定义钩子 (如 `useTodos`, `useAddTodo`) 中存在重复的 Axios 实例创建、请求发送 (GET, POST) 和响应数据提取 (`res.data`) 逻辑。
+2.  `ApiClient` 类设计:
+    - 泛型类: `class ApiClient<T>`，其中 `T` 代表该客户端实例操作的数据实体类型 (例如 `Todo`, `Post`)。
+    - 构造函数: `constructor(endpoint: string)`，接收特定 API 端点路径 (例如 `"/todos"`)。
+    - 共享 Axios 实例: 在类外部或作为静态成员创建一个配置了 `baseURL` (例如 `https://jsonplaceholder.typicode.com`) 的 Axios 实例，供所有 `ApiClient` 方法使用。
+    - 方法 (示例):
+        - `getAll(): Promise<T[]>`: 发送 GET 请求到 `this.endpoint`，返回 `T`类型的数组。
+        - `post(data: T): Promise<T>`: 发送 POST 请求到 `this.endpoint`，请求体为 `data`，返回服务器响应的 `T`类型对象。
+        - (可扩展添加 `getOne(id)`, `update(id, data)`, `delete(id)` 等方法)。
+    - 方法实现为箭头函数: `getAll = async (): Promise<T[]> => { ... }`。使用箭头函数可以确保方法内部的 `this` 关键字正确指向 `ApiClient` 实例，即使方法作为回调函数传递 (例如给 `queryFn` 或 `mutationFn`) 也无需手动 `bind`。
+3.  使用 `ApiClient`:
+    - 在自定义钩子 (如 `useTodos.ts`, `useAddTodo.ts`) 中:
+        - 创建 `ApiClient` 的实例: `const apiClient = new ApiClient<Todo>('/todos');`。
+        - 将 `apiClient.getAll` 或 `apiClient.post` 作为引用传递给 `useQuery` 的 `queryFn` 或 `useMutation` 的 `mutationFn`。
+        - 例如: `queryFn: apiClient.getAll` (注意是方法引用，不是调用)。
+4.  优点:
+    - 请求逻辑集中化：API 交互细节封装在 `ApiClient` 中。
+    - 钩子更简洁：钩子只需实例化 `ApiClient` 并引用其方法。
+    - 易于维护：修改 API 基础 URL 或通用请求/响应处理逻辑只需在一处进行。
+    - 类型安全：泛型 `T` 确保了方法参数和返回值的类型正确性。
+
+**代码示例**
+
+1.  `src/react-query/services/apiClient.ts`:
+
+    ```ts
+    import axios, { AxiosInstance } from 'axios';
+
+    // 创建共享的 Axios 实例
+    const axiosInstance: AxiosInstance = axios.create({
+      baseURL: 'https://jsonplaceholder.typicode.com',
+    });
+
+    class ApiClient<T> {
+      endpoint: string;
+
+      constructor(endpoint: string) {
+        this.endpoint = endpoint;
+      }
+
+      // 使用箭头函数确保 this 指向正确
+      getAll = (): Promise<T[]> => {
+        return axiosInstance
+          .get<T[]>(this.endpoint)
+          .then((res) => res.data);
+      };
+
+      post = (data: T): Promise<T> => { // data 可以是 Partial<T> 如果创建时不需要所有字段
+        return axiosInstance
+          .post<T>(this.endpoint, data)
+          .then((res) => res.data);
+      };
+
+      // 可以添加其他方法如 getOne, update, delete
+    }
+
+    export default ApiClient;
+    ```
+
+2.  `hooks/useTodos.ts` (使用 `ApiClient`):
+
+    ```ts
+    import { useQuery } from '@tanstack/react-query';
+    import ApiClient from '../react-query/services/apiClient'; // 导入 ApiClient
+    import { CACHE_KEY_TODOS } from '../react-query/constants';
+    // Todo 接口定义...
+
+    const apiClient = new ApiClient<Todo>('/todos'); // 创建实例
+
+    const useTodos = () => {
+      return useQuery<Todo[], Error>({
+        queryKey: CACHE_KEY_TODOS,
+        queryFn: apiClient.getAll, // 传递方法引用
+        staleTime: 10 * 60 * 1000,
+      });
+    };
+
+    export default useTodos;
+    ```
+
+3.  `hooks/useAddTodo.ts` (使用 `ApiClient`):
+
+    ```ts
+    import { useMutation, useQueryClient } from '@tanstack/react-query';
+    import ApiClient from '../react-query/services/apiClient'; // 导入 ApiClient
+    import { Todo } from './useTodos';
+    import { CACHE_KEY_TODOS } from '../react-query/constants';
+    // AddTodoContext 接口定义...
+    // UseAddTodoOptions 接口定义...
+
+    const apiClient = new ApiClient<Todo>('/todos'); // 创建实例
+
+    const useAddTodo = (options?: UseAddTodoOptions) => {
+      const queryClient = useQueryClient();
+
+      return useMutation<Todo, Error, Todo, AddTodoContext>({
+        mutationFn: apiClient.post, // 传递方法引用
+        // ... onMutate, onSuccess, onError ... (内部逻辑不变)
+        onSuccess: (savedTodo, newTodoVariables) => {
+          queryClient.setQueryData<Todo[]>(CACHE_KEY_TODOS, (oldTodos = []) => {
+            // 乐观更新的替换逻辑可能需要调整，确保 newTodoVariables (来自mutate的输入)
+            // 和 savedTodo (来自服务器) 能正确匹配和替换 onMutate 中添加的临时项
+            const index = oldTodos.findIndex(todo => todo.title === newTodoVariables.title && todo.id === 0); // 假设临时id为0
+            if (index !== -1) {
+              const updatedTodos = [...oldTodos];
+              updatedTodos[index] = savedTodo;
+              return updatedTodos;
+            }
+            return [savedTodo, ...oldTodos.filter(t => t.id !== 0)]; // 简单追加，或更复杂逻辑
+          });
+          options?.onAddSuccess?.();
+        },
+        // ...
+      });
+    };
+
+    export default useAddTodo;
+    ```
+
+    _注意：`useAddTodo` 中 `onSuccess` 的缓存更新逻辑，在使用 `ApiClient` 后，`mutationFn` 的输入 (`newTodoVariables`) 和输出 (`savedTodo`) 依然可用。关键是确保乐观更新时添加到缓存的临时项能被正确识别并替换。_
+
+4.  `TodoForm.tsx` (按钮状态简化，移除乐观更新时的 "Adding..." 文本):
+    ```tsx
+    // ...
+    const TodoForm = () => {
+        // ...
+        return (
+            // ...
+            <button
+                className="btn btn-primary"
+                type="submit"
+                disabled={addTodoMutation.isLoading} // 仍可根据 isLoading 禁用
+            >
+                Add {/* 文本固定为 Add，因为乐观更新UI即时响应 */}
+            </button>
+            // ...
+        );
+    };
     ```
