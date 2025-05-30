@@ -3118,3 +3118,211 @@ Deployment
     ```
 
     - 描述：查找购物车，若不存在返回 404，否则清空商品项并保存，始终返回 204。
+
+## 服务层与职责分离
+
+> 简述：服务层（Service Layer）专注业务逻辑处理，实现控制器与领域模型解耦。所有流程、校验与异常均下沉服务层，控制器仅负责 HTTP 协议与响应组装，保障系统低耦合、易维护。
+
+**知识树**
+
+1. 服务层定位
+
+    - 作为业务逻辑中心，承接所有复杂操作、数据流转和状态变更。
+    - 解耦 Controller 与 Entity，避免控制器承担业务细节。
+
+2. 控制器职责简化
+
+    - 只处理 HTTP 参数接收、调用服务、组装响应。
+    - 所有数据操作、校验、异常由 Service 负责，Controller 无业务判断逻辑。
+    - Controller 仅依赖 Service，不直接操作 Repository、Mapper 或 Entity。
+
+3. 业务异常传递与统一处理
+
+    - Service 层遇到错误通过自定义异常（继承 RuntimeException）上抛，避免返回 null 或混乱的状态码。
+    - Controller 通过 `@ExceptionHandler` 统一捕获，转换为规范化 HTTP 响应。
+    - 可进一步抽象为全局异常处理器实现所有接口异常响应一致性。
+
+4. URI 组装与响应设计
+
+    - Controller 层负责 uri 组装与响应体封装，Service 层仅返回业务对象/结果，避免与 HTTP 协议耦合，保证各层职责单一、清晰。
+    - 对于返回 200 的接口可直接返回数据类型，无需 ResponseEntity 包装。
+
+**代码示例**
+
+1. 修改后的服务层
+
+    ```java
+    @Service
+    @AllArgsConstructor
+    public class CartService {
+        private CartRepository cartRepository;
+        private CartMapper cartMapper;
+        private ProductRepository productRepository;
+
+        public CartDto createCart() {
+            var cart = new Cart();
+            cartRepository.save(cart);
+
+            return cartMapper.toDto(cart);
+        }
+
+        public CartItemDto addToCart(UUID cartId, Long productId) {
+            var cart = cartRepository.getCartWithItems(cartId).orElse(null);
+            if (cart == null) {
+                throw new CartNotFoundException();
+            }
+
+            var product = productRepository.findById(productId).orElse(null);
+            if (product == null) {
+                throw new ProductNotFoundException();
+            }
+
+            var cartItem = cart.addItem(product);
+
+            cartRepository.save(cart);
+
+            return cartMapper.toDto(cartItem);
+        }
+
+        public CartDto getCart(UUID cartId) {
+            var cart = cartRepository.getCartWithItems(cartId).orElse(null);
+            if (cart == null) {
+                throw new CartNotFoundException();
+            }
+
+            return cartMapper.toDto(cart);
+        }
+
+        public CartItemDto updateItem(UUID cartId, Long productId, Integer quantity) {
+            var cart = cartRepository.getCartWithItems(cartId).orElse(null);
+            if (cart == null) {
+                throw new CartNotFoundException();
+            }
+
+            var cartItem = cart.getItem(productId);
+            if (cartItem == null) {
+                throw new ProductNotFoundException();
+            }
+
+            cartItem.setQuantity(quantity);
+            cartRepository.save(cart);
+
+            return cartMapper.toDto(cartItem);
+        }
+
+        public void removeItem(UUID cartId, Long productId) {
+            var cart = cartRepository.getCartWithItems(cartId).orElse(null);
+            if (cart == null) {
+                throw new CartNotFoundException();
+            }
+
+            if (cart.removeItem(productId)) {
+                cartRepository.save(cart);
+            }
+        }
+
+        public void clearCart(UUID cartId) {
+            var cart = cartRepository.getCartWithItems(cartId).orElse(null);
+            if (cart == null) {
+                throw new CartNotFoundException();
+            }
+
+            cart.clear();
+
+            cartRepository.save(cart);
+        }
+    }
+    ```
+
+    - 描述：所有业务逻辑下沉服务层，异常交由统一机制处理。
+
+2. 修改后的控制层（含统一异常处理）
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/carts")
+    public class CartController {
+
+        private final CartService cartService;
+
+        @PostMapping
+        public ResponseEntity<CartDto> createCart(
+                UriComponentsBuilder uriBuilder
+        ) {
+            var cartDto = cartService.createCart();
+            var uri = uriBuilder.path("/cart/{id}").buildAndExpand(cartDto.getId()).toUri();
+
+            return ResponseEntity.created(uri).body(cartDto);
+        }
+
+        @PostMapping("/{cartId}/items")
+        public ResponseEntity<CartItemDto> addItemToCart(
+                @PathVariable(name = "cartId") UUID cartId,
+                @RequestBody AddItemToCartRequest request
+        ) {
+            var cartItemDto = cartService.addToCart(cartId, request.getProductId());
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(cartItemDto);
+        }
+
+        @GetMapping("/{cartId}")
+        public CartDto getCart(@PathVariable UUID cartId) {
+            return cartService.getCart(cartId);
+        }
+
+        @PutMapping("/{cartId}/items/{productId}")
+        public CartItemDto updateItem(
+                @PathVariable("cartId") UUID cartId,
+                @PathVariable("productId") Long productId,
+                @Valid @RequestBody UpdateCartItemRequest request
+        ) {
+            return cartService.updateItem(cartId, productId, request.getQuantity());
+        }
+
+        @DeleteMapping("/{cartId}/items/{productId}")
+        public ResponseEntity<?> removeItem(
+                @PathVariable("cartId") UUID cartId,
+                @PathVariable("productId") Long productId
+        ) {
+            cartService.removeItem(cartId, productId);
+
+            return ResponseEntity.noContent().build();
+        }
+
+        @DeleteMapping("/{cartId}/items")
+        public ResponseEntity<Void> clearCart(@PathVariable UUID cartId) {
+            cartService.clearCart(cartId);
+
+            return ResponseEntity.noContent().build();
+        }
+
+        @ExceptionHandler(CartNotFoundException.class)
+        public ResponseEntity<Map<String, String>> handleCartNotFound() {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Cart not found."));
+        }
+
+        @ExceptionHandler(ProductNotFoundException.class)
+        public ResponseEntity<Map<String, String>> handleProductNotFound() {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Product not found."));
+        }
+    }
+    ```
+
+    - 描述：控制器极简，只聚焦请求/响应和响应码，所有业务处理全部交由 Service 层，异常用统一机制转为标准响应。
+
+3. 异常类（exceptions 包内）
+
+    - `CartNotFoundException`
+
+    ```java
+    public class CartNotFoundException extends RuntimeException {
+    }
+    ```
+
+    - ProductNotFoundException
+
+    ```java
+    public class ProductNotFoundException extends RuntimeException {
+    }
+    ```
