@@ -4117,3 +4117,106 @@ Deployment
     ```
 
     - 描述：注入 JwtService，使用用户信息生成 token 令牌返回，并将返回值修改为`ResponseEntity<JwtResponse>`
+
+## JWT 密钥安全
+
+> 简述：JWT 签名密钥（secret）是系统安全的核心，应严格外部化管理，避免硬编码，确保密钥足够强度并正确配置。
+
+**知识树**
+
+1. 密钥管理原则
+
+    - 密钥必须脱离源码，避免暴露在版本控制中。
+    - 推荐使用不短于 256-bit 的密钥。
+    - 所有敏感密钥应通过环境变量、配置文件等外部方式注入。
+
+2. 配置外部化工具：Spring Dotenv
+
+    - 说明：支持在 `application.yaml` 中通过 `${}` 读取 `.env` 文件的配置项。
+    - 依赖库：[spring-dotenv](https://github.com/paulschwarz/spring-dotenv)
+    - 说明：仅限于中小型项目，大型企业有其他实现方式
+
+3. 密钥管理方式（基于 `.env`）
+
+    - 引入 `spring-dotenv` 依赖以支持 `.env` 文件加载。
+    - 将密钥配置存放在 `.env` 文件中，并通过 `.gitignore` 排除上传至版本控制。
+    - 在 `application.yaml` 中定义密钥字段，引用 `.env` 中的值作为默认值。
+    - 在需要使用密钥的地方（如 `AuthController`），通过 `@Value` 注解注入配置，间接读取 `.env` 中的密钥。
+
+4. 团队协作实践
+
+    - 提供 `.env.example` 文件，列出必填字段但不包含敏感值，保障项目可配置性与安全性。
+
+5. 密钥生成建议
+
+    - 使用 OpenSSL 或安全随机工具生成高强度密钥。
+        - 示例：`openssl rand -base64 64`
+        - 其他工具：[https://generate-random.org/](https://generate-random.org/)
+    - 弱密钥将触发 `WeakKeyException`，必须确保合规长度与安全性。
+
+**代码示例**
+
+1. 引入 spring detonv 依赖
+
+    ```xml
+    <dependency>
+    		<groupId>me.paulschwarz</groupId>
+    		<artifactId>spring-dotenv</artifactId>
+    		<version>4.0.0</version>
+    </dependency>
+    ```
+
+2. 外部文件配置密匙（本地开发/部署，不提交仓库）
+
+    ```
+    JWT_SECRET=your-long-random-256bit-secret-key-here
+    ```
+
+    - 说明：只保存于本地，协作时使用 .env.example 说明需设置变量。
+
+3. application.yaml 引用环境变量
+
+    ```yaml
+    spring:
+      jwt:
+        secret: ${JWT_SECRET}
+    ```
+
+4. 读取配置的 JwtService 实现
+
+    ```java
+    @Service
+    public class JwtService {
+        @Value("${spring.jwt.secret}")
+        private String secretKey;
+
+        public String generateToken(String email) {
+            final long tokenExpiration = 86400; // 1 day
+
+            return Jwts.builder()
+                    .subject(email)
+                    .issuedAt(new Date())
+                    .expiration(new Date(System.currentTimeMillis() + 1000 * tokenExpiration))
+                    .signWith(Keys.hmacShaKeyFor(secretKey.getBytes()))
+                    .compact();
+        }
+    }
+    ```
+
+    - 说明：密钥与过期时长都来源于外部配置。
+
+5. .gitignore 排除敏感配置
+
+    ```
+    .env
+    ```
+
+    - 说明：防止密钥意外提交。
+
+6. .env.example（团队协作模板）
+
+    ```
+    JWT_SECRET=
+    ```
+
+    - 说明：不包含实际密钥，仅做说明。
