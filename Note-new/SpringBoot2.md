@@ -3778,3 +3778,230 @@ Deployment
     ```
 
     - 描述：post 访问 http://localhost:8080/auth/login
+
+## AuthenticationManager
+
+> 简述：使用 Spring Security 提供的标准认证组件（`AuthenticationManager`、`AuthenticationProvider`），能实现用户身份认证流程，由框架统一处理用户数据查询与密码验证，避免手写冗余逻辑。
+
+**知识树**
+
+1. 认证流程概览（当一个（登录）认证请求发生时，Spring Security 内部大致会经历以下步骤）
+
+    1. 接收凭证与发起认证：
+
+        - 通常，在一个负责处理登录请求的 Controller 中，会注入 `AuthenticationManager`。
+        - Controller 根据用户提交的用户名和密码，创建一个 `Authentication` 对象（常为 `UsernamePasswordAuthenticationToken`）。
+        - 随后，调用 `authenticationManager.authenticate(authenticationToken)` 方法，正式发起认证请求。
+
+    2. 认证管理器委派：
+
+        - `AuthenticationManager` 的具体实现（通常是 `ProviderManager`）接收到这个 `Authentication` 对象。
+        - `ProviderManager` 内部维护着一个 `AuthenticationProvider` 列表。这些 `Provider` 是在应用启动时配置并被 Spring Security 收集起来的。
+
+    3. 认证提供者尝试认证：
+
+        - `ProviderManager` 会遍历这个 `AuthenticationProvider` 列表。
+        - 它会询问每个 `AuthenticationProvider` 是否支持处理当前传入的 `Authentication` 对象类型。
+        - 如果某个 `AuthenticationProvider` 表示支持，则 `ProviderManager` 会调用该 `Provider` 的 `authenticate()` 方法。
+
+    4. 执行具体认证逻辑：
+
+        - 被选中的 `AuthenticationProvider` 执行具体的认证逻辑。
+        - 这通常包括：
+            - 使用其配置的 `UserDetailsService` 根据用户名加载用户信息。
+            - 使用其配置的 `PasswordEncoder` 将用户提交的密码与存储的密码进行比较。
+        - 如果凭证有效，`AuthenticationProvider` 返回一个填充了用户信息（包括权限）并标记为“已认证”的 `Authentication` 对象。
+        - 如果凭证无效，则抛出相应的认证异常。
+
+    5. 返回认证结果：
+
+        - `ProviderManager` 将 `AuthenticationProvider` 的认证结果（成功或异常）返回给最初调用 `authenticationManager.authenticate()` 的地方（即 Controller）。
+
+2. AuthenticationManager
+
+    - 概念
+        - `AuthenticationManager` 是 Spring Security 中负责**统一调度认证流程**的核心接口，是整个认证体系的入口。
+    - 职责与机制
+        1. 认证请求分发
+            - 接收外部传入的 `Authentication` 对象（如用户名密码、Token 等），调用其 `authenticate()` 方法启动认证。
+        2. 认证链管理
+            - 典型实现 `ProviderManager` 持有一个 `AuthenticationProvider` 列表，按顺序逐个调用 `supports()` 判断和 `authenticate()` 执行认证，直至有一个 Provider 成功认证或全部失败。
+        3. 结果与异常传递
+            - 成功：返回已认证的 `Authentication`（包含权限、身份等上下文信息）。
+            - 失败：抛出认证相关异常（如 `AuthenticationException`）。
+        4. 灵活注入
+            - 通常通过 Spring 容器自动配置，可直接注入到 Controller 或 Service 中统一发起认证请求。
+    - 核心优势
+        1. 统一入口、简化调用
+            - 控制器或服务层仅需依赖 `AuthenticationManager`，无需感知底层认证细节，解耦业务与认证实现。
+        2. 策略链支持、可扩展性强
+            - 支持多种认证机制并存（如表单、JWT、LDAP），通过 Provider 链灵活扩展和定制。
+        3. 全局一致性与安全
+            - 所有认证逻辑集中管理，易于全局控制、统一异常处理和日志审计。
+
+3. AuthenticationProvider
+
+    - 概念
+        - `AuthenticationProvider` 是 Spring Security 中专门负责**执行认证逻辑**的核心接口。
+    - 职责与机制
+        1. 认证执行者
+            - 接收一个包含用户凭证的 `Authentication` 对象（如 `UsernamePasswordAuthenticationToken`），校验其合法性。
+        2. 类型判断
+            - 通过 `supports(Class<?> authentication)` 声明自身能处理的认证类型，实现多认证机制并行。
+        3. 认证结果返回
+            - 认证通过：返回已认证且包含用户权限的 `Authentication` 对象。
+            - 认证失败：抛出 `AuthenticationException`（如 `BadCredentialsException`）。
+        4. 可扩展性
+            - 支持自定义实现，可集成数据库、LDAP、OAuth2、JWT、短信验证码等多种认证来源。
+        5. 内置实现
+            - 最常用为 `DaoAuthenticationProvider`，结合 `UserDetailsService` 和 `PasswordEncoder` 完成用户信息加载与密码校验。
+    - 自动收集与统一管理
+        1. 启动时收集
+            - Spring Security 启动时，会自动扫描并收集所有注册到 Spring 容器的 `AuthenticationProvider`，形成一个 Provider 列表。
+        2. 统一调度
+            - 这些 Provider 被 `ProviderManager` 统一管理。在认证请求时，`ProviderManager` 会根据 `supports()` 判断，自动选用合适的 Provider 处理认证流程。
+    - 核心优势
+        1. 多认证机制并行
+            - 可同时配置多个 `AuthenticationProvider`，如表单登录、JWT、LDAP、OAuth2 等，`ProviderManager` 会自动根据 `Authentication` 类型路由到对应 Provider。
+        2. 易于扩展
+            - 新认证方式只需实现并注册新的 Provider，无需侵入原有认证逻辑，扩展灵活。
+        3. 职责分离、模块化
+            - 各认证方式独立实现，逻辑清晰，便于维护与单元测试。
+
+4. PasswordEncoder
+
+	- 概念
+	    Spring Security 用于密码加密与校验的核心接口。
+	- 职责与机制
+	    1. 密码加密
+	        - 提供如 `encode(rawPassword)` 方法，将明文密码转为不可逆的哈希值，数据库只存哈希，防止泄露。
+	    2. 密码校验
+	        - 提供 `matches(rawPassword, encodedPassword)`，将用户输入的明文与存储的密文比对，确保安全认证。
+	    3. 主流实现
+	        - 推荐 `BCryptPasswordEncoder`，具备加盐机制与强抗破解能力。
+	    4. 自动注入与统一使用
+	        - 通过在配置类中注册 `@Bean`，即可全局自动注入，无需手动传递。
+	- 核心优势
+	    - 标准化密码加密与校验，避免明文存储，提升安全性。
+	    - 支持多算法切换，便于升级和兼容历史数据。
+
+5. UserDetailsService
+	
+	- 概念
+	    用户信息加载的标准接口，是自定义用户认证的入口。
+	- 职责与机制
+	    1. 用户查找
+	        - 定义 `loadUserByUsername(String username)` 方法，通常用邮箱或用户名查找用户。
+	    2. 集成业务模型
+	        - 通常结合 Repository 查询数据库，将业务用户对象包装为 Spring Security 的 `UserDetails` 实例（含用户名、加密密码、权限等）。
+	    3. 自动装配与认证集成
+	        - 注入到 `DaoAuthenticationProvider` 中，配合 PasswordEncoder 完成认证流程。
+	- 核心优势
+	    - 彻底解耦用户表结构与认证框架，支持任意数据来源（数据库、LDAP、远程服务等）。
+	    - 便于扩展业务属性，如账户状态、角色权限等。
+
+
+6. 全局异常处理
+
+    - 场景说明
+        - Spring Security 默认认证失败（如账号或密码错误）时返回 403 Forbidden。若希望所有认证失败统一返回 401 Unauthorized，可自定义异常处理。
+    - 实现方式
+        - 在控制器中添加 `@ExceptionHandler(BadCredentialsException.class)`，统一捕获认证失败异常，并返回 401 状态码，隐藏具体失败原因，提升安全性。
+
+**代码示例**
+
+1. 自定义 UserDetailsService
+
+    ```java
+    @AllArgsConstructor
+    @Service
+    public class UserService implements UserDetailsService {
+
+        private final UserRepository userRepository;
+
+        @Override
+        public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+            var user = userRepository.findByEmail(email).orElseThrow(
+                    () -> new UsernameNotFoundException("User not found"));
+
+            return new User(
+                    user.getEmail(),
+                    user.getPassword(),
+                    Collections.emptyList()
+            );
+        }
+    }
+    ```
+
+    - 描述：通过邮箱查找用户，未找到抛异常，返回 Spring Security 用户对象。
+
+2. 配置 DaoAuthenticationProvider 和 AuthenticationManager
+
+    ```java
+    @Configuration
+    @EnableWebSecurity
+    @AllArgsConstructor
+    public class SecurityConfig {
+
+        private final UserDetailsService userDetailsService;
+
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+            return new BCryptPasswordEncoder();
+        }
+
+        // 将 AuthenticationProvider（DaoAuthenticationProvider） 注入容器
+        @Bean
+        public AuthenticationProvider authenticationProvider() {
+            var provider = new DaoAuthenticationProvider();
+            provider.setPasswordEncoder(passwordEncoder());
+            provider.setUserDetailsService(userDetailsService);
+            return provider;
+        }
+
+        // 将 AuthenticationManager 注入容器，AuthenticationConfiguration 为自动注入
+        @Bean
+        public AuthenticationManager authenticationManager(
+                AuthenticationConfiguration config) throws Exception {
+            return config.getAuthenticationManager();
+        }
+
+    	// 省略
+
+    }
+    ```
+
+    - 描述：注册自定义 Provider 和全局认证管理器。
+
+3. 控制器中调用认证
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/auth")
+    public class AuthController {
+        private final UserRepository userRepository;
+        private final PasswordEncoder passwordEncoder;
+        private final AuthenticationManager authenticationManager;
+
+        @PostMapping("/login")
+        public ResponseEntity<Void> login(
+                @Valid @RequestBody LoginRequest request) {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+
+            return ResponseEntity.ok().build();
+        }
+
+        @ExceptionHandler(BadCredentialsException.class)
+        public ResponseEntity<Void> handleBadCredentialsException() {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+    ```
+
+    - 描述：认证失败由全局异常捕获，控制器逻辑极简。
