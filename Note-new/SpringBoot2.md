@@ -3870,36 +3870,35 @@ Deployment
 
 4. PasswordEncoder
 
-	- 概念
-	    Spring Security 用于密码加密与校验的核心接口。
-	- 职责与机制
-	    1. 密码加密
-	        - 提供如 `encode(rawPassword)` 方法，将明文密码转为不可逆的哈希值，数据库只存哈希，防止泄露。
-	    2. 密码校验
-	        - 提供 `matches(rawPassword, encodedPassword)`，将用户输入的明文与存储的密文比对，确保安全认证。
-	    3. 主流实现
-	        - 推荐 `BCryptPasswordEncoder`，具备加盐机制与强抗破解能力。
-	    4. 自动注入与统一使用
-	        - 通过在配置类中注册 `@Bean`，即可全局自动注入，无需手动传递。
-	- 核心优势
-	    - 标准化密码加密与校验，避免明文存储，提升安全性。
-	    - 支持多算法切换，便于升级和兼容历史数据。
+    - 概念
+      Spring Security 用于密码加密与校验的核心接口。
+    - 职责与机制
+        1. 密码加密
+            - 提供如 `encode(rawPassword)` 方法，将明文密码转为不可逆的哈希值，数据库只存哈希，防止泄露。
+        2. 密码校验
+            - 提供 `matches(rawPassword, encodedPassword)`，将用户输入的明文与存储的密文比对，确保安全认证。
+        3. 主流实现
+            - 推荐 `BCryptPasswordEncoder`，具备加盐机制与强抗破解能力。
+        4. 自动注入与统一使用
+            - 通过在配置类中注册 `@Bean`，即可全局自动注入，无需手动传递。
+    - 核心优势
+        - 标准化密码加密与校验，避免明文存储，提升安全性。
+        - 支持多算法切换，便于升级和兼容历史数据。
 
 5. UserDetailsService
-	
-	- 概念
-	    用户信息加载的标准接口，是自定义用户认证的入口。
-	- 职责与机制
-	    1. 用户查找
-	        - 定义 `loadUserByUsername(String username)` 方法，通常用邮箱或用户名查找用户。
-	    2. 集成业务模型
-	        - 通常结合 Repository 查询数据库，将业务用户对象包装为 Spring Security 的 `UserDetails` 实例（含用户名、加密密码、权限等）。
-	    3. 自动装配与认证集成
-	        - 注入到 `DaoAuthenticationProvider` 中，配合 PasswordEncoder 完成认证流程。
-	- 核心优势
-	    - 彻底解耦用户表结构与认证框架，支持任意数据来源（数据库、LDAP、远程服务等）。
-	    - 便于扩展业务属性，如账户状态、角色权限等。
 
+    - 概念
+      用户信息加载的标准接口，是自定义用户认证的入口。
+    - 职责与机制
+        1. 用户查找
+            - 定义 `loadUserByUsername(String username)` 方法，通常用邮箱或用户名查找用户。
+        2. 集成业务模型
+            - 通常结合 Repository 查询数据库，将业务用户对象包装为 Spring Security 的 `UserDetails` 实例（含用户名、加密密码、权限等）。
+        3. 自动装配与认证集成
+            - 注入到 `DaoAuthenticationProvider` 中，配合 PasswordEncoder 完成认证流程。
+    - 核心优势
+        - 彻底解耦用户表结构与认证框架，支持任意数据来源（数据库、LDAP、远程服务等）。
+        - 便于扩展业务属性，如账户状态、角色权限等。
 
 6. 全局异常处理
 
@@ -4005,3 +4004,116 @@ Deployment
     ```
 
     - 描述：认证失败由全局异常捕获，控制器逻辑极简。
+
+## 集成 JWT
+
+> 简述：通过集成 JWT（JSON Web Token），实现无状态认证，登录成功后返回包含用户身份的安全令牌。
+
+**知识树**
+
+1. 实现步骤
+
+    - 添加 JWT 相关依赖（`jjwt-impl`、`jjwt-api`、`jjwt-jackson`）。
+        - `jjwt-impl`：实现库，处理签名与解析。
+        - `jjwt-api`：标准接口。
+        - `jjwt-jackson`：支持 JSON 序列化与反序列化。
+    - 定义 JWT 返回 DTO，仅包含 Token 字符串字段。
+    - 编写 JwtService，负责生成签名令牌。
+    - 在认证 Controller 中注入 JwtService，登录成功后生成并返回 JWT。
+
+2. JWT 依赖引入方式
+
+    - 在 `pom.xml` 中添加以下三个依赖项（见代码示例）：
+        - `io.jsonwebtoken:jjwt-api`
+        - `io.jsonwebtoken:jjwt-impl`
+        - `io.jsonwebtoken:jjwt-jackson`
+    - 版本号建议使用最新版本：在 `<version>` 标签中按 `Ctrl + Space` 可自动弹出可选版本列表。
+
+3. 密钥安全（下节介绍）
+
+    - JJWT 推荐密钥长度不少于 256bit。
+    - 密钥应外部安全存储，避免硬编码泄露。
+    - 当前由于密匙设置问题（过短）无法访问，下节介绍
+
+**代码示例**
+
+1. 引入依赖
+
+    ```xml
+    <dependency>
+    		<groupId>io.jsonwebtoken</groupId>
+    		<artifactId>jjwt-impl</artifactId>
+    		<version>0.12.6</version>
+    </dependency>
+    <dependency>
+    		<groupId>io.jsonwebtoken</groupId>
+    		<artifactId>jjwt-jackson</artifactId>
+    		<version>0.12.5</version>
+    </dependency>
+    <dependency>
+    		<groupId>io.jsonwebtoken</groupId>
+    		<artifactId>jjwt-api</artifactId>
+    		<version>0.12.3</version>
+    </dependency>
+    ```
+
+2. 创建 JWT 返回 Dto
+
+    ```java
+    @Data
+    @AllArgsConstructor
+    public class JwtResponse {
+        private String token;
+    }
+    ```
+
+3. 创建生成 JWTService 类，实现生成 Token 方法
+
+    ```java
+    @Service
+    public class JwtService {
+        public String generateToken(String email) {
+            final long tokenExpiration = 86400; // 1 day
+
+            return Jwts.builder()
+                    .subject(email)
+                    .issuedAt(new Date())
+                    .expiration(new Date(System.currentTimeMillis() + 1000 * tokenExpiration))
+                    .signWith(Keys.hmacShaKeyFor("secret".getBytes()))
+                    .compact();
+        }
+    }
+    ```
+
+4. 返回令牌
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/auth")
+    public class AuthController {
+        private final AuthenticationManager authenticationManager;
+        private final JwtService jwtService;
+
+        @PostMapping("/login")
+        public ResponseEntity<JwtResponse> login(
+                @Valid @RequestBody LoginRequest request) {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+            var token = jwtService.generateToken(request.getEmail());
+
+            return ResponseEntity.ok(new JwtResponse(token));
+        }
+
+        @ExceptionHandler(BadCredentialsException.class)
+        public ResponseEntity<Void> handleBadCredentialsException() {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+    ```
+
+    - 描述：注入 JwtService，使用用户信息生成 token 令牌返回，并将返回值修改为`ResponseEntity<JwtResponse>`
