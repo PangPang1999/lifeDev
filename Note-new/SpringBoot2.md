@@ -1759,7 +1759,11 @@ Deployment
     - 通用校验
         - `@NotNull`：字段不为 null。
 
-3. 校验触发与响应
+3. 使用方式
+
+    - 在对应字段上加上常用校验注解后，在接受请求体参数前加上`@Valid`注解
+
+4. 校验触发与响应
 
     - 请求数据不合规时自动阻断，响应 400 错误，后续介绍提示语意化的错误提示。
     - 适用于所有请求体、表单及参数校验场景。
@@ -3636,3 +3640,141 @@ Deployment
     ```
 
     - 描述：删除之前创建的用户，发送 POST 请求访问 http://localhost:8080/users ，访问数据库，查看 hash 加密的密码，如`$2a$10$qOOmP77r3xM4WY2HaJHGq`
+
+## Ex: 用户登录接口实现
+
+> 简述：实现基础用户登录接口，接收邮箱和密码，校验用户身份，正确返回 200，错误返回 401。本节关注身份认证流程及响应规范，暂不涉及令牌生成。
+
+**API**
+
+1. Request Example
+
+    ```
+    POST /auth/login
+    {
+        "email": "user1@domain.com",
+        "password": "12345"
+    }
+    ```
+
+**知识树**
+
+1. 登录 API 设计
+
+    - POST `/auth/login`，请求体包含邮箱和密码。
+    - 认证通过返回 200，无内容；失败统一返回 401。
+
+2. 参数校验与 DTO 设计
+
+    - `LoginRequest` DTO：包含 `email` 和 `password` 字段。
+    - 使用 `@NotBlank`、`@Email` 注解保证输入有效，避免空值和格式不符。
+
+3. 用户身份校验
+
+    - 通过 `UserRepository.findByEmail(email)` 查询用户。
+    - 使用 `PasswordEncoder.matches(明文, 密文)` 校验密码，防止明文对比。
+    - 未找到用户或密码不匹配，均返回 401，不泄露具体原因。
+
+4. 安全配置与接口开放
+
+    - 在 `SecurityConfig` 配置 `/auth/login` 为公开接口，支持未登录用户访问。
+
+5. 实践与注意点
+
+    - 控制器临时承担部分业务逻辑，实际生产应下沉至 Service 层。
+    - 认证功能建议最终由 Spring Security 统一管理，后续会介绍如何使用。
+
+**代码示例**
+
+1. 登录请求 DTO
+
+    ```java
+    @Data
+    public class LoginRequest {
+        @NotBlank(message = "Email is required")
+        @Email
+        private String email;
+
+        @NotBlank(message = "Password is required")
+        private String password;
+    }
+    ```
+
+2. 登录 Controller 实现
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/auth")
+    public class AuthController {
+        private final UserRepository userRepository;
+        private final PasswordEncoder passwordEncoder;
+
+        @PostMapping("/login")
+        public ResponseEntity<Void> login(
+                @Valid @RequestBody LoginRequest request) {
+            var user = userRepository.findByEmail(request.getEmail()).orElse(null);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
+            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
+            return ResponseEntity.ok().build();
+        }
+    }
+    ```
+
+    - 说明：查询不到用户或密码错误都统一返回 401，避免信息泄露。
+
+3. 仓库接口添加对应方法
+
+    ```java
+    public interface UserRepository extends JpaRepository<User, Long> {
+        boolean existsByEmail(@NotBlank(message = "Email is required") @Email(message = "Email must be valid") String email);
+
+        Optional<User> findByEmail(String email);
+    }
+    ```
+
+4. 安全配置添加登录接口开放
+
+    ```java
+    @Configuration
+    @EnableWebSecurity
+    public class SecurityConfig {
+
+    	// 省略
+
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+            http
+                    .sessionManagement(c ->
+                            c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .authorizeHttpRequests(c -> c
+                            .requestMatchers("/carts/**").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/users").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                            .anyRequest().authenticated()
+                    );
+
+            return http.build();
+        }
+    }
+    ```
+
+    - 说明：允许未登录用户调用 `/auth/login` 接口。
+
+5. Postman 测试
+
+    ```json
+    {
+    	"email": "pang@example.com",
+    	"password": "123456"
+    }
+    ```
+
+    - 描述：post 访问 http://localhost:8080/auth/login
