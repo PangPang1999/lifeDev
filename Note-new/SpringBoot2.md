@@ -4598,8 +4598,79 @@ Deployment
 
 4. 运行验证（Postman 测试流程）
 
-    1. 使用 /auth/login 登录，获取 JWT。
+    1. 使用 `POST /auth/login` 登录，获取 JWT。
     2. 设置 Header：`Authorization`: `Bearer {token}`
     3. 访问受保护的接口，如： `POST /auth/validate`、`GET /users/{id}`
     4. 观察返回结果与控制台输出，验证是否完成自动认证。
     5. 描述：若未传 Authorization 头，则 403；传入合法 token 后，系统认为用户已登录。
+
+## 登录用户认证信息
+
+> 简述：通过 Spring Security 提供的 `SecurityContext`，我们可以在控制器中获取当前已认证用户的身份标识。
+
+**知识树**
+
+1. `SecurityContext` 与认证对象
+
+    - `SecurityContextHolder.getContext().getAuthentication()`
+      获取当前线程上下文中的 `Authentication` 对象。
+    - `authentication.getPrincipal()`
+      返回认证主体信息，类型为 `Object`，需根据实际情况强制转换。
+      例如：若主体为邮箱（String），则可直接强转为 `String` 类型。
+
+2. 查询用户并封装响应
+
+    - 本节实现 `/auth/me` 接口，通过 `UserRepository.findByEmail()` 查询当前登录用户的信息。
+    - 查询结果经 Mapper 转换为 DTO，并作为标准 HTTP 响应返回前端。
+    - 该接口无需显式添加权限校验注解，因已集成全局鉴权与过滤器，只有携带有效 token 的已登录用户才能访问。
+
+**代码示例**
+
+1. 获取当前用户信息接口
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/auth")
+    public class AuthController {
+
+        private final UserRepository userRepository;
+        private final UserMapper userMapper;
+
+        @GetMapping("/me")
+        public ResponseEntity<UserDto> getCurrentUser() {
+            // 提取当前身份信息
+            var authentication = SecurityContextHolder.getContext().getAuthentication();
+            var email = (String) authentication.getPrincipal();
+
+            // 查询用户实体
+            var user = userRepository.findByEmail(email)
+                    .orElse(null);
+
+            if (user == null)
+                return ResponseEntity.notFound().build();
+
+            // 映射为 DTO 并返回
+            var userDto = userMapper.toDto(user);
+            return ResponseEntity.ok(userDto);
+        }
+    }
+    ```
+
+    - 描述：从认证上下文提取当前登录用户的 email，查询用户详情并以 DTO 返回。若用户不存在，返回 404。
+
+2. 运行验证（Postman 测试流程）
+
+    ```json
+    {
+    	"id": 8,
+    	"name": "Pang",
+    	"email": "pang@example.com"
+    }
+    ```
+
+    1. 登录获取 JWT， `POST /auth/login` → 获取 token
+    2. 设置 Header：`Authorization`: `Bearer {token}`
+    3. 访问受保护的接口，如： `GET /auth/me`
+    4. 返回示例如上
+    5. 若不带 Authorization 头或 token 非法，Spring Security 自动拦截，返回 403。
