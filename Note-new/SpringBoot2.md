@@ -4674,3 +4674,155 @@ Deployment
     3. 访问受保护的接口，如： `GET /auth/me`
     4. 返回示例如上
     5. 若不带 Authorization 头或 token 非法，Spring Security 自动拦截，返回 403。
+
+## Ex: 在 JWT 中加入用户信息
+
+> **要求**：优化 JWT 的 Payload：
+>
+> 1. 使用用户 ID 作为 subject（原为 email）
+> 2. 添加用户 email 和 name 为 claims，以便前端无需额外请求即可展示用户身份信息
+
+> **解法**：
+> **核心目的**：通过用户 ID 替代 email，提升索引效率；通过添加 claims 减少额外请求
+>
+> 1. 修改 `generateToken()` 方法的入参为 `User` 对象，subject 改为 `user.getId()`，并添加 `email` 和 `name` claims
+> 2. 登录成功后，将完整的 User 对象传入生成 token 的方法
+> 3. JWT 验证过滤器中，principal 改为 `userId`，`getEmailFromToken()` 改为 `getUserIdFromToken()`，返回类型为 `Long`
+> 4. `/auth/me` 控制器中，用 userId 查询数据库，而非 email
+
+**小结**
+
+- 将 email 替换为 ID 可提升数据库检索效率；
+- 添加 claims（如 name、email）允许前端直接展示用户信息；
+- token payload 不应过大，应仅保留常用公开信息。
+
+**问题引入**
+
+- 登录请求时会触发两次用户信息查询 SQL，虽对性能影响不大，但仍有优化空间。
+- 常见优化方式包括：
+    - 让实体类直接实现 `UserDetails`（适合初学者，简便易用）；
+    - 封装自定义 `CustomUserDetails` 类（更适合大型项目，便于扩展）。
+- 本节暂不做优化处理，仅做问题提示。
+
+**代码**
+
+1. JwtService
+
+    ```java
+    @Service
+    public class JwtService {
+        @Value("${spring.jwt.secret}")
+        private String secretKey;
+
+        public String generateToken(User user) {
+            final long tokenExpiration = 86400; // 1 day
+
+            return Jwts.builder()
+                    .subject(user.getId().toString())
+                    .claim("email", user.getEmail())
+                    .claim("name", user.getName())
+                    .issuedAt(new Date())
+                    .expiration(new Date(System.currentTimeMillis() + 1000 * tokenExpiration))
+                    .signWith(Keys.hmacShaKeyFor(secretKey.getBytes()))
+                    .compact();
+        }
+
+    	// 省略
+
+        public Long getUserIdFromToken(String token) {
+            return Long.valueOf(getClaims(token).getSubject());
+        }
+    }
+    ```
+
+    - 描述：生成 JWT 的 payload 改为 ID + Claims
+
+2. AuthController
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/auth")
+    public class AuthController {
+        private final AuthenticationManager authenticationManager;
+        private final JwtService jwtService;
+        private final UserRepository userRepository;
+        private final UserMapper userMapper;
+
+        @PostMapping("/login")
+        public ResponseEntity<JwtResponse> login(
+                @Valid @RequestBody LoginRequest request) {
+            Authentication authenticate = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+            // 从 authentication 中提取已加载的用户信息（避免再次查询数据库）
+            var user = (User) authenticate.getPrincipal();
+            // var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
+            var token = jwtService.generateToken(user);
+
+            return ResponseEntity.ok(new JwtResponse(token));
+        }
+
+    	// 省略
+
+        @GetMapping("/me")
+        public ResponseEntity<UserDto> me() {
+            var authentication = SecurityContextHolder.getContext().getAuthentication();
+            var userId = (Long) authentication.getPrincipal();
+
+            var user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            var userDto = userMapper.toDto(user);
+
+            return ResponseEntity.ok(userDto);
+        }
+
+    	// 省略
+    }
+    ```
+
+    - 描述：修改令牌生成逻辑，根据 user 对象生成令牌，而非 email，并补充修改 me 接口，根据 userId 返回而非 email
+
+3. 修改过滤器中的校验逻辑
+
+    ```java
+    @AllArgsConstructor
+    @Component
+    public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    // 省略
+
+            // 5. 从 token 中提取用户身份信息（如 email），创建认证对象
+            var authentication = new UsernamePasswordAuthenticationToken(
+                    jwtService.getUserIdFromToken(token),
+                    null,
+                    null
+            );
+
+    // 省略
+
+    }
+    ```
+
+    - 描述：更换获取 email 方法为获取 user 方法
+
+4. 运行验证（Postman 测试流程）
+
+    ```json
+    {
+    	"id": 8,
+    	"name": "Pang",
+    	"email": "pang@example.com"
+    }
+    ```
+
+    1. 登录获取 JWT， `POST /auth/login` → 获取 token（token 变长了）
+    2. 设置 Header：`Authorization`: `Bearer {token}`
+    3. 访问受保护的接口，如： `GET /auth/me`
+    4. 返回示例如上

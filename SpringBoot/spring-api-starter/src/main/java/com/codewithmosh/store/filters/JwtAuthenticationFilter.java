@@ -46,7 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 5. 从 token 中提取用户身份信息（如 email），创建认证对象
         var authentication = new UsernamePasswordAuthenticationToken(
-                jwtService.getEmailFromToken(token), // principal（用户名/用户标识）
+                jwtService.getUserIdFromToken(token), // principal（用户名/用户标识）
                 null,                                // credentials（此处无需密码）
                 null                                 // authorities（权限列表，实际项目中可扩展）
         );
