@@ -4358,3 +4358,89 @@ Deployment
         - 请求：`POST /auth/validate`
         - Header：在 Header 手动添加键值对 `Authorization: Bearer xxxxx`，`Bearer `为标准 REST API 要求
         - 验证成功返回 `true`，若令牌错误、过期、伪造则返回 `false`。
+
+## Filter 基础
+
+> 简述：Filter 是基于 Servlet 规范的组件，用于在请求进入 Controller 前或响应返回客户端前执行拦截逻辑。Spring Security 基于过滤器链构建身份认证与授权的核心流程，实现安全处理的模块化与统一管理。
+
+**知识树**
+
+1. 定义与职责
+
+    - 定义：Filter 是用于请求前置/后置处理的拦截器，可用于日志记录、请求包装、身份认证、权限控制等场景。
+    - 职责：既可在请求进入 Controller 之前修改或验证请求内容，也可在响应返回之前修改响应内容。
+
+2. 执行流程与控制机制
+
+    - 所有请求会依序通过多个 Filter 构成的 FilterChain。
+    - 每个 Filter 通过调用 `filterChain.doFilter()` 放行请求，否则中断处理。
+    - 如果未调用 `doFilter()`，请求将被终止，返回空 200 响应，也可以手动设置响应。
+
+3. 自定义 Filter 的方式
+
+    - 继承 `OncePerRequestFilter`：保证每个请求仅执行一次（避免重复拦截）。
+    - 实现核心逻辑于 `doFilterInternal()` 方法。
+    - 注册方式：
+        - 标注 `@Component` 自动注入（或手动添加到安全过滤链中以控制顺序）。
+    - 参数说明：
+        - `HttpServletRequest`：请求体。
+        - `HttpServletResponse`：响应体。
+        - `FilterChain`：控制请求继续执行。
+
+**代码示例**
+
+1. 创建自定义日志 Filter
+
+    ```java
+    @Component
+    public class LoggingFilter extends OncePerRequestFilter {
+        @Override
+        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+            System.out.println("Request: " + request.getRequestURI());
+
+            filterChain.doFilter(request, response);
+
+            System.out.println("Response: " + response.getStatus());
+        }
+    }
+    ```
+
+    - 描述：记录所有进入系统的请求路径和对应响应状态码。
+
+2. 控制器中添加方法观察请求流向
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/auth")
+    public class AuthController {
+        private final AuthenticationManager authenticationManager;
+        private final JwtService jwtService;
+
+    	// 省略
+
+        @PostMapping("/validate")
+        public boolean validate(@RequestHeader("Authorization") String authHeader) {
+            System.out.println("Validate called.");
+
+            var token = authHeader.replace("Bearer ", "");
+
+            return jwtService.validateToken(token);
+        }
+
+    	// 省略
+
+    }
+    ```
+
+    - 描述：验证 JWT 请求是否到达 Controller，可结合日志 Filter 观察执行顺序。
+
+3. Postman 测试
+
+    ```
+    Incoming request: /auth/validate
+    Validate called.
+    Response status: 200
+    ```
+
+    - 描述：重复上一节的验证登陆，观察控制台输出，验证请求先被 Filter 拦截，再进入 Controller，最后输出响应状态。
