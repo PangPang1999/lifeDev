@@ -4220,3 +4220,141 @@ Deployment
     ```
 
     - 说明：不包含实际密钥，仅做说明。
+
+7. Postman 请求验证（Header 示例）
+
+    ```
+    {
+        "email": "pang@example.com",
+        "password": "123456"
+    }
+    ```
+
+    - 描述：POST 访问 http://localhost:8080/auth/login ，返回 token
+
+## JWT 令牌校验演示
+
+> 简述：服务端需对客户端每次请求携带的 JWT 进行验证，确保其签名有效、未被篡改且未过期。此节通过手动接口演示完整校验流程，实际应由 Spring Security 自动完成。
+
+**知识树**
+
+1. 令牌校验包含以下三方面：
+
+    1. 结构合法性：确保 token 格式正确、能正常解析出 Header / Payload / Signature。
+    2. 签名验证：确保 token 未被篡改，来源可信。
+    3. 业务规则校验：例如是否已过期、是否具备权限等。
+
+2. 临时验证方案（演示）
+
+    - 提供 `/auth/validate` POST 接口用于演示。
+    - 控制器从请求头提取 JWT，传入服务方法校验。
+    - 返回布尔值表示是否有效。
+    - 实际项目中应使用过滤器链完成自动校验。
+
+3. JWTService 中的校验逻辑
+
+    - 使用 JJWT 工具库对 token 进行解析与验证。
+    - 若签名错误、格式非法或已过期，捕获 `JwtException` 并返回 `false`。
+    - 否则返回 `true` 表示校验成功。
+
+4. Authorization Header 解析方式
+
+    - 标准格式：`Authorization: Bearer <token>`。
+    - 提取方式：使用 `.replace("Bearer ", "")`，避免使用硬编码的 `substring(7)`。
+
+5. 安全配置：开放验证端点
+
+    - 默认情况下 `/auth/validate` 会被拦截。
+    - 应在 `SecurityFilterChain` 中对该路径显式放行。
+
+**代码示例**
+
+1. JWTService 中实现校验方法
+
+    ```java
+    @Service
+    public class JwtService {
+        @Value("${spring.jwt.secret}")
+        private String secretKey;
+
+    	// 省略生成方法
+
+        public boolean validateToken(String token) {
+            try {
+                var claims = Jwts.parser()
+                        .verifyWith(Keys.hmacShaKeyFor(secretKey.getBytes()))
+                        .build()
+                        .parseSignedClaims(token)
+                        .getPayload();
+
+                return claims.getExpiration().after(new Date());
+            } catch (JwtException ex) {
+                return false;
+            }
+        }
+    }
+    ```
+
+    - 描述：若解析失败或过期，返回 `false`，否则返回 `true`。结构和签名校验都包含在`parseSignedClaims(token)`方法中了。
+
+2. AuthController 添加验证端点
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/auth")
+    public class AuthController {
+        private final AuthenticationManager authenticationManager;
+        private final JwtService jwtService;
+
+    	// 省略
+
+        @PostMapping("/validate")
+        public boolean validate(@RequestHeader("Authorization") String authHeader) {
+            var token = authHeader.replace("Bearer ", "");
+
+            return jwtService.validateToken(token);
+        }
+
+    	// 省略
+
+    }
+    ```
+
+    - 描述：从请求头中提取 token，传入 service 校验。
+
+3. SecurityConfig 放行验证端点
+
+    ```java
+    @Configuration
+    @EnableWebSecurity
+    public class SecurityConfig {
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+            http
+                .authorizeHttpRequests(auth -> auth
+                    .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/auth/validate").permitAll()
+                    .anyRequest().authenticated()
+                )
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(c -> c.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+            return http.build();
+        }
+    }
+    ```
+
+    - 描述：显式允许 `/auth/validate` 接口公开访问。
+
+4. Postman 请求示例（验证过程）
+
+    1. 使用正确的帐号密码登录获取 Token（上一节已经展示）：
+
+        - 请求：`POST /auth/login`
+        - 响应：`{ "token": "xxxxx" }`
+
+    2. 验证 Token：
+
+        - 请求：`POST /auth/validate`
+        - Header：在 Header 手动添加键值对 `Authorization: Bearer xxxxx`，`Bearer `为标准 REST API 要求
+        - 验证成功返回 `true`，若令牌错误、过期、伪造则返回 `false`。
