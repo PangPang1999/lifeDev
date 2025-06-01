@@ -4675,7 +4675,7 @@ Deployment
     4. 返回示例如上
     5. 若不带 Authorization 头或 token 非法，Spring Security 自动拦截，返回 403。
 
-## Ex: 在 JWT 中加入用户信息
+## Ex: JWT 加入用户信息
 
 > **要求**：优化 JWT 的 Payload：
 >
@@ -4826,3 +4826,128 @@ Deployment
     2. 设置 Header：`Authorization`: `Bearer {token}`
     3. 访问受保护的接口，如： `GET /auth/me`
     4. 返回示例如上
+
+## Refresh Token 基础
+
+> 简述：刷新令牌机制通过“短效访问令牌 + 长效刷新令牌”双令牌设计，实现安全的无缝登录续期，降低敏感令牌被盗风险，提升用户体验。
+
+**知识树**
+
+1. 令牌类型与作用
+
+    - 访问令牌（Access Token）
+
+        - 作用：用于访问受保护 API，生命周期短（如几分钟\~一小时）。
+        - 特点：被盗风险低，暴露损失有限。
+        - 缺点：localStorage 可被 XSS 攻击窃取，因而必须短效。
+
+    - 刷新令牌（Refresh Token）
+
+        - 作用：用于续期获取新的访问令牌，生命周期长（如 7 天或更久）。
+        - 特点：严格保护，仅服务端可读取，攻击面更小。
+        - 注意点：不能保存在 localStorage，以 HTTP-Only Cookie 方式返回，浏览器无法通过 JS 读取，仅随请求自动携带。
+
+2. 刷新令牌常用设置
+
+    - `cookie.setHttpOnly(true)`
+
+        - 只允许后端（服务端）访问此 Cookie，前端 JavaScript 代码无法读取或操作。
+        - 防止 XSS 攻击盗取 refresh token。即使黑客注入恶意 JS，也无法获取 cookie 内容
+
+    - `cookie.setPath("/auth/refresh")`
+        - 只有访问 /auth/refresh 路径及其子路径时，浏览器才自动携带这个 Cookie。
+        - 最小化作用范围，避免刷新令牌被其它接口误用。只有刷新接口能收到 refresh token。
+        - `cookie.setMaxAge(604800)`
+            - 设置 Cookie 的有效期，单位是秒。这里 604800 是 7 天，超过 7 天自动失效，降低长期暴露风险。
+            - 稍后介绍使用配置值替换
+        - `cookie.setSecure(true)`
+            - 仅 HTTPS 协议下才会携带此 Cookie，HTTP 不会带。
+            - 防止明文传输被中间人窃取，保证刷新令牌只在加密通道中传递。
+
+3. 续期流程
+
+    - 访问令牌到期后，前端用 refresh token（自动随 cookie 发送）请求新的 access token。
+    - 稍后介绍
+
+**代码示例**
+
+1. 创建访问令牌与创建刷新令牌方法
+
+    ```java
+    @Service
+    public class JwtService {
+        @Value("${spring.jwt.secret}")
+        private String secretKey;
+
+        public String generateAccessToken(User user) {
+            final long tokenExpiration = 300; // 5mAdd commentMore actions
+
+            return generateAccessToken(user, tokenExpiration);
+        }
+
+        public String generateRefreshToken(User user) {
+            final long tokenExpiration = 604800; // 7d
+
+            return generateAccessToken(user, tokenExpiration);
+        }
+
+        private String generateAccessToken(User user, long tokenExpiration) {
+            return Jwts.builder()
+                    .subject(user.getId().toString())
+                    .claim("email", user.getEmail())
+                    .claim("name", user.getName())
+                    .issuedAt(new Date())
+                    .expiration(new Date(System.currentTimeMillis() + 1000 * tokenExpiration))
+                    .signWith(Keys.hmacShaKeyFor(secretKey.getBytes()))
+                    .compact();
+        }
+
+    	// 省略
+    }
+    ```
+
+    - 描述：将之前的 `generateToken()` 方法 修改为 `generateAccessToken()`，抽取生成 token 方法，并创建生成刷新令牌方法，两种令牌创建方式相同
+
+2. 登陆控制器中返回两款令牌
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/auth")
+    public class AuthController {
+        private final AuthenticationManager authenticationManager;
+        private final JwtService jwtService;
+        private final UserRepository userRepository;
+        private final UserMapper userMapper;
+
+        @PostMapping("/login")
+        public ResponseEntity<JwtResponse> login(
+                @Valid @RequestBody LoginRequest request,
+                HttpServletResponse response) {
+            Authentication authenticate = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+
+            var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
+
+            var accessToken = jwtService.generateAccessToken(user);
+            var refreshToken = jwtService.generateRefreshToken(user);
+
+            var cookie = new Cookie("refreshToken", refreshToken);
+            cookie.setHttpOnly(true);
+            cookie.setPath("/auth/refresh");
+            cookie.setMaxAge(604800); // 7d(魔法数字问题稍后介绍解决方案)
+            cookie.setSecure(true);
+            response.addCookie(cookie);
+
+            return ResponseEntity.ok(new JwtResponse(accessToken));
+        }
+
+    	// 省略
+    }
+    ```
+
+    - 描述：刷新令牌通过 Cookie 安全下发，前端仅能获取访问令牌，前后端职责分离。
