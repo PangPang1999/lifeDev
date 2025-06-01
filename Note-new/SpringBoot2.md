@@ -4444,3 +4444,162 @@ Deployment
     ```
 
     - 描述：重复上一节的验证登陆，观察控制台输出，验证请求先被 Filter 拦截，再进入 Controller，最后输出响应状态。
+
+## 自定义 JWT 认证过滤器
+
+> 简述：通过在请求进入 Controller 之前执行 JWT 校验逻辑，实现无状态用户认证。过滤器自动解析请求中的令牌，校验合法性并注入用户信息至 Spring Security 上下文，构建统一的认证机制。
+
+**知识树**
+
+1. 核心职责
+
+    - 校验：拦截请求，检查 JWT 是否存在、格式正确、签名有效、未过期。
+    - 注入：认证通过后，将用户身份写入 SecurityContext，用于后续授权判断。
+
+2. 实现流程（过滤器内）
+
+    1. 提取 Authorization 请求头。
+    2. 验证格式、提取 Bearer token。
+    3. 调用 JwtService 验证 token 合法性。
+    4. 提取用户信息（如 email）并创建认证对象。
+    5. 设置认证元信息（IP 等）。
+    6. 写入 `SecurityContextHolder`。
+    7. 在 SecurityConfig 中设置过滤器优先级
+
+3. 请求放行与权限控制关系
+
+    - 无 token 或无效 token：放行为匿名用户，由 Spring Security 判断权限。
+    - 有效 token：视为已登录用户，可以访问受保护资源。
+
+4. 性能与扩展性设计
+
+    - 鉴权数据来源：避免每次从数据库加载用户，优先从 JWT 提取基本身份（如 email）。
+    - 权限系统预留：当前设置为 null，后续可基于角色集成权限控制（如 authorities 字段）。
+
+**代码示例**
+
+1. 自定义 JWT 过滤器
+
+    ```java
+    @AllArgsConstructor
+    @Component
+    // 继承 Spring 的 OncePerRequestFilter，确保每个请求只执行一次
+    public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+        // 注入自定义的 JWT 工具服务，用于 token 校验与解析
+        private final JwtService jwtService;
+
+        @Override
+        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+                throws ServletException, IOException {
+            // 1. 从请求头获取 Authorization 字段
+            var authHeader = request.getHeader("Authorization");
+
+            // 2. 如果请求头没有 Authorization，或格式不是 Bearer Token，则直接放行（代表匿名用户）
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            // 3. 截取 JWT 部分（去除 Bearer 前缀）
+            var token = authHeader.replace("Bearer ", "");
+
+            // 4. 校验 token 是否有效（签名、过期等）
+            if (!jwtService.validateToken(token)) {
+                // 如果无效，也直接放行，不设置用户身份
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            // 5. 从 token 中提取用户身份信息（如 email），创建认证对象
+            var authentication = new UsernamePasswordAuthenticationToken(
+                    jwtService.getEmailFromToken(token), // principal（用户名/用户标识）
+                    null,                                // credentials（此处无需密码）
+                    null                                 // authorities（权限列表，实际项目中可扩展）
+            );
+            // 6. 绑定请求的附加信息（如 IP、Session 等），样板代码
+            authentication.setDetails(
+                    new WebAuthenticationDetailsSource().buildDetails(request)
+            );
+
+            // 7. 将认证信息写入 Spring Security 上下文，标记本次请求为已认证用户
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            // 8. 放行请求，进入后续过滤器或控制器
+            filterChain.doFilter(request, response);
+        }
+    }
+    ```
+
+    - 描述：成功验证后将 email 写入认证对象，并设置到当前线程的安全上下文。
+
+2. JwtService 提取 email 方法（补充）
+
+    ```java
+    @Service
+    public class JwtService {
+        @Value("${spring.jwt.secret}")
+        private String secretKey;
+
+        public String generateToken(String email) {
+            final long tokenExpiration = 86400; // 1 day
+
+    	// 省略
+
+        private Claims getClaims(String token) {
+            return Jwts.parser()
+                    .verifyWith(Keys.hmacShaKeyFor(secretKey.getBytes()))
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        }
+
+        public String getEmailFromToken(String token) {
+            return getClaims(token).getSubject();
+        }
+    }
+    ```
+
+    - 描述：避免重复解析逻辑，提取为通用 `getClaims()` 方法，提高复用性。
+
+3. 注册过滤器到 Spring Security
+
+    ```java
+    @Configuration
+    @EnableWebSecurity
+    @AllArgsConstructor
+    public class SecurityConfig {
+
+        private final UserDetailsService userDetailsService;
+        private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    	// 省略
+
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+            http
+                    .sessionManagement(c ->
+                            c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .authorizeHttpRequests(c -> c
+                            .requestMatchers("/carts/**").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/users").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                            .anyRequest().authenticated()
+                    )
+                    .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+            return http.build();
+        }
+    }
+    ```
+
+    - 描述：将 JWT 认证过滤器插入到 UsernamePasswordAuthenticationFilter 之前，确保其最早生效。并将`/auth/validate`取消，加入保护以作验证
+
+4. 运行验证（Postman 测试流程）
+
+    1. 使用 /auth/login 登录，获取 JWT。
+    2. 设置 Header：`Authorization`: `Bearer {token}`
+    3. 访问受保护的接口，如： `POST /auth/validate`、`GET /users/{id}`
+    4. 观察返回结果与控制台输出，验证是否完成自动认证。
+    5. 描述：若未传 Authorization 头，则 403；传入合法 token 后，系统认为用户已登录。
