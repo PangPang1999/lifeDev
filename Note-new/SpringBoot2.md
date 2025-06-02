@@ -4951,3 +4951,126 @@ Deployment
     ```
 
     - 描述：刷新令牌通过 Cookie 安全下发，前端仅能获取访问令牌，前后端职责分离。
+
+## 配置外部化
+
+> 简述：将应用中的敏感参数与魔法数字（如 JWT 密钥、过期时长等）统一移入配置文件，通过配置类注入实现集中管理，提升安全性、可维护性与灵活性。
+
+**知识树**
+
+1. 配置参数声明方式
+
+    - 在 `application.yaml` 中集中声明密钥、过期时间等配置项，避免硬编码，便于环境切换与管理。
+
+2. 配置注入方式
+
+    - 单个参数：使用 `@Value` 注解直接注入配置项。
+    - 批量参数：使用 `@ConfigurationProperties` 注解将一组参数绑定到专用配置类，实现统一访问和复用。
+
+3. 配置类的使用
+
+    - 配置类负责持有密钥、过期时长等参数，并可封装通用方法（如生成 SecretKey），为服务层和控制层提供标准接口。
+
+**代码示例**
+
+1. 配置文件中声明参数
+
+    ```yaml
+    spring:
+
+      jwt:
+        secret: ${JWT_SECRET}
+        accessTokenExpiration: 300 # 5m
+        refreshTokenExpiration: 604800 # 7d
+    ```
+
+2. 配置类注入并绑定参数
+
+    ```java
+    @Configuration
+    @ConfigurationProperties(prefix = "spring.jwt")
+    @Data
+    public class JwtConfig {
+        private String secret;
+        private int accessTokenExpiration;
+        private int refreshTokenExpiration;
+
+        public SecretKey getSecretKey() {
+            return Keys.hmacShaKeyFor(secret.getBytes());
+        }
+    }
+    ```
+
+    - 描述：将所有 JWT 相关配置统一绑定到配置类，提供密钥生成工具方法。
+
+3. 控制器中替换魔法数字为配置参数
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/auth")
+    public class AuthController {
+        private final JwtConfig jwtConfig;
+
+    	 // 省略
+
+            cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration());
+
+    	// 省略
+    }
+    ```
+
+4. 服务层通过配置类统一参数
+
+    ```java
+    @Service
+    @AllArgsConstructor
+    public class JwtService {
+        private final JwtConfig jwtConfig;
+
+        public String generateAccessToken(User user) {
+
+            return generateAccessToken(user, jwtConfig.getRefreshTokenExpiration());
+        }
+
+        public String generateRefreshToken(User user) {
+
+            return generateAccessToken(user, jwtConfig.getAccessTokenExpiration());
+        }
+
+        private String generateAccessToken(User user, long tokenExpiration) {
+            return Jwts.builder()
+                    .subject(user.getId().toString())
+                    .claim("email", user.getEmail())
+                    .claim("name", user.getName())
+                    .issuedAt(new Date())
+                    .expiration(new Date(System.currentTimeMillis() + 1000 * tokenExpiration))
+                    .signWith(jwtConfig.getSecretKey())
+                    .compact();
+        }
+
+        public boolean validateToken(String token) {
+            try {
+                var claims = getClaims(token);
+
+                return claims.getExpiration().after(new Date());
+            } catch (JwtException ex) {
+                return false;
+            }
+        }
+
+        private Claims getClaims(String token) {
+            return Jwts.parser()
+                    .verifyWith(jwtConfig.getSecretKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        }
+
+        public Long getUserIdFromToken(String token) {
+            return Long.valueOf(getClaims(token).getSubject());
+        }
+    }
+    ```
+
+    - 描述：统一使用配置类参数，彻底消除硬编码和重复代码，方便未来维护与扩展。
