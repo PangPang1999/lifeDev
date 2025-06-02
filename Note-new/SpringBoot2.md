@@ -1725,6 +1725,8 @@ Deployment
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         ```
 
+7. 403 No Permission
+
 # Validating API Requests
 
 ## 数据校验基础
@@ -4954,7 +4956,7 @@ Deployment
 
 ## 配置外部化
 
-> 简述：将应用中的敏感参数与魔法数字（如 JWT 密钥、过期时长等）统一移入配置文件，通过配置类注入实现集中管理，提升安全性、可维护性与灵活性。
+> 简述：将应用中的敏感参数与魔法数字（如 JWT 密钥、过期时长等）统一移入配置文件，通过配置类注入实现集中管理，能提升安全性、可维护性与灵活性。
 
 **知识树**
 
@@ -5074,3 +5076,103 @@ Deployment
     ```
 
     - 描述：统一使用配置类参数，彻底消除硬编码和重复代码，方便未来维护与扩展。
+
+## Refresh Token 实现
+
+> 简述：通过独立的刷新令牌接口，可以实现基于 HTTP-Only Cookie 的安全访问令牌续期，提升会话安全性与用户体验，并对未认证请求返回标准化 401 状态。
+
+**知识树**
+
+1. 刷新令牌（Refresh Token）接口实现
+
+    - 流程：
+        - 提供 `/auth/refresh` POST 接口，允许客户端通过 HTTP-Only Cookie 携带的 Refresh Token 换取新的 Access Token。
+    - 具体步骤：
+        - 提取 Cookie 中的 `refreshToken`。
+        - 校验 Refresh Token 合法性（签名、有效期）。
+        - 提取 Token 内的用户 ID。
+        - 查询数据库确认用户存在。
+        - 生成新的短效访问令牌并返回。
+
+2. 安全与异常处理
+
+    - 若 Refresh Token 无效或用户不存在，返回 401 Unauthorized，禁止未认证续期。
+    - Spring Security 默认 403 Forbidden，需配置全局 EntryPoint 强制响应 401。
+
+3. 开放接口配置
+
+    - 显式允许 `/auth/refresh` 匿名访问，否则会被全局认证保护拦截。
+
+**代码示例**
+
+1. 刷新令牌接口实现
+
+    ```java
+
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/auth")
+    public class AuthController {
+
+    	// 省略
+
+        @PostMapping("/refresh")
+        public ResponseEntity<JwtResponse> refresh(
+                @CookieValue(value = "refreshToken") String refreshToken
+        ) {
+    		// 校验 Refresh Token
+            if (!jwtService.validateToken(refreshToken)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+    		// 提取用户 ID 并查找用户
+            var userId = jwtService.getUserIdFromToken(refreshToken);
+            var user = userRepository.findById(userId).orElseThrow();
+
+
+            // 生成新的访问令牌
+            var accessToken = jwtService.generateAccessToken(user);
+            return ResponseEntity.ok(new JwtResponse(accessToken));
+        }
+
+    	// 省略
+
+    }
+    ```
+
+    - 描述：刷新令牌接口返回新的访问令牌。此外删除原有的 validate 冗余接口（已由过滤实现）
+
+2. 放行请求与异常处理
+
+    ```java
+    @Configuration
+    @EnableWebSecurity
+    @AllArgsConstructor
+    public class SecurityConfig {
+
+    	// 省略
+
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+            http
+                    .sessionManagement(c ->
+                            c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .authorizeHttpRequests(c -> c
+                            .requestMatchers("/carts/**").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/users").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll()
+                            .anyRequest().authenticated()
+                    )
+                    .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                    .exceptionHandling(c ->
+                            c.authenticationEntryPoint(
+                                    new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
+
+            return http.build();
+        }
+    }
+
+    ```
+
+    - 描述：放行`/auth/login`请求，并将异常处理设置为返回 UNAUTHORIZED
