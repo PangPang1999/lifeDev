@@ -40,19 +40,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         var token = authHeader.replace("Bearer ", "");
 
         // 4. 校验 token 是否有效（签名、过期等）
-        if (!jwtService.validateToken(token)) {
+        var jwt = jwtService.parseToken(token);
+        if (jwt == null || jwt.isExpired()) {
             // 如果无效，也直接放行，不设置用户身份
             filterChain.doFilter(request, response);
             return;
         }
 
         // 5. 从 token 中提取用户身份信息（如 email），创建认证对象
-        var role = jwtService.getRoleFromToken(token);
-        var userId = jwtService.getUserIdFromToken(token);
         var authentication = new UsernamePasswordAuthenticationToken(
-                userId,
+                jwt.getUserId(),
                 null,
-                List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                List.of(new SimpleGrantedAuthority("ROLE_" + jwt.getRole()))
         );
         // 6. 绑定请求的附加信息（如 IP、Session 等），样板代码
         authentication.setDetails(

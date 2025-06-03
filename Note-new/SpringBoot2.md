@@ -5038,12 +5038,12 @@ Deployment
 
         public String generateAccessToken(User user) {
 
-            return generateAccessToken(user, jwtConfig.getRefreshTokenExpiration());
+            return generateAccessToken(user, jwtConfig.getAccessTokenExpiration());
         }
 
         public String generateRefreshToken(User user) {
 
-            return generateAccessToken(user, jwtConfig.getAccessTokenExpiration());
+            return generateAccessToken(user, jwtConfig.getRefreshTokenExpiration());
         }
 
         private String generateAccessToken(User user, long tokenExpiration) {
@@ -5423,3 +5423,198 @@ Deployment
     3. 访问只有 ADMIN 可以访问的接口，如： `GET /admin/hello`，显示 403 无权限
     4. 数据库修改当前之前用户的权限为 ADMIN，重新登录获取 JWT
     5. 设置新访问窗口为新 token，访问只有 ADMIN 可以访问的接口，访问成功
+
+## Ex: JWT 服务层简化
+
+> **要求**：将 JWT 相关的所有 token 解析和属性提取逻辑，从“工具方法堆叠”重构为高内聚的领域对象。以信息专家原则（Information Expert Principle）为指导，将 token 行为与状态封装到专属类中，提升代码的可维护性和表达力。
+
+> **解法**：
+
+1. 新建 JWT 领域类
+
+    - 定义不可变属性：`Claims claims` 和 `SecretKey key`
+    - 定义构造函数
+    - 封装所有与 token 相关的方法，如 `isExpired()`、`getUserId()`、`getRole()`、`toString()`。
+
+2. 精简 JWTService
+
+    - JWTService 只负责 token 的生成和解析。
+    - 生成方法返回 JWT 对象，而不是 String。
+    - 解析方法 `parseToken()` 返回 JWT 对象（或 null，表示无效）。
+
+3. 依赖方重构
+
+    - 过滤器、控制器等所有依赖点均通过 JWT 对象访问属性和校验状态。
+    - 严格遵循单一职责，职责清晰。
+
+**代码**
+
+1. JWT 领域对象
+
+    ```java
+    public class Jwt {
+        private final Claims claims;
+        private final SecretKey secretKey;
+
+        public Jwt(Claims claims, SecretKey secretKey) {
+            this.claims = claims;
+            this.secretKey = secretKey;
+        }
+
+        public boolean isExpired() {
+            return claims.getExpiration().before(new Date());
+        }
+
+        public Long getUserId() {
+            return Long.valueOf(claims.getSubject());
+        }
+
+        public Role getRole() {
+            return Role.valueOf(claims.get("role", String.class));
+        }
+
+        public String toString() {
+            return Jwts.builder().claims(claims).signWith(secretKey).compact();
+        }
+    }
+    ```
+
+    - 描述：封装方法，并添加 toString 方法将对象转为 token
+
+2. JwtService 简化
+
+    ```java
+    @Service
+    @AllArgsConstructor
+    public class JwtService {
+        private final JwtConfig jwtConfig;
+
+        public Jwt generateAccessToken(User user) {
+
+            return generateAccessToken(user, jwtConfig.getAccessTokenExpiration());
+        }
+
+        public Jwt generateRefreshToken(User user) {
+
+            return generateAccessToken(user, jwtConfig.getRefreshTokenExpiration());
+        }
+
+        private Jwt generateAccessToken(User user, long tokenExpiration) {
+            var claims = Jwts.claims()
+                    .subject(user.getId().toString())
+                    .add("email", user.getEmail())
+                    .add("name", user.getName())
+                    .add("role", user.getRole())
+                    .issuedAt(new Date())
+                    .expiration(new Date(System.currentTimeMillis() + 1000 * tokenExpiration))
+                    .build();
+
+            return new Jwt(claims, jwtConfig.getSecretKey());
+        }
+
+        public Jwt parseToken(String token) {
+            try {
+                var claims = getClaims(token);
+
+                return new Jwt(claims, jwtConfig.getSecretKey());
+            } catch (JwtException e) {
+                return null;
+            }
+        }
+
+        private Claims getClaims(String token) {
+            return Jwts.parser()
+                    .verifyWith(jwtConfig.getSecretKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        }
+    }
+    ```
+
+3. AuthController 基于 Jwt 重构
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/auth")
+    public class AuthController {
+    	// 省略
+
+        @PostMapping("/login")
+        public ResponseEntity<JwtResponse> login(
+                @Valid @RequestBody LoginRequest request,
+                HttpServletResponse response) {
+            Authentication authenticate = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+
+            var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
+
+            var accessToken = jwtService.generateAccessToken(user);
+            var refreshToken = jwtService.generateRefreshToken(user);
+
+            var cookie = new Cookie("refreshToken", refreshToken.toString());
+            cookie.setHttpOnly(true);
+            cookie.setPath("/auth/refresh");
+
+            cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration());
+
+            cookie.setSecure(true);
+            response.addCookie(cookie);
+
+            return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
+        }
+
+        @PostMapping("/refresh")
+        public ResponseEntity<JwtResponse> refresh(
+                @CookieValue(value = "refreshToken") String refreshToken
+        ) {
+            // 校验 Refresh Token
+            var jwt = jwtService.parseToken(refreshToken);
+            if (jwt == null || jwt.isExpired()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            // 提取用户 ID 并查找用户
+            var user = userRepository.findById(jwt.getUserId()).orElseThrow();
+
+
+            // 生成新的访问令牌
+            var accessToken = jwtService.generateAccessToken(user);
+            return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
+        }
+
+    	// 省略
+    }
+    ```
+
+4. JwtAuthenticationFilter 基于 Jwt 重构
+
+    ```java
+    @AllArgsConstructor
+    @Component
+    // 继承 Spring 的 OncePerRequestFilter，确保每个请求只执行一次
+    public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    	// 省略
+
+            // 4. 校验 token 是否有效（签名、过期等）
+            var jwt = jwtService.parseToken(token);
+            if (jwt == null || jwt.isExpired()) {
+                // 如果无效，也直接放行，不设置用户身份
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            // 5. 从 token 中提取用户身份信息（如 email），创建认证对象
+            var authentication = new UsernamePasswordAuthenticationToken(
+                    jwt.getUserId(),
+                    null,
+                    List.of(new SimpleGrantedAuthority("ROLE_" + jwt.getRole()))
+            );
+
+    	// 省略
+    }
+    ```
