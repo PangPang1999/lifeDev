@@ -3641,7 +3641,7 @@ Deployment
     }
     ```
 
-    - 描述：删除之前创建的用户，发送 POST 请求访问 http://localhost:8080/users ，访问数据库，查看 hash 加密的密码，如`$2a$10$qOOmP77r3xM4WY2HaJHGq`
+    - 描述：删除之前创建的用户，发送 POST 请求访问 http://localhost:8080/users 注册用户，访问数据库，查看 hash 加密的密码，如`$2a$10$qOOmP77r3xM4WY2HaJHGq`
 
 ## Ex: 用户登录接口实现
 
@@ -4601,7 +4601,7 @@ Deployment
 4. 运行验证（Postman 测试流程）
 
     1. 使用 `POST /auth/login` 登录，获取 JWT。
-    2. 设置 Header：`Authorization`: `Bearer {token}`
+    2. 新建访问，设置 Header：`Authorization`: `Bearer {token}`
     3. 访问受保护的接口，如： `POST /auth/validate`、`GET /users/{id}`
     4. 观察返回结果与控制台输出，验证是否完成自动认证。
     5. 描述：若未传 Authorization 头，则 403；传入合法 token 后，系统认为用户已登录。
@@ -4672,7 +4672,7 @@ Deployment
     ```
 
     1. 登录获取 JWT， `POST /auth/login` → 获取 token
-    2. 设置 Header：`Authorization`: `Bearer {token}`
+    2. 新建访问，设置 Header：`Authorization`: `Bearer {token}`
     3. 访问受保护的接口，如： `GET /auth/me`
     4. 返回示例如上
     5. 若不带 Authorization 头或 token 非法，Spring Security 自动拦截，返回 403。
@@ -4825,7 +4825,7 @@ Deployment
     ```
 
     1. 登录获取 JWT， `POST /auth/login` → 获取 token（token 变长了）
-    2. 设置 Header：`Authorization`: `Bearer {token}`
+    2. 新建访问，设置 Header：`Authorization`: `Bearer {token}`
     3. 访问受保护的接口，如： `GET /auth/me`
     4. 返回示例如上
 
@@ -4852,19 +4852,17 @@ Deployment
 2. 刷新令牌常用设置
 
     - `cookie.setHttpOnly(true)`
-
         - 只允许后端（服务端）访问此 Cookie，前端 JavaScript 代码无法读取或操作。
         - 防止 XSS 攻击盗取 refresh token。即使黑客注入恶意 JS，也无法获取 cookie 内容
-
     - `cookie.setPath("/auth/refresh")`
         - 只有访问 /auth/refresh 路径及其子路径时，浏览器才自动携带这个 Cookie。
         - 最小化作用范围，避免刷新令牌被其它接口误用。只有刷新接口能收到 refresh token。
-        - `cookie.setMaxAge(604800)`
-            - 设置 Cookie 的有效期，单位是秒。这里 604800 是 7 天，超过 7 天自动失效，降低长期暴露风险。
-            - 稍后介绍使用配置值替换
-        - `cookie.setSecure(true)`
-            - 仅 HTTPS 协议下才会携带此 Cookie，HTTP 不会带。
-            - 防止明文传输被中间人窃取，保证刷新令牌只在加密通道中传递。
+    - `cookie.setMaxAge(604800)`
+        - 设置 Cookie 的有效期，单位是秒。这里 604800 是 7 天，超过 7 天自动失效，降低长期暴露风险。
+        - 稍后介绍使用配置值替换
+    - `cookie.setSecure(true)`
+        - 仅 HTTPS 协议下才会携带此 Cookie，HTTP 不会带。
+        - 防止明文传输被中间人窃取，保证刷新令牌只在加密通道中传递。
 
 3. 续期流程
 
@@ -4952,7 +4950,15 @@ Deployment
     }
     ```
 
-    - 描述：刷新令牌通过 Cookie 安全下发，前端仅能获取访问令牌，前后端职责分离。
+    - 描述：刷新令牌通过 Cookie 安全下发，前端仅能获取访问令牌，前后端职责分离。此外删除原有的 validate 冗余接口（已由过滤实现）
+
+3. 运行验证（Postman 测试流程）
+
+    1. 登录获取 JWT， `POST /auth/login` → 获取 token
+        1. 此处 Body 处为临时令牌 token，cookie 处为长期令牌 token，若 cookie 处因为未知原因未显示，查看 `Header` 中 `Set-Cookie`参数
+    2. 新建访问，设置 Header：`Authorization`: `Bearer {token}`
+    3. 访问受保护的接口，如： `GET /auth/me`
+    4. 在过期时间结束后，再次访问，返回 401（未授权）
 
 ## 配置外部化
 
@@ -5139,7 +5145,7 @@ Deployment
     }
     ```
 
-    - 描述：刷新令牌接口返回新的访问令牌。此外删除原有的 validate 冗余接口（已由过滤实现）
+    - 描述：刷新令牌接口返回新的访问令牌。
 
 2. 放行请求与异常处理
 
@@ -5176,3 +5182,244 @@ Deployment
     ```
 
     - 描述：放行`/auth/login`请求，并将异常处理设置为返回 UNAUTHORIZED
+
+3. 运行验证（Postman 测试流程）
+
+    1. 登录获取 JWT， `POST /auth/login` → 获取 token
+        1. 此处 Body 处为临时令牌 token，cookie 处为长期令牌 token，若 cookie 处因为未知原因未显示，查看 `Header` 中 `Set-Cookie`参数
+    2. 新建访问，设置 Header：`Authorization`: `Bearer {token}`
+    3. 访问受保护的接口，如： `GET /auth/me`
+    4. 在过期时间结束后，再次访问，返回 401（未授权）
+    5. 新建访问，`POST /auth/refresh`，获取新访问令牌
+        1. 发送请求时 postman 会自动携带登陆时获取的长期令牌
+        2. 若未知原因没有获取，查看登陆请求页面的蓝色 cookie 标识，拷贝信息到新访问窗口
+
+## 基于角色的访问控制
+
+> 简述：RBAC 通过角色来集中控制用户访问权限。每个用户被赋予特定角色，系统基于角色决定接口访问权限，结构清晰，便于管理。
+
+**知识树**
+
+1. 基于角色的访问控制（RBAC，Role-Based Access Control）
+
+    - 核心思想：用户被赋予一个或多个角色（如 USER、ADMIN），系统根据角色授予访问权限。
+    - 适用场景：如普通用户只能操作自己的数据，管理员拥有更高权限。
+    - 优点：实现简单、易维护、扩展性强。
+    - 应用广泛：绝大多数企业管理系统、后台管理、SaaS 平台接口均采用 RBAC。
+
+2. 给予角色实现
+
+    - 数据库表结构调整
+        - 在 `users` 表新增 `role` 字段，存储用户角色。使用数据库迁移工具（如 Flyway）添加该字段，并设置默认值为 `USER`。
+    - 角色枚举定义
+        - 创建 `Role` 枚举类型（如 `USER`、`ADMIN`），用于类型安全地管理权限。
+    - 用户实体拓展
+        - 在 `User` 实体类中添加 `private Role role;` 字段，并通过 `@Enumerated(EnumType.STRING)` 注解确保以字符串形式持久化角色。
+    - 注册逻辑完善
+        - 在用户注册流程中显式设置初始角色（如 `user.setRole(Role.USER)`），避免隐式赋值导致的逻辑错误。
+    - JWT 令牌扩展
+        - 生成 JWT 时，将用户角色作为 claim 写入令牌 payload，实现无状态权限校验，减少后续数据库查询。
+
+3. 角色实现的检验
+
+    - 新增 `/admin/hello` 接口，设置仅允许 `ADMIN` 角色访问，并处理权限不足时的异常响应。
+    - 过滤器中校验 JWT 令牌中的角色信息，确保接口安全性。
+
+**代码示例**
+
+1. Flyway 数据库迁移文件`V3__add_role_to_users.sql`
+
+    ```sql
+    alter table users
+    add role varchar(20) default 'USER' not null;
+    ```
+
+2. Role 枚举定义
+
+    ```java
+    public enum Role {
+        USER,
+        ADMIN
+    }
+    ```
+
+3. User 实体中角色字段
+
+    ```java
+    @Setter
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    @Entity
+    @Table(name = "users")
+    public class User {
+    	// 省略
+
+        @Column(name = "role")
+        @Enumerated(EnumType.STRING)
+        private Role role;
+
+        // 省略
+    }
+    ```
+
+4. 用户控制器设置注册时分配角色
+
+    ```java
+    @RestController
+    @AllArgsConstructor
+    @RequestMapping("/users")
+    public class UserController {
+    	// 省略
+
+        @PostMapping
+        public ResponseEntity<?> registerUser(
+                @Valid @RequestBody RegisterUserRequest request,
+                UriComponentsBuilder uriBuilder
+        ) {
+
+            if (userRepository.existsByEmail(request.getEmail())) {
+                return ResponseEntity.badRequest().body(
+                        Map.of("email", "Email is already registered.")
+                );
+            }
+
+            User user = userMapper.toEntity(request);
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            userRepository.save(user);
+            user.setRole(Role.USER); // 明确赋予初始角色
+
+            var userDto = userMapper.toDto(user);
+            var uri = uriBuilder.path("/users/{id}").buildAndExpand(userDto.getId()).toUri();
+            return ResponseEntity.created(uri).body(userDto);
+        }
+
+    	// 省略
+    }
+    ```
+
+5. 令牌加入角色信息
+
+    ```java
+    @Service
+    @AllArgsConstructor
+    public class JwtService {
+    	// 省略
+
+        private String generateAccessToken(User user, long tokenExpiration) {
+            return Jwts.builder()
+                    .subject(user.getId().toString())
+                    .claim("email", user.getEmail())
+                    .claim("name", user.getName())
+                    .claim("role", user.getRole())//
+                    .issuedAt(new Date())
+                    .expiration(new Date(System.currentTimeMillis() + 1000 * tokenExpiration))
+                    .signWith(jwtConfig.getSecretKey())
+                    .compact();
+        }
+
+    	// 省略
+    }
+    ```
+
+    - 说明：用户的角色已写入 JWT，前后端均可用来进行权限判断，无需额外数据库查询。
+
+6. 给予角色实现运行验证（Postman 测试流程）
+
+    1. 登录获取 JWT， `POST /auth/login` → 获取 token
+    2. 复制 token，访问https://jwt.io/ 解析，可以看到 token 中包含 role 信息
+
+7. 新增`/admin/hello`接口
+
+    ```java
+    @RestController
+    @RequestMapping("/admin")
+    public class AdminController {
+        @GetMapping("/hello")
+        public String sayHello() {
+            return "Hello Admin!";
+        }
+    }
+    ```
+
+8. 允许 ADMIN 用户访问，并处理异常响应码
+
+    ```java
+    @Configuration
+    @EnableWebSecurity
+    @AllArgsConstructor
+    public class SecurityConfig {
+
+    	// 省略
+
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+            http
+                    .sessionManagement(c ->
+                            c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .authorizeHttpRequests(c -> c
+                            .requestMatchers("/carts/**").permitAll()
+                            .requestMatchers("/admin/**").hasRole(Role.ADMIN.name())
+                            .requestMatchers(HttpMethod.POST, "/users").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll()
+                            .anyRequest().authenticated()
+                    )
+                    .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                    .exceptionHandling(c -> {
+                        c.authenticationEntryPoint(
+                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
+                        c.accessDeniedHandler(((request, response, accessDeniedException) ->
+                                response.setStatus(HttpStatus.FORBIDDEN.value())));
+                    });
+            return http.build();
+        }
+    }
+    ```
+
+9. 过滤器检验角色信息
+
+    ```java
+    @AllArgsConstructor
+    @Component
+    public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    	// 省略
+
+            // 5. 从 token 中提取用户身份信息（如 email），创建认证对象
+            var role = jwtService.getRoleFromToken(token);
+            var userId = jwtService.getUserIdFromToken(token);
+            var authentication = new UsernamePasswordAuthenticationToken(
+                    userId,
+                    null,
+                    List.of(new SimpleGrantedAuthority("ROLE_" + role))
+            );
+
+    	// 省略
+        }
+    }
+    ```
+
+10. 提取 token 中角色方法
+
+    ```java
+    @Service
+    @AllArgsConstructor
+    public class JwtService {
+    	// 省略
+
+        public Role getRoleFromToken(String token) {
+            return Role.valueOf(getClaims(token).get("role", String.class));
+        }
+    }
+    ```
+
+11. 给予角色实现运行验证（Postman 测试流程）
+
+    1. 登录获取 JWT， `POST /auth/login` → 获取 token
+    2. 新建访问，设置 Header：`Authorization`: `Bearer {token}`
+    3. 访问只有 ADMIN 可以访问的接口，如： `GET /admin/hello`，显示 403 无权限
+    4. 数据库修改当前之前用户的权限为 ADMIN，重新登录获取 JWT
+    5. 设置新访问窗口为新 token，访问只有 ADMIN 可以访问的接口，访问成功

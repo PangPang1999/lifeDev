@@ -3,5 +3,6 @@
   "livePreview": false,
   "showLineNumber": false,
   "autoConvertHtml": false,
-  "promptDelete": false
+  "promptDelete": false,
+  "readableLineLength": true
 }

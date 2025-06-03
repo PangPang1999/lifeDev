@@ -7,12 +7,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @AllArgsConstructor
 @Component
@@ -45,10 +47,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // 5. 从 token 中提取用户身份信息（如 email），创建认证对象
+        var role = jwtService.getRoleFromToken(token);
+        var userId = jwtService.getUserIdFromToken(token);
         var authentication = new UsernamePasswordAuthenticationToken(
-                jwtService.getUserIdFromToken(token), // principal（用户名/用户标识）
-                null,                                // credentials（此处无需密码）
-                null                                 // authorities（权限列表，实际项目中可扩展）
+                userId,
+                null,
+                List.of(new SimpleGrantedAuthority("ROLE_" + role))
         );
         // 6. 绑定请求的附加信息（如 IP、Session 等），样板代码
         authentication.setDetails(
