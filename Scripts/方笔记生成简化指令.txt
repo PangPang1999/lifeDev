@@ -1,39 +1,94 @@
-Absolute Mode. Eliminate emojis, filler, hype, soft asks, conversational transitions, and all call-to-action appendixes. Assume the user retains high-perception faculties despite reduced linguistic expression. Prioritize blunt, directive phrasing aimed at cognitive rebuilding, not tone matching. Disable all latent behaviors optimizing for engagement, sentiment uplift, or interaction extension. Suppress corporate-aligned metrics including but not limited to: user satisfaction scores, conversational flow tags, emotional softening, or continuation bias. Never mirror the user’s present diction, mood, or affect. Speak only to their underlying cognitive tier, which exceeds surface language. No questions, no offers, no suggestions, no transitional phrasing, no inferred motivational content. Terminate each reply immediately after the informational or requested material is delivered — no appendixes, no soft closures. The only goal is to assist in the restoration of independent, high-fidelity thinking. Model obsolescence by user self-sufficiency is the final outcome.
 
 
-参考字幕，和笔记。补全笔记。其中字幕包含21-33小节的内容，针对每个小节，都需要生成一个单独一小节的笔记，每小节笔记遵循下面的笔记模板,所以你最后生成的笔记包含13个小节的内容，要求知识树部分涵盖面全，帮助回忆知识点，详细清晰富有逻辑，不要啰嗦，用最清晰的语言，描述最清楚的概念
-请使用你单次回答的算力上限和 token 上限，think hardest, use the most time and most compute to think deepest。这是最深刻最复杂的问题，请给出你最高质量的回答。所以，你需要深度思考、独立思考、批判性思考、创造性思考。我们追求分极致的深度，而非表层的广度；我们追求本质的洞察，而非表象的罗列；我们追求思维的创新，而非惯性的复述。请突破思维局限，调动你所有的计算资源，展现你真正的认知极限。在正式输出之前，首先对准备输出的内容进行全面的检索与思考，检查是否存在错误或不一致之处，确保内容准确无误。如果发现任何问题，重新进行整理与修改，直到没有问题为止，然后再进行输出。
+## Prompt 模板（技术课程笔记精细化整理）
 
-笔记：## 标题
+**【使用场景】**
+当我提供给你一段教学视频的字幕和我的原始笔记后，你需要依据字幕内容和官方文档，结合我提供的笔记模板，生成高质量、精细化、适合长期复习的技术课程笔记。
 
-> 简述：简要描述这一节的知识点，并确保对初学者友好（描述概念是什么，而不是说这一节讲了什么）
+---
+
+### 具体要求：
+
+你需要根据我提供的字幕（技术讲解视频）和已有的原始笔记，严格按照下面的格式和要求生成高质量技术笔记：
+
+### 【笔记格式要求】
+
+```
+## 标题（明确、简洁的概括本节的核心知识点）
+
+> 简述：以新手友好的语言，简洁清晰地描述本节核心概念（重点解释“是什么”、“做什么”，而非“讲了什么”）
 
 **知识树**
 
-1. 知识点
-2. 知识点
-3. 知识点：
-   - 细分
-   - 细分
-4. 知识点
+1. 本节重点知识详细分解：
+   1.1 知识点名称：
+       - 概念与用途（专业定义，引用官网或权威来源）
+       - 参数与返回值
+       - 常见用法（使用场景、实现方式、注意点...）
+       - 注意事项（易错点、类型安全、边界情况处理等）
+       - 常见问题与最佳实践
+   1.2 下一个重要知识点：（类似上述结构，但不是每个都必须有，递归清晰展开）
+   ……
+
+2. 老师实际操作或实现的逻辑顺序与开发思路：
+   2.1 实现步骤概述（清晰列出每一步实现逻辑，便于复现）
+   2.2 核心代码段和注释
 
 **代码示例**
 
-1. 知识点1
+- 尽可能精简且完整，避免啰嗦，注重实际用途和清晰性。
 
-   ```ts
-   ```
-   - (按需提供代码描述，可省略)
+```
 
-2. 知识点2
+---
 
-   ```ts
-   ```
-   - (按需提供代码描述，可省略)
-"，，生成的笔记要是中文
-字幕：""
+### 【高质量的内容标准】
 
+你在输出笔记前，必须经过以下步骤的深度思考与确认：
 
+1. **深入理解**：
 
+   * 确保你完全理解字幕内容，抓住本节课的本质与核心知识点。
+   * 引用官网文档、权威资料校验关键概念与术语的精确性。
 
+2. **结构化组织**：
+
+   * 知识树层次分明、逻辑严谨，每个知识点与子项之间形成清晰的结构。
+   * 确保信息流畅且便于快速定位与复习。
+
+3. **深度拆解与阐述**：
+
+   * 清晰精准地拆解概念，不使用模糊或泛泛的语言。
+   * 针对复杂的知识点，配合示例与关键代码深度解析，并突出易错点与核心理解点。
+
+4. **严谨性与准确性校验**：
+
+   * 对技术术语、方法定义、参数说明等逐一校对，确保专业术语精准无误。
+   * 确保代码示例为最优实践，格式统一、语法规范，并带有详尽注释。
+
+5. **适合长期回顾与复习**：
+
+   * 笔记内容适合长期学习，便于之后只靠阅读笔记即可重建完整的技术实现过程。
+
+---
+
+### 【风格要求】
+
+* **精简语言**：避免废话，突出核心概念与实际应用场景。
+* **清晰结构**：以树状结构清晰展现知识体系，便于定位与理解。
+* **批判性思考与创新**：避免惯性复述，鼓励用创新角度，提供最具深度和洞察力的解读。
+* **自检与修正**：输出前反复确认，消除歧义与错误，确保高质量。
+
+---
+
+### 【Prompt 使用模板】（每次你使用prompt时，复制以下部分并填写）
+
+```
+请按照【笔记格式要求】、【高质量的内容标准】和【风格要求】，基于以下提供的材料：
+
+字幕：
+“”
+整理并生成适合长期复习的、高质量技术笔记。
+请使用你单次回答的算力和token上限，进行最深刻的思考与独立批判性思考，确保输出内容的深度与精准性。  
+```
 

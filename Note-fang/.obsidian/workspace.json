@@ -6,7 +6,6 @@
       {
         "id": "3db398ba029ed299",
         "type": "tabs",
-        "dimension": 52.63157894736842,
         "children": [
           {
             "id": "d2644bb1d8a4b71e",
@@ -14,23 +13,22 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "react2.md",
+                "file": "未命名 1.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "react2"
+              "title": "未命名 1"
             }
           }
         ]
       },
       {
-        "id": "92de9534af4f57ed",
+        "id": "4128ba2a57e6017b",
         "type": "tabs",
-        "dimension": 47.368421052631575,
         "children": [
           {
-            "id": "741d0fa9088e1bb8",
+            "id": "1e3d3a8e1bfc0b58",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -190,12 +188,12 @@
       "command-palette:打开命令面板": false
     }
   },
-  "active": "d2644bb1d8a4b71e",
+  "active": "1e3d3a8e1bfc0b58",
   "lastOpenFiles": [
-    "react旧.md",
+    "未命名 1.md",
     "react2.md",
     "react1.md",
-    "未命名 1.md",
+    "react旧.md",
     "game-hub-detail.md",
     "game-hub.md",
     "学习教程.md",
