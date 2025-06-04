@@ -5914,6 +5914,8 @@ Deployment
     - 当前用户信息操作抽取为 AuthService 公共方法。
     - CartService、OrderRepository、UserRepository 分工清晰，解耦业务层。
 
+4. 异常提示稍后处理
+
 **代码示例**
 
 1. CheckoutRequest 定义
@@ -6032,3 +6034,126 @@ Deployment
     ```
 
     - 描述：设置 `cascade = CascadeType.PERSIST`，保证保存订单时，相关订单项一同持久化。
+
+7. Postman 测试流程
+
+    1. 登录获取 JWT，`POST /auth/login`
+
+        ```json
+        {
+        	"email": "pang@example.com",
+        	"password": "123456"
+        }
+        ```
+
+        - 获取 token
+
+    2. 新建购物车，`POST /carts`，设置 Header：`Authorization`: `Bearer {token}`
+        - 拿到购物车 id
+    3. 购物车添加商品，`POST /carts/购物车 UUID/items
+
+        ```json
+        {
+        	"productId": "3"
+        }
+        ```
+
+    4. 结算购物车，`POST /checkout`
+    5. 查看数据库数据状态
+
+## 使用 Postman 组织 API 测试
+
+> 简述：Postman Collections 通过分组、变量和脚本自动化请求，提升接口测试效率，支持流程化用例复现、数据传递与大规模自动化测试。
+
+**知识树**
+
+1. 分组
+
+    - 使用 Collection 功能对接口请求进行分组保存，便于管理和复用。
+    - 需要按业务模块（如 Auth、Cart、Order）细分为不同文件夹，保持逻辑清晰。
+
+2. 变量自动注入
+
+    - 通过脚本自动提取响应数据并设置变量（如登录后自动保存 token）。
+    - 使用 Collection Variables 统一维护 accessToken、cartId 等关键参数，实现请求间数据共享。
+    - 使用`{{变量}}`在 url、请求体，请求头等各个位置替魔法字符串
+
+3. 脚本与参数化
+
+    - 支持用数据文件（JSON/CSV）实现批量参数化测试，如批量添加商品到购物车。
+    - 入口：点击 Collections 定义的集合名称，点金 RUN 按钮进入
+
+4. 批量执行与流程串联
+
+    - 利用 Collection Runner 或 Flow 等高级功能，实现接口的串联批量测试和自动化用例执行。
+
+**代码示例**
+
+1. 登录响应后自动保存 token 到变量
+
+    ```javascript
+    var json = pm.response.json();
+    // console.log(json);
+    pm.collectionVariables.set("accessToken", json.token);
+    // console.log(pm.collectionVariables.get("accessToken"))
+    ```
+
+    - 描述：在 `/auth/login` 登陆请求，`Script`栏，`Post-response`处，写入代码，将 `token`存储到`accessToken`变量中
+
+2. 创建购物车响应后保存 cartId
+
+    ```javascript
+    var json = pm.response.json();
+    // console.log(json);
+    pm.collectionVariables.set("cartId", json.id);
+    ```
+
+    - 描述：在 `/carts` 创建购物车请求，`Script`栏，`Post-response`处，写入代码，将 购物车的 UUID 存储到 `cartId`变量中
+
+3. 添加商品到购物车，自动引用 cartId
+
+    ```
+    http://localhost:8080/carts/{{cartId}}/items
+    ```
+
+    - 描述：通过`{{}}`使用变量
+
+4. 结账接口，自动使用 accessToken，cartId
+
+    ```json
+    // Header设置
+    // Authorization Bearer {{accessToken}}
+
+    {
+    	"cartId": "{{cartId}}"
+    }
+    ```
+
+    - 描述：通过`{{}}`使用变量，json 中输入时不会自动补全需要手动输入
+
+5. 变量自动注入测试
+
+    ```json
+    // src/test/data/products.json
+    [
+    	{ "productId": 1 },
+    	{ "productId": 2 },
+    	{ "productId": 2 },
+    	{ "productId": 3 }
+    ]
+
+    // http://localhost:8080/carts/{{cartId}}/items 下 Body
+    {
+        "productId":"{{productId}}"
+    }
+    ```
+
+    - 描述：创建`src/test/data/products.json`，设置` "productId":"{{productId}}"`。点击集合选择 Run 按钮，勾选需要使用的 API，选择循环次数和文件，使用 `Use locally` 即可，通过 Collection Runner 批量添加多商品，实现自动化用例回放。
+
+6. 检索购物车内容并验证结果
+
+    ```
+    // GET /carts/{{cartId}}
+    ```
+
+    - 可配合变量自动串联请求，便于断言购物车商品数量。
