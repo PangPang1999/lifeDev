@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "7793b544a6fe13a7",
+        "id": "1b6d9f94c2356144",
         "type": "tabs",
         "children": [
           {
-            "id": "8e6010db2a461c25",
+            "id": "0fd4cf7c29b72815",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -22,21 +22,7 @@
             }
           },
           {
-            "id": "aaaf46b017517dbe",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Java.md",
-                "mode": "source",
-                "source": true
-              },
-              "icon": "lucide-file",
-              "title": "Java"
-            }
-          },
-          {
-            "id": "dd7678f10cd9e39e",
+            "id": "36730211c0a7eb1f",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -48,29 +34,15 @@
               "icon": "lucide-file",
               "title": "测试文件无需上传"
             }
-          },
-          {
-            "id": "e18868d2ec9e70d9",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "SpringBoot.md",
-                "mode": "source",
-                "source": true
-              },
-              "icon": "lucide-file",
-              "title": "SpringBoot"
-            }
           }
         ]
       },
       {
-        "id": "054cd9087445a817",
+        "id": "8961cab4d1c369eb",
         "type": "tabs",
         "children": [
           {
-            "id": "056aeeaf946497ab",
+            "id": "5ed591d8bb14a538",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -231,20 +203,20 @@
       "command-palette:打开命令面板": false
     }
   },
-  "active": "8e6010db2a461c25",
+  "active": "0fd4cf7c29b72815",
   "lastOpenFiles": [
     "测试文件无需上传.md",
     "SpringBoot2.md",
-    "Java.md",
+    "未命名",
     "SpringBoot.md",
+    "Java.md",
     "搭建 VPN.md",
     "Mac重装.md",
+    "Java回顾（非Moth版本）.md",
+    "JavaScript.md",
     "Untitled",
     "SpringBoot2",
-    "Java回顾（非Moth版本）.md",
     "老爸西安行安排.md",
-    "JavaScript.md",
-    "未命名.md",
     "Screenshot 2025-04-19 at 1.48.14 PM.png",
     "es6-tooling-webpack/dist/index.html",
     "es6-tooling-webpack/dist/bundle.js",
@@ -253,7 +225,6 @@
     "es6-tooling-webpack/package-lock.json",
     "es6-tooling-webpack/node_modules/browserslist/cli.js",
     "es6-tooling-webpack/node_modules/@babel/plugin-transform-computed-properties/package.json",
-    "es6-tooling-webpack/node_modules/@babel/plugin-transform-exponentiation-operator/package.json",
     "es6-tooling-webpack/node_modules/@babel/plugin-transform-computed-properties/README.md",
     "es6-tooling-webpack/node_modules/@babel/plugin-transform-exponentiation-operator/README.md",
     "es6-tooling-webpack/node_modules/@babel/plugin-transform-destructuring/README.md",
