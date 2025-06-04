@@ -9,9 +9,35 @@ Deployment
 
 ## 技巧
 
+### 雪花算法
+
+1. 对比 UUID
+
+    - UUID：128 位、长度长、无序、不适合做数据库主键。
+    - 雪花算法：生成 64 位长整型 ID，短、递增、排序高效，适合分布式唯一主键。
+
+2. 构成
+
+    - 一般为 64 位整数，常见结构：
+
+        - 1 位符号位（总为 0）
+        - 41 位时间戳（毫秒）
+        - 10 位机器/数据中心 ID
+        - 12 位自增序列（同毫秒内生成多个 ID）
+
+3. 使用方式
+
+    - 在分布式系统中，每台机器独立生成全局唯一、趋势递增的 ID，无需数据库协调。
+
+4. 使用场景
+
+    - 分布式系统主键（如订单号、用户 ID）
+    - 高并发写入场景
+    - 需要全局唯一、可排序 ID 的业务
+
 ### 查询加速
 
-1. UUID 主键设计（可提升查询性能 20-50%）
+1. UUID 主键设计后优化（可提升查询性能 20-50%）
 
     1. 存储类型优化
         - 推荐使用 `BINARY(16)` 类型存储 UUID，相比 `VARCHAR(36)` 更节省空间，能显著提升索引与查询性能。
@@ -26,6 +52,8 @@ Deployment
     4. 最佳实践建议
         - 生产环境下建议选用一种方式，避免混用，以免主键生成冲突或失效。
         - 更推荐在应用层由框架生成 UUID，即采用 `@GeneratedValue(strategy = GenerationType.UUID)`，便于分布式扩展和业务灵活性；而数据库自动生成仅适用于特定场景。
+    5. 补充
+        - BIGINT 本身就是二进制存储
 
 2. 存储引擎（可提升查询性能 20%~40%）
 
@@ -5694,3 +5722,49 @@ Deployment
     - 启动阶段、MVP、资源有限、追求快：优先选用托管认证服务。
     - 大型项目、定制化安全、成本可控、需全局掌控：可自研完整认证体系。
     - 掌握底层实现原理，有助于做出正确选型、评估第三方方案安全性与合理性。
+
+# Project 订单 API
+
+## 创建订单表结构
+
+> 简述：初步设计订单 (`orders`) 与订单物品 (`order_items`) 两张数据表，并设置 UUID 主键、默认值、外键关系及唯一性约束。
+
+**流程**
+
+- 与创建购物车表结构类似，这里简单处理主键为自增
+- 未设置管理删除，考虑后续历史表拓展
+- 未加订单状态考虑后续拓展
+
+
+**代码示例**
+
+1. 创建订单和订单物品表结构 (`V4__add_order_tables.sql`)
+	
+	```mysql
+	create table orders
+	(
+	    id          bigint auto_increment
+	        primary key,
+	    customer_id bigint                             not null,
+	    status      varchar(20)                        not null,
+	    created_at  datetime default current_timestamp not null,
+	    total_price decimal(10, 2)                     not null,
+	    constraint orders_users_id_fk
+	        foreign key (customer_id) references users (id)
+	);
+	
+	create table order_items
+	(
+	    id          bigint auto_increment
+	        primary key,
+	    order_id    bigint         not null,
+	    product_id  bigint         not null,
+	    unit_price  decimal(10, 2) not null,
+	    quantity    int            not null,
+	    total_price decimal(10, 2) not null,
+	    constraint order_items_orders_id_fk
+	        foreign key (order_id) references orders (id),
+	    constraint order_items_products_id_fk
+	        foreign key (product_id) references products (id)
+	);
+	```
