@@ -6157,3 +6157,81 @@ Deployment
     ```
 
     - 可配合变量自动串联请求，便于断言购物车商品数量。
+
+## 全局异常处理与统一错误响应
+
+> 简述：通过全局异常处理器规范 API 错误响应格式，实现错误信息的结构化和统一，提升前后端协作体验与接口可维护性。
+
+**知识树**
+
+1. 问题背景
+
+    - 请求体为空或参数格式错误（如 `cartId` 非法）时，系统抛出 `HttpMessageNotReadableException`，默认响应 401/500，不符合语义，应返回 400 Bad Request。
+    - 系统对错误响应字段命名进行了硬编码，可能会出现不一致（如 `error`、`errors`）的情况，易导致前端解析混乱与拼写错误。
+
+2. 全局异常处理机制
+
+    - 使用 `@RestControllerAdvice` 实现全局异常捕获 `HttpMessageNotReadableException`，返回标准化响应。
+
+3. 标准错误 DTO
+
+    - 新建 ErrorDto，统一封装错误信息，避免到处硬编码 `Map.of("error", ...)`，减少重复与潜在拼写错误。
+
+**代码示例**
+
+1. 错误响应 DTO
+
+    ```java
+    @AllArgsConstructor
+    @Data
+    public class ErrorDto {
+        private String error;
+    }
+    ```
+
+2. 全局异常处理
+
+    ```java
+    @ControllerAdvice
+    public class GlobalExceptionHandler {
+        @ExceptionHandler(HttpMessageNotReadableException.class)
+        public ResponseEntity<ErrorDto> handleUnreadableMessage() {
+            return ResponseEntity.badRequest().body(
+                    new ErrorDto("Invalid request body")
+            );
+        }
+
+    	// 省略
+    }
+    ```
+
+3. 控制器中统一返回错误 DTO
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/checkout")
+    public class CheckoutController {
+    	// 省略
+
+        @PostMapping
+        public ResponseEntity<?> checkout(
+                @Valid @RequestBody CheckoutRequest request
+        ) {
+            var cart = cartRepository.getCartWithItems(request.getCartId()).orElse(null);
+            if (cart == null) {
+                return ResponseEntity.badRequest().body(
+                        new ErrorDto("Cart not found")
+                );
+            }
+
+            if (cart.getItems().isEmpty()) {
+                return ResponseEntity.badRequest().body(
+                        new ErrorDto("Cart is empty")
+                );
+            }
+
+    		// 省略
+    	}
+    }
+    ```
