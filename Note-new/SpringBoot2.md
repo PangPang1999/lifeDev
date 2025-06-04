@@ -5868,3 +5868,167 @@ Deployment
     }
     ```
 
+## 实现结账接口
+
+> 简述：结账接口根据购物车生成订单，校验数据合法性，自动映射购物车项为订单项，保存后清空购物车，实现从购物到下单的完整流程。
+
+**API**
+
+1. Request Example
+
+    ```json
+    // POST /checkout
+
+    {
+    	"cartId": "45d901fc-bc68-4211-b126-6160d6010946"
+    }
+    ```
+
+2. Response Example
+
+    ```json
+    // 200 OK
+
+    {
+    	"orderId": 100
+    }
+    ```
+
+**知识树**
+
+1. DTO 设计
+
+    - 请求 DTO：`CheckoutRequest`（含非空校验的 `cartId`）。
+    - 响应 DTO：`CheckoutResponse`（返回新订单主键）。
+
+2. 核心业务流程
+
+    1. 校验购物车是否存在、是否为空，否则返回 400（bad request）。
+    2. 构造订单实体，包含当前用户、订单总价、订单状态、创建时间等。
+    3. 遍历购物车项，手动转换为订单项，并补充字段（如单价）。
+    4. 订单与订单项一体化持久化，利用级联和 `CascadeType.PERSIST`。
+    5. 下单成功后清空购物车，防止重复下单。
+
+3. 关联数据获取与服务抽象
+
+    - 当前用户信息操作抽取为 AuthService 公共方法。
+    - CartService、OrderRepository、UserRepository 分工清晰，解耦业务层。
+
+**代码示例**
+
+1. CheckoutRequest 定义
+
+    ```java
+    @Data
+    public class CheckoutRequest {
+        @NotNull(message = "Cart ID is required.")
+        private UUID cartId;
+    }
+    ```
+
+2. CheckoutResponse 定义
+
+    ```java
+    @Data
+    public class CheckoutResponse {
+        private Long orderId;
+
+        public CheckoutResponse(Long orderId) {
+            this.orderId = orderId;
+        }
+    }
+    ```
+
+3. CheckoutController
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/checkout")
+    public class CheckoutController {
+        private final CartRepository cartRepository;
+        private final AuthService authService;
+        private final OrderRepository orderRepository;
+        private final CartService cartService;
+
+        @PostMapping
+        public ResponseEntity<?> checkout(
+                @Valid @RequestBody CheckoutRequest request
+        ) {
+            var cart = cartRepository.getCartWithItems(request.getCartId()).orElse(null);
+            if (cart == null) {
+                return ResponseEntity.badRequest().body(
+                        Map.of("error", "Cart not found")
+                );
+            }
+
+            if (cart.getItems().isEmpty()) {
+                return ResponseEntity.badRequest().body(
+                        Map.of("error", "Cart is empty")
+                );
+            }
+
+            var order = new Order();
+            order.setTotalPrice(cart.getTotalPrice());
+            order.setStatus(OrderStatus.PENDING);
+            order.setCustomer(authService.getCurrentUser());
+
+            cart.getItems().forEach(item -> {
+                var orderItem = new OrderItem();
+                orderItem.setOrder(order);
+                orderItem.setProduct(item.getProduct());
+                orderItem.setQuantity(item.getQuantity());
+                orderItem.setTotalPrice(item.getTotalPrice());
+                orderItem.setUnitPrice(item.getProduct().getPrice());
+                order.getItems().add(orderItem);
+            });
+
+            orderRepository.save(order);
+
+            cartService.clearCart(cart.getId());
+
+            return ResponseEntity.ok(new CheckoutResponse(order.getId()));
+        }
+    }
+    ```
+
+4. OrderRepository
+
+    ```java
+    public interface OrderRepository extends JpaRepository<Order, Long> {
+    }
+    ```
+
+5. AuthService
+
+    ```java
+    @AllArgsConstructor
+    @Service
+    public class AuthService {
+        private final UserRepository userRepository;
+
+        public User getCurrentUser() {
+            var authentication = SecurityContextHolder.getContext().getAuthentication();
+            var userId = (Long) authentication.getPrincipal();
+
+            return userRepository.findById(userId).orElse(null);
+        }
+    }
+    ```
+
+6. 级联关系设置（持久化）
+
+    ```java
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "orders")
+    public class Order {
+    	// 省略
+
+        @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
+        private Set<OrderItem> items = new LinkedHashSet<>();
+    }
+    ```
+
+    - 描述：设置 `cascade = CascadeType.PERSIST`，保证保存订单时，相关订单项一同持久化。
