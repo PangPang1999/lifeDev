@@ -7,6 +7,25 @@ Project: Building the Checkout and Order APls
 Payment Processing with Stripe
 Deployment
 
+## 误区
+
+1. 外键约束 vs 实体类关联
+
+    - 外键约束（数据库层）
+        - 定义：数据库表字段间的参照关系，强制保证数据一致性，如订单表 `customer_id` 引用用户表 `id`。
+        - 作用：防止脏数据、孤儿记录，提供底层数据安全保障。
+    - 实体类关联（对象层）
+        - 定义：ORM（如 JPA）中实体类的对象引用，通过注解（如 `@ManyToOne`、`@OneToMany`）描述业务对象间关系。
+        - 作用：支持对象导航、懒加载/饿加载、级联操作等编程便利，提升开发效率与代码可读性。
+    - 关系与区别
+        - 两者功能互补，互不依赖：
+            - 外键约束约束数据层，实体类关联作用于代码层。
+            - ORM 的关联、懒加载、级联操作等功能不依赖数据库外键是否存在。
+            - 只有数据库外键能兜底数据一致性，只有实体类关联能实现对象间便捷访问。
+    - 最佳实践
+        - 推荐同时实现：数据库层加外键约束，实体类加关联注解。
+        - 这样既保证数据安全，又兼顾编程便利，形成双重保护。
+
 ## 技巧
 
 ### 雪花算法
@@ -5735,36 +5754,117 @@ Deployment
 - 未设置管理删除，考虑后续历史表拓展
 - 未加订单状态考虑后续拓展
 
-
 **代码示例**
 
 1. 创建订单和订单物品表结构 (`V4__add_order_tables.sql`)
-	
-	```mysql
-	create table orders
-	(
-	    id          bigint auto_increment
-	        primary key,
-	    customer_id bigint                             not null,
-	    status      varchar(20)                        not null,
-	    created_at  datetime default current_timestamp not null,
-	    total_price decimal(10, 2)                     not null,
-	    constraint orders_users_id_fk
-	        foreign key (customer_id) references users (id)
-	);
-	
-	create table order_items
-	(
-	    id          bigint auto_increment
-	        primary key,
-	    order_id    bigint         not null,
-	    product_id  bigint         not null,
-	    unit_price  decimal(10, 2) not null,
-	    quantity    int            not null,
-	    total_price decimal(10, 2) not null,
-	    constraint order_items_orders_id_fk
-	        foreign key (order_id) references orders (id),
-	    constraint order_items_products_id_fk
-	        foreign key (product_id) references products (id)
-	);
-	```
+
+    ```mysql
+    create table orders
+    (
+        id          bigint auto_increment
+            primary key,
+        customer_id bigint                             not null,
+        status      varchar(20)                        not null,
+        created_at  datetime default current_timestamp not null,
+        total_price decimal(10, 2)                     not null,
+        constraint orders_users_id_fk
+            foreign key (customer_id) references users (id)
+    );
+
+    create table order_items
+    (
+        id          bigint auto_increment
+            primary key,
+        order_id    bigint         not null,
+        product_id  bigint         not null,
+        unit_price  decimal(10, 2) not null,
+        quantity    int            not null,
+        total_price decimal(10, 2) not null,
+        constraint order_items_orders_id_fk
+            foreign key (order_id) references orders (id),
+        constraint order_items_products_id_fk
+            foreign key (product_id) references products (id)
+    );
+    ```
+
+## 创建订单实体
+
+> 简述：使用数据库优先（Database-first）开发方式，基于已有的数据表结构，快速生成 JPA 实体类，并优化实体代码，具体过程参考创建购物车实体
+
+**代码示例**
+
+1. `Order` 实体优化示例
+
+    ```java
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "orders")
+    public class Order {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(name = "id")
+        private Long id;
+
+        @ManyToOne
+        @JoinColumn(name = "customer_id")
+        private User customer;
+
+        @Column(name = "status")
+        @Enumerated(EnumType.STRING)
+        private OrderStatus status;
+
+        @Column(name = "created_at", insertable = false, updatable = false)
+        private LocalDateTime createdAt;
+
+        @Column(name = "total_price")
+        private BigDecimal totalPrice;
+
+        @OneToMany(mappedBy = "order")
+        private Set<OrderItem> items = new LinkedHashSet<>();
+    }
+    ```
+
+2. `OrderItem` 实体优化示例
+
+    ```java
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "order_items")
+    public class OrderItem {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(name = "id")
+        private Long id;
+
+        @ManyToOne
+        @JoinColumn(name = "order_id")
+        private Order order;
+
+        @ManyToOne
+        @JoinColumn(name = "product_id")
+        private Product product;
+
+        @Column(name = "unit_price")
+        private BigDecimal unitPrice;
+
+        @Column(name = "quantity")
+        private Integer quantity;
+
+        @Column(name = "total_price")
+        private BigDecimal totalPrice;
+    }
+    ```
+
+3. 订单状态枚举
+
+    ```java
+    public enum OrderStatus {
+        PENDING,
+        PAID,
+        FAILED,
+        CANCELED
+    }
+    ```
+
