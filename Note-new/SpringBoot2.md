@@ -6474,3 +6474,155 @@ Deployment
     ```
 
     - 描述：异常处理与业务解耦，接口响应结构统一。
+
+## 查用户全部订单明细
+
+> 简述：实现获取当前登录用户所有订单及其明细（包含订单项与商品基础信息）的接口，规范 DTO 设计，优化查询性能，避免 N+1 问题。
+
+**API**
+
+1. Request Example
+
+    ```json
+    // Get /orders
+    ```
+
+2. Response Example
+
+    ```json
+    // 200 OK
+
+    {
+    	"id": 1,
+    	"status": "PENDING",
+    	"createdAt": "2025-06-05T20:34:45",
+    	"items": [
+    		{
+    			"product": {
+    				"id": 1,
+    				"name": "Product 1",
+    				"price": 10.0
+    			}
+    		}
+    	]
+    }
+    ```
+
+**知识树**
+
+1. DTO 设计
+
+    - 订单 DTO（`OrderDetailDto`）：封装订单主信息和订单项集合。
+    - 订单项 DTO（`OrderItemDetailDto`）：封装商品信息（`OrderProductDto`）、数量、总价。
+    - 商品简要 DTO（`OrderProductDto`）：仅暴露订单关心的字段，避免耦合业务变更。
+
+2. N+1 查询优化
+
+    - 默认一对多集合为 LAZY，直接遍历会引发 N+1 查询。
+    - 采用 JPA EntityGraph 或自定义 JPQL，一次性加载订单、订单项与商品，减少数据库访问次数。
+
+3. 服务层解耦与职责分离
+
+    - 查询与 DTO 映射逻辑下沉到 Service。
+    - Mapper 负责实体与 DTO 转换，提升结构清晰度与测试友好性。
+
+**代码示例**
+
+1. 订单主 DTO
+
+    ```java
+    @Data
+    public class OrderDto {
+        private Long id;
+        private String status;
+        private LocalDateTime createdAt;
+        private List<OrderItemDto> items;
+        private BigDecimal totalPrice;
+    }
+    ```
+
+2. 订单项 DTO
+
+    ```java
+    @Data
+    public class OrderItemDto {
+        private OrderProductDto product;
+        private int quantity;
+        private BigDecimal totalPrice;
+    }
+    ```
+
+3. 商品 DTO
+
+    ```java
+    @Data
+    public class OrderProductDto {
+        private Long id;
+        private String name;
+        private BigDecimal price;
+    }
+    ```
+
+4. OrderMapper（MapStruct 示例）
+
+    ```java
+    @Mapper(componentModel = "spring")
+    public interface OrderMapper {
+        OrderDto toDto(Order order);
+    }
+    ```
+
+    - 描述：负责实体到 DTO 的高效转换。
+
+5. OrderRepository 查询与 N+1 优化
+
+    ```java
+    public interface OrderRepository extends JpaRepository<Order, Long> {
+        @EntityGraph(attributePaths = "items.product")
+        @Query("SELECT o FROM Order o WHERE o.customer = :customer")
+        List<Order> getAllByCustomer(@Param("customer") User customer);
+    }
+    ```
+
+    - 描述：通过 EntityGraph 一次性加载订单、订单项与商品，避免 N+1。
+
+6. OrderService（核心业务）
+
+    ```java
+    @AllArgsConstructor
+    @Service
+    public class OrderService {
+        private final AuthService authService;
+        private final OrderRepository orderRepository;
+        private final OrderMapper orderMapper;
+
+        public List<OrderDto> getAllOrders() {
+            var user = authService.getCurrentUser();
+            var orders = orderRepository.getAllByCustomer(user);
+            return orders.stream().map(orderMapper::toDto).toList();
+        }
+    }
+    ```
+
+7. OrderController（接口暴露）
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/orders")
+    public class OrderController {
+        private final OrderService orderService;
+
+        @GetMapping
+        public List<OrderDto> getAllOrders() {
+            return orderService.getAllOrders();
+        }
+    }
+    ```
+
+8. Postman 测试
+
+    1. 创建 Order 文件夹，创建请求命名为 `Get All Orders`
+    2. 设置 Header 中`Authorization`为`Bearer {{accessToken}}`
+    3. 设置 GET 访问链接为 `http://localhost:8080/orders`
+    4. 先登陆获取 token，后访问`Get All Orders`
