@@ -6235,3 +6235,120 @@ Deployment
     	}
     }
     ```
+
+## 信息专家原则
+
+> 简述：将复杂业务逻辑下沉到领域实体，由实体本身负责数据聚合和不变性约束，控制器只负责请求校验与流程编排，提升系统的可维护性和一致性。
+
+**知识树**
+
+1. 信息专家原则（Information Expert Principle）
+
+    - 业务逻辑应由最了解数据的对象负责，实现高内聚、低耦合。
+    - 领域模型（如 Order）应聚合与自身强相关的行为和规则。
+
+2. 控制器职责单一化
+
+    - 控制器仅负责协议转换、请求校验、调用领域服务或实体，无需承载对象映射与业务细节。
+    - 业务流程的原子性和约束交由实体层封装。
+
+3. 静态工厂方法模式
+
+    - 通过 `Order.fromCart(Cart cart, User customer)` 工厂方法，将购物车转换为订单，实现构建过程的封装与约束。
+    - 保证领域对象的完整性与一致性。
+
+4. 构造器注入与对象聚合
+
+    - `OrderItem` 通过带参构造方法完成字段赋值，确保对象创建的原子性和语义清晰。
+    - 领域实体不依赖 Controller/Service，参数通过方法入参传递，保证代码方向自上而下。
+
+**代码示例**
+
+1. 控制器简化流程，聚焦数据流转
+
+    ```java
+    @RestController
+    @RequestMapping("/checkout")
+    public class CheckoutController {
+        private final CartRepository cartRepository;
+        private final AuthService authService;
+        private final OrderRepository orderRepository;
+        private final CartService cartService;
+
+        @PostMapping
+        public ResponseEntity<?> checkout(
+                @Valid @RequestBody CheckoutRequest request
+        ) {
+            var cart = cartRepository.getCartWithItems(request.getCartId()).orElse(null);
+            if (cart == null) {
+                return ResponseEntity.badRequest().body(
+                        new ErrorDto("Cart not found")
+                );
+            }
+
+            if (cart.getItems().isEmpty()) {
+                return ResponseEntity.badRequest().body(
+                        new ErrorDto("Cart is empty")
+                );
+            }
+
+            // 去掉了复杂的订单构造过程，将其封装进对象实体本身
+            var order = Order.fromCart(cart, authService.getCurrentUser());
+
+            orderRepository.save(order);
+
+            cartService.clearCart(cart.getId());
+
+            return ResponseEntity.ok(new CheckoutResponse(order.getId()));
+        }
+    }
+    ```
+
+    - 描述：所有对象聚合与映射已转移至领域模型，控制器仅处理校验和数据流转。
+
+2. Order 工厂方法与对象聚合
+
+    ```java
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "orders")
+    public class Order {
+    	// 省略
+
+        public static Order fromCart(Cart cart, User customer) {
+            var order = new Order();
+            order.setCustomer(customer);
+            order.setStatus(OrderStatus.PENDING);
+            order.setTotalPrice(cart.getTotalPrice());
+
+            cart.getItems().forEach(item -> {
+                var orderItem = new OrderItem(order, item.getProduct(), item.getQuantity());
+                order.items.add(orderItem);
+            });
+
+            return order;
+        }
+    }
+    ```
+
+3. OrderItem 构造函数与字段注入
+
+    ```java
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "order_items")
+    public class OrderItem {
+    	// 省略
+
+        public OrderItem(Order order, Product product, Integer quantity) {
+            this.order = order;
+            this.product = product;
+            this.quantity = quantity;
+            this.unitPrice = product.getPrice();
+            this.totalPrice = unitPrice.multiply(BigDecimal.valueOf(quantity));
+        }
+    }
+    ```
