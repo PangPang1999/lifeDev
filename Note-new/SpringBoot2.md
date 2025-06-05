@@ -6477,13 +6477,13 @@ Deployment
 
 ## 查用户全部订单明细
 
-> 简述：实现获取当前登录用户所有订单及其明细（包含订单项与商品基础信息）的接口，规范 DTO 设计，优化查询性能，避免 N+1 问题。
+> 简述：实现查询当前登录用户全部订单及其订单项、商品详情，采用分层 DTO 设计与 N+1 问题优化，保证查询高效与响应结构规范。
 
 **API**
 
 1. Request Example
 
-    ```json
+    ```
     // Get /orders
     ```
 
@@ -6492,20 +6492,60 @@ Deployment
     ```json
     // 200 OK
 
-    {
-    	"id": 1,
-    	"status": "PENDING",
-    	"createdAt": "2025-06-05T20:34:45",
-    	"items": [
-    		{
-    			"product": {
-    				"id": 1,
-    				"name": "Product 1",
-    				"price": 10.0
+    [
+    	{
+    		"id": 1,
+    		"status": "PENDING",
+    		"createdAt": "2025-06-04T20:11:55",
+    		"items": [
+    			{
+    				"product": {
+    					"id": 1,
+    					"name": "iPhone 15 Pro",
+    					"price": 1199.0
+    				},
+    				"quantity": 2,
+    				"totalPrice": 2398.0
+    			},
+    			{
+    				"product": {
+    					"id": 2,
+    					"name": "Sony Alpha 7 IV",
+    					"price": 2499.0
+    				},
+    				"quantity": 1,
+    				"totalPrice": 2499.0
+    			},
+    			{
+    				"product": {
+    					"id": 3,
+    					"name": "MacBook Air M3",
+    					"price": 1499.0
+    				},
+    				"quantity": 1,
+    				"totalPrice": 1499.0
     			}
-    		}
-    	]
-    }
+    		],
+    		"totalPrice": 6396.0
+    	},
+    	{
+    		"id": 2,
+    		"status": "PENDING",
+    		"createdAt": "2025-06-05T22:16:05",
+    		"items": [
+    			{
+    				"product": {
+    					"id": 3,
+    					"name": "MacBook Air M3",
+    					"price": 1499.0
+    				},
+    				"quantity": 1,
+    				"totalPrice": 1499.0
+    			}
+    		],
+    		"totalPrice": 1499.0
+    	}
+    ]
     ```
 
 **知识树**
@@ -6580,7 +6620,7 @@ Deployment
     public interface OrderRepository extends JpaRepository<Order, Long> {
         @EntityGraph(attributePaths = "items.product")
         @Query("SELECT o FROM Order o WHERE o.customer = :customer")
-        List<Order> getAllByCustomer(@Param("customer") User customer);
+        List<Order> getOrdersByCustomer(@Param("customer") User customer);
     }
     ```
 
@@ -6598,7 +6638,7 @@ Deployment
 
         public List<OrderDto> getAllOrders() {
             var user = authService.getCurrentUser();
-            var orders = orderRepository.getAllByCustomer(user);
+            var orders = orderRepository.getOrdersByCustomer(user);
             return orders.stream().map(orderMapper::toDto).toList();
         }
     }
@@ -6626,3 +6666,184 @@ Deployment
     2. 设置 Header 中`Authorization`为`Bearer {{accessToken}}`
     3. 设置 GET 访问链接为 `http://localhost:8080/orders`
     4. 先登陆获取 token，后访问`Get All Orders`
+
+## 查询单个订单详情
+
+> 简述：实现通过订单 ID 查询当前用户单个订单明细，自动校验资源归属与存在性。采用领域建模、信息专家原则与标准异常响应，提升代码表达力与安全性。
+
+**API**
+
+1. Request Example
+
+    ```
+    // Get /orders/{orderId}
+    ```
+
+2. Response Example
+
+    ```json
+    // 200 OK
+
+    {
+    	"id": 2,
+    	"status": "PENDING",
+    	"createdAt": "2025-06-05T22:16:05",
+    	"items": [
+    		{
+    			"product": {
+    				"id": 3,
+    				"name": "MacBook Air M3",
+    				"price": 1499.0
+    			},
+    			"quantity": 1,
+    			"totalPrice": 1499.0
+    		}
+    	],
+    	"totalPrice": 1499.0
+    }
+    ```
+
+    - If order doesn't exist, return 404 Not Found.
+    - If order belongs to another user, return 403 Forbidden.
+    - Otherwise, return 200 OK with the order in the
+
+**知识树**
+
+1. DTO 设计
+
+    - 复用 `OrderDto`、`OrderItemDto`、`OrderProductDto`，仅暴露订单与商品关心字段。
+
+2. 信息专家原则与哈希处理优化
+
+    - 订单归属校验的传统写法：
+        - 通常使用：`if (!order.getCustomer().getId().equals(user.getId())) { ... }`
+    - 优化建议：
+        - 将归属校验逻辑下沉至 `Order` 对象，由服务层调用，实现业务解耦。
+    - 哈希与等值比较优化：
+        - 利用 Lombok 的 `@EqualsAndHashCode` 注解，可以精确控制对象的等值和哈希行为：
+            - `@EqualsAndHashCode(onlyExplicitlyIncluded = true)`：只对显式标注的字段参与哈希与等值判断。
+            - `@EqualsAndHashCode.Include`：标注需要参与比较的字段，如 `id`。
+        - 优势：可直接使用 `customer.equals(user)` 进行对象级比较，简化判等逻辑，提升代码可读性和健壮性。
+
+3. 查询与 N+1 优化
+
+    - 通过 `@EntityGraph` 注解，单查询加载订单、订单项与商品，避免 N+1 问题。
+    - 所有映射与业务判断收敛于 Service 层。
+
+4. 统一异常响应
+
+    - 订单不存在抛 `OrderNotFoundException`，自动响应 404。
+    - 无权访问抛 Spring Security 的 `AccessDeniedException`，自动响应 403 并结构化错误。
+
+**代码示例**
+
+1. Controller 暴露单条订单接口及异常处理
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/orders")
+    public class OrderController {
+    	// 省略
+
+        @GetMapping("/{orderId}")
+        public OrderDto getOrder(@PathVariable("orderId") Long orderId) {
+            return orderService.getOrder(orderId);
+        }
+
+        @ExceptionHandler(OrderNotFoundException.class)
+        public ResponseEntity<Void> handleOrderNotFound() {
+            return ResponseEntity.notFound().build();
+        }
+
+        @ExceptionHandler(AccessDeniedException.class)
+        public ResponseEntity<ErrorDto> handleAccessDenied(Exception ex) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(new ErrorDto(ex.getMessage()));
+        }
+    }
+    ```
+
+2. OrderService 查询与安全性校验
+
+    ```java
+    @AllArgsConstructor
+    @Service
+    public class OrderService {
+        private final OrderRepository orderRepository;
+        private final AuthService authService;
+        private final OrderMapper orderMapper;
+
+        public OrderDto getOrder(Long orderId) {
+            var order = orderRepository.getOrderWithItems(orderId)
+                .orElseThrow(OrderNotFoundException::new);
+
+            var currentUser = authService.getCurrentUser();
+
+            if (!order.isPlacedBy(currentUser)) {
+                throw new AccessDeniedException("You don't have access to this order.");
+            }
+            return orderMapper.toDto(order);
+        }
+    }
+    ```
+
+3. OrderRepository 单订单明细加载（含 N+1 优化）
+
+    ```java
+    public interface OrderRepository extends JpaRepository<Order, Long> {
+    	// 省略
+
+        @EntityGraph(attributePaths = "items.product")
+        @Query("SELECT o FROM Order o WHERE o.id = :orderId")
+        Optional<Order> getOrderWithItems(@Param("orderId") Long orderId);
+    }
+    ```
+
+    - 描述：一次性拉取订单与全部订单项、商品，防止性能问题。
+
+4. Order 实体中归属权判断
+
+    ```java
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "orders")
+    public class Order {
+    	// 省略
+
+        public boolean isPlacedBy(User customer) {
+            return this.customer.equals(customer);
+        }
+    }
+    ```
+
+5. User 实体等值判定（Lombok 简化）
+
+    ```java
+    // 省略
+    @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+    @Table(name = "users")
+    public class User {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @EqualsAndHashCode.Include
+        @Column(name = "id")
+        private Long id;
+
+    	// 省略
+    }
+    ```
+
+    - 描述：使用`@EqualsAndHashCode`简化哈希比较
+
+6. 标准异常定义
+
+    ```java
+    public class OrderNotFoundException extends RuntimeException {
+        public OrderNotFoundException() {
+            super("Order not found");
+        }
+    }
+    ```

@@ -14,10 +14,12 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 @Entity
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Table(name = "users")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     @Column(name = "id")
     private Long id;
 
