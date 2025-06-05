@@ -6352,3 +6352,125 @@ Deployment
         }
     }
     ```
+
+## 服务层分离与异常处理
+
+> 简述：将结账业务逻辑从控制器下移到专用 Service 类，控制器只负责请求转发和异常响应，服务层专注业务实现。并进行自定义异常的声明与捕获。
+
+**知识树**
+
+1. 业务逻辑下沉
+
+    - 业务流程全部交由 Service 实现，Controller 只负责调用。
+
+2. 领域对象行为聚合
+
+    - 行为方法（如 `isEmpty()`）下沉到聚合根（如 Cart），通过面向对象语义提升可读性与可维护性。
+
+3. 专用异常体系
+
+    - 定义业务相关异常（如 `CartNotFoundException`, `CartEmptyException`），统一扩展 RuntimeException。违背业务规则时直接抛出专用异常。
+    - 异常包含默认提示消息，便于全局异常处理。
+
+4. 全局异常处理
+
+    - 异常交由 `@ExceptionHandler` 转为标准响应 DTO。
+    - 支持多异常合并处理，确保前后端交互一致性。
+
+**代码示例**
+
+1. CheckoutService 业务逻辑聚合
+
+    ```java
+    @AllArgsConstructor
+    @Service
+    public class CheckoutService {
+        private final CartRepository cartRepository;
+        private final OrderRepository orderRepository;
+        private final AuthService authService;
+        private final CartService cartService;
+
+        public CheckoutResponse checkout(CheckoutRequest request) {
+            var cart = cartRepository.getCartWithItems(request.getCartId()).orElse(null);
+            if (cart == null) {
+                throw new CartNotFoundException();
+            }
+
+            if (cart.isEmpty()) {
+                throw new CartEmptyException();
+            }
+
+            var order = Order.fromCart(cart, authService.getCurrentUser());
+
+            orderRepository.save(order);
+
+            cartService.clearCart(cart.getId());
+
+            return new CheckoutResponse(order.getId());
+        }
+    }
+    ```
+
+    - 描述：所有分支用异常表达，核心逻辑聚合在 Service。
+
+2. Cart 聚合根行为方法
+
+    ```java
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "carts")
+    public class Cart {
+    	// 省略
+
+        public boolean isEmpty() {
+            return items.isEmpty();
+        }
+    }
+    ```
+
+    - 描述：实体对自己的内部状态负责。
+
+3. 专用异常定义
+
+    ```java
+    // 增加自定义信息
+    public class CartNotFoundException extends RuntimeException {
+        public CartNotFoundException() {
+            super("Cart not found");
+        }
+    }
+
+    // 新建异常类并增加自定义信息
+    public class CartEmptyException extends RuntimeException {
+        public CartEmptyException() {
+            super("Cart is empty");
+        }
+    }
+    ```
+
+    - 描述：专用异常自带消息，便于全局异常处理。
+
+4. 控制器精简，只关心 happy path
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/checkout")
+    public class CheckoutController {
+
+        private final CheckoutService checkoutService;
+
+        @PostMapping
+        public CheckoutResponse checkout(@Valid @RequestBody CheckoutRequest request) {
+            return checkoutService.checkout(request);
+        }
+
+        @ExceptionHandler({CartNotFoundException.class, CartEmptyException.class})
+        public ResponseEntity<ErrorDto> handleException(Exception ex) {
+            return ResponseEntity.badRequest().body(new ErrorDto(ex.getMessage()));
+        }
+    }
+    ```
+
+    - 描述：异常处理与业务解耦，接口响应结构统一。
