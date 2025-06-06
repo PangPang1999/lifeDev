@@ -6963,16 +6963,143 @@ Organizing code
 4. Stripe 配置类
 
     ```java
-	@Configuration
-	public class StripeConfig {
-	    @Value("${stripe.secretKey}")
-	    private String secretKey;
+    @Configuration
+    public class StripeConfig {
+        @Value("${stripe.secretKey}")
+        private String secretKey;
+
+        @PostConstruct // 表示在 Spring 完成依赖注入后自动执行该方法。
+        public void init() {
+            Stripe.apiKey = secretKey; // Stripe Java SDK 中设定全局 API 密钥的标准方式。
+        }
+    }
+    ```
+
+    - 描述：通过 `@PostConstruct` 初始化 Stripe SDK，确保每次应用启动自动加载密钥。
+
+## Stripe Checkout Session 创建
+
+> 简述：通过 Stripe Checkout Session 动态生成支付订单，自动打包订单明细，安全传递给 Stripe 并获取支付跳转 URL。
+
+**知识树**
+
+1. 流程
+
+    1. 客户端请求 checkout
+    2. 获取购物车 → 检查为空
+    3. 生成订单 → 存入数据库
+    4. 构建 Stripe Session 参数（包含每个商品项）
+    5. 创建 Stripe Checkout Session
+    6. 清空购物车 → 返回结账 URL 给客户端
+
+2. 构建参数
+
+    - mode
+        - 指定为 `PAYMENT`（一次性付款）或 `SUBSCRIPTION`（订阅）。
+    - successUrl / cancelUrl
+        - 支付成功或取消后的前端回调地址，推荐从配置注入，避免硬编码。
+    - line_items
+        - 订单项集合，需逐项转为 Stripe 的 `LineItem`，支持动态商品、价格、数量与币种。
+
+3. 价格、商品与安全
+
+    - 支持动态 priceData（适用于自定义商品/价格，非 Stripe 预定义价格）。
+    - 自动注入商品名称、单价、币种等，前后端解耦。
+    - 依赖环境配置管理 websiteUrl，确保多环境切换。
+
+4. 结构与异常处理
+
+    - 后续完善统一异常处理与错误。
+
+**代码示例**
+
+1. application.yaml 新增前端回调配置
+
+    ```yaml
+    websiteUrl: http://localhost:5173
+    ```
+
+2. CheckoutService 中创建 Stripe Checkout Session
+
+    ```java
+    @RequiredArgsConstructor// 为所有标注了 final 以及 @NonNull（即便没有标记final）的字段生成构造函数
+    @Service
+    public class CheckoutService {
+        private final CartRepository cartRepository;
+        private final OrderRepository orderRepository;
+        private final AuthService authService;
+        private final CartService cartService;
+
+        @Value("${websiteUrl}")
+        private String websiteUrl;
+
+        public CheckoutResponse checkout(CheckoutRequest request) throws StripeException {
+            // 根据请求中的 cartId 查询包含商品项的购物车
+            var cart = cartRepository.getCartWithItems(request.getCartId()).orElse(null);
+            if (cart == null) {
+                throw new CartNotFoundException();
+            }
+
+            if (cart.isEmpty()) {
+                throw new CartEmptyException();
+            }
+            // 从购物车生成订单对象，并绑定当前登录用户
+            var order = Order.fromCart(cart, authService.getCurrentUser());
+            // 将订单保存到数据库（此时状态为 PENDING）
+            orderRepository.save(order);
+
+            // 构建 Stripe Checkout Session 的参数
+            var builder = SessionCreateParams.builder()
+                    .setMode(SessionCreateParams.Mode.PAYMENT)// 设置为支付模式
+                    .setSuccessUrl(websiteUrl + "/checkout-success?orderId=" + order.getId())// 支付成功回调 URL
+                    .setCancelUrl(websiteUrl + "/checkout-cancel");// 支付取消回调 URL
+
+            // 为每个订单项创建 Stripe 的 line item
+            order.getItems().forEach(item -> {
+                var lineItem = SessionCreateParams.LineItem.builder()
+                        .setQuantity(Long.valueOf(item.getQuantity()))// 商品数量
+                        .setPriceData(
+                                SessionCreateParams.LineItem.PriceData.builder()
+                                        .setCurrency("usd")// 设置货币单位
+	                                    .setUnitAmountDecimal(
+	                                            item.getUnitPrice()// 商品单价（此处单位为最小货币单位分）
+	                                                    .multiply(BigDecimal.valueOf(100))
+	                                    )
+                                        .setProductData(
+                                                SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                        .setName(item.getProduct().getName())// 商品名称
+                                                        .build()
+                                        )
+                                        .build()
+                        ).build();
+                // 将 line item 添加到 checkout session 中
+                builder.addLineItem(lineItem);
+            });
+            // 调用 Stripe SDK 创建 Checkout Session
+            var session = Session.create(builder.build());
+            // 清空购物车（避免用户重复提交）
+            cartService.clearCart(cart.getId());
+            // 返回包含 orderId 和 Stripe 结账页面 URL 的响应对象
+            return new CheckoutResponse(order.getId(), session.getUrl());
+        }
+    }
+    ```
+
+    - 描述：每次结账都基于实时订单数据生成 Stripe 会话，支付成功/失败自动回跳前端页面。
+
+3. CheckoutResponse 响应体
+
+    ```java
+	@Data
+	public class CheckoutResponse {
+	    private Long orderId;
+	    private String checkoutUrl;
 	
-	    @PostConstruct // 表示在 Spring 完成依赖注入后自动执行该方法。
-	    public void init() {
-	        Stripe.apiKey = secretKey; // Stripe Java SDK 中设定全局 API 密钥的标准方式。
+	    public CheckoutResponse(Long orderId, String checkoutUrl) {
+	        this.orderId = orderId;
+	        this.checkoutUrl = checkoutUrl;
 	    }
 	}
     ```
 
-    - 描述：通过 `@PostConstruct` 初始化 Stripe SDK，确保每次应用启动自动加载密钥。
+    - 描述：响应中直接返回 Stripe 跳转链接供前端跳转。
