@@ -7061,10 +7061,10 @@ Organizing code
                         .setPriceData(
                                 SessionCreateParams.LineItem.PriceData.builder()
                                         .setCurrency("usd")// 设置货币单位
-	                                    .setUnitAmountDecimal(
-	                                            item.getUnitPrice()// 商品单价（此处单位为最小货币单位分）
-	                                                    .multiply(BigDecimal.valueOf(100))
-	                                    )
+                                        .setUnitAmountDecimal(
+                                                item.getUnitPrice()// 商品单价（此处单位为最小货币单位分）
+                                                        .multiply(BigDecimal.valueOf(100))
+                                        )
                                         .setProductData(
                                                 SessionCreateParams.LineItem.PriceData.ProductData.builder()
                                                         .setName(item.getProduct().getName())// 商品名称
@@ -7090,16 +7090,136 @@ Organizing code
 3. CheckoutResponse 响应体
 
     ```java
-	@Data
-	public class CheckoutResponse {
-	    private Long orderId;
-	    private String checkoutUrl;
-	
-	    public CheckoutResponse(Long orderId, String checkoutUrl) {
-	        this.orderId = orderId;
-	        this.checkoutUrl = checkoutUrl;
-	    }
-	}
+    @Data
+    public class CheckoutResponse {
+        private Long orderId;
+        private String checkoutUrl;
+
+        public CheckoutResponse(Long orderId, String checkoutUrl) {
+            this.orderId = orderId;
+            this.checkoutUrl = checkoutUrl;
+        }
+    }
     ```
 
     - 描述：响应中直接返回 Stripe 跳转链接供前端跳转。
+
+## Stripe Checkout 异常处理与事务保障
+
+> 简述：在创建 Stripe Checkout Session 时，需对接入异常、数据一致性与原子操作进行严密处理，确保系统健壮、无脏数据。
+
+**知识树**
+
+1. Stripe 相关异常处理
+
+    - StripeException 可能因 API 密钥错误、请求不合法、网络故障、第三方服务异常等原因触发。
+    - 异常场景需捕获，优雅响应并避免脏数据。
+
+2. 订单原子性与事务保障
+
+    - 订单创建与 Stripe 会话创建应保证原子性（要么全部成功，要么全部失败）。
+    - 若 Stripe 失败，需回滚已创建但未支付的订单，防止脏数据。
+
+3. Spring 事务与持久化一致性
+
+    - 使用 `@Transactional`（`org.springframework.transaction.annotation.Transactional`）确保方法执行期间持久化上下文有效，支持自动回滚。
+    - 删除订单时级联删除关联订单项（`CascadeType.REMOVE`），确保无孤立数据。
+
+4. 错误响应与日志记录
+
+    - Controller 层捕获 StripeException，返回 500 错误及结构化消息。
+    - Service 层日志**临时**使用控制台打印，生产环境应用日志服务。
+
+**代码示例**
+
+1. CheckoutService 中 Stripe 异常与事务保障
+
+    ```java
+    @RequiredArgsConstructor
+    @Service
+    public class CheckoutService {
+        private final CartRepository cartRepository;
+        private final OrderRepository orderRepository;
+        private final AuthService authService;
+        private final CartService cartService;
+
+        @Value("${websiteUrl}")
+        private String websiteUrl;
+
+    	@Transactional // 确保事务
+        public CheckoutResponse checkout(CheckoutRequest request) throws StripeException {
+            var cart = cartRepository.getCartWithItems(request.getCartId()).orElse(null);
+            if (cart == null) {
+                throw new CartNotFoundException();
+            }
+
+            if (cart.isEmpty()) {
+                throw new CartEmptyException();
+            }
+            var order = Order.fromCart(cart, authService.getCurrentUser());
+            orderRepository.save(order);
+
+            try { // 使用try/catch 捕获异常
+                // 省略
+                return new CheckoutResponse(order.getId(), session.getUrl());
+            } catch (StripeException ex) {
+                System.out.println(ex.getMessage()); // 临时打印
+                orderRepository.delete(order); // 异常后删除订单
+                throw ex;
+            }
+        }
+    }
+    ```
+
+    - 描述：将订单保存与 Stripe 会话创建整体纳入事务，异常时回滚，无脏数据。
+
+2. Order 实体设置级联删除
+
+    ```java
+    @Getter
+    @Setter
+    @Entity
+    @Table(name = "orders")
+    public class Order {
+    	// 省略
+
+        @OneToMany(mappedBy = "order", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+        private Set<OrderItem> items = new LinkedHashSet<>();
+
+    	// 省略
+    }
+    ```
+
+    - 描述：保证删除订单时，相关订单项一同被移除。
+
+3. CheckoutController 中统一异常响应
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/checkout")
+    public class CheckoutController {
+        private final CheckoutService checkoutService;
+
+        @PostMapping
+        public ResponseEntity<?> checkout(@Valid @RequestBody CheckoutRequest request) {
+            try {
+                return ResponseEntity.ok(checkoutService.checkout(request));
+            } catch (StripeException ex) {
+                return ResponseEntity
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ErrorDto("Error creating a checkout session"));
+            }
+        }
+
+    	// 省略
+    }
+    ```
+
+    - 描述：对外仅暴露 500 错误及统一错误结构，避免暴露敏感异常详情。
+
+4. Postman 测试
+
+    1. 登陆获取 token
+    2. 创建购物车，添加商品
+    3. 结账，打开返回的 Url，即结帐页面

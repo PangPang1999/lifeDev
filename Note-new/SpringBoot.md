@@ -2285,11 +2285,12 @@ Model-first approach
     - `@Builder`：生成链式构建器
     - `@ToString`：生成 `toString()` 方法，可排除字段
     - `@Builder.Default`：指定字段在使用 `@Builder` 构造时保留初始化值，否则将被默认重置（0/null/false）
-
     - `@Data`：
         - 集成 `@Getter`、`@Setter`、`@ToString`、`@EqualsAndHashCode`、`@RequiredArgsConstructor` 等常用 Lombok 注解，自动生成数据类所需的全部方法。
         - 不要在 JPA 实体类（Entity）、含敏感字段的类、领域模型、业务逻辑复杂的类上直接用 `@Data`可能会因为`@ToString` 导致懒加载存在问题。
         - 仅在 DTO 等简单数据结构等纯数据载体类上使用 `@Data`。DTO 概念将在投影章节介绍。
+    - `@RequiredArgsConstructor`
+        - 为所有标注了 final 以及 @NonNull（即便没有标记 final）的字段生成构造函数
 
 3. 使用细节与注意事项（后面介绍）
 
