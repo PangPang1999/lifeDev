@@ -6847,3 +6847,56 @@ Deployment
         }
     }
     ```
+
+# Payment Processing
+
+Overview of the checkout process
+Setting up Stripe
+Creating a checkout session
+Handling Stripe-hosted checkout pages
+Processing webhook events
+Decoupling from Stripe
+Properly handling errors
+Organizing code
+
+## Checkout 流程
+
+> 简述：为了在应用程序中支持在线支付，我们需要一个叫作“支付网关”（payment gateway）的东西。目前有许多主流的支付网关，例如 Stripe、PayPal、Square 等。在本将介绍使用 Stripe 的 Stripe Checkout 方式进行集成。
+
+**知识树**
+
+1. 支付网关
+
+    - 概念：第三方支付服务，处理支付交易、保障安全与合规。
+    - 主要职责：
+        - 银行通讯与资金处理。
+        - 信用卡支付处理及防欺诈。
+
+2. Stripe 支付网关集成方式
+
+    - Stripe Elements（自定义支付表单）：
+        - 完全可定制，开发复杂高，需手动管理安全与异常。
+    - Stripe Checkout（Stripe 托管支付页面）：
+        - 用户跳转 Stripe 提供页面，Stripe 处理支付安全与 UI。
+        - 实现快速，适合快速上线产品。
+
+3. Stripe Checkout 支付流程
+
+    1. 用户发起下单
+        - 客户端向服务端发送结账请求（`POST /checkout`）。
+        - 服务端创建订单（状态设为 `PENDING`），并将其保存到数据库。
+    2. 创建 Checkout Session
+        - 服务端通过 Stripe SDK 创建一个 **Checkout Session** 对象。
+            - 包含商品信息、价格、数量、币种、支付成功/取消后的跳转链接等。
+        - 服务端将 session 对象返回给客户端，其中包含 Stripe 提供的结账页面 URL。
+        - 客户端根据该 URL，将用户重定向至 Stripe 托管的支付页面。
+    3. 用户完成支付
+        - 用户在 Stripe 页面填写支付信息并提交。
+        - 支付结束后，Stripe 将用户重定向回前端提供的成功或取消页面。
+    4. Stripe 发送支付结果通知（Webhook）
+        - Stripe 通过 Webhook 向服务端预设的接口发送支付结果（`POST /webhook`）。
+        - 服务端根据通知中的订单 ID，从数据库加载订单，并将状态更新为 `PAID` 或 `FAILED`。
+
+4. Webhook（网络钩子）
+
+    - 一种事件驱动机制，当某事件发生时，一个系统会主动向另一个系统发送通知，实现服务间解耦通信。
