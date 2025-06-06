@@ -6897,6 +6897,82 @@ Organizing code
         - Stripe 通过 Webhook 向服务端预设的接口发送支付结果（`POST /webhook`）。
         - 服务端根据通知中的订单 ID，从数据库加载订单，并将状态更新为 `PAID` 或 `FAILED`。
 
-4. Webhook（网络钩子）
+4. `Webhook`（网络钩子）
 
     - 一种事件驱动机制，当某事件发生时，一个系统会主动向另一个系统发送通知，实现服务间解耦通信。
+
+## Stripe 接入与配置
+
+> 简述：添加 Stripe Java SDK 依赖、配置安全的 API 密钥并初始化 Stripe 环境
+
+**知识树**
+
+1. Stripe Java SDK 集成
+
+    - 在 `pom.xml` 中添加 Stripe 依赖（`com.stripe:stripe-java`）。
+    - 使用官方最新版本，保证兼容性与安全性。
+
+2. 获取 Secret Key（私钥）
+
+    - `stripe.com`注册成功后，搜索 `api keys`
+
+3. API 密钥管理
+
+    - 密钥应保存在本地环境变量（如 `.env` 文件），避免泄露。
+    - 提供 `.env.example` 文件，便于团队协作和环境搭建，无明文密钥。
+
+4. 配置外部化与安全注入
+
+    - 在 `application.yaml` 顶层增加 Stripe 配置属性。
+    - 通过 Spring 的 `@Value` 注解安全注入密钥，严禁硬编码。
+    - 配置类初始化 Stripe SDK，项目启动时加载 Stripe 密匙。
+
+**代码示例**
+
+1. Maven 依赖配置
+
+    ```xml
+    <dependency>
+    		<groupId>com.stripe</groupId>
+    		<artifactId>stripe-java</artifactId>
+    		<version>27.1.0</version>
+    </dependency>
+    ```
+
+2. 环境变量安全管理
+
+    ```env
+    # .env
+    STRIPE_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxxx
+    ```
+
+    ```env
+    # .env.example
+    STRIPE_SECRET_KEY=
+    ```
+
+3. application.yaml 配置
+
+    ```yaml
+    spring:
+        # 省略
+    stripe:
+        secretKey: ${STRIPE_SECRET_KEY}
+    ```
+
+4. Stripe 配置类
+
+    ```java
+	@Configuration
+	public class StripeConfig {
+	    @Value("${stripe.secretKey}")
+	    private String secretKey;
+	
+	    @PostConstruct // 表示在 Spring 完成依赖注入后自动执行该方法。
+	    public void init() {
+	        Stripe.apiKey = secretKey; // Stripe Java SDK 中设定全局 API 密钥的标准方式。
+	    }
+	}
+    ```
+
+    - 描述：通过 `@PostConstruct` 初始化 Stripe SDK，确保每次应用启动自动加载密钥。
