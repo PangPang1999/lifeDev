@@ -7223,3 +7223,180 @@ Organizing code
     1. 登陆获取 token
     2. 创建购物车，添加商品
     3. 结账，打开返回的 Url，即结帐页面
+
+## 支付网关解耦
+
+> 简述：通过抽象支付网关接口，将第三方支付平台的接入与业务逻辑彻底解耦，提升系统扩展性、单一职责和测试友好性。所有支付异常统一通过自定义异常对外暴露，保障业务服务整洁健壮。支持多实现切换（如 Stripe、PayPal）时，通过 `@Primary` 或 `@Qualifier` 标注指定具体实现。
+
+**知识树**
+
+1. 支付网关接口抽象
+
+    - 定义 `PaymentGateway` 接口，统一第三方支付集成方式。
+    - 标准方法：`CheckoutSession createCheckoutSession(Order order)`。
+    - 配套数据结构：`CheckoutSession`（仅暴露必要字段，如跳转 url）。
+
+2. 支付平台实现隔离
+
+    - Stripe 实现类 `StripePaymentGateway`，封装 Stripe SDK 交互与异常转换。
+    - 支持独立配置、日志与依赖管理，避免主业务服务被污染。
+    - 多支付平台并存时，Spring 注解管理具体实现。
+
+3. 统一支付异常处理
+
+    - 自定义 `PaymentException`，所有支付平台异常归一抛出，避免业务层耦合具体 SDK 异常。
+    - Service 层遇到支付异常时自动回滚未完成订单。
+
+4. 业务层依赖解耦
+
+    - CheckoutService 仅依赖 `PaymentGateway` 抽象，无感知具体支付实现。
+    - Controller 层专注于参数与异常响应，错误结构标准化。
+
+**代码示例**
+
+1. PaymentGateway 接口
+
+    ```java
+    public interface PaymentGateway {
+        CheckoutSession createCheckoutSession(Order order);
+    }
+    ```
+
+2. 定义接口配套使用的实体类
+
+    ```java
+    @Getter
+    @AllArgsConstructor
+    public class CheckoutSession {
+        private String checkoutUrl;
+    }
+    ```
+
+3. Stripe 支付实现
+
+    ```java
+    @Service
+    public class StripePaymentGateway implements PaymentGateway {
+        @Value("${websiteUrl}")
+        private String websiteUrl;
+
+        @Override
+        public CheckoutSession createCheckoutSession(Order order) {
+            try {
+                var builder = SessionCreateParams.builder()
+                        .setMode(SessionCreateParams.Mode.PAYMENT)
+                        .setSuccessUrl(websiteUrl + "/checkout-success?orderId=" + order.getId())
+                        .setCancelUrl(websiteUrl + "/checkout-cancel");
+
+                order.getItems().forEach(item -> {
+                    var lineItem = createLineItem(item);
+                    builder.addLineItem(lineItem);
+                });
+
+                var session = Session.create(builder.build());
+                return new CheckoutSession(session.getUrl());
+            } catch (StripeException ex) {
+                System.out.println(ex.getMessage());
+                throw new PaymentException();
+            }
+        }
+
+        private SessionCreateParams.LineItem createLineItem(OrderItem item) {
+            return SessionCreateParams.LineItem.builder()
+                    .setQuantity(Long.valueOf(item.getQuantity()))
+                    .setPriceData(createPriceData(item))
+                    .build();
+        }
+
+        private SessionCreateParams.LineItem.PriceData createPriceData(OrderItem item) {
+            return SessionCreateParams.LineItem.PriceData.builder()
+                    .setCurrency("usd")
+                    .setUnitAmountDecimal(
+                            item.getUnitPrice().multiply(BigDecimal.valueOf(100)))
+                    .setProductData(createProductData(item))
+                    .build();
+        }
+
+        private SessionCreateParams.LineItem.PriceData.ProductData createProductData(OrderItem item) {
+            return SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                    .setName(item.getProduct().getName())
+                    .build();
+        }
+    }
+    ```
+
+4. PaymentException 通用异常
+
+    ```java
+    public class PaymentException extends RuntimeException {
+    }
+    ```
+
+5. CheckoutService 层解耦与异常回滚
+
+    ```java
+    @RequiredArgsConstructor
+    @Service
+    public class CheckoutService {
+        private final CartRepository cartRepository;
+        private final OrderRepository orderRepository;
+        private final AuthService authService;
+        private final CartService cartService;
+        private final PaymentGateway paymentGateway;
+
+        @Value("${websiteUrl}")
+        private String websiteUrl;
+
+        @Transactional
+        public CheckoutResponse checkout(CheckoutRequest request) {
+            var cart = cartRepository.getCartWithItems(request.getCartId()).orElse(null);
+            if (cart == null) {
+                throw new CartNotFoundException();
+            }
+
+            if (cart.isEmpty()) {
+                throw new CartEmptyException();
+            }
+
+            // 解耦
+            var order = Order.fromCart(cart, authService.getCurrentUser());
+
+            orderRepository.save(order);
+
+            try {
+                var session = paymentGateway.createCheckoutSession(order);
+
+                cartService.clearCart(cart.getId());
+                return new CheckoutResponse(order.getId(), session.getCheckoutUrl());
+            } catch (PaymentException ex) {
+                orderRepository.delete(order);
+                throw ex;
+            }
+        }
+    }
+    ```
+
+6. Controller 仅暴露通用异常
+
+    ```java
+    @AllArgsConstructor
+    @RestController
+    @RequestMapping("/checkout")
+    public class CheckoutController {
+        private final CheckoutService checkoutService;
+
+        @PostMapping
+        public CheckoutResponse checkout(@Valid @RequestBody CheckoutRequest request) {
+            return checkoutService.checkout(request);
+        }
+
+        @ExceptionHandler(PaymentException.class)
+        public ResponseEntity<?> handlePaymentException() {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorDto("Error creating a checkout session"));
+        }
+
+    	// 省略
+    }
+    ```
