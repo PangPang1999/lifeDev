@@ -7520,3 +7520,43 @@ Organizing code
     ```
 
     - 描述：允许 webhook 端点匿名访问，防止认证拦截。
+
+## Stripe CLI 测试
+
+> 简述：Stripe CLI 提供了本地开发和调试 Stripe 集成能力的高效工具，支持事件转发、本地 Webhook 测试和模拟各类支付场景，极大提升支付相关业务开发和调试效率。通过 CLI 工具，开发者无需真实下单或支付，就能在本地模拟 Stripe 各类事件，验证后端接口的正确性和安全性，是现代支付系统开发必备的调试手段。
+
+**知识树**
+
+1. 真实业务操作流程概述
+
+    - 在 Stripe 官网后台（Dashboard）中，**进入 Developers → Webhooks** 页面，**添加你的后端接口地址作为 Webhook 端点**，用来接收 Stripe 的事件通知。
+    - 在添加 Webhook 端点时，**你可以选择希望接收哪些事件类型**（比如支付成功、支付失败、退款、发票等），这些都是官方标准事件，可以按需勾选。
+    - 端点添加成功后，Stripe 会**为该端点自动生成一个 signing secret**（签名密钥），用于你后端验证每一次 Stripe 发来的 Webhook 事件**确实是 Stripe 官方发送的**，防止伪造请求。
+
+2. Stripe CLI 工具使用
+
+    - 官方文档：[http://docs.stripe.com/stripe-cli](http://docs.stripe.com/stripe-cli)
+    - 步骤如下：
+        1. 安装 Stripe CLI（例如用 Homebrew）
+            ```bash
+            brew install stripe/stripe-cli/stripe
+            ```
+        2. 登录 CLI，输入命令后回车，会弹出网页完成校验
+            ```bash
+            stripe login
+            ```
+        3. 设置事件监听与请求转发，得到 webhook 的 signing secret。将其保存到 `.env` 文件的 `STRIPE_WEBHOOK_SECRET_KEY`，并重启应用使其生效。
+            ```bash
+            stripe listen --forward-to http://localhost:8080/checkout/webhook
+            ```
+        4. 新建终端，输入如下命令。这会让 Stripe CLI 模拟 Stripe 官方服务器，向本地 Webhook 端点发送一个 `payment_intent.succeeded` 类型的测试事件。注意：这个事件是新生成的测试数据，**并不会作用于你后台已有的订单。**
+            ```bash
+            stripe trigger payment_intent.succeeded
+            ```
+        5. 在 Stripe 官网后台，点击左侧菜单 `Transactions` 查看生成的测试订单。点击具体订单，可以看到事件生命周期（如 `payment_intent.created`、`charge.succeeded`、`payment_intent.succeeded`、`charge.updated` 等）。每种事件的返回数据结构不同，开发时要根据事件类型分别处理。
+        6. 回到 IDE 终端，可以看到 webhook 端点收到的事件日志。如果同一个事件出现多次，是因为 Stripe 若未及时收到你的 API 响应会自动重试。为避免重复处理，建议在后端用数据库或缓存（如 Redis）记录已处理事件的 ID。
+
+3. 补充
+
+    - Stripe 提供了许多供测试的沙盒银行卡，网址 https://docs.stripe.com/testing#international-cards
+    - 选择对应的卡片，其他信息任意填写即可支付成功
