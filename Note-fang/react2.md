@@ -1350,52 +1350,96 @@
 **知识树**
 
 1.  `useMutation` Hook：
+
     - 导入：`import { useMutation } from '@tanstack/react-query';`
     - 用途：管理异步的、会改变服务器状态的操作。
     - 配置对象参数：接收一个包含至少`mutationFn`的对象。
+
+    ```ts
+    const mutation = useMutation<
+      TData,        // 后端返回的数据类型
+      TError,       // 可能抛出的错误类型
+      TVariables,   // 传入 mutationFn 的变量类型
+      TContext      // （可选）onMutate 返回并供 onError 回滚的上下文类型
+    >(
+      mutationFn,   // 必填：定义如何向后端发起请求
+      {            // 可选：各种回调的配置对象
+        onMutate, onSuccess, onError, onSettled
+      }
+    );
+    ```
+
 2.  `mutationFn`：
-    - 定义：一个返回 Promise 的函数，负责实际执行数据变更操作（如发送 POST 请求到 API）。
-    - 参数：接收一个变量（通常是待提交的数据对象）作为其参数。
+    - 定义：一个函数，签名 `(variables: TVariables) => Promise<TData>`。
+        - `variables`：调用 `mutate(variables)` 时传入的参数。
+        - 函数内部通常使用 `axios.post`、`axios.put` 等发送请求并返回一个 `Promise`。
     - Promise 结果：
         - 成功时：Promise 应 resolve 为服务器返回的数据（可选，但常用于获取创建/更新后的对象）。
         - 失败时：Promise 应 reject 或抛出一个错误。
-3.  `useMutation`的返回值：
-    - 一个变更对象，常用属性和方法包括：
-        - `mutate`: (函数) 调用此函数来触发变更操作。它接收一个变量作为参数，此变量会传递给`mutationFn`。
-        - `mutateAsync`: (函数) 与`mutate`类似，但返回一个 Promise，允许更灵活地处理成功或失败。
-        - `data`: (any | undefined) 变更成功时，`mutationFn`的 Promise resolve 的值。
-        - `error`: (Error | null) 变更失败时的错误对象。
-        - `isLoading`: (boolean) 变更是否正在进行中。
-        - `isSuccess`: (boolean) 变更是否已成功完成。
-        - `isError`: (boolean) 变更是否已失败。
-        - `status`: ('idle' | 'loading' | 'error' | 'success') 变更的当前状态。
-        - `reset`: (函数) 将变更状态重置回`idle`。
-4.  回调函数：
+3.  **第二个参数（配置对象）**：可选属性：回调函数：
     - `onSuccess: ( (data, variables, context) => void | Promise<void> ) 变更成功后调用。
-        - `data`: `mutationFn`成功时返回的数据。
+        - `data`: `mutationFn`成功 时返回的数据。
         - `variables`: 调用`mutate`时传递给`mutationFn`的变量。
         - `context`: 由`onMutate`返回的上下文对象。
-    - `onError: ( (error, variables, context) => void | Promise<void> ) 变更失败后调用。
-    - `onSettled: ( (dataOrError, error, variables, context) => void | Promise<void> ) 变更无论成功或失败都会调用。
-    - `onMutate: ( (variables) => context | Promise<context> ) 在`mutationFn`执行前调用，常用于乐观更新。
-5.  与查询缓存的交互：
+    - `onError: ( (error, variables, context) => void | Promise<void> ) 请求失败时调用，可利用 `context` 回滚。
+    - `onSettled: ( (dataOrError, error, variables, context) => void | Promise<void> ) 无论成功或失败都会执行，适合清理或隐藏加载态。
+    - `onMutate: ( (variables) => context | Promise<context> ) 在`mutationFn`执行前调用，常用于乐观更新。在请求发起前执行，可返回上下文用于后续回滚。
+4.  **回调函数详解**
+    - **onMutate**：
+        - 在请求发起前被调用，常用于乐观更新：先修改本地缓存，然后在 `onError` 中回滚。
+        - 返回值类型 `TContext`，会传递给后续的 `onError` 或 `onSettled`。
+    - **onSuccess**：
+        - 请求成功后调用，参数：`(data: TData, variables: TVariables, context?: TContext)`。
+        - 推荐在此处调用 `queryClient.setQueryData` 或 `invalidateQueries` 更新缓存。
+    - **onError**：
+        - 请求失败后调用，参数：`(error: TError, variables: TVariables, context?: TContext)`。
+        - 若使用乐观更新，可在此通过 `context` 回滚到原始状态。
+        - ` context`是一个对象，用于在回调函数之间传递数据
+    - **onSettled**：
+        - 请求完成（成功或失败）后都会执行，适合收尾操作，如隐藏加载指示或重置表单。
+5.  `useMutation`的返回值：
+    - 一个变更对象，常用属性和方法包括：
+        - `mutate`: (函数) 调用此函数来触发变更操作。它接收一个变量作为参数，此变量会传递给`mutationFn`。
+        - `mutateAsync`: (函数) 与`mutate`类似，但返回一个 Promise，允许更灵活地处理成功或失败。方便 `async/await`。
+        - `data: TData | undefined`：变更成功时，`mutationFn`的 Promise resolve 的值。
+        - `error: TError | null`：变更失败时的错误对象。
+        - `isLoading: boolean`：变更是否正在进行中。
+        - `isSuccess: (boolean)`： 变更是否已成功完成。
+        - `isError: boolean`：变更是否已失败。
+        - `status: 'idle' | 'loading' | 'error' | 'success'`：变更的当前状态。
+        - `reset`: (函数) 将变更状态重置回`idle`。
+6.  与查询缓存的交互：
     - **缓存失效 (Invalidation)**：变更成功后，通常需要使相关的查询缓存失效，以促使 React Query 重新获取最新数据。
         - 使用`useQueryClient` Hook 获取`queryClient`实例。
         - 在`onSuccess`回调中调用`queryClient.invalidateQueries(['queryKeyToInvalidate'])`。
     - **直接更新缓存 (Manual Cache Updates)**：对于某些场景（如 JSONPlaceholder 这类不真实保存数据的 API），或为了更精细的控制，可以在`onSuccess`回调中使用`queryClient.setQueryData(['queryKey'], updateFn)`直接修改缓存中的数据。
         - `updateFn`接收旧的缓存数据，返回新的缓存数据。
-6.  TypeScript 类型支持：
+7.  TypeScript 类型支持：
     - `useMutation<TData, TError, TVariables, TContext>(...)`
         - `TData`: `mutationFn`成功时返回的数据类型。
         - `TError`: 错误类型。
         - `TVariables`: 调用`mutate`时传递给`mutationFn`的变量类型。
         - `TContext`: `onMutate`返回的上下文对象类型。
-7.  整体数据流分析
+8.  整体数据流分析
     1.  数据获取 ： useTodos Hook 使用 React Query 的 useQuery 从 API 获取待办事项列表
     2.  数据展示 ：TodoList 组件使用 useTodos 获取数据并渲染列表
     3.  数据添加 ：TodoForm 组件使用 React Query 的 useMutation 添加新的待办事项
     4.  缓存更新 ：成功添加后，直接更新 React Query 的缓存，无需重新获取数据
-8.  技术亮点 1. 类型安全 ：使用 TypeScript 接口和泛型确保类型安全 2. 状态管理 ：使用 React Query 管理服务器状态，包括加载状态、错误处理和缓存 3. 优化性能 ：通过直接更新缓存减少不必要的网络请求 4. 关注点分离 ：将数据获取逻辑封装在自定义 Hook 中，与 UI 组件分离
+9.  技术亮点
+    1.  类型安全 ：使用 TypeScript 接口和泛型确保类型安全
+    2.  状态管理 ：使用 React Query 管理服务器状态，包括加载状态、错误处理和缓存
+    3.  优化性能 ：通过直接更新缓存减少不必要的网络请求
+    4.  关注点分离 ：将数据获取逻辑封装在自定义 Hook 中，与 UI 组件分离
+10. **常见用法场景**
+    - **创建（Create）**：提交表单后发起 `POST` 请求，将新项插入数据库，并更新 UI。
+    - **更新（Update）**：发送 `PUT`/`PATCH` 请求，将局部字段修改为新值。
+    - **删除（Delete）**：调用 `DELETE` 请求后从本地列表中移除对应项。
+11. **注意事项**
+    - **类型安全**：务必在调用 `useMutation` 时指定泛型，以保证回调参数类型正确。
+    - **空值与可空链**：当使用 `ref.current?.value` 时，若 `current` 为 `null`，需防止直接传 `undefined` 给 `mutate`。
+    - **不可变更新**：在回调（如 `onSuccess`）中更新缓存时，切勿修改原始数组，需返回新数组。
+    - **乐观更新风控**：若要在提交前就更新 UI，需在 `onMutate` 中先修改缓存并在 `onError` 时回滚；否则可直接在 `onSuccess` 中更新。
+    - **真实 API vs JSON Placeholder**：示例中使用 JSON Placeholder，POST 后服务器并不真正保存数据，因此“失效缓存”方式在示例中不能立即看到新增效果，但在真实后端中是完全正确的做法。
 
 **代码示例**
 
@@ -1413,7 +1457,7 @@
 
 2. 使用`useMutation`添加新的 Todo
 
-    ````tsx
+```tsx
     // ToDoForm.tsx
     import React, { useRef } from 'react';
     import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -1429,60 +1473,65 @@
     // 2. 使用 useMutation Hook
     const addTodo = useMutation(
     // 3. 定义 mutationFn
-    mutationFn: (todo: Todo) =>//mutationFn 接收一个 Todo 对象，发送到服务器，并返回响应数据
-    axios
-    .post<Todo>("https://jsonplaceholder.typicode.com/todos", todo)
-    .then((res) => res.data),//<Todo>表示期望服务器返回的数据类型是 Todo 。
-    onSuccess: (savedTodo, newTodo) => {
-    console.log('Todo added successfully:', savedTodo);
+      mutationFn: (todo: Todo) =>//mutationFn 接收一个 Todo 对象，发送到服务器，并返回响应数据
+        axios
+        .post<Todo>("https://jsonplaceholder.typicode.com/todos", todo)
+        .then((res) => res.data),//<Todo>表示期望服务器返回的数据类型是 Todo 。
+        onSuccess: (savedTodo, newTodo) => {
+          console.log('Todo added successfully:', savedTodo);
+        	// 方式一：缓存失效 (JSONPlaceholder不适用此方式看到效果)
+        	// queryClient.invalidateQueries(['todos']);
 
-                // 方式一：缓存失效 (JSONPlaceholder不适用此方式看到效果)
-                // queryClient.invalidateQueries(['todos']);
-
-                // 方式二：直接更新缓存 (适用于JSONPlaceholder)
-                queryClient.setQueryData<Todo[]>(
-                  ['todos'],
-                  (todos) => [savedTodo, ...(todos || [])]
-                // 将新todo添加到列表顶部
-        	    // - 接收当前缓存中的todos数组
-        		// - 将新添加的todo ( savedTodo ) 放在数组的最前面
-        		// - 使用展开运算符 ( ... ) 将原有的todos数组展开
-        		// - 使用 (todos || []) 确保即使缓存中没有数据也不会出错
-                );
-              },
-              onError: (error) => {
-                console.error('Error adding todo:', error.message);
-              }
-          );
-
-          const handleSubmit = (event: React.FormEvent) => {
-            event.preventDefault();
-            // 5. 触发 mutationFn
-            if ((ref.current && ref.current.value) {
-              addTodo.mutate({
-                id: 0,
-                title: titleRef.current.value,
-                completed: false,
-                userId: 1, // 示例userId
-              });
-              titleRef.current.value = ''; // 清空输入框
-            }
-          };
-
-          return (
-        	<form className="row mb-3" onSubmit={handleSubmit}>
-        	  <div className="col">
-        		<input ref={ref} type="text" className="form-control" />
-        	  </div>
-        	  <div className="col">
-        		<button className="btn btn-primary">Add</button>
-        	  </div>
-        	</form>
-          );
+        	// 方式二：直接更新缓存 (适用于JSONPlaceholder)
+        	queryClient.setQueryData<Todo[]>(
+        	  ['todos'],
+        	  (todos) => [savedTodo, ...(todos || [])]
+        	// 将新todo添加到列表顶部
+        	// - 接收当前缓存中的todos数组
+        	// - 将新添加的todo ( savedTodo ) 放在数组的最前面
+        	// - 使用展开运算符 ( ... ) 将原有的todos数组展开
+        	// - 使用 (todos || []) 确保即使缓存中没有数据也不会出错
+        	);
+        	if(titleRef.cueernt) titleRef.current.value = "";
+        },
+        onError: (error) => {
+        	console.error('Error adding todo:', error.message);
         }
-        export default TodoForm;
-        ```
-    ````
+    );
+
+	const handleSubmit = (event: React.FormEvent) => {
+		event.preventDefault();
+		// 5. 触发 mutationFn
+		if ((ref.current && ref.current.value) {
+			addTodo.mutate({
+			id: 0,
+			title: titleRef.current.value,
+			completed: false,
+			userId: 1, // 示例 userId
+			});
+	    }
+	};
+
+	return (
+		<>
+			{addTodo.error && (
+				<div className="alert alert-danger">{addTodo.error.message}</div>
+			)}
+			<form className="row mb-3" onSubmit={handleSubmit}>
+				<div className="col">
+					<input ref={titleRef} type="text" className="form-control" />
+					</div>
+					<div className="col">
+					<button disabled={addTodo.isLoading} className="btn btn-primary">
+					{addTodo.isLoading ? "Adding..." : "Add"}
+					</button>
+				</div>
+			</form>
+		</>
+		);
+	}
+	export default TodoForm;
+```
 
 ## 16- 处理变更错误
 
@@ -1506,15 +1555,13 @@
 
     ```tsx
     // ToDoForm.tsx (相关部分)
-    // const addTodoMutation = useMutation<Todo, Error, Omit<Todo, 'id'>>( /* ... */ );
+    const addTodo = useMutation<Todo, Error,Todo>( /* ... */ );
 
-    // ...
-    // {addTodoMutation.isError && (
-    //   <div className="alert alert-danger mt-2" role="alert">
-    //     {addTodoMutation.error?.message || 'An unexpected error occurred.'}
-    //   </div>
-    // )}
-    // ...
+    ...
+    {addTodo.isError && (
+    	 <div className="alert alert-danger">{addTodo.error.message}</div>
+    )}
+    ...
     ```
 
     - 当`addTodoMutation.isError`为`true`时，显示一个包含错误消息的警告框。
@@ -1542,10 +1589,10 @@
 
 1.  在`ToDoForm.tsx`中显示变更进度和清空输入框 (已在第 15 节示例中包含)
 
-    ```tsx
+```tsx
     // ToDoForm.tsx (相关部分)
-    // const addTodoMutation = useMutation<Todo, Error, Omit<Todo, 'id'>>(
-    //   addTodoAPI,
+    // const addTodo = useMutation<Todo, Error,Todo>(
+    //   mutationFn,
     //   {
     //     onSuccess: (savedTodo) => {
     //       // ... (缓存更新逻辑)
@@ -1557,292 +1604,452 @@
     //   }
     // );
 
+//...
+	<button disabled={addTodo.isLoading} className="btn btn-primary">
+		{addTodo.isLoading ? "Adding..." : "Add"}
+	</button>
     // ...
-    // <button type="submit" className="btn btn-primary" disabled={addTodoMutation.isLoading}>
-    //   {addTodoMutation.isLoading ? 'Adding...' : 'Add Todo'}
-    // </button>
-    // ...
-    ```
+```
 
-## 18- 乐观更新 (Optimistic Updates)
+## 18- 乐观更新
 
-> 简述：乐观更新是一种 UI 优化策略，它假设数据变更操作会成功，并立即更新 UI 以反映预期结果，无需等待服务器确认。如果操作最终失败，则回滚 UI 到先前状态。这能显著提升用户感知的应用响应速度。
+> **简述：**  
+> 乐观更新（Optimistic Update）是一种前端优化策略。假设后端请求通常会成功，不等待后端响应，立即在 UI 中展示更新效果，使用户感受到瞬间响应。若请求成功，则同步后端返回的实际数据；若失败，则回滚至请求前的状态。React Query 使用 `onMutate`、`onSuccess` 和 `onError` 三个回调函数，结合上下文（context）机制，实现安全可靠的乐观更新。
+
+---
 
 **知识树**
 
-1.  乐观更新的核心思想：
-    - 立即反馈：用户执行操作后，UI 立即更新，仿佛操作已成功。
-    - 后台处理：实际的服务器请求在后台异步进行。
-    - 成功：服务器确认成功，UI 保持不变（因为它已是最新状态，或用服务器返回的精确数据微调）。
-    - 失败：服务器返回错误，UI 回滚到操作前的状态，并通常显示错误信息。
-2.  React Query 中实现乐观更新的步骤 (`useMutation`回调)：
-    - **`onMutate((newVariables) => context)`**：
-        - 在`mutationFn`执行前调用。
-        - **立即更新缓存**：使用`queryClient.setQueryData`手动修改相关查询的缓存数据，以模拟成功后的状态。
-        - **保存先前状态**：使用`queryClient.getQueryData`获取更新前的缓存数据，并将其作为上下文对象 (`context`) 返回。此上下文将传递给`onError`和`onSuccess`。
-        - （可选）取消可能冲突的进行中查询：`queryClient.cancelQueries(['queryKey'])`。
-    - **`onError((error, newVariables, context) => void)`**：
-        - 当`mutationFn`失败时调用。
-        - **回滚缓存**：如果`context`中保存了先前状态，使用`queryClient.setQueryData`将缓存恢复到该先前状态。
-    - **`onSuccess((data, newVariables, context) => void)`**：
-        - 当`mutationFn`成功时调用。
-        - （可选）如果服务器返回的数据比乐观更新时使用的本地数据更准确（如包含服务器生成的 ID），则可以使用服务器返回的`data`再次调用`queryClient.setQueryData`来精确更新缓存。
-        - （可选）如果之前在`onMutate`中取消了查询，可以在此重新获取或确保数据一致。
-3.  上下文对象 (`context`)：
-    - 作用：在`onMutate`, `onError`, `onSuccess`之间传递数据，特别是用于存储回滚所需的前一状态。
-    - 类型定义：为`useMutation`的第四个泛型参数`TContext`指定上下文对象的类型接口。
-4.  注意事项：
-    - 复杂性：乐观更新的实现比标准变更要复杂，需要仔细处理各种状态和回调。
-    - 适用场景：适用于那些成功率较高且即时反馈对用户体验提升明显的变更操作。
-    - 数据一致性：确保乐观更新的 UI 与服务器最终状态一致，尤其是在并发操作或服务器端逻辑复杂时。
+1.  **本节重点知识**
 
-**代码示例**
+    1.  **乐观更新定义及用途**
 
-1.  使用`useMutation`实现乐观更新添加 Todo
+        - 定义：请求发起时即立即修改本地状态与 UI，而非等待后端响应。
+        - 目的：提升用户交互体验，获得瞬时响应效果。
 
-    ```tsx
-    // ToDoForm.tsx (乐观更新版本)
-    import React, { useRef } from 'react';
-    import { useMutation, useQueryClient } from '@tanstack/react-query';
-    import axios from 'axios';
-    // import { Todo } from '../hooks/useTodos';
+    2.  **React Query 乐观更新实现方式**
 
-    export interface Todo { id: number; title: string; completed: boolean; userId: number; }
+        - 核心回调函数：
+            - **onMutate**：请求发起前立即执行（用于即时修改缓存）。
+            - **onSuccess**：请求成功时执行（替换本地数据为真实数据）。
+            - **onError**：请求失败时执行（回滚到更新前状态）。
+        - 使用上下文（context）对象传递中间状态。
 
+2.  **核心 API 与回调函数详解**
 
-    interface AddTodoContext { // 上下文对象类型
-      previousTodos?: Todo[];
+    1.  **onMutate** 回调函数
+
+        - 执行时机：在请求函数（mutationFn）执行前。
+        - 作用：
+            - 即时更新 UI（修改 query 缓存）。
+            - 创建并返回上下文对象（用于后续回滚）。
+        - 参数：`onMutate: (variables: TVariables) => TContext | Promise<TContext>`
+            - `variables`：调用 mutation 时传入的数据（如新增的 todo 项目）。
+        - 返回 `context`（上下文对象），包含更新前的数据（用于失败时回滚）。
+
+    2.  **onSuccess** 回调函数
+
+        - 执行时机：请求成功、服务器返回数据后。
+        - 作用：
+            - 更新本地缓存，以服务端返回数据为准。
+        - 参数：`onSuccess: (data: TData, variables: TVariables, context?: TContext) => void`
+            - `data`：服务器返回数据（如新增 todo 项，含真实 ID）。
+            - `variables`：提交请求时传入的数据（乐观 UI 中临时数据）。
+            - `context`：可选，上下文对象。
+
+    3.  **onError** 回调函数
+        - 执行时机：请求失败时触发。
+        - 作用：
+            - 回滚本地缓存到请求前的状态（利用 context）。
+        - 参数：`onError: (error: TError, variables: TVariables, context?: TContext) => void`
+            - `error`：请求失败的错误信息。
+            - `variables`：调用 mutation 时传入的数据。
+            - `context`：包含更新前缓存状态的上下文对象，用于回滚。
+
+3.  **上下文（Context）机制**
+
+    1.  **用途**
+
+        - 保存 mutation 请求前的缓存数据（旧数据）。
+        - 传递给 `onError` 回调，用于失败时安全回滚。
+
+    2.  **实现步骤**
+
+        - 定义明确的上下文类型接口：
+            ```ts
+            interface AddTodoContext {
+              previousTodos: ToDo[];
+            }
+            ```
+        - 在 `onMutate` 中返回此上下文：
+            ```ts
+            onMutate: async (newTodo) => {
+              const previousTodos = queryClient.getQueryData<ToDo[]>(['todos']) || [];
+              queryClient.setQueryData(['todos'], [newTodo, ...previousTodos]);
+              return { previousTodos };
+            }
+            ```
+        - 在 `onError` 中使用此上下文回滚数据：
+            ```ts
+            onError: (error, newTodo, context) => {
+              if (context?.previousTodos) {
+                queryClient.setQueryData(['todos'], context.previousTodos);
+              }
+            }
+            ```
+
+4.  **教师示例实现思路与顺序（回忆用）**
+
+    - **步骤一（onMutate 实现）**
+        - 创建上下文对象，保存请求前数据；
+        - 立即修改缓存，优化用户体验。
+    - **步骤二（onSuccess 实现）**
+        - 成功时，用真实返回数据替换临时数据（如更新真实 ID）；
+        - 使用 `.map()` 方法找到并替换临时数据。
+    - **步骤三（onError 实现）**
+        - 失败时，通过上下文回滚数据至原状态。
+
+---
+
+**完整代码示例**
+
+```tsx
+import React, { useRef } from 'react';
+import axios from 'axios';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { ToDo } from './useTodos';
+
+// 接口 URL
+const TODOS_URL = 'https://jsonplaceholder.typicode.com/todos';
+
+// Mutation 函数（发送请求到后端）
+const addToDoRequest = async (newToDo: ToDo): Promise<ToDo> => {
+  const response = await axios.post<ToDo>(TODOS_URL, newToDo);
+  return response.data;
+};
+
+// 定义上下文接口
+interface AddTodoContext {
+  previousTodos: ToDo[];
+}
+
+export const ToDoForm: React.FC = () => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+
+  // 使用 useMutation 并定义回调（带上下文类型）
+  const addToDoMutation = useMutation<ToDo, Error, ToDo, AddTodoContext>(
+    addToDoRequest,
+    {
+      // 1. onMutate：请求前立即更新 UI
+      onMutate: (newToDo) => {
+        // 获取更新前缓存
+        const previousTodos = queryClient.getQueryData<ToDo[]>(['todos']) || [];
+
+        // 立即更新缓存（乐观更新）
+        queryClient.setQueryData(['todos'], [newToDo, ...previousTodos]);
+
+        // 返回上下文对象供失败时回滚
+        return { previousTodos };
+      },
+
+      // 2. onSuccess：用真实返回数据替换临时数据
+      onSuccess: (savedToDo, newToDo) => {
+        queryClient.setQueryData<ToDo[]>(['todos'], (todos = []) =>
+          todos.map((todo) =>
+            todo === newToDo ? savedToDo : todo
+          )
+        );
+      },
+
+      // 3. onError：失败时回滚到更新前状态
+      onError: (error, newToDo, context) => {
+        if (context?.previousTodos) {
+          queryClient.setQueryData(['todos'], context.previousTodos);
+        }
+        console.error('创建失败：', error.message);
+      },
     }
+  );
 
-    const addTodoOptimisticAPI = (newTodo: Omit<Todo, 'id'>): Promise<Todo> => {
-      // 模拟API调用
-      return new Promise((resolve, reject) => {
-        setTimeout(() => {
-          // 模拟成功或失败
-          if (Math.random() > 0.3) { // 70% 成功率
-            const savedTodo: Todo = { ...newTodo, id: Date.now() }; // 模拟服务器生成ID
-            resolve(savedTodo);
-          } else {
-            reject(new Error('Failed to add todo on server.'));
-          }
-        }, 1000);
-      });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const title = inputRef.current?.value.trim();
+    if (!title) return;
+
+    const newToDo: ToDo = {
+      userId: 1,
+      id: Date.now(), // 临时 ID，用于 UI
+      title,
+      completed: false,
     };
 
+    addToDoMutation.mutate(newToDo);
 
-    function TodoFormOptimistic() {
-      const titleRef = useRef<HTMLInputElement>(null);
-      const queryClient = useQueryClient();
-
-      const addTodoMutation = useMutation<Todo, Error, Omit<Todo, 'id'>, AddTodoContext>(
-        addTodoOptimisticAPI,
-        {
-          onMutate: async (newTodoData) => {
-            // 1. 取消可能冲突的查询 (可选)
-            await queryClient.cancelQueries(['todos']);
-
-            // 2. 获取当前缓存数据作为先前状态
-            const previousTodos = queryClient.getQueryData<Todo[]>(['todos']);
-
-            // 3. 乐观地更新缓存
-            const optimisticTodo: Todo = {
-                ...newTodoData,
-                id: Date.now(), // 临时客户端ID，会被服务器ID替换
-                completed: false, // 确保默认值
-            };
-            queryClient.setQueryData<Todo[]>(['todos'], (old = []) => [optimisticTodo, ...old]);
-
-            // 4. 返回包含先前状态的上下文
-            return { previousTodos };
-          },
-          onError: (error, newTodoData, context) => {
-            console.error('Optimistic update failed, rolling back:', error.message);
-            // 5. 如果有先前状态，则回滚缓存
-            if (context?.previousTodos) {
-              queryClient.setQueryData<Todo[]>(['todos'], context.previousTodos);
-            }
-          },
-          onSuccess: (savedTodoFromServer, newTodoData, context) => {
-            console.log('Optimistic update succeeded on server.');
-            // 6. (可选) 用服务器返回的精确数据更新缓存中的对应项
-            //    这里需要更复杂的逻辑来替换临时客户端ID的项
-            //    简单起见，如果ID不同，可以重新设置整个列表，或精确查找替换
-            queryClient.setQueryData<Todo[]>(['todos'], (old = []) =>
-              old.map(todo => todo.id === context?.previousTodos?.find(pt => pt.title === newTodoData.title)?.id // 查找临时项
-                               ? savedTodoFromServer // 替换为服务器返回的项
-                               : todo)
-            );
-            // 或者，如果onMutate中添加的临时ID能唯一确定，则：
-            // queryClient.setQueryData<Todo[]>(['todos'], (old = []) =>
-            //   old.map(todo => todo.id === /* 临时ID */ ? savedTodoFromServer : todo)
-            // );
-          },
-          onSettled: () => {
-            // 7. (可选) 无论成功或失败，都重新获取'todos'查询以确保最终一致性
-            // queryClient.invalidateQueries(['todos']);
-          },
-        }
-      );
-      // ... (handleSubmit和JSX与之前类似, 但UI更新会立即发生)
-      const handleSubmit = (event: React.FormEvent) => {
-        event.preventDefault();
-        if (titleRef.current?.value) {
-          const newTodoData: Omit<Todo, 'id'> = {
-            title: titleRef.current.value,
-            completed: false,
-            userId: 1,
-          };
-          addTodoMutation.mutate(newTodoData);
-          if (titleRef.current) titleRef.current.value = '';
-        }
-      };
-
-      return (
-        <form onSubmit={handleSubmit} className="mb-3">
-          {/* ... (input and button JSX, button text/disabled state based on addTodoMutation.isLoading) ... */}
-           <div className="input-group">
-            <input ref={titleRef} type="text" className="form-control" placeholder="New Todo (Optimistic)" />
-            <button type="submit" className="btn btn-info" disabled={addTodoMutation.isLoading}>
-              {addTodoMutation.isLoading ? 'Adding...' : 'Add Optimistically'}
-            </button>
-          </div>
-          {addTodoMutation.isError && <p className="text-danger mt-1">{addTodoMutation.error?.message}</p>}
-        </form>
-      );
+    if (inputRef.current) {
+      inputRef.current.value = '';
     }
-    export default TodoFormOptimistic;
-    ```
+  };
+
+  return (
+    <>
+      {addToDoMutation.error && (
+        <div className="alert alert-danger">
+          错误：{addToDoMutation.error.message}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          ref={inputRef}
+          placeholder="输入新的待办事项"
+        />
+        <button type="submit" disabled={addToDoMutation.isLoading}>
+          添加
+        </button>
+      </form>
+    </>
+  );
+};
+```
+
+---
+
+**注意事项与总结**
+
+- **务必实现回滚机制**：乐观更新必然伴随失败风险，必须确保能回滚。
+- **临时数据与真实数据替换**：必须在 `onSuccess` 中将临时数据替换为后端返回的数据，以保证数据准确性（如真实 ID）。
+- **明确上下文类型**：定义明确的上下文接口并传入泛型，保证类型安全。
+
+---
+
+**教师实现步骤快速回忆（编程时参考）**
+
+① 在 `onMutate` 里即时更新 UI → 创建上下文并返回  
+② 在 `onSuccess` 中替换临时数据为真实数据  
+③ 在 `onError` 中使用上下文数据安全回滚到初始状态  
+④ 注意泛型定义明确上下文类型（`useMutation<TData, TError, TVariables, TContext>`）
+
+通过上述详细笔记，即可清晰掌握和回忆 React Query 中乐观更新的实现方法。
 
 ## 19- 创建自定义变更 Hook
 
-> 简述：为了提高代码的模块化、可复用性和可维护性，应将与特定数据变更操作相关的`useMutation`逻辑（包括`mutationFn`、回调函数如`onMutate`, `onSuccess`, `onError`等）封装到自定义 Hook 中。
+> **简述：**  
+> 当 React 组件同时包含 UI 渲染和数据请求的逻辑时，组件变得复杂且难以维护。为提高代码的模块化、可维护性，我们应将数据管理逻辑抽离为自定义的 hook。这样组件可以专注于 UI 呈现，而 hook 则负责数据逻辑，实现职责分离（separation of concerns）。本节以新增 Todo 为例，展示如何创建并使用自定义 Mutation Hook。
+
+---
 
 **知识树**
 
-1.  关注点分离的必要性：
-    - 问题：直接在 UI 组件中使用复杂的`useMutation`配置（尤其是包含乐观更新逻辑时）会导致组件臃肿，混合了 UI 逻辑和数据管理逻辑。
-    - 目标：UI 组件应主要负责渲染和用户交互，数据变更的复杂细节应由专门的 Hook 处理。
-2.  自定义变更 Hook 的创建：
-    - 命名约定：以`use`开头，后跟动词和操作对象，如`useAddTodo`、`useUpdatePost`。
-    - 文件组织：通常放在`hooks`目录下。
-    - 实现：
-        1.  将原组件中与`useMutation`相关的代码（`mutationFn`、类型定义、回调逻辑、`queryClient`的使用等）移至自定义 Hook。
-        2.  自定义 Hook 内部调用`useMutation`。
-        3.  自定义 Hook 返回`useMutation`的结果（整个变更对象或其解构后的部分）。
-3.  处理 UI 相关的副作用：
-    - 问题：自定义 Hook 不应直接操作 UI（如清空输入框），因为它应保持通用和可复用。
-    - 解决方案：自定义 Hook 可以接受一个回调函数作为参数（如`onAddSuccess`），在变更成功等特定时机调用此回调，由调用方（UI 组件）在此回调中执行 UI 相关的操作。
-4.  共享常量与类型：
-    - `queryKey`：应定义为常量并在查询 Hook 和变更 Hook 之间共享，避免硬编码和拼写错误。
-    - 数据接口/类型：如`Todo`接口、`AddTodoContext`接口，应定义在共享位置或随 Hook 一起导出，供调用方使用。
-5.  优势：
-    - **代码复用**：多个组件如果需要执行相同的变更操作，可以复用同一个自定义变更 Hook。
-    - **可维护性**：变更逻辑集中管理，修改时只需在一处进行。
-    - **可测试性**：自定义 Hook 可以独立于 UI 组件进行测试。
-    - **组件简洁**：UI 组件调用自定义 Hook，代码更清晰，职责更单一。
+1. **本节重点知识**
 
-**代码示例**
+    1. **自定义 Hook 概念与意义**
+        - 自定义 Hook：一种抽取组件间共享逻辑的机制，命名需以 `use` 开头。
+        - 优势：提高组件的专一性、易于维护、促进代码复用。
+    2. **组件与 Hook 职责分离**
 
-1.  创建自定义 Hook `useAddTodo.ts`
+        - 组件（UI）：处理渲染、交互、状态更新。
+        - Hook（数据逻辑）：封装数据请求、缓存管理、乐观更新、错误处理等。
 
-    ```ts
-    // src/hooks/useAddTodo.ts
-    import { useMutation, useQueryClient } from '@tanstack/react-query';
-    import axios from 'axios';
-    // import { Todo } from './useTodos'; // 假设Todo接口从useTodos导入或共享
-    // import { CACHE_KEY_TODOS } from '../react-query/constants'; // 假设queryKey常量已定义
+2. **自定义 Mutation Hook 创建步骤**
 
-    export interface Todo { id: number; title: string; completed: boolean; userId: number; } // 临时定义
-    export const CACHE_KEY_TODOS = ['todos']; // 临时定义
+    1. **抽取代码到独立 Hook**
 
-    interface AddTodoContext {
-      previousTodos?: Todo[];
+        - 创建新文件：如 `useAddTodo.ts`。
+        - 抽取 Mutation 逻辑、`useQueryClient` 和回调函数 (`onMutate`、`onSuccess`、`onError`) 到新 Hook。
+
+    2. **明确 Hook 职责（数据管理）**
+
+        - Hook 中避免任何直接操作 UI 的逻辑（如 DOM 操作或 React refs）。
+        - UI 更新逻辑（如清空输入框）交由组件执行。
+
+    3. **提供回调接口给组件**
+
+        - 在 Hook 中定义回调函数参数，让组件决定何时、如何更新 UI：
+
+        ```ts
+        function useAddTodo(onAdd: () => void) { ... }
+        ```
+
+    4. **返回 Mutation 对象**
+
+        - Hook 返回 Mutation 对象供组件使用：
+
+        ```ts
+        const mutation = useMutation(...);
+        return mutation;
+        ```
+
+    5. **定义共享的常量（缓存键）**
+
+        - 避免缓存键重复与拼写错误，将缓存键定义到独立的常量文件：
+
+        ```ts
+        // constants.ts
+        export const CACHE_KEY_TODOS = ['todos'];
+        ```
+
+    6. **优化泛型类型与上下文（Context）接口**
+
+        - 将上下文接口定义在 Hook 文件中，明确类型。
+
+3. **代码重构与职责分离的完整过程**
+
+    **教师实现顺序：**
+
+    - 创建 `useAddTodo` Hook 文件。
+    - 从组件抽取数据管理逻辑到 Hook。
+    - Hook 接受回调函数参数，由组件决定 UI 逻辑。
+    - Hook 返回 Mutation 对象给组件调用。
+    - 提取公共缓存键到常量文件中。
+    - 组织 import，去除冗余导入。
+
+---
+
+**完整代码示例**
+
+### 步骤一：定义缓存键常量
+
+```ts
+// constants.ts
+export const CACHE_KEY_TODOS = ['todos'];
+```
+
+### 步骤二：创建自定义 Hook (`useAddTodo.ts`)
+
+```tsx
+// useAddTodo.ts
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
+import { ToDo } from './useTodos';
+import { CACHE_KEY_TODOS } from '../constants';
+
+// 上下文类型
+interface AddTodoContext {
+  previousTodos: ToDo[];
+}
+
+// mutation 函数
+const addToDoRequest = async (newToDo: ToDo): Promise<ToDo> => {
+  const response = await axios.post<ToDo>('https://jsonplaceholder.typicode.com/todos', newToDo);
+  return response.data;
+};
+
+// 自定义 Hook
+export const useAddTodo = (onAdd: () => void) => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation<ToDo, Error, ToDo, AddTodoContext>(
+    addToDoRequest,
+    {
+      onMutate: (newToDo) => {
+        const previousTodos = queryClient.getQueryData<ToDo[]>(CACHE_KEY_TODOS) || [];
+
+        queryClient.setQueryData(CACHE_KEY_TODOS, [newToDo, ...previousTodos]);
+
+        return { previousTodos };
+      },
+      onSuccess: (savedToDo, newToDo) => {
+        queryClient.setQueryData<ToDo[]>(CACHE_KEY_TODOS, (todos = []) =>
+          todos.map((todo) => (todo === newToDo ? savedToDo : todo))
+        );
+
+        onAdd(); // 通知组件完成数据更新后的 UI 操作
+      },
+      onError: (_error, _newToDo, context) => {
+        if (context?.previousTodos) {
+          queryClient.setQueryData(CACHE_KEY_TODOS, context.previousTodos);
+        }
+      },
     }
+  );
 
-    // 假设addTodoAPI与之前定义类似
-    const addTodoAPI = (newTodo: Omit<Todo, 'id'>): Promise<Todo> => {
-      return axios.post<Todo>('https://jsonplaceholder.typicode.com/todos', newTodo)
-        .then(res => res.data);
+  return mutation;
+};
+```
+
+### 步骤三：组件调用自定义 Hook (`ToDoForm.tsx`)
+
+```tsx
+// ToDoForm.tsx
+import React, { useRef } from 'react';
+import { useAddTodo } from './hooks/useAddTodo';
+
+export const ToDoForm: React.FC = () => {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // 调用自定义 Hook 并提供 UI 更新回调
+  const addToDoMutation = useAddTodo(() => {
+    if (inputRef.current) {
+      inputRef.current.value = ''; // UI更新逻辑
+    }
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const title = inputRef.current?.value.trim();
+    if (!title) return;
+
+    const newToDo = {
+      userId: 1,
+      id: Date.now(), // 临时ID
+      title,
+      completed: false,
     };
 
+    addToDoMutation.mutate(newToDo);
+  };
 
-    interface UseAddTodoOptions {
-      onAdd?: () => void; // UI相关的成功回调
-    }
+  return (
+    <>
+      {addToDoMutation.error && (
+        <div className="alert alert-danger">
+          错误：{addToDoMutation.error.message}
+        </div>
+      )}
 
-    const useAddTodo = (options?: UseAddTodoOptions) => {
-      const queryClient = useQueryClient();
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          ref={inputRef}
+          placeholder="输入新的待办事项"
+        />
+        <button type="submit" disabled={addToDoMutation.isLoading}>
+          添加
+        </button>
+      </form>
+    </>
+  );
+};
+```
 
-      return useMutation<Todo, Error, Omit<Todo, 'id'>, AddTodoContext>(
-        addTodoAPI,
-        {
-          onMutate: async (newTodoData) => {
-            // ... (乐观更新的onMutate逻辑，使用CACHE_KEY_TODOS)
-            const previousTodos = queryClient.getQueryData<Todo[]>(CACHE_KEY_TODOS);
-            const optimisticTodo: Todo = { ...newTodoData, id: Date.now(), completed: false, userId: 1 };
-            queryClient.setQueryData<Todo[]>(CACHE_KEY_TODOS, (old = []) => [optimisticTodo, ...old]);
-            return { previousTodos };
-          },
-          onSuccess: (savedTodo, newTodoData, context) => {
-            // ... (乐观更新的onSuccess逻辑，使用CACHE_KEY_TODOS)
-            if (options?.onAdd) {
-              options.onAdd(); // 调用UI组件传递的回调
-            }
-          },
-          onError: (error, newTodoData, context) => {
-            // ... (乐观更新的onError逻辑，使用CACHE_KEY_TODOS)
-            if (context?.previousTodos) {
-              queryClient.setQueryData<Todo[]>(CACHE_KEY_TODOS, context.previousTodos);
-            }
-          },
-        }
-      );
-    };
+---
 
-    export default useAddTodo;
-    ```
+**注意事项与总结**
 
-2.  在组件中使用自定义变更 Hook `ToDoForm.tsx`
+- **职责明确**：
+    - Hook 专注数据管理逻辑（网络请求、缓存更新）。
+    - 组件专注 UI 呈现和用户交互逻辑。
+- **避免 UI 依赖**：
+    - Hook 内部不能直接访问 DOM 或 UI 状态，如 React refs。
+    - UI 操作通过回调函数传递给 Hook，更具通用性。
+- **使用统一常量管理缓存键**：
+    - 防止拼写错误，便于统一维护。
 
-    ```tsx
-    // src/react-query/ToDoForm.tsx
-    import React, { useRef } from 'react';
-    import useAddTodo from '../hooks/useAddTodo'; // 导入自定义Hook
+---
 
-    function TodoFormWithCustomHook() {
-      const titleRef = useRef<HTMLInputElement>(null);
-      const addTodoMutation = useAddTodo({ // 使用自定义Hook
-        onAdd: () => { // UI相关的成功回调
-          if (titleRef.current) {
-            titleRef.current.value = '';
-          }
-        }
-      });
+**教师实现步骤快速回忆（编程时参考）**
 
-      const handleSubmit = (event: React.FormEvent) => {
-        event.preventDefault();
-        if (titleRef.current?.value) {
-          addTodoMutation.mutate({
-            title: titleRef.current.value,
-            // completed and userId would be set by API or default in mutationFn
-          });
-        }
-      };
-      // ... (JSX与之前类似，使用addTodoMutation的状态)
-      return (
-         <form onSubmit={handleSubmit} className="mb-3">
-          <div className="input-group">
-            <input ref={titleRef} type="text" className="form-control" placeholder="New Todo (Custom Hook)" />
-            <button type="submit" className="btn btn-success" disabled={addTodoMutation.isLoading}>
-              {addTodoMutation.isLoading ? 'Adding...' : 'Add with Hook'}
-            </button>
-          </div>
-          {addTodoMutation.isError && <p className="text-danger mt-1">{addTodoMutation.error?.message}</p>}
-        </form>
-      );
-    }
-    export default TodoFormWithCustomHook;
-    ```
+① 创建 `useAddTodo` Hook 文件 → 提取 Mutation 与缓存逻辑  
+② Hook 提供 UI 操作回调，组件传入更新 UI 的具体逻辑  
+③ Hook 返回 Mutation 对象给组件调用  
+④ 提取缓存键到统一常量文件  
+⑤ 优化 imports，去除冗余导入
+
+通过以上笔记，可深入理解并熟练使用 React Query 自定义 Hook 模式，有效管理数据逻辑与 UI 分离。
 
 ## 20- 创建可复用的 API 客户端
 
