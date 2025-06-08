@@ -7400,3 +7400,123 @@ Organizing code
     	// 省略
     }
     ```
+
+## Stripe Webhook 实现
+
+> 简述：通过实现 Stripe Webhook 接口，自动接收并验证支付状态回调，实现订单状态与支付结果的解耦与自动同步，保证支付流程安全、可靠。
+
+**知识树**
+
+1. 支付成功/失败后
+
+    - Stripe 将发送一个请求给指定的断点，该请求具备特定的签名，包含一个 json 字符串，字符串中包含发生了什么。
+
+2. Webhook 接口设计
+
+    - 提供 POST `/checkout/webhook` 端点，接收 Stripe 服务器回调。
+    - 从请求头读取 `stripe-signature`，结合 Stripe 后台提供的 webhook secret 校验请求真实性。
+    - 需要允许匿名访问，无需用户认证，凭签名校验身份。
+
+3. 具体流程
+
+    - 使用 Stripe SDK 解析 payload，获得 `Event` 对象与类型。
+    - 依据 event type（如 `payment_intent.succeeded`、`payment_intent.failed`），分流处理不同业务场景。
+    - 通过 event 中携带的唯一标识查找本地订单，按事件内容原子更新为已支付/失败。
+    - 返回 200 OK 响应以告知 Stripe 处理成功；校验失败则返回 400。
+
+**代码示例**
+
+1. 设置 webhook secret
+
+    ```yaml
+    stripe:
+      secretKey: ${STRIPE_SECRET_KEY}
+      webhookSecretKey: ${STRIPE_WEBHOOK_SECRET_KEY}
+    ```
+
+2. `Webhook` 接口实现
+
+    ```java
+    @RequiredArgsConstructor
+    @RestController
+    @RequestMapping("/checkout")
+    public class CheckoutController {
+        private final CheckoutService checkoutService;
+
+
+        @Value("${stripe.webhookSecretKey}")
+        private String webhookSecretKey;
+
+    	// 省略
+
+        @PostMapping("/webhook")
+        public ResponseEntity<Void> handleWebhook(
+                @RequestHeader("Stripe-Signature") String signature,
+                @RequestBody String payload
+        ) {
+            try {
+                var event = Webhook.constructEvent(payload, signature, webhookSecretKey);
+                System.out.println(event.getType());
+
+                var stripeObject = event.getDataObjectDeserializer().getObject().orElse(null);
+
+                switch (event.getType()) {
+                    case "payment_intent.succeeded" -> {
+                        // Update order status (PAID)
+                    }
+                    case "payment_intent.failed" -> {
+                        // Update order status (FAILED)
+                    }
+                }
+
+                return ResponseEntity.ok().build();
+
+            } catch (SignatureVerificationException e) {
+                return ResponseEntity.badRequest().build();
+            }
+        }
+
+    	// 省略
+    }
+    ```
+
+    - 描述：校验签名，解析事件类型，分发到不同订单状态更新逻辑。
+
+3. Spring Security 放行
+
+    ```java
+    @Configuration
+    @EnableWebSecurity
+    @AllArgsConstructor
+    public class SecurityConfig {
+
+    	// 省略
+
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+            http
+                    .sessionManagement(c ->
+                            c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .authorizeHttpRequests(c -> c
+                            .requestMatchers("/carts/**").permitAll()
+                            .requestMatchers("/admin/**").hasRole(Role.ADMIN.name())
+                            .requestMatchers(HttpMethod.POST, "/users").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/checkout/webhook").permitAll()
+                            .anyRequest().authenticated()
+                    )
+                    .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                    .exceptionHandling(c -> {
+                        c.authenticationEntryPoint(
+                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
+                        c.accessDeniedHandler(((request, response, accessDeniedException) ->
+                                response.setStatus(HttpStatus.FORBIDDEN.value())));
+                    });
+            return http.build();
+        }
+    }
+    ```
+
+    - 描述：允许 webhook 端点匿名访问，防止认证拦截。
