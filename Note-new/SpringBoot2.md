@@ -7455,9 +7455,10 @@ Organizing code
                 @RequestBody String payload
         ) {
             try {
+                // 验证消息的合法性（校验签名，防止伪造），并把内容反序列化为 Event 对象（Stripe 的通用事件对象）
                 var event = Webhook.constructEvent(payload, signature, webhookSecretKey);
                 System.out.println(event.getType());
-
+    			// 从 Stripe Event 中提取核心业务对象
                 var stripeObject = event.getDataObjectDeserializer().getObject().orElse(null);
 
                 switch (event.getType()) {
@@ -7677,3 +7678,171 @@ Organizing code
     ```
 
     - 描述：解包 PaymentIntent，提取元数据，查找并更新订单状态。
+
+## 支付网关抽象与解耦
+
+> 简述：通过抽象接口封装支付服务，屏蔽第三方细节，提供统一业务调用，简化支付渠道扩展与维护。
+
+**知识树**
+
+1. 原有 controller 中 webhook 逻辑
+
+    - 接收 Header 中的签名和 Body 中的 payload；
+    - 验证合法性并反序列化，将数据转为核心业务对象；
+    - 获取事件状态，根据状态（如支付成功/失败）执行对应的业务处理。
+
+2. 方案优化
+
+    - 参数解耦与泛化
+        - 将接收的签名及参数转换为通用 Map，避免强依赖 Stripe，便于未来对接多种支付/第三方 webhook。
+        - 为此设计 WebhookRequest DTO 作为通用入参载体。
+    - 业务逻辑下沉 service 层
+        - 在 service 层统一接收并处理 WebhookRequest，通过调用 paymentGateway 解析支付结果。
+        - paymentGateway 返回订单 ID 及支付状态（通过 PaymentResult 封装），service 层负责根据结果更新数据库订单状态，实现业务流程解耦。
+        - 支持多支付通道：根据具体支付类型，注入/指定对应的 PaymentGateway 实现（如 Stripe、支付宝等），实现灵活扩展。
+    - 支付网关实现专注处理各自逻辑
+        - 以 StripePaymentGateway 为例，实现 parseWebhookRequest 方法，专责校验签名、解析事件、判断支付结果，并输出订单唯一标识和最终状态（如 PAID/FAILED），最终返回 PaymentResult。
+
+3. 通用支付异常封装
+
+    - 自定义 `PaymentException`，所有支付实现出现异常时均抛出该异常。
+
+4. 服务与控制器解耦
+
+    - `CheckoutService` 仅依赖 `PaymentGateway` 抽象，实现单一职责和灵活替换。
+    - 控制器只捕获 `PaymentException`，返回标准错误响应。
+
+**代码示例**
+
+1. OrderStatus 枚举类修改名称为 PaymentStatus
+
+2. WebhookRequest
+
+    ```java
+    @AllArgsConstructor
+    @Getter
+    public class WebhookRequest {
+        private Map<String, String> headers;
+        private String payload;
+    }
+    ```
+
+3. PaymentResult
+
+    ```java
+    @AllArgsConstructor
+    @Getter
+    public class PaymentResult {
+        private Long orderId;
+        private PaymentStatus paymentStatus;
+    }
+    ```
+
+4. 控制层解耦
+
+    ```java
+    @RequiredArgsConstructor
+    @RestController
+    @RequestMapping("/checkout")
+    public class CheckoutController {
+    	// 省略
+
+        @PostMapping("/webhook")
+        public void handleWebhook(
+                @RequestHeader Map<String, String> headers,
+                @RequestBody String payload
+        ) {
+            checkoutService.handleWebhookEvent(new WebhookRequest(headers, payload));
+        }
+
+    	// 省略
+    }
+    ```
+
+5. 服务层调用
+
+    ```java
+    @RequiredArgsConstructor
+    @Service
+    public class CheckoutService {
+    	// 省略
+
+        public void handleWebhookEvent(WebhookRequest request) {
+            paymentGateway
+                    .parseWebhookRequest(request)
+                    .ifPresent(paymentResult -> {
+                        var order = orderRepository.findById(paymentResult.getOrderId()).orElseThrow();
+                        order.setStatus(paymentResult.getPaymentStatus());
+                        orderRepository.save(order);
+                    });
+        }
+    }
+    ```
+
+    - 描述：使用 paymentGateway 返回一个 paymentResult 对象，供 service 层继续处理
+
+6. 支付网关接口定义
+
+    ```java
+    public interface PaymentGateway {
+        CheckoutSession createCheckoutSession(Order order);
+        Optional<PaymentResult> parseWebhookRequest(WebhookRequest request);
+    }
+    ```
+
+7. PaymentGateway 实现 （StripePaymentGateway）
+
+    ```java
+    @Getter
+    @AllArgsConstructor
+    public class CheckoutSession {
+        private String checkoutUrl;
+    }
+    ```
+
+8. Stripe 实现类
+
+    ```java
+    @Service
+    public class StripePaymentGateway implements PaymentGateway {
+
+        @Value("${stripe.webhookSecretKey}")
+        private String webhookSecretKey;
+
+    	// 省略
+
+        @Override
+        public Optional<PaymentResult> parseWebhookRequest(WebhookRequest request) {
+            try {
+                var payload = request.getPayload();
+                var signature = request.getHeaders().get("stripe-signature");
+                var event = Webhook.constructEvent(payload, signature, webhookSecretKey);
+
+                return switch (event.getType()) {
+                    case "payment_intent.succeeded" ->
+                            Optional.of(new PaymentResult(extractOrderId(event), PaymentStatus.PAID));
+
+                    case "payment_intent.payment_failed" ->
+                            Optional.of(new PaymentResult(extractOrderId(event), PaymentStatus.FAILED));
+
+                    default -> Optional.empty();
+                };
+            } catch (SignatureVerificationException e) {
+                throw new PaymentException("Invalid signature");
+            }
+        }
+
+    	// 省略
+    }
+    ```
+
+9. 支付通用异常
+
+    ```java
+    @NoArgsConstructor
+    public class PaymentException extends RuntimeException {
+        public PaymentException(String message) {
+            super(message);
+        }
+    }
+    ```

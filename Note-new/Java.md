@@ -14,6 +14,8 @@ CompletableFuture 异常处理？
     - 获取 List 中的第一个元素
 - Stream.toList----JDK16
     - 将 Strean 转为 List
+- switch 增强 lambda——JDK12
+    - 每个 case 后面的语句块就是一个独立的分支，不再需要 break，不会有 case 穿透
 - var——JDK10
     - 自动推断变量类型，避免显式声明数据类型，使代码更简洁。
     - 仅用于局部变量（方法内部），不能用于字段、方法参数或返回值。
@@ -1582,6 +1584,10 @@ CompletableFuture 异常处理？
     - 适用于枚举型条件的判断，如用户角色、状态码等
     - 注意数据类型匹配，避免编译错误
     - 与 `if-else` 比较：当分支较多时，switch 更简洁明了
+
+5. 补充
+
+    - 在 Java 12 及以后，switch 支持“增强型 switch 表达式”（有时称为“lambda 风格”或“箭头语法”），用 -> 语法时，每个 case 后面的语句块就是一个独立的分支，不再需要 break，并且也不会有“case 穿透”\*\*的问题。
 
 **代码示例**
 
