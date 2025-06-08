@@ -7549,7 +7549,7 @@ Organizing code
             ```bash
             stripe listen --forward-to http://localhost:8080/checkout/webhook
             ```
-        4. 新建终端，输入如下命令。这会让 Stripe CLI 模拟 Stripe 官方服务器，向本地 Webhook 端点发送一个 `payment_intent.succeeded` 类型的测试事件。注意：这个事件是新生成的测试数据，**并不会作用于你后台已有的订单。**
+        4. 新建终端，输入如下命令。这会让 Stripe CLI 模拟 Stripe 官方服务器，向本地 Webhook 端点发送一个 `payment_intent.succeeded` 类型的测试事件。注意：这个事件是新生成的测试数据，**并不会作用于你后台已有的订单。**，下节介绍如何简介控制已有订单状态。
             ```bash
             stripe trigger payment_intent.succeeded
             ```
@@ -7560,3 +7560,120 @@ Organizing code
 
     - Stripe 提供了许多供测试的沙盒银行卡，网址 https://docs.stripe.com/testing#international-cards
     - 选择对应的卡片，其他信息任意填写即可支付成功
+
+## 订单状态自动更新
+
+> 简述：通过 Stripe Webhook 自动同步订单支付状态，利用元数据绑定订单，实现支付结果的可靠回写与异常追踪。
+
+**知识树**
+
+1. 元数据绑定与回传
+
+    - 创建 Stripe Checkout Session 时，通过 `putMetadata` 将订单主键写入元数据（如 `"order_id"`）。
+    - 支付完成后，Stripe 在 webhook 回调事件中回传元数据，便于业务查找并精准定位订单。
+
+2. 具体步骤
+
+    - 后端暴露 webhook 接口接收 Stripe 事件（如 `payment_intent.succeeded`、`payment_intent.failed`）。
+    - 解析回调中的 PaymentIntent 对象，获取订单主键并更新本地订单状态。
+    - 状态映射：支付成功 → `PAID`，支付失败 → `FAILED`。
+    - 若订单不存在（极少发生），需抛出异常并记录日志，便于定位异常链路。
+
+3. 兼容性与异常处理
+
+    - 如通过 `getDataObjectDeserializer()` 获取数据对象时返回 null，通常为 Stripe SDK 版本与 Stripe API 版本不兼容所致。
+    - 建议在 Stripe Java SDK [GitHub 仓库](https://github.com/stripe/stripe-java)查询最新版，确保依赖与 API 版本一致，避免序列化异常。
+
+4. CLI 测试
+
+    - 应用重启后，可用 Stripe CLI 模拟支付回调事件，并指定订单主键进行全流程测试：
+
+    ```bash
+    stripe trigger payment_intent.succeeded --add "payment_intent:metadata[order_id]=1"
+    ```
+
+**代码示例**
+
+1. 创建 Checkout Session 时将 `order_id` 写入元数据
+
+    ```java
+    @Service
+    public class StripePaymentGateway implements PaymentGateway {
+        @Value("${websiteUrl}")
+        private String websiteUrl;
+
+        @Override
+        public CheckoutSession createCheckoutSession(Order order) {
+            try {
+                var builder = SessionCreateParams.builder()
+                        .setMode(SessionCreateParams.Mode.PAYMENT)
+                        .setSuccessUrl(websiteUrl + "/checkout-success?orderId=" + order.getId())
+                        .setCancelUrl(websiteUrl + "/checkout-cancel")
+                        .putMetadata("order_id", order.getId().toString());
+
+                order.getItems().forEach(item -> {
+                    var lineItem = createLineItem(item);
+                    builder.addLineItem(lineItem);
+                });
+
+                var session = Session.create(builder.build());
+                return new CheckoutSession(session.getUrl());
+            } catch (StripeException ex) {
+                System.out.println(ex.getMessage());
+                throw new PaymentException();
+            }
+        }
+
+    	// 省略
+    }
+    ```
+
+    - 描述：保证每个支付 session 绑定唯一订单。
+
+2. Webhook 处理逻辑（简化）
+
+    ```java
+    @RequiredArgsConstructor
+    @RestController
+    @RequestMapping("/checkout")
+    public class CheckoutController {
+    	// 省略
+
+        @PostMapping("/webhook")
+        public ResponseEntity<Void> handleWebhook(
+                @RequestHeader("Stripe-Signature") String signature,
+                @RequestBody String payload
+        ) {
+            try {
+                var event = Webhook.constructEvent(payload, signature, webhookSecretKey);
+                System.out.println(event.getType());
+
+                var stripeObject = event.getDataObjectDeserializer().getObject().orElse(null);
+
+                switch (event.getType()) {
+                    case "payment_intent.succeeded" -> {
+                        var paymentIntent = (PaymentIntent) stripeObject;
+                        if (paymentIntent != null) {
+                            var orderId = paymentIntent.getMetadata().get("order_id");
+                            var order = orderRepository.findById(Long.valueOf(orderId)).orElseThrow();
+                            order.setStatus(OrderStatus.PAID);
+                            orderRepository.save(order);
+                        }
+                    }
+                    case "payment_intent.failed" -> {
+                        // Update order status (FAILED)
+                    }
+                }
+
+                return ResponseEntity.ok().build();
+
+            } catch (SignatureVerificationException e) {
+                return ResponseEntity.badRequest().build();
+            }
+        }
+
+    	// 省略
+    }
+    ```
+
+    - 描述：解包 PaymentIntent，提取元数据，查找并更新订单状态。
