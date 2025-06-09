@@ -1,7 +1,5 @@
-package com.codewithmosh.store.mappers;
+package com.codewithmosh.store.orders;
 
-import com.codewithmosh.store.dtos.OrderDto;
-import com.codewithmosh.store.entities.Order;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")

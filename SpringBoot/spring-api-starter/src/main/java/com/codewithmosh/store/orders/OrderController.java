@@ -1,9 +1,6 @@
-package com.codewithmosh.store.controllers;
+package com.codewithmosh.store.orders;
 
-import com.codewithmosh.store.dtos.OrderDto;
 import com.codewithmosh.store.entities.ErrorDto;
-import com.codewithmosh.store.exceptions.OrderNotFoundException;
-import com.codewithmosh.store.services.OrderService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

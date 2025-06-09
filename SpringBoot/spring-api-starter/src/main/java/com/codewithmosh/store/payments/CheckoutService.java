@@ -1,10 +1,10 @@
 package com.codewithmosh.store.payments;
 
-import com.codewithmosh.store.entities.Order;
+import com.codewithmosh.store.orders.Order;
 import com.codewithmosh.store.carts.CartEmptyException;
 import com.codewithmosh.store.carts.CartNotFoundException;
 import com.codewithmosh.store.carts.CartRepository;
-import com.codewithmosh.store.repositories.OrderRepository;
+import com.codewithmosh.store.orders.OrderRepository;
 import com.codewithmosh.store.auth.AuthService;
 import com.codewithmosh.store.carts.CartService;
 import lombok.RequiredArgsConstructor;
