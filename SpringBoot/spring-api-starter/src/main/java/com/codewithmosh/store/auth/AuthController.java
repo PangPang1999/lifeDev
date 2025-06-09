@@ -21,69 +21,40 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 public class AuthController {
     private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
-    private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final JwtConfig jwtConfig;
+    private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<JwtResponse> login(
+    public JwtResponse login(
             @Valid @RequestBody LoginRequest request,
             HttpServletResponse response) {
-        Authentication authenticate = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
-
-        var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
-
-        var accessToken = jwtService.generateAccessToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
-
-        var cookie = new Cookie("refreshToken", refreshToken.toString());
+        var loginResult = authService.login(request);
+        var refreshToken = loginResult.getRefreshToken().toString();
+        var cookie = new Cookie("refreshToken", refreshToken);
         cookie.setHttpOnly(true);
         cookie.setPath("/auth/refresh");
-
         cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration());
-
         cookie.setSecure(true);
         response.addCookie(cookie);
+        return new JwtResponse(loginResult.getAccessToken().toString());
 
-        return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<JwtResponse> refresh(
-            @CookieValue(value = "refreshToken") String refreshToken
-    ) {
-        // 校验 Refresh Token
-        var jwt = jwtService.parseToken(refreshToken);
-        if (jwt == null || jwt.isExpired()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        // 提取用户 ID 并查找用户
-        var user = userRepository.findById(jwt.getUserId()).orElseThrow();
-
-
-        // 生成新的访问令牌
-        var accessToken = jwtService.generateAccessToken(user);
-        return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
+    public JwtResponse refresh(@CookieValue(value = "refreshToken") String refreshToken) {
+        var accessToken = authService.refreshAccessToken(refreshToken);
+        return new JwtResponse(accessToken.toString());
     }
 
     @GetMapping("/me")
     public ResponseEntity<UserDto> me() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        var userId = (Long) authentication.getPrincipal();
-
-        var user = userRepository.findById(userId).orElse(null);
+        var user = authService.getCurrentUser();
         if (user == null) {
             return ResponseEntity.notFound().build();
         }
 
         var userDto = userMapper.toDto(user);
-
         return ResponseEntity.ok(userDto);
     }
 
