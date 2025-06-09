@@ -1,4 +1,4 @@
-package com.codewithmosh.store.validation;
+package com.codewithmosh.store.users;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

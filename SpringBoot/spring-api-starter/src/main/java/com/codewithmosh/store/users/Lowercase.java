@@ -1,4 +1,4 @@
-package com.codewithmosh.store.validation;
+package com.codewithmosh.store.users;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
