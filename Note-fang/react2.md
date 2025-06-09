@@ -1910,17 +1910,17 @@ export const ToDoForm: React.FC = () => {
 
 **完整代码示例**
 
-### 步骤一：定义缓存键常量
+步骤一：定义缓存键常量
 
 ```ts
-// constants.ts
+// react-query/constants.ts
 export const CACHE_KEY_TODOS = ['todos'];
 ```
 
-### 步骤二：创建自定义 Hook (`useAddTodo.ts`)
+步骤二：创建自定义 Hook (`useAddTodo.ts`)
 
 ```tsx
-// useAddTodo.ts
+// hooksuseAddTodo.ts
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { ToDo } from './useTodos';
@@ -1970,7 +1970,7 @@ export const useAddTodo = (onAdd: () => void) => {
 };
 ```
 
-### 步骤三：组件调用自定义 Hook (`ToDoForm.tsx`)
+步骤三：组件调用自定义 Hook (`ToDoForm.tsx`)
 
 ```tsx
 // ToDoForm.tsx
@@ -2111,7 +2111,7 @@ export const ToDoForm: React.FC = () => {
         return axiosInstance.get<T[]>(this.endpoint).then(res => res.data);
       };
 
-      post = (data: Omit<T, 'id'> | T): Promise<T> => { // 允许传入不带id的对象用于创建
+      post = (data: T) =>{ // 允许传入不带id的对象用于创建
         return axiosInstance.post<T>(this.endpoint, data).then(res => res.data);
       };
 
@@ -2138,7 +2138,7 @@ export const ToDoForm: React.FC = () => {
     const useTodos = () => {
       return useQuery<Todo[], Error>({
         queryKey: CACHE_KEY_TODOS,
-        queryFn: apiClient.getAll, // 使用ApiClient的方法
+        queryFn: apiClient.getAll, // 使用ApiClient的方法，方法引用，不调用
         staleTime: 10 * 60 * 1000,
       });
     };
@@ -2151,25 +2151,21 @@ export const ToDoForm: React.FC = () => {
     ```ts
     import { useMutation, useQueryClient } from '@tanstack/react-query';
     import ApiClient from '../services/apiClient';
-    // import { Todo, AddTodoContext } from './interfaces'; // 假设接口已定义
     // import { CACHE_KEY_TODOS } from '../react-query/constants';
 
     export interface Todo { id: number; title: string; completed: boolean; userId: number; } // 临时定义
     export const CACHE_KEY_TODOS = ['todos']; // 临时定义
-    interface AddTodoContext { previousTodos?: Todo[]; } // 临时定义
+    interface AddTodoContext { previousTodos?: Todo[]; } // 临时定义上下文用于乐观更新
 
 
     const apiClient = new ApiClient<Todo>('/todos');
 
-    interface UseAddTodoOptions {
-      onAdd?: () => void;
-    }
 
-    const useAddTodo = (options?: UseAddTodoOptions) => {
+    const useAddTodo = (onAdd: () => void) => {
       const queryClient = useQueryClient();
 
       return useMutation<Todo, Error, Omit<Todo, 'id'>, AddTodoContext>(
-        apiClient.post, // 使用ApiClient的方法
+        apiClient.post, // 直接引用 APIClient post 方法
         {
           onMutate: async (newTodoData) => {
             const previousTodos = queryClient.getQueryData<Todo[]>(CACHE_KEY_TODOS);

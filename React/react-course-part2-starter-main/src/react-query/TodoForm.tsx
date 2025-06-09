@@ -11,7 +11,7 @@ const TodoForm = () => {
     e.preventDefault();
     if (ref.current && ref.current.value)
       addTodo.mutate({
-        id: 1,
+        id: 0,
         title: ref.current?.value,
         completed: false,
         userId: 1,
