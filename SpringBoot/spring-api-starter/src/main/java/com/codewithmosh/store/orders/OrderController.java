@@ -1,6 +1,6 @@
 package com.codewithmosh.store.orders;
 
-import com.codewithmosh.store.entities.ErrorDto;
+import com.codewithmosh.store.common.ErrorDto;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

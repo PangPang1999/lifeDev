@@ -1,4 +1,4 @@
-package com.codewithmosh.store.controllers;
+package com.codewithmosh.store.admin;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
