@@ -1,8 +1,5 @@
 package com.codewithmosh.store.users;
 
-import com.codewithmosh.store.dtos.ChangePasswordRequest;
-import com.codewithmosh.store.dtos.RegisterUserRequest;
-import com.codewithmosh.store.dtos.UpdateUserRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
