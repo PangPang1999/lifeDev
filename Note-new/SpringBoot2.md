@@ -7876,26 +7876,28 @@ Organizing code
     - 小项目：可采用传统分层结构，易于快速构建。
     - 大型项目：推荐特性化组织，提供高内聚和易维护特性。
 
-**代码示例（包结构调整示意）**
+**代码示例**
 
-```
-com.example.project
-├── payments
-│   ├── StripeConfig.java
-│   ├── CheckoutController.java
-│   ├── CheckoutRequest.java
-│   ├── CheckoutResponse.java
-│   ├── PaymentException.java
-│   ├── CheckoutService.java
-│   ├── CheckoutSession.java
-│   ├── PaymentGateway.java
-│   ├── PaymentResult.java
-│   ├── StripePaymentGateway.java
-│   └── WebhookRequest.java
-├── authentication
-├── orders
-├── products
-└── users
-```
+1. 包结构调整示意
+
+    ```
+    com.example.project
+    ├── payments
+    │   ├── StripeConfig.java
+    │   ├── CheckoutController.java
+    │   ├── CheckoutRequest.java
+    │   ├── CheckoutResponse.java
+    │   ├── PaymentException.java
+    │   ├── CheckoutService.java
+    │   ├── CheckoutSession.java
+    │   ├── PaymentGateway.java
+    │   ├── PaymentResult.java
+    │   ├── StripePaymentGateway.java
+    │   └── WebhookRequest.java
+    ├── authentication
+    ├── orders
+    ├── products
+    └── users
+    ```
 
     - 描述：支付功能相关代码集中于`payments`包，提高代码维护性与功能聚合度。
