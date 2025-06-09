@@ -7846,3 +7846,56 @@ Organizing code
         }
     }
     ```
+
+## 项目结构的特性化组织
+
+> 简述：将代码按功能（feature）进行组织，所有相关类集中放置，以实现高内聚、易复用、易维护的代码结构。
+
+**知识树**
+
+1. 项目结构问题
+
+    - 传统按层组织结构（如 Controller、Service、Repository）适用于小型项目。
+    - 随项目扩展，相关代码分散在多个位置，降低可维护性。
+
+2. 特性化组织方式（Feature-based）
+
+    - 将功能相关代码（如支付、订单、认证）集中到单个特性包内。
+    - 优势：
+        - 高内聚（Cohesion）：相关联的类一起维护。
+        - 易复用：功能整体更容易在不同项目中迁移。
+        - 易理解：新成员快速定位功能入口与相关代码。
+
+3. 特性化组织实例（Payments）
+
+    - 配置类、控制器、DTO、异常、服务等全部移入`payments`包。
+    - 更进一步拆分子包：如果功能代码量大，再次按子特性或层次细化。
+
+4. 结构选择原则
+
+    - 小项目：可采用传统分层结构，易于快速构建。
+    - 大型项目：推荐特性化组织，提供高内聚和易维护特性。
+
+**代码示例（包结构调整示意）**
+
+```
+com.example.project
+├── payments
+│   ├── StripeConfig.java
+│   ├── CheckoutController.java
+│   ├── CheckoutRequest.java
+│   ├── CheckoutResponse.java
+│   ├── PaymentException.java
+│   ├── CheckoutService.java
+│   ├── CheckoutSession.java
+│   ├── PaymentGateway.java
+│   ├── PaymentResult.java
+│   ├── StripePaymentGateway.java
+│   └── WebhookRequest.java
+├── authentication
+├── orders
+├── products
+└── users
+```
+
+    - 描述：支付功能相关代码集中于`payments`包，提高代码维护性与功能聚合度。
