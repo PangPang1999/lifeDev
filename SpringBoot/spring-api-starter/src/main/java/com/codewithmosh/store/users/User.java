@@ -1,6 +1,6 @@
 package com.codewithmosh.store.users;
 
-import com.codewithmosh.store.entities.Product;
+import com.codewithmosh.store.products.Product;
 import jakarta.persistence.*;
 import lombok.*;
 
