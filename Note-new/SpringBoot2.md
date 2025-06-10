@@ -8021,3 +8021,67 @@ Organizing code
         url: ${SPRING_DATASOURCE_URL}
     websiteUrl: https://mystore.com
     ```
+
+## Maven 打包与部署准备
+
+> 简述部署应用前，需在 `pom.xml` 明确应用版本、Java 兼容性、注解处理器依赖（如 Lombok、MapStruct），确保所有必需代码和资源打包进可执行 Fat JAR，便于直接部署。
+
+**知识树**
+
+1. 版本与兼容性配置
+
+    - 明确指定应用版本号，便于迭代和回溯。
+    - 可能需要设置 Java 版本，兼容 Railway （仅支持至 JDK17）等平台。
+
+2. Maven Compiler 插件配置
+
+    - 使用 `maven-compiler-plugin` 管理 Java 编译，通常继承父 POM 版本，无需额外指定。
+
+3. 注解处理器声明
+
+    - 必须显式声明 Lombok、MapStruct 等注解处理器依赖，否则编译时不会生成相关代码，打包结果缺失。
+        - Lombok：`org.projectlombok:lombok`
+        - MapStruct：`org.mapstruct:mapstruct-processor`
+
+4. 构建与生成 Fat JAR
+
+    - 执行 `mvn clean package`：
+        - `clean`：清理旧构建文件（`target` 目录）。
+        - `package`：编译、打包所有源码及依赖。
+    - 产物为包含全部依赖和内置服务器（如 Tomcat）的 Fat JAR，可用 `java -jar` 部署。
+
+**代码示例**
+
+1. Maven Compiler 插件配置
+
+    ```xml
+    <plugin>
+    		<groupId>org.apache.maven.plugins</groupId>
+    		<artifactId>maven-compiler-plugin</artifactId>
+    		<configuration>
+    				<annotationProcessorPaths>
+    						<path>
+    								<groupId>org.projectlombok</groupId>
+    								<artifactId>lombok</artifactId>
+    								<version>${lombok.version}</version>
+    						</path>
+    						<path>
+    								<groupId>org.mapstruct</groupId>
+    								<artifactId>mapstruct-processor</artifactId>
+    								<version>1.6.1</version>
+    						</path>
+    				</annotationProcessorPaths>
+    		</configuration>
+    </plugin>
+    ```
+
+2. 打包并运行 Fat JAR
+
+    ```shell
+    ./mvnw clean package
+    # java -jar target/名称版本号.jar
+    java -jar target/store-1.0.0.jar
+    ```
+
+    - 执行以上命令后，将生成一个可执行的 Fat JAR 文件。
+    - 实际部署环境会自动运行以上流程，但本地手动执行有助于提前发现问题。
