@@ -2062,15 +2062,13 @@ export const ToDoForm: React.FC = () => {
     - 处理基础 URL、请求头、错误转换等通用逻辑。
     - 提供类型安全的方法供上层（如自定义 Hooks）调用。
 2.  创建 API 客户端类：
-    - **构造函数**：接收 API 端点（endpoint）作为参数，用于指定操作的资源路径。
-    - **泛型参数** (`<T>`)：使 API 客户端能够处理不同类型的数据实体。`T`代表实体类型（如`Todo`, `Post`）。
-    - **方法**：
-        - `getAll(): Promise<T[]>`：发送 GET 请求获取资源列表。
-        - `post(data: T): Promise<T>` (或 `Omit<T, 'id'>` 作为输入)：发送 POST 请求创建新资源。
-        - （可扩展）`get(id: number | string): Promise<T>`、`update(id: number | string, data: Partial<T>): Promise<T>`、`delete(id: number | string): Promise<void>`。
     - **Axios 实例**：
         - 创建一个配置了基础 URL（如`https://jsonplaceholder.typicode.com`）的 Axios 实例，避免在每个请求中重复完整 URL。
-        - `axios.create({ baseURL: '...' })`
+        - `axios.create({ baseURL: '...' })
+    - **APIClient 类封装请求逻辑**：
+        - **构造函数**：接收 API 端点（endpoint）作为参数，用于指定操作的资源路径。
+        - 封装 `getAll`、`post` 等通用 HTTP 方法。
+        - 使用泛型参数保证类型安全与通用性。
 3.  解决`this`上下文问题：
     - 问题：当 API 客户端类的方法作为回调（如`queryFn`或`mutationFn`）传递给 React Query 时，方法内部的`this`可能丢失其指向类实例的上下文，导致`this.endpoint`等属性为`undefined`。
     - 解决方案：
@@ -2082,7 +2080,13 @@ export const ToDoForm: React.FC = () => {
     - 将 API 客户端的方法引用作为`queryFn`或`mutationFn`传递给`useQuery`或`useMutation`。
     - `queryFn: apiClient.getAll`
     - `mutationFn: apiClient.post`
-5.  优势：
+5.  实现步骤
+    - 步骤 ①：创建统一 Axios 实例，设置 baseURL。
+    - 步骤 ②：封装 APIClient 类，抽取 Axios 请求与数据解析逻辑。
+    - 步骤 ③：泛型定义优化，定义通用数据接口。
+    - 步骤 ④：解决方法调用时 this 丢失问题，使用箭头函数。
+    - 步骤 ⑤：更新 Hook 中调用逻辑，改为调用 APIClient 实例方法。
+6.  优势：
     - **代码复用**：HTTP 请求逻辑集中在 API 客户端，避免在每个 Hook 中重复。
     - **可维护性**：修改 API 基础 URL 或通用请求逻辑只需在 API 客户端一处进行。
     - **关注点分离**：自定义 Hooks 专注于 React Query 的集成和特定业务逻辑，API 客户端专注于网络通信。
@@ -2121,6 +2125,11 @@ export const ToDoForm: React.FC = () => {
     export default ApiClient;
     ```
 
+    - **解析：**
+        - `getAll` 返回数组类型数据。
+        - `post` 接收单个数据项并返回新增的数据。
+        - 箭头函数确保 `this` 正确绑定。
+
 2.  `src/hooks/useTodos.ts` (使用 ApiClient)
 
     ```ts
@@ -2145,6 +2154,11 @@ export const ToDoForm: React.FC = () => {
 
     export default useTodos;
     ```
+
+    **优化点：**
+
+    - 去除 Axios 依赖和重复数据解析逻辑。
+    - `queryFn` 直接引用 APIClient 方法。
 
 3.  `src/hooks/useAddTodo.ts` (使用 ApiClient)
 
@@ -2206,159 +2220,220 @@ export const ToDoForm: React.FC = () => {
 
 ## 21- 创建可复用的 HTTP 服务
 
-> 简述：通过将特定资源（如 Todos）的 API 客户端实例封装在一个专门的服务模块中（如`todoService.ts`），可以消除在多个自定义 Hook 中重复创建和配置 API 客户端实例的问题，进一步提升代码的模块化和可维护性。
+> **简述：**  
+> 为消除各 Hook 中重复实例化 APIClient 的问题，本节将把 Todo 相关的接口和数据类型统一抽取到单独的 Service 文件中，以单例模式导出，保证全应用只使用同一个 API 客户端实例和类型定义，从而提升可维护性和减少出错风险。
+
+---
 
 **知识树**
 
-1.  问题背景：
-    - 在多个自定义 Hook（如`useTodos`, `useAddTodo`）中，都独立创建了针对同一资源（如`/todos`端点）的`ApiClient`实例。
-    - 这导致了端点 URL 和实体类型（如`Todo`接口）的重复定义。
-2.  解决方案：创建特定资源的服务模块。
-    - 文件组织：在`services`目录下为每种资源创建一个服务文件，如`todoService.ts`。
-    - 服务模块职责：
-        1.  导入`ApiClient`类。
-        2.  导入或定义该资源对应的实体接口（如`Todo`接口）。将接口定义移至服务文件，使其成为该资源类型的权威来源。
-        3.  在服务模块内部创建并配置一个针对该特定资源的`ApiClient`实例。
-            `const todoApiClient = new ApiClient<Todo>('/todos');`
-        4.  将此预配置的`ApiClient`实例作为默认对象导出。
-            `export default todoApiClient;`
-3.  在自定义 Hooks 中使用服务模块：
-    - 移除 Hook 内部的`ApiClient`实例化代码。
-    - 导入预配置的服务实例：`import todoService from '../services/todoService';`
-    - 导入实体接口：`import { Todo } from '../services/todoService';` (如果接口在服务文件中定义并导出)。
-    - 使用服务实例的方法：将`queryFn`或`mutationFn`直接设置为服务实例对应的方法引用，如`queryFn: todoService.getAll`。
-4.  优势：
-    - **单一实例**：特定资源的 API 交互逻辑（端点、类型）集中配置于服务模块，全局共享一个实例。
-    - **消除重复**：避免了在多个 Hook 中重复端点 URL 和类型参数。
-    - **可维护性**：修改资源端点或相关配置只需在服务模块一处进行。
-    - **类型权威**：实体接口定义在服务模块，成为该资源类型的单一真实来源。
+1. **问题概述：Endpoint 与类型重复**
+
+    - 多处硬编码 `'/todos'` 容易拼写错误
+    - ToDo 接口在多个模块中定义，产生耦合和重复
+
+2. **单例 Service 模式**
+
+    - 在 `services/todoService.ts` 中：
+        - 导入通用 `APIClient`
+        - 定义并导出单例 `todoService` 实例
+
+3. **类型迁移与统一**
+
+    - 将 `interface ToDo` 从 Hook 文件移动到 `todoService.ts`
+    - 在各处统一从 `todoService` 导入 `ToDo` 类型
+
+4. **Hook 文件的精简改造**
+
+    - **useTodos.ts**：移除对 `APIClient` 的直接依赖，改为引用 `todoService.getAll`
+    - **useAddTodo.ts**：移除 `todosClient` 实例化，改用 `todoService.post`
+
+5. **维护与复用优势**
+
+    - 单一文件管理所有 Todo API 接口和类型
+    - 拼写错误或修改路径只需在一处更新
+    - Hook 更加专注于缓存和逻辑，不关心底层请求细节
+
+---
 
 **代码示例**
 
-1.  `src/services/todoService.ts`
+1. **`services/todoService.ts`：创建并导出单例**
 
     ```ts
-    import ApiClient from './apiClient'; // 假设ApiClient在同级或上级目录
+    // services/todoService.ts
+    import { APIClient } from './apiClient';
 
-    // 将Todo接口定义移至此处
-    export interface Todo {
-      id: number;
+    // 数据类型统一定义
+    export interface ToDo {
       userId: number;
+      id: number;
       title: string;
       completed: boolean;
     }
 
-    // 创建并导出预配置的ApiClient实例
-    const todoService = new ApiClient<Todo>('/todos');
+    // 单例 Service 实例，负责所有 /todos 接口调用
+    const todoService = new APIClient<ToDo>('/todos');
+
     export default todoService;
     ```
 
-2.  `src/hooks/useTodos.ts` (使用`todoService`)
+2. **`useTodos.ts`：使用统一 Service**
 
     ```ts
+    // useTodos.ts
     import { useQuery } from '@tanstack/react-query';
-    import todoService, { Todo } from '../services/todoService'; // 导入服务和接口
-    import { CACHE_KEY_TODOS } from '../react-query/constants'; // 假设常量已定义
+    import todoService, { ToDo } from './services/todoService';
 
-    const useTodos = () => {
-      return useQuery<Todo[], Error>({
-        queryKey: CACHE_KEY_TODOS,
-        queryFn: todoService.getAll, // 使用服务实例的方法
-        staleTime: 10 * 60 * 1000,
+    export const useTodos = () =>
+      useQuery<ToDo[]>({
+        queryKey: ['todos'],
+        queryFn: todoService.getAll,  // 直接引用 Service 方法
       });
-    };
-
-    export default useTodos;
     ```
 
-3.  `src/hooks/useAddTodo.ts` (使用`todoService`)
+3. **`useAddTodo.ts`：Mutation 时引用同一 Service**
 
     ```ts
+    // useAddTodo.ts
     import { useMutation, useQueryClient } from '@tanstack/react-query';
-    import todoService, { Todo } from '../services/todoService';
-    import { CACHE_KEY_TODOS } from '../react-query/constants';
+    import todoService, { ToDo } from './services/todoService';
+    import { CACHE_KEY_TODOS } from '../constants';
 
-    interface AddTodoContext { previousTodos?: Todo[]; }
-    interface UseAddTodoOptions { onAdd?: () => void; }
+    interface AddTodoContext {
+      previousTodos: ToDo[];
+    }
 
-
-    const useAddTodo = (options?: UseAddTodoOptions) => {
+    export const useAddTodo = (onAdd: () => void) => {
       const queryClient = useQueryClient();
 
-      return useMutation<Todo, Error, Omit<Todo, 'id'>, AddTodoContext>(
-        (newTodo) => todoService.post(newTodo), // 使用服务实例的方法
+      return useMutation<ToDo, Error, ToDo, AddTodoContext>(
+        todoService.post,  // 直接使用 Service 的 post 方法
         {
-          onMutate: async (newTodoData) => {
-            const previousTodos = queryClient.getQueryData<Todo[]>(CACHE_KEY_TODOS);
-            const optimisticTodo: Todo = { ...newTodoData, id: Date.now(), completed: false, userId: 1 };
-            queryClient.setQueryData<Todo[]>(CACHE_KEY_TODOS, (old = []) => [optimisticTodo, ...old]);
+          onMutate: (newTodo) => {
+            const previousTodos = queryClient.getQueryData<ToDo[]>(CACHE_KEY_TODOS) || [];
+            queryClient.setQueryData(CACHE_KEY_TODOS, [newTodo, ...previousTodos]);
             return { previousTodos };
           },
-          onSuccess: (savedTodo, newTodoData, context) => {
-            if (options?.onAdd) options.onAdd();
-            queryClient.setQueryData<Todo[]>(CACHE_KEY_TODOS, (old = []) =>
-              old.map(todo => {
-                const tempOptimisticItem = context?.previousTodos?.find(pt => pt.title === newTodoData.title && !pt.id);
-                if (tempOptimisticItem && todo.id === tempOptimisticItem.id) {
-                    return savedTodo;
-                }
-                if (todo.id === savedTodo.id) {
-                    return savedTodo;
-                }
-                return todo;
-              })
+          onSuccess: (savedTodo, newTodo) => {
+            queryClient.setQueryData<ToDo[]>(CACHE_KEY_TODOS, (todos = []) =>
+              todos.map(todo => (todo === newTodo ? savedTodo : todo))
             );
+            onAdd();
           },
-          onError: (error, newTodoData, context) => {
+          onError: (_err, _new, context) => {
             if (context?.previousTodos) {
-              queryClient.setQueryData<Todo[]>(CACHE_KEY_TODOS, context.previousTodos);
+              queryClient.setQueryData(CACHE_KEY_TODOS, context.previousTodos);
             }
           },
         }
       );
     };
-    export default useAddTodo;
     ```
 
-## 22- 理解应用分层
+> **备注：**
+> 通过这种单例 Service 的方式，所有与 `/todos` 交互的逻辑都在 `todoService.ts` 中集中管理；
+> Hook 中只需关注缓存与回调，减少重复代码；
+> 未来若需扩展更多 HTTP 方法（如 `update`, `delete`），可统一在 `todoService.ts` 中添加。
 
-> 简述：一个组织良好的 React 应用通常采用分层架构，每一层负责特定的功能。这种分层有助于代码的模块化、可维护性和可扩展性。典型的分层包括 API 客户端、HTTP 服务、自定义 React Query Hooks 以及 UI 组件。
+## 22- 理解应用的架构层次
+
+> **简述：**  
+> 应用通常由多层架构组成，每层只负责自己的职能，形成清晰、可维护的系统。底层是 **API 客户端**，负责所有 HTTP 请求；上层是 **HTTP 服务**，为特定资源（如 ToDo、Post）提供封装；再往上是 **自定义 React Query 钩子**，集中管理缓存与请求逻辑；最上层是 **组件**，专注于 UI 渲染和用户交互。通过层次分明的设计，可有效降低耦合、减少重复、提升扩展性。
+
+---
 
 **知识树**
 
-1.  应用分层架构概述：
-    - 目的：将复杂应用分解为职责清晰、低耦合的模块。
-    - 益处：提高代码可理解性、可维护性、可测试性和可扩展性。
-2.  典型分层结构（自底向上）：
-    - **API 客户端 (ApiClient)**：
-        - 职责：处理底层的 HTTP 请求发送和响应接收。封装了与特定 HTTP 库（如 Axios）的交互细节，如设置基础 URL、请求头、错误处理等。
-        - 通用性：设计为可用于访问任何 API 端点。
-    - **HTTP 服务 (HTTP Services)**：
-        - 职责：基于 API 客户端，为应用中特定类型的资源（如 Todos, Posts, Users）提供专用的数据访问接口。
-        - 实现：通常是 API 客户端类的预配置实例，指定了特定资源的端点和数据类型。例如，`todoService`是`ApiClient<Todo>`的实例，配置了`/todos`端点。
-        - 关注点：封装了与特定资源相关的 API 交互逻辑。
-    - **自定义 React Query Hooks (Custom Hooks)**：
-        - 职责：利用 HTTP 服务来获取和变更数据，并集成 React Query 的功能（如缓存管理、状态同步、乐观更新等）。
-        - 实现：封装了`useQuery`和`useMutation`的调用，以及相关的`queryKey`、`queryFn`/`mutationFn`和回调逻辑。
-        - 关注点：连接 React Query 与数据服务，为 UI 组件提供简洁的数据访问和变更接口。
-    - **UI 组件 (Components)**：
-        - 职责：负责用户界面的展示和用户交互的响应。
-        - 数据交互：通过调用自定义 React Query Hooks 来获取数据和触发数据变更。
-        - 关注点：UI 渲染、用户输入处理、调用 Hooks。
-3.  分层优势总结：
-    - **单一职责原则**：每层专注于其核心任务。
-    - **高内聚，低耦合**：层内功能紧密相关，层间依赖清晰明确。
-    - **可替换性**：例如，可以更换底层的 HTTP 库（在 API 客户端层修改）而不影响上层逻辑。
-    - **可测试性**：各层可以独立进行单元测试或集成测试。
+1. **API 客户端层（API Client）**
+
+    - 封装通用的 Axios 实例
+    - 提供基础的 HTTP 方法（`getAll`、`post`、`put`、`delete` 等）
+    - 只关注底层请求与响应解析
+
+2. **服务层（HTTP Service）**
+
+    - 针对特定资源创建单例客户端
+    - 定义资源接口 `ToDo`、`Post` 等类型
+    - 对外暴露 `getAll()`、`post()` 等方法
+
+3. **钩子层（Custom Hooks）**
+
+    - 使用 React Query 的 `useQuery`、`useMutation`
+    - 处理缓存管理、乐观更新、错误回滚
+    - 仅调用服务层，无需关注底层细节
+
+4. **表现层（Components）**
+
+    - 调用自定义钩子获取或变更数据
+    - 负责渲染列表、表单及错误提示
+    - 完全专注于 UI 逻辑与用户交互
+
+---
 
 **代码示例**
 
-(本节为架构概念描述，代码已在前面章节中按此分层思想逐步构建。)
+1. **服务层 + 钩子层**
 
-- `ApiClient.ts` (底层 HTTP 交互)
-- `todoService.ts` (特定资源的服务，使用 ApiClient)
-- `useTodos.ts`, `useAddTodo.ts` (自定义 Hooks，使用 todoService，集成 React Query)
-- `TodoList.tsx`, `TodoForm.tsx` (UI 组件，使用自定义 Hooks)
+    ```ts
+    // services/todosService.ts
+    import { APIClient } from './apiClient';
+
+    export interface ToDo {
+      userId: number;
+      id: number;
+      title: string;
+      completed: boolean;
+    }
+
+    // 单例 Service，专注 /todos 端点
+    const todosService = new APIClient<ToDo>('/todos');
+    export default todosService;
+    ```
+
+    ```ts
+    // hooks/useTodos.ts
+    import { useQuery } from '@tanstack/react-query';
+    import todosService, { ToDo } from '../services/todosService';
+
+    // 查询所有 ToDo
+    export const useTodos = () =>
+      useQuery<ToDo[]>({
+        queryKey: ['todos'],
+        queryFn: todosService.getAll,  // 直接引用，不调用
+      });
+    ```
+
+2. **表现层（组件）**
+
+    ```tsx
+    // components/TodosList.tsx
+    import React from 'react';
+    import { useTodos } from '../hooks/useTodos';
+
+    export const TodosList: React.FC = () => {
+      const { data: todos, isLoading, isError, error } = useTodos();
+
+      if (isLoading) return <p>加载中...</p>;
+      if (isError) return <p>错误：{error.message}</p>;
+
+      return (
+        <ul>
+          {todos!.map(todo => (
+            <li key={todo.id}>
+              #{todo.id} — {todo.title}
+            </li>
+          ))}
+        </ul>
+      );
+    };
+    ```
+
+    - 组件仅调用 `useTodos`，专注于渲染与状态显示，完全不关心请求细节。
+
+---
+
+通过以上分层与示例，可清晰回忆并实践“底层请求 → 服务封装 → 钩子管理 → 组件渲染”的架构模式，实现高内聚、低耦合的应用设计。
 
 ## 23- 第三部分：项目实战
 
