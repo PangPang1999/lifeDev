@@ -7943,3 +7943,81 @@ Organizing code
     - 项目名称默认自动生成，可在顶部右侧的 Settings 中自定义修改。
     - 每个项目可包含多个服务（如数据库、Spring Boot 应用等），实现一站式管理。
     - 支持多环境（生产、测试、预发）配置，并可在顶部左侧菜单中自由切换和独立管理各环境。
+
+## 环境配置管理
+
+> 简述：为适配不同环境（开发、生产），我们应将配置文件解耦成多份，按环境动态加载，确保敏感信息安全、配置可维护，并支持部署灵活性。
+
+**知识树**
+
+1. 配置文件职责划分（示例）
+
+    - `application.yaml`：存放通用配置（如应用名称）
+    - `application-dev.yaml`：开发环境专属配置（如本地数据源、日志）
+    - `application-prod.yaml`：生产环境配置（如云端数据源、正式站点地址）
+
+2. 配置隔离原则
+
+    - 环境敏感配置：如数据源 URL、JWT 密钥、Stripe 密钥、网站 URL，应通过环境变量注入，不应写死
+    - 开发专属配置：如 SQL 日志，避免在生产开启，防止性能损耗
+    - 敏感信息处理：不应将数据库账号密码、密钥等提交至 Git，应借助 `.env` 或外部注入
+
+3. 动态激活环境配置
+
+    - 通过 `spring.profiles.active` 指定当前激活环境
+        ```yaml
+        spring:
+          profiles:
+            active: dev
+        ```
+    - Spring 启动时会：
+        1. 加载 `application.yaml`（基础配置）
+        2. 合并激活 profile 对应配置文件（如 `application-dev.yaml`）
+
+4. 配置优化建议
+
+    - 所有配置项按字母排序，增强可读性
+    - 所有环境变量命名遵循统一前缀（如：`SPRING_DATASOURCE_URL`）
+    - 生产配置不应硬编码，应完全依赖环境变量覆盖
+    - 不同 profile 下的配置尽量只保留与该环境相关的项，保持最小冗余
+
+**代码示例**
+
+1. `application.yaml`
+
+    ```yaml
+    spring:
+      application:
+        name: store
+      jwt:
+        secret: ${JWT_SECRET}
+        accessTokenExpiration: 300 # 5m
+        refreshTokenExpiration: 604800 # 7d
+      profiles:
+        active: dev
+    stripe:
+      secretKey: ${STRIPE_SECRET_KEY}
+      webhookSecretKey: ${STRIPE_WEBHOOK_SECRET_KEY}
+    ```
+
+2. `application-dev.yaml`
+
+    ```yaml
+    spring:
+      datasource:
+        url: jdbc:mysql://localhost:3306/store_api?createDatabaseIfNotExist=true
+        username: root
+        password: myPassword!
+      jpa:
+        show-sql: true
+    websiteUrl: http://localhost:4242
+    ```
+
+3. `application-prod.yaml`
+
+    ```yaml
+    spring:
+      datasource:
+        url: ${SPRING_DATASOURCE_URL}
+    websiteUrl: https://mystore.com
+    ```
