@@ -7610,7 +7610,7 @@ Organizing code
                         .setMode(SessionCreateParams.Mode.PAYMENT)
                         .setSuccessUrl(websiteUrl + "/checkout-success?orderId=" + order.getId())
                         .setCancelUrl(websiteUrl + "/checkout-cancel")
-                        .putMetadata("order_id", order.getId().toString());
+                        .setPaymentIntentData(createPaymentIntent(order));
 
                 order.getItems().forEach(item -> {
                     var lineItem = createLineItem(item);
@@ -7624,6 +7624,13 @@ Organizing code
                 throw new PaymentException();
             }
         }
+
+
+    	    private static SessionCreateParams.PaymentIntentData createPaymentIntent(Order order) {
+    	        return SessionCreateParams.PaymentIntentData.builder()
+    	                .putMetadata("order_id", order.getId().toString())
+    	                .build();
+    	    }
 
     	// 省略
     }
@@ -7904,7 +7911,7 @@ Organizing code
 
 # Deploy
 
-## Railway 云平台部署
+## Railway 部署(Mysql)
 
 > 简述：Railway 提供一站式云部署体验，支持 Spring Boot 与数据库服务的自动化集成，适合开发者快速上线与测试全栈应用。
 
@@ -8085,3 +8092,317 @@ Organizing code
 
     - 执行以上命令后，将生成一个可执行的 Fat JAR 文件。
     - 实际部署环境会自动运行以上流程，但本地手动执行有助于提前发现问题。
+
+## Git 补充
+
+> 设置项目为 git 仓库方式
+
+1. 对于已经存在 git 的仓库
+
+    1. 查看当前仓库地址
+        ```bash
+        git remote -v
+        ```
+    2. 清除当前仓库地址
+        ```bash
+        git remote remove origin
+        ```
+    3. Git 创建仓库如`Store-API`，创建成功后下面的这一行代码
+        ```bash
+        git remote add origin https://github.com/PangPang1999/Store-API.git
+        ```
+
+2. 对于没有 git 的仓库
+
+    1. 初始化
+        ```bash
+        git init
+        ```
+    2. Git 创建仓库如`Store-API`，创建成功后下面的这一行代码
+        ```bash
+        git remote add origin https://github.com/PangPang1999/Store-API.git
+        ```
+
+## Railway 部署(Spring)
+
+> 提起测试好项目是否能正常启动
+
+1. 步骤
+    1. 进入项目
+    2. 页面右上创建
+    3. 选择 git 仓库
+    4. 点击部署
+2. 默认情况下，公共互联网无法访问，需要前往 Networking，设置 Generate Domain，端口设置 8080 即可
+3. 此前在`.env`中设置的常量，在 railway 中，需要在 Variables 中设置，建议在生成和开发环境使用不同的 key
+    - JWT_SECRET：
+        - `openssl rand -base64 32`
+    - STRIPE_SECRET_KEY：
+        - stripe 搜索 api keys 获取测试 secret key，生产 secret key 需要填写完整信息并关闭 test mode
+    - STRIPE_WEBHOOK_SECRET_KEY
+        -
+    - SPRING_DATASOURCE_URL：
+        - 前往 MySQL（Railway），Data 页签，点击连接，复制`${{ MySQL.MYSQL_URL }}`，需要加上前缀`jdbc:`，即`jdbc:${{ MySQL.MYSQL_URL }}`
+    - SPRING_PROFILE_ACTIVE
+        - 设置为 prod
+
+## PostMan 环境切换
+
+1. 创建环境
+
+    - Dev
+        - baseUrl：http://localhost:8080
+    - Prod
+        - baseUrl：railway 中 spring 项目 setting 中 public networking 拷贝，需要加上`https://`前缀，示例：`https://spring-store-production-c005.up.railway.app`
+    - 使用
+        - 页签右上角切换环境，默认是无环境。使用变量方式为`{{}}`，如`{{baseUrl}}/users`
+
+2. Post 访问`{{baseUrl}}/users`测试 注册
+    - 测试环境，提示用户已经存在
+    - 生产环境，用户注册成功
+        ```json
+        {
+        	"name": "Pang",
+        	"email": "ppp_melody@163.com",
+        	"password": "123456"
+        }
+        ```
+
+## 填充测试数据
+
+1.  文件`V5__populate_database.sql`
+
+```sql
+    -- Insert categories
+    insert into categories (id, name) values
+    (1, 'Electronics'),
+    (2, 'Books');
+
+    -- Insert products
+    insert into products (id, name, price, description, category_id) values
+    (1, 'iPhone 15 Pro', 1199.00, 'Apple flagship smartphone with advanced camera and A17 chip.', 1),
+    (2, 'Sony Alpha 7 IV', 2499.00, 'Sony full-frame mirrorless camera with fast autofocus.', 1),
+    (3, 'MacBook Air M3', 1499.00, 'Apple ultra-thin laptop powered by M3 chip.', 1),
+    (4, 'Kindle Paperwhite', 139.00, 'Amazon e-reader with high-resolution display.', 1),
+    (5, 'Samsung Galaxy S24', 1099.00, 'Samsung flagship smartphone with dynamic AMOLED screen.', 1),
+    (6, 'Bose QuietComfort Earbuds', 299.00, 'Noise-cancelling wireless earbuds by Bose.', 1),
+    (7, 'Java: The Complete Reference', 69.00, 'Comprehensive book on Java programming language.', 2),
+    (8, 'Effective Java', 89.00, 'Best practices for Java programming by Joshua Bloch.', 2),
+    (9, 'The Art of Computer Programming', 159.00, 'Classic work on algorithms by Donald Knuth.', 2),
+    (10, 'Fu Sheng Liu Ji', 12.00, 'Autobiographical work by Shen Fu, a classic of Chinese literature.', 2),
+    (11, 'To Kill a Mockingbird', 18.00, 'Harper Lee’s classic novel about justice and race.', 2),
+    (12, 'Clean Code', 79.00, 'A Handbook of Agile Software Craftsmanship by Robert C. Martin.', 2);
+
+```
+
+## 精细配置接口与开放 API 文档
+
+> 通过细粒度的安全配置，保护敏感操作仅限特定角色执行，同时保持接口文档的开放性与可用性。
+
+**代码示例**
+
+```java
+
+@Configuration
+@EnableWebSecurity
+@AllArgsConstructor
+public class SecurityConfig {
+	// 省略
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .sessionManagement(c ->
+                        c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(c -> c
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/carts/**").permitAll()
+                        .requestMatchers("/admin/**").hasRole(Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.POST, "/users").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/products/**").hasRole(Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.PUT, "/products/**").hasRole(Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole(Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/checkout/webhook").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(c -> {
+                    c.authenticationEntryPoint(
+                            new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
+                    c.accessDeniedHandler(((request, response, accessDeniedException) ->
+                            response.setStatus(HttpStatus.FORBIDDEN.value())));
+                });
+        return http.build();
+    }
+}
+```
+
+## 安全规则的模块化与解耦
+
+> 简述：每个功能包自定义并注册自己的安全规则，实现权限配置的高内聚、低耦合，提升可维护性和扩展性。
+
+**知识树**
+
+1. 实现方式
+
+    1. 在公共模块中创建 SecurityRules 接口，并声明 configure 方法
+    2. 在每个功能模块创建规则类，并实现 SecurityRules 接口
+    3. 在配置类中，使用 list 将所有实现了 SecurityRules 接口的类注入，并遍历规则
+
+2. 配置规则作用
+
+    - 声明不需要授权就可以访问的接口，以及需要特定权限才可以访问的接口
+    - 如果仅普通用户需要授权才可以访问的接口，这是默认的
+
+**代码示例**
+
+1. SecurityRules
+
+    ```java
+    public interface SecurityRules {
+        void configure(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry);
+    }
+    ```
+
+2. auth 中实现类
+
+    ```java
+    @Component
+    public class AuthSecurityRules implements SecurityRules {
+        @Override
+        public void configure(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) {
+            registry
+                    .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll();
+        }
+    }
+    ```
+
+3. admin 中实现类
+
+    ```java
+    @Component
+    public class AdminSecurityRules implements SecurityRules {
+        @Override
+        public void configure(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) {
+            registry.requestMatchers("/admin/**").hasRole(Role.ADMIN.name());
+        }
+    }
+    ```
+
+4. carts 中实现类
+
+    ```java
+    @Component
+    public class CartSecurityRules implements SecurityRules {
+        @Override
+        public void configure(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) {
+            registry.requestMatchers("/carts/**").permitAll();
+        }
+    }
+    ```
+
+5. common 中实现类
+
+    ```java
+    @Component
+    public class SwaggerSecurityRules implements SecurityRules {
+        @Override
+        public void configure(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) {
+            registry
+                    .requestMatchers("/swagger-ui/**").permitAll()
+                    .requestMatchers("/swagger-ui.html").permitAll()
+                    .requestMatchers("/v3/api-docs/**").permitAll();
+        }
+    }
+    ```
+
+6. payment 中实现类
+
+    ```java
+    @Component
+    public class PaymentSecurityRules implements SecurityRules {
+        @Override
+        public void configure(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) {
+            registry.requestMatchers(HttpMethod.POST, "/checkout/webhook").permitAll();
+        }
+    }
+    ```
+
+7. product 中实现类
+
+    ```java
+    @Component
+    public class ProductSecurityRules implements SecurityRules {
+        @Override
+        public void configure(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) {
+            registry.requestMatchers(HttpMethod.GET, "/products/**").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/products/**").hasRole(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.PUT, "/products/**").hasRole(Role.ADMIN.name())
+                    .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole(Role.ADMIN.name());
+        }
+    }
+    ```
+
+8. users 中实现类
+
+    ```java
+    @Component
+    public class UserSecurityRules implements SecurityRules {
+        @Override
+        public void configure(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) {
+            registry.requestMatchers(HttpMethod.POST, "/users").permitAll();
+        }
+    }
+    ```
+
+9. 注入总配置类
+
+    ```java
+    @Configuration
+    @EnableWebSecurity
+    @AllArgsConstructor
+    public class SecurityConfig {
+
+        private final List<SecurityRules> featureSecurityRules;
+
+    	// 省略
+
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+            http
+                    .sessionManagement(c ->
+                            c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .authorizeHttpRequests(c -> {
+                        featureSecurityRules.forEach(r -> r.configure(c));
+                        c.anyRequest().authenticated();
+                    })
+                    .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                    .exceptionHandling(c -> {
+                        c.authenticationEntryPoint(
+                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
+                        c.accessDeniedHandler(((request, response, accessDeniedException) ->
+                                response.setStatus(HttpStatus.FORBIDDEN.value())));
+                    });
+            return http.build();
+        }
+    }
+    ```
+
+## Stripe Webhook
+
+dashboard 搜索 webhook
+
+选择
+payment_intent.succeeded
+payment_intent.payment_failed
+
+链接设置为
+
+https://railway 中拷贝/checkout/webhook
