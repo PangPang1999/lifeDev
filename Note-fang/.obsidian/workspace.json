@@ -24,11 +24,11 @@
         ]
       },
       {
-        "id": "4128ba2a57e6017b",
+        "id": "44e49394d69a6b0d",
         "type": "tabs",
         "children": [
           {
-            "id": "1e3d3a8e1bfc0b58",
+            "id": "0aac9975a4e8359b",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -188,22 +188,22 @@
       "command-palette:打开命令面板": false
     }
   },
-  "active": "1e3d3a8e1bfc0b58",
+  "active": "0aac9975a4e8359b",
   "lastOpenFiles": [
     "未命名 1.md",
     "react2.md",
     "react1.md",
-    "react旧.md",
-    "game-hub-detail.md",
-    "game-hub.md",
+    "TypeScript.md",
+    "JavaScript.md",
     "学习教程.md",
+    "game-hub-detail.md",
+    "react旧.md",
+    "game-hub.md",
     "前端面试题.md",
     "方婷婷-简历.md",
     "前端问题收集.md",
     "未命名",
     "react~.md",
-    "TypeScript.md",
-    "JavaScript.md",
     "问题收集",
     "TypeScript"
   ]
