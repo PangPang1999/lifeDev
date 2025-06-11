@@ -1,6 +1,7 @@
 # 第一章
+
 技巧
-commond+g  :31 可以跳到31行
+commond+g :31 可以跳到 31 行
 
 ## 1- 简介
 
@@ -2471,7 +2472,7 @@ export const ToDoForm: React.FC = () => {
     - 改造目标：改为通过 API 请求获取游戏类型，并使用 React Query 管理此数据。
     - 性能优化考虑：虽然 API 获取更动态，但游戏类型数据变化不频繁，仍需考虑加载性能。
 2.  React Query 设置 (回顾)：
-    - 安装`@tanstack/react-query`和`@tanstack/react-query-devtools`。
+    - 安装`npm install @tanstack/react-query@4.28.0 @tanstack/react-query-devtools@4.28.0`
     - 在`main.tsx`中配置`QueryClient`和`QueryClientProvider`，并添加`ReactQueryDevtools`。
 3.  改造`useGenres.ts` Hook：
     - **移除静态数据依赖**：不再直接返回静态数据。
@@ -2524,8 +2525,6 @@ export const ToDoForm: React.FC = () => {
         staleTime: 24 * 60 * 60 * 1000, // 24 hours
         initialData: { // 确保initialData结构匹配FetchResponse
             count: genresStatic.length,
-            next: null,
-            previous: null,
             results: genresStatic
         }
       });
@@ -2539,8 +2538,6 @@ export const ToDoForm: React.FC = () => {
         // 假设在 useData.ts 或 apiClient.ts 中定义
         // export interface FetchResponse<T> {
         //   count: number;
-        //   next: string | null;
-        //   previous: string | null;
         //   results: T[];
         // }
         ```
@@ -2624,8 +2621,6 @@ export const ToDoForm: React.FC = () => {
         staleTime: 24 * 60 * 60 * 1000, // 24 hours
         initialData: { // 确保initialData结构匹配FetchResponse
             count: platformsStatic.length,
-            next: null,
-            previous: null,
             results: platformsStatic
         }
       });
@@ -2758,8 +2753,8 @@ export const ToDoForm: React.FC = () => {
 
     export interface FetchResponse<T> { // 将接口定义移至此处
       count: number;
-      next: string | null;
-      previous: string | null;
+      //next: string | null;
+      //previous: string | null;
       results: T[];
     }
 
@@ -2834,56 +2829,74 @@ export const ToDoForm: React.FC = () => {
 
 3.  其他可能引用`Platform`的组件 (如`PlatformIconList.tsx`, `PlatformSelector.tsx`, `App.tsx`) 也应类似地修改导入。
 
-## 28- 练习 - 创建可复用的 API 客户端 (续)
+## 28- 创建可复用的 APIClient 类
 
-> 简述：此练习要求将项目中多个自定义 Hook 内直接使用 Axios 实例进行数据获取的逻辑，统一封装到一个通用的、可复用的`ApiClient`类中。这个类将提供泛型方法（如`getAll`）来处理不同资源的数据获取，从而减少重复代码并集中管理 API 交互逻辑。
+> **简述：**  
+> 在多个 Hook 中重复编写 `apiClient.get(...).then(res => res.data)`，既冗余又易出错。通过封装一个通用的、支持泛型与可选请求配置的 `APIClient` 类，将所有数据获取逻辑集中管理，各 Hook 只需实例化并调用 `getAll`，即可大幅简化代码并统一错误场景处理。
+
+---
 
 **知识树**
 
-1.  问题背景：
-    - 多个数据获取 Hook（`useGenres`, `usePlatforms`, `useGames`）中存在相似的 Axios GET 请求和响应数据提取逻辑。
-2.  `ApiClient`类设计：
-    - **泛型参数** (`<T>`)：使类能够处理不同类型的数据实体。`T`代表 API 返回的`results`数组中单个元素的类型（如`Genre`, `Platform`, `Game`）。
-    - **构造函数**：接收`endpoint: string`作为参数，用于指定该客户端实例操作的具体 API 资源路径。
-    - **`getAll`方法**：
-        - 泛型：方法本身不再需要泛型参数`T`，因为它由类级别泛型`T`提供。
-        - 参数：可选地接收一个`AxiosRequestConfig`对象，用于传递查询参数（如`useGames`中的`params`）。
-        - 实现：调用预配置的 Axios 实例（如`axiosInstance`）的`get`方法。
-            - URL：使用构造函数中传入的`this.endpoint`。
-            - 请求配置：传入可选的`config`参数。
-            - 响应类型：`axiosInstance.get<FetchResponse<T>>(...)`，其中`FetchResponse<T>`是之前定义的通用响应结构接口。
-            - 数据提取：`.then(res => res.data)`。
-        - 确保`this`上下文：使用箭头函数定义`getAll`方法，以保证其内部`this`正确指向`ApiClient`实例。
-    - **导出**：导出`ApiClient`类。
-3.  Axios 实例管理：
-    - 在`apiClient.ts`模块内部创建一个 Axios 实例（`axiosInstance`），配置基础 URL 和 API 密钥等。
-    - 不再默认导出此`axiosInstance`，而是由`ApiClient`类内部使用。
-4.  改造自定义 Hooks：
-    - 在每个 Hook 的顶层创建对应的`ApiClient`实例：
-        - `useGenres.ts`: `const apiClient = new ApiClient<Genre>('/genres');`
-        - `usePlatforms.ts`: `const apiClient = new ApiClient<Platform>('/platforms/lists/parents');`
-        - `useGames.ts`: `const apiClient = new ApiClient<Game>('/games');`
-    - 修改`queryFn`：
-        - 对于简单 GET（无参数）：`queryFn: apiClient.getAll` (传递方法引用)。
-        - 对于带参数 GET（如`useGames`）：
-            ```ts
-            queryFn: () => apiClient.getAll({
-              params: { /* ...gameQuery mapped to API params... */ }
-            })
-            ```
-            这里`apiClient.getAll`被包裹在一个新的箭头函数中，以便传递`params`。
-5.  益处：
-    - **逻辑集中**：数据获取的核心逻辑（调用 HTTP 客户端、处理响应结构）封装在`ApiClient`中。
-    - **减少重复**：各 Hook 不再重复编写 Axios 调用和`.then(res => res.data)`。
-    - **类型安全**：通过泛型确保了类型从 API 客户端传递到 Hook。
+1. **识别问题：重复数据获取逻辑**
+
+    - 每个 Hook 都需导入 `apiClient`、手动调用 `.get(...)`，并提取 `res.data`。
+    - 接口变动或增加参数时，多处需同步修改。
+
+2. **设计通用 APIClient 类**
+
+    - **构造函数**：接收并保存 `endpoint`（如 `/genres`、`/platforms`、`/games`）。
+    - **泛型支持**：`APIClient<T>`，`T` 表示资源类型，保证类型安全。
+    - **箭头函数方法**：
+        ```ts
+        getAll = (config?: AxiosRequestConfig) => Promise<FetchResponse<T>>
+        ```
+        - 使用箭头函数避免 `this` 丢失。
+        - 接收可选的 `config`（如 `params`），满足分页或过滤需求。
+
+3. **统一分页响应接口**
+
+    - 定义 `FetchResponse<T>`：
+        ```ts
+        interface FetchResponse<T> {
+          count: number;
+          next: string | null;
+          previous: string | null;
+          results: T[];
+        }
+        ```
+    - `getAll` 方法直接返回解析后的 `FetchResponse<T>`，Hook 无需再调用 `.then`。
+
+4. **Hook 中的简化使用**
+
+    - 在各 Hook 顶部实例化对应客户端：
+        ```ts
+        const genresClient = new APIClient<Genre>('/genres');
+        ```
+    - 直接将 `queryFn` 设为 `genresClient.getAll` 或带 `params` 的箭头函数。
+
+5. **逐个更新 Hook**
+
+    - **useGenres**：`queryFn: () => genresClient.getAll()`
+    - **usePlatforms**：`queryFn: () => platformsClient.getAll()`
+    - **useGames**：`queryFn: () => gamesClient.getAll({ params: gameQuery })`
+
+---
 
 **代码示例**
 
-1.  `src/services/apiClient.ts` (修改后)
+1. **定义 `APIClient` 类**
 
     ```ts
-    import axios, { AxiosRequestConfig, AxiosInstance } from 'axios';
+    // services/apiClient.ts
+    import axios, { AxiosRequestConfig } from 'axios';
 
+    // 创建基础 Axios 实例
+    const axiosInstance = axios.create({
+      baseURL: 'https://api.example.com',
+    });
+
+    // 通用分页响应接口
     export interface FetchResponse<T> {
       count: number;
       next: string | null;
@@ -2891,80 +2904,93 @@ export const ToDoForm: React.FC = () => {
       results: T[];
     }
 
-    const axiosInstance = axios.create({
-      baseURL: 'https://api.rawg.io/api',
-      params: {
-        key: 'YOUR_API_KEY' // 替换为你的API密钥
-      }
-    });
+    // 可复用 APIClient 类
+    export class APIClient<T> {
+      constructor(private endpoint: string) {}
 
-    class ApiClient<T> {
-      endpoint: string;
-
-      constructor(endpoint: string) {
-        this.endpoint = endpoint;
-      }
-
-      getAll = (config?: AxiosRequestConfig): Promise<FetchResponse<T>> => {
-        return axiosInstance
+      // 获取所有资源，支持可选请求配置
+      getAll = (config?: AxiosRequestConfig) =>
+        axiosInstance
           .get<FetchResponse<T>>(this.endpoint, config)
           .then(res => res.data);
-      };
-
-      // 可以添加 getOne, post, put, delete 等方法
     }
-
-    export default ApiClient;
     ```
 
-2.  `src/hooks/useGenres.ts` (使用新的`ApiClient`)
+2. **更新 `useGenres` Hook**
 
     ```ts
+    // hooks/useGenres.ts
     import { useQuery } from '@tanstack/react-query';
-    import ApiClient, { FetchResponse } from '../services/apiClient';
-    import genresStatic from '../data/genres';
-    // import { Genre } from './interfaces'; // Genre接口现在可以从这里导入或在ApiClient.ts中与FetchResponse一起
+    import { APIClient, FetchResponse } from '../services/apiClient';
+    import { Genre, staticGenres } from '../data/genres';
 
-    export interface Genre { /* ... */ } // 假设Genre接口定义
-    const apiClient = new ApiClient<Genre>('/genres');
+    const genresClient = new APIClient<Genre>('/genres');
 
-    const useGenres = () => {
+    export function useGenres() {
       return useQuery<FetchResponse<Genre>, Error>({
         queryKey: ['genres'],
-        queryFn: apiClient.getAll, // 直接使用apiClient.getAll
-        staleTime: 24 * 60 * 60 * 1000,
-        initialData: { count: genresStatic.length, next: null, previous: null, results: genresStatic }
+        queryFn: () => genresClient.getAll(),
+        initialData: {
+          count: staticGenres.length,
+          next: null,
+          previous: null,
+          results: staticGenres,
+        },
+        staleTime: 1000 * 60 * 60 * 24,
       });
-    };
-    export default useGenres;
+    }
     ```
 
-3.  `src/hooks/useGames.ts` (使用新的`ApiClient`并传递`params`)
+3. **更新 `usePlatforms` Hook**
 
     ```ts
+    // hooks/usePlatforms.ts
     import { useQuery } from '@tanstack/react-query';
-    import ApiClient, { FetchResponse } from '../services/apiClient';
-    import { GameQuery } from '../App';
-    // import { Game } from './interfaces';
+    import { APIClient, FetchResponse } from '../services/apiClient';
+    import { Platform, staticPlatforms } from '../data/platforms';
 
-    export interface Game { /* ... */ } // 假设Game接口定义
-    const apiClient = new ApiClient<Game>('/games');
+    const platformsClient = new APIClient<Platform>('/lists/parents');
 
-    const useGames = (gameQuery: GameQuery) => {
+    export function usePlatforms() {
+      return useQuery<FetchResponse<Platform>, Error>({
+        queryKey: ['platforms'],
+        queryFn: () => platformsClient.getAll(),
+        initialData: {
+          count: staticPlatforms.length,
+          next: null,
+          previous: null,
+          results: staticPlatforms,
+        },
+        staleTime: 1000 * 60 * 60 * 24,
+      });
+    }
+    ```
+
+4. **更新 `useGames` Hook**
+
+    ```ts
+    // hooks/useGames.ts
+    import { useQuery } from '@tanstack/react-query';
+    import { APIClient, FetchResponse } from '../services/apiClient';
+    import { Game } from '../data/games';
+
+    const gamesClient = new APIClient<Game>('/games');
+
+    export function useGames(gameQuery: Record<string, any>) {
       return useQuery<FetchResponse<Game>, Error>({
         queryKey: ['games', gameQuery],
-        queryFn: () => apiClient.getAll({ // 调用getAll并传递config对象
-          params: {
-            genres: gameQuery.genreId, // 注意属性名从gameQuery映射
-            parent_platforms: gameQuery.platformId,
-            ordering: gameQuery.sortOrder,
-            search: gameQuery.searchText,
-          },
-        }),
+        queryFn: () => gamesClient.getAll({ params: gameQuery }),
       });
-    };
-    export default useGames;
+    }
     ```
+
+---
+
+> **总结：**
+>
+> -   **高内聚低耦合**：将所有网络请求与数据解析集中在 `APIClient` 类；
+> -   **类型安全**：通过泛型与 `FetchResponse<T>`，保证返回数据的准确性；
+> -   **简洁 Hook**：Hook 只关心调用 `getAll` 方法，删除重复代码，提高可维护性。
 
 ## 29- 练习 - 实现无限查询 (Games)
 

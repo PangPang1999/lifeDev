@@ -1,18 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import staticGenres from "../data/genres";
-import apiClient from "../service/api-client";
-import { type FetchResponse } from "./useData";
+import ApiClient from "../service/api-client";
+
 export interface Genres {
   id: number;
   name: string;
   image_background: string;
 }
+const apiClient = new ApiClient<Genres>("/genres");
 // const useGenres = () => useData<Genres>("/genres");
 const useGenres = () =>
   useQuery({
     queryKey: ["genres"], // 唯一查询键
-    queryFn: () =>
-      apiClient.get<FetchResponse<Genres>>("/genres").then((res) => res.data),
+    queryFn: apiClient.getAll,
     staleTime: 1000 * 60 * 5,
     initialData: { count: staticGenres.length, results: staticGenres },
 
