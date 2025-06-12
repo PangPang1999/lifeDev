@@ -2992,7 +2992,7 @@ export const ToDoForm: React.FC = () => {
 > -   **类型安全**：通过泛型与 `FetchResponse<T>`，保证返回数据的准确性；
 > -   **简洁 Hook**：Hook 只关心调用 `getAll` 方法，删除重复代码，提高可维护性。
 
-## 29- 练习 - 实现无限查询 (Games)
+## 29- 实现无限加载（Infinite Queries）
 
 > **简述：**  
 > 无限加载模式让用户无需手动翻页，通过“加载更多”按钮动态请求下一页数据。React Query 提供 `useInfiniteQuery` 钩子，内置分页参数管理、缓存拼接与结束条件，帮助我们轻松实现不断加载新数据的体验。
@@ -3139,9 +3139,10 @@ export const ToDoForm: React.FC = () => {
     }
     ```
 
-## 30- 练习 - 实现无限滚动
+## 30- 实现无限滚动（Implementing Infinite Scroll）
 
-> 简述：此练习要求在已实现无限查询的基础上，利用`react-infinite-scroll-component`库将“加载更多”按钮替换为自动的无限滚动加载行为，即当用户滚动到页面底部时自动获取下一页数据。
+> **简述：**  
+> 无限滚动让用户在浏览列表时，无需手动点击“加载更多”，页面滚动到底部时自动请求下一页数据。结合 `useInfiniteQuery` 与第三方库 `react-infinite-scroll-component`，我们只需配置加载项统计、判断是否还有更多、以及触发加载回调，即可轻松实现滚动加载的用户体验。
 
 **知识树**
 

@@ -165,13 +165,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "未命名 1.md",
+                "file": "react2.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "未命名 1 的大纲"
+              "title": "react2 的大纲"
             }
           }
         ],
@@ -191,10 +191,10 @@
       "command-palette:打开命令面板": false
     }
   },
-  "active": "d2644bb1d8a4b71e",
+  "active": "0aac9975a4e8359b",
   "lastOpenFiles": [
-    "react2.md",
     "未命名 1.md",
+    "react2.md",
     "react1.md",
     "TypeScript.md",
     "JavaScript.md",
