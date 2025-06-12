@@ -3412,92 +3412,18 @@ export const ToDoForm: React.FC = () => {
 
 **知识树**
 
-1.  手动时间计算的问题：
-    - 可读性差：如`24 * 60 * 60 * 1000`不如直接表达“24 小时”清晰。
-    - 易出错：手动计算可能引入错误。
-    - 缺乏注释时难以理解：需要注释来解释魔法数字的含义。
-2.  `ms`库：
-    - 用途：一个小型 JavaScript 库，用于在人类可读的时间字符串（如`'2 days'`, `'10h'`, `'7d'`）和毫秒数之间进行转换。
-    - 安装：`npm install ms`。
+1.  `ms`库：
+    - 安装：`npm i -D @types/ms`。
     - TypeScript 类型定义：如果库本身不包含类型定义，可能需要安装`@types/ms`：`npm install @types/ms --save-dev`。
-3.  使用方法：
+2.  使用方法：
     - 导入：`import ms from 'ms';`
     - 转换：调用`ms('时间字符串')`会返回对应的毫秒数。
         - `ms('24h')` -> 86400000
         - `ms('1d')` -> 86400000
         - `ms('10m')` -> 600000
-4.  在 React Query 配置中应用：
+3.  在 React Query 配置中应用：
     - 将原先手动计算的`staleTime`或`cacheTime`值替换为使用`ms`库转换的值。
     - `staleTime: ms('24h')`
-5.  益处：
-    - **可读性**：配置值直接表达时间单位，一目了然。
-    - **准确性**：避免手动计算错误。
-    - **简洁性**：代码更清晰。
-6.  包体积考量：
-    - `ms`库非常小，对最终打包体积影响极小。
-    - 如果对包体积有极致要求，可以自行编写简单的工具函数进行时间转换，但`ms`库提供了更全面的格式支持和便利性。
-
-**代码示例**
-
-1.  安装`ms`和其类型定义
-
-    ```bash
-    npm install ms
-    npm install @types/ms --save-dev
-    ```
-
-2.  在自定义 Hook 中使用`ms`库设置`staleTime`
-
-    ```ts
-    // src/hooks/useGenres.ts
-    import { useQuery } from '@tanstack/react-query';
-    import ms from 'ms'; // 导入ms库
-    // ... 其他导入
-
-    const useGenres = () => {
-      return useQuery<FetchResponse<Genre>, Error>({
-        queryKey: ['genres'],
-        // queryFn: apiClient.getAll,
-        staleTime: ms('24h'), // 使用ms库设置24小时
-        // initialData: ...
-      });
-    };
-    // export default useGenres;
-    ```
-
-    ```ts
-    // src/hooks/usePlatforms.ts
-    import { useQuery } from '@tanstack/react-query';
-    import ms from 'ms';
-    // ... 其他导入
-
-    const usePlatforms = () => {
-      return useQuery<FetchResponse<Platform>, Error>({
-        queryKey: ['platforms'],
-        // queryFn: apiClient.getAll,
-        staleTime: ms('24h'), // 使用ms库
-        // initialData: ...
-      });
-    };
-    // export default usePlatforms;
-    ```
-
-    ```ts
-    // src/hooks/useGames.ts
-    import { useInfiniteQuery } from '@tanstack/react-query';
-    import ms from 'ms';
-    // ... 其他导入
-
-    const useGames = (gameQuery: GameQuery) => {
-      return useInfiniteQuery<FetchResponse<Game>, Error>({
-        queryKey: ['games', gameQuery],
-        // queryFn: ...,
-        // getNextPageParam: ...,
-        staleTime: ms('1h'), // 示例：游戏列表1小时新鲜期
-      });
-    };
-    // export default useGames;
-    ```
 
 # ddd
 
