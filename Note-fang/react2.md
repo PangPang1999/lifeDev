@@ -2994,36 +2994,62 @@ export const ToDoForm: React.FC = () => {
 
 ## 29- 练习 - 实现无限查询 (Games)
 
-> 简述：此练习要求将`useGames` Hook 从使用标准`useQuery`（分页或全量获取）改造为使用`useInfiniteQuery`，以实现游戏列表的无限滚动加载功能。这涉及到修改`queryFn`以接受分页参数，并实现`getNextPageParam`函数。
+> **简述：**  
+> 无限加载模式让用户无需手动翻页，通过“加载更多”按钮动态请求下一页数据。React Query 提供 `useInfiniteQuery` 钩子，内置分页参数管理、缓存拼接与结束条件，帮助我们轻松实现不断加载新数据的体验。
 
 **知识树**
 
-1.  目标：为游戏列表实现“加载更多”或无限滚动效果。
-2.  `useInfiniteQuery`替换`useQuery`：
-    - 在`useGames.ts`中，将`useQuery`替换为`useInfiniteQuery`。
-3.  修改`queryFn`：
+1. **`useInfiniteQuery` 与分页参数**
+
+    - **用途区别**：
+        - `useQuery` 只能一次性获取单页数据；
+        - `useInfiniteQuery` 支持多页加载、自动拼接。
+    - **`pageParam` 参数**：
+        - 钩子在第一次调用时传 `undefined`，可在 `queryFn` 中设默认值（如 `=1`）；
+        - 后续调用由 `getNextPageParam` 返回的新页码决定。
+
+2. **查询函数（`queryFn`）实现**
+
+    - 接收解构的 `pageParam`：
+        ```ts
+        queryFn: ({ pageParam = 1 }) =>
+          apiClient.getAll({ params: { ...gameQuery, page: pageParam } })
+        ```
     - `queryFn`现在会接收一个包含`pageParam`属性的对象作为参数。`pageParam`代表下一页的标识（通常是页码）。
-    - `queryFn`应使用此`pageParam`来构建 API 请求，以获取对应页的数据。RAWG API 使用`page`查询参数进行分页。
-    - 为`pageParam`提供一个默认值（如 1），用于首次加载第一页数据。
-    - `queryFn: ({ pageParam = 1 }) => apiClient.getAll({ params: { ...gameQueryParams, page: pageParam } })`
-4.  实现`getNextPageParam`函数：
-    - 参数：`(lastPage: FetchResponse<Game>, allPages: FetchResponse<Game>[])`
-        - `lastPage`：最近一次成功获取到的页面数据（一个`FetchResponse<Game>`对象）。
-        - `allPages`：一个数组，包含所有已成功获取的页面数据。
-    - 逻辑：根据`lastPage.next`属性（RAWG API 在响应中提供下一页的 URL 或`null`）来判断是否还有更多页面。
-        - 如果`lastPage.next`存在（不为`null`），则表示有下一页。下一页的页码可以通过解析`lastPage.next` URL 中的`page`参数得到，或者简单地返回`allPages.length + 1`（如果 API 页码是连续的且从 1 开始）。
-        - 如果`lastPage.next`为`null`，则表示已到达最后一页，应返回`undefined`。
-5.  组件适配 (`GameGrid.tsx`)：
-    - `useGames` Hook 现在返回`useInfiniteQuery`的查询对象。
-    - 解构出`data`, `fetchNextPage`, `hasNextPage`, `isFetchingNextPage`等属性。
-    - 渲染数据：`data.pages`是一个数组，每个元素是一页的游戏数据（`FetchResponse<Game>`对象）。需要遍历`data.pages`，再对每个`page.results`进行遍历来渲染游戏卡片。
-        - 使用`React.Fragment`为每个页面数据组提供`key`。
-    - “加载更多”按钮：
-        - `onClick`: 调用`fetchNextPage()`。
+    - RAWG API 使用`page`查询参数进行分页。将分页页码通过 `params.page` 传给后端；
+    - 返回值类型为泛型 `FetchResponse<T>`，包含 `{ count, next, previous, results }`。
+
+3. **下一页参数计算（`getNextPageParam`）**
+
+    - 签名：`(lastPage, allPages) => number | undefined`
+    - `lastPage`：最近一次请求返回的分页响应；
+    - `allPages`：至今已加载的所有页数据数组；
+    - **返回逻辑**：
+        - 若 `lastPage.next` 为 truthy（后端指示还有更多页），返回 `allPages.length + 1`；
+        - 否则返回 `undefined`，React Query 自动停止后续请求。
+
+4. **组件渲染与“加载更多”交互 (`GameGrid.tsx`)**
+
+    - **渲染多页数据**：
+        ```tsx
+        data.pages.map((page, idx) => (
+          <React.Fragment key={idx}>
+            {page.results.map(game => <GameCard key={game.id} game={game} />)}
+          </React.Fragment>
+        ))
+        ```
+    - **解构额外返回值**：
+        ```ts
+        const { fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery(...);
+        ```
+    - **加载更多按钮**：
+        - 条件渲染：`{hasNextPage && <Button ...>...</Button>}`；
+        - 动态文案：加载中时显示“加载中…”，否则“加载更多”；
+        - 点击触发：`onClick={() => fetchNextPage()}`。
         - `disabled`: 当`!hasNextPage`或`isFetchingNextPage`为`true`时。
-        - 文本：根据`isFetchingNextPage`显示不同状态。
-6.  `FetchResponse`接口更新：
-    - 确保`FetchResponse<T>`接口包含`next: string | null`和`previous: string | null`属性，以匹配 RAWG API 的响应结构。
+    - **布局优化**：使用容器（如 `Box`）统一设置 `padding`，为按钮添加 `margin-top`。
+
+---
 
 **代码示例**
 
@@ -3041,7 +3067,7 @@ export const ToDoForm: React.FC = () => {
     const useGames = (gameQuery: GameQuery) => {
       return useInfiniteQuery<FetchResponse<Game>, Error>({ // 使用useInfiniteQuery
         queryKey: ['games', gameQuery],
-        queryFn: ({ pageParam = 1 }) => // queryFn接收pageParam
+        queryFn: ({ pageParam = 1 }) => //① queryFn 接收 pageParam，默认 1
           apiClient.getAll({
             params: {
               genres: gameQuery.genreId,
@@ -3051,7 +3077,8 @@ export const ToDoForm: React.FC = () => {
               page: pageParam, // 将pageParam用于API请求
             },
           }),
-        getNextPageParam: (lastPage, allPages) => { // 实现getNextPageParam
+       // ② getNextPageParam 计算下一页或停止
+        getNextPageParam: (lastPage, allPages) => {
           return lastPage.next ? allPages.length + 1 : undefined;
         },
         // staleTime: ... // 可选
@@ -3092,7 +3119,7 @@ export const ToDoForm: React.FC = () => {
                   // <GameCardContainer key={game.id}>
                   //   <GameCard game={game} />
                   // </GameCardContainer>
-                  <p key={game.id}>{game.name}</p> // 简化示例
+                   <GameCard key={game.id} game={game} /> // 简化示例
                 ))}
               </React.Fragment>
             ))}

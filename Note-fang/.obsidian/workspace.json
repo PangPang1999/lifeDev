@@ -6,6 +6,7 @@
       {
         "id": "3db398ba029ed299",
         "type": "tabs",
+        "dimension": 52.22121486854034,
         "children": [
           {
             "id": "d2644bb1d8a4b71e",
@@ -26,6 +27,7 @@
       {
         "id": "44e49394d69a6b0d",
         "type": "tabs",
+        "dimension": 47.77878513145966,
         "children": [
           {
             "id": "0aac9975a4e8359b",
@@ -98,7 +100,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 200,
+    "collapsed": true
   },
   "right": {
     "id": "b839df162c42938e",
@@ -162,13 +165,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "react2.md",
+                "file": "未命名 1.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "react2 的大纲"
+              "title": "未命名 1 的大纲"
             }
           }
         ],
@@ -188,10 +191,10 @@
       "command-palette:打开命令面板": false
     }
   },
-  "active": "0aac9975a4e8359b",
+  "active": "d2644bb1d8a4b71e",
   "lastOpenFiles": [
-    "未命名 1.md",
     "react2.md",
+    "未命名 1.md",
     "react1.md",
     "TypeScript.md",
     "JavaScript.md",
