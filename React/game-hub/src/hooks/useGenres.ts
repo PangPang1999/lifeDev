@@ -14,7 +14,7 @@ const useGenres = () =>
     queryKey: ["genres"], // 唯一查询键
     queryFn: apiClient.getAll,
     staleTime: 1000 * 60 * 5,
-    initialData: { count: staticGenres.length, results: staticGenres },
+    initialData: staticGenres,
 
     // 获取数据的函数
   });
