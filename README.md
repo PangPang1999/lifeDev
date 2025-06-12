@@ -1,74 +1,27 @@
-# lifeDev
+# lifeDev · 技术学习成长项目
 
-## HTML&CSS
+> 自我驱动的学习项目，当前涵盖 HTML/CSS、JavaScript、Java、Spring Boot 核心内容。通过费曼学习法，将知识拆解、输出为结构化笔记，逐步构建起完整的知识体系。
+>
+> 这是一个长期项目。我不是试图记住所有内容，而是专注于系统地记笔记，这样当我忘记时，我可以轻松地查找并迅速回到正轨。
 
-- startDate: 2024/11/19
-- endDate: 2024/12/25
+# Why · 为什么做这个项目
 
-summarize:
+> 在 AI 技术快速发展的背景下，仅仅停留在“会用”层面，缺乏对技术栈整体认知与底层机制的理解，已经难以具备竞争力。比如，只会基本 CRUD 或简单使用 Spring Boot，却对其核心原理几乎一无所知，这种“工具人”式能力，既难以突破自我，也容易被行业淘汰。
+> 我深刻意识到，AI 不只是一个工具，更像是可以扩展大脑能力的“外挂”——但只有拥有系统的技术体系认知和底层理解，才能真正借力 AI，提升个人成长速度和能力上限。如果只满足于日常业务，“只会用不会思考”，不但难以进步，更会错失用 AI 反哺自我成长的机会。
+> 因此，我决定通过系统性课程主动学习，全面梳理和构建自己的技术体系认知。项目全过程结合 AI 辅助，既夯实基础、也提升深度，实现知识结构的跃迁。
 
-1. 每日学习时间不稳定(从入职后开始学习)
-2. 工具效率不够(写了一个视频转文字脚本, 但是没有字幕直接转成文本效率高)
-3. 初期速度不够(前半部分已经学过, 但没有快速过掉)
-4. 笔记整理规范有待提升
+---
 
-## JavaSctipt
+# lifeDev · Self-Driven Technical Growth Project
 
-- startDate: 2024/12/25
-- endDate: 2025/3/14
+> A self-initiated learning project focused on mastering the fundamentals and core concepts of HTML/CSS, JavaScript, Java, and Spring Boot. By applying the Feynman Technique, I break down complex topics into structured, easy-to-review notes, and systematically build a solid and interconnected knowledge base.
+>
+> This is a long-term project. Rather than trying to memorize everything, I focus on systematic note-taking—so when I forget, I can easily look things up and quickly get back on track.
 
-summarize:
+# Why · Project Motivation
 
-1. 笔记整理规范得到了极大的提升
-2. 学习体系搭建
-
-   - 字幕转文字
-   - GPT4.5 提取字幕为笔记
-   - 看视频修改笔记
-   - GPT4.5 重构精简笔记
-
-3. 虽然学习的过程中，因为重构笔记花费了很多时间，但是是值得的，工欲善其事，先利其器
-
-## Java
-
-- Part1 Fundamentals 4h
-  - startDate: 2025/3/17
-  - endDate: 2025/3/19
-- Part2 Object-oriented 4h
-  - startDate: 2025/3/20
-  - endDate:2025/3/31
-- Part3 Object-oriented 6h
-  - startDate: 2025/4/1
-  - endDate:2025/5/5
-
-summarize:
-
-1. 开始回顾 Java，计划尽快过一遍基础
-2. 初步计划快速过，费曼学习过于的慢
-3. 踏实学技术，敷衍自己无意义，我需要是：
-   Once I learn, I can teach.
-4. Java 核心知识 Stream、CompleteFuture 也挺简单的，
-   类似学习 JS 的数组与原型，学不一定定牢牢记住，但是用
-   的时候很快就能想到。
-5. 中间离职后零零碎碎休息了半个多月，SpringBoot 加速！
-
-## SpringBoot
-
-- Mastering the Fundamentals 6h
-  - startDate: 2025/5/5
-  - endDate:2025/5/21
-
-summarize:
-
-1. 整体上没有遇到什么阻力，部分 moth 没有讲充分的点，也被我进行了拓展
-2. 第一节的主要内容是依赖注入，与数据库的增删改差部分，重点是加载策略以及查询，以及无 SQL 查询，@Query 也能算是一个小重点。
-3. 重要的 API 是 JpaRepository，其拓展的 Example、Specification API、Sort&Pagination 在大型项目中应该存在不少使用场景
-4. 整体学习进度还是偏慢，下一节 9h，希望能在 1 周内搞定
-
-- Spring Boot Mastering REST API Development 9h
-  - startDate: 2025/5/22
-  - endDate:2025/5/29（预计）
-
-summarize:
-
-1.
+> With the rapid advancement of AI technology, merely knowing how to use a framework is no longer enough to remain competitive. True technical growth requires a deeper understanding of the underlying principles and the ability to see the bigger picture across the entire tech stack. For example, simply being able to implement CRUD operations or use Spring Boot at a superficial level, without understanding its core mechanisms, makes it difficult to truly innovate or adapt to new challenges in the industry.
+>
+> I’ve come to realize that AI is not just a tool, but an amplifier for human learning and problem-solving—provided one already has a systematic technical foundation. By establishing this foundation and developing a clear mental model of how different technologies connect and operate, I can fully leverage AI to accelerate my own growth and expand my capabilities.
+>
+> This project is my commitment to a proactive, structured learning path: following comprehensive courses, mapping out the full knowledge system, and integrating AI assistance throughout the process. My goal is to reinforce the fundamentals, deepen my understanding, and achieve a meaningful leap in my technical abilities.

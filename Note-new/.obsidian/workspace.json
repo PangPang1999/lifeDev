@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "SpringBoot2.md",
+                "file": "搭建 VPN.md",
                 "mode": "source",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "SpringBoot2"
+              "title": "搭建 VPN"
             }
           },
           {
@@ -41,12 +41,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "SpringBoot.md",
+                "file": "Java.md",
                 "mode": "source",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "SpringBoot"
+              "title": "Java"
             }
           },
           {
@@ -63,7 +63,8 @@
               "title": "Mac重装"
             }
           }
-        ]
+        ],
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -120,8 +121,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "right": {
     "id": "4c76231ee1d676b9",
@@ -185,13 +185,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "SpringBoot2.md",
+                "file": "Java.md",
                 "followCursor": true,
                 "showSearch": true,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "SpringBoot2 的大纲"
+              "title": "Java 的大纲"
             }
           }
         ],
@@ -211,15 +211,15 @@
       "command-palette:打开命令面板": false
     }
   },
-  "active": "0fd4cf7c29b72815",
+  "active": "f471aff3832af799",
   "lastOpenFiles": [
-    "Mac重装.md",
-    "SpringBoot.md",
     "SpringBoot2.md",
+    "SpringBoot.md",
+    "搭建 VPN.md",
+    "Mac重装.md",
     "测试文件无需上传.md",
     "Java.md",
     "未命名",
-    "搭建 VPN.md",
     "Java回顾（非Moth版本）.md",
     "JavaScript.md",
     "Untitled",

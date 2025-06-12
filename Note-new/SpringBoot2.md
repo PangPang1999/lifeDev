@@ -5032,7 +5032,6 @@ Deployment
 
     ```yaml
     spring:
-
       jwt:
         secret: ${JWT_SECRET}
         accessTokenExpiration: 300 # 5m
@@ -6955,9 +6954,9 @@ Organizing code
 
     ```yaml
     spring:
-        # 省略
+      # 省略
     stripe:
-        secretKey: ${STRIPE_SECRET_KEY}
+      secretKey: ${STRIPE_SECRET_KEY}
     ```
 
 4. Stripe 配置类
@@ -8138,8 +8137,7 @@ Organizing code
         - `openssl rand -base64 32`
     - STRIPE_SECRET_KEY：
         - stripe 搜索 api keys 获取测试 secret key，生产 secret key 需要填写完整信息并关闭 test mode
-    - STRIPE_WEBHOOK_SECRET_KEY
-        -
+    - STRIPE_WEBHOOK_SECRET_KEY：最后一节介绍
     - SPRING_DATASOURCE_URL：
         - 前往 MySQL（Railway），Data 页签，点击连接，复制`${{ MySQL.MYSQL_URL }}`，需要加上前缀`jdbc:`，即`jdbc:${{ MySQL.MYSQL_URL }}`
     - SPRING_PROFILE_ACTIVE
