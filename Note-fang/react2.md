@@ -3623,39 +3623,63 @@ export const ToDoForm: React.FC = () => {
 
 ## 2- 使用 Reducer 整合状态逻辑
 
-> 简述：Reducer 是一个纯函数，它接收当前状态和一个描述用户意图的“动作”(action)对象作为参数，并返回一个新的状态。它能够帮助开发者将组件中分散的状态更新逻辑集中到一个可预测的地方进行管理。
+> **简述：**  
+> 当组件内的状态更新逻辑日渐复杂时，直接使用多处的 `useState` 和局部更新会导致维护困难。**Reducer** 模式通过将所有状态变更集中到一个纯函数（reducer）中，实现状态更新逻辑的统一管理和可预测性。配合 React 的 `useReducer` 钩子，可以让组件只负责渲染和触发动作（dispatch），而所有“如何更新”都在 reducer 中集中定义。
+
+---
 
 **知识树**
 
-1.  Reducer 函数定义：
-    - 签名：`(currentState, action) => newState`
-    - `currentState`：组件在动作发生前的状态。
-    - `action`：一个描述发生了什么的对象，通常至少包含一个`type`属性（字符串类型））来标识动作类型，也可以包含其他附加数据（payload）。
-    - `newState`：Reducer 根据当前状态和动作计算出的新状态。Reducer 必须是纯函数，不应直接修改`currentState`，而是返回一个全新的状态对象。
-2.  `useReducer` Hook：
-    - 导入：`import { useReducer } from 'react';`
-    - 用法：`const [state, dispatch] = useReducer(reducerFn, initialState, initFn?);`
-        - `reducerFn`：自定义的 Reducer 函数。
-        - `initialState`：状态的初始值。
-        - `initFn` (可选)：一个函数，用于惰性计算初始状态。
-    - 返回值：
-        - `state`：当前的组件状态。
-        - `dispatch`：一个函数，用于向 Reducer 派发（dispatch）一个 action 对象。调用`dispatch(action)`会触发 Reducer 函数的执行。
-3.  Action 对象：
-    - 结构：通常是一个包含`type`属性的对象。`type`属性的值用于在 Reducer 内部区分不同的操作。
-    - Payload：Action 对象可以携带额外的数据（通常放在`payload`属性或其他自定义属性中），供 Reducer 在计算新状态时使用。
-4.  Reducer 函数实现：
-    - 通常使用`if-else if`链或`switch`语句，根据传入`action.type`的值来执行不同的状态更新逻辑。
-    - 对于未识别的 action 类型，Reducer 应返回当前状态或抛出错误（后者在 TypeScript 强类型约束下较少必要）。
-5.  TypeScript 与 Reducer：
-    - 类型化 State：为状态定义明确的接口或类型。
-    - 类型化 Action：为 Action 对象（特别是`type`属性和可能的 payload）定义接口或类型。使用字符串字面量联合类型来约束`action.type`的值，可以提供编译时检查，防止拼写错误。
-    - Reducer 函数签名类型化：明确指定 Reducer 函数的参数类型和返回类型。
-6.  优势：
-    - **逻辑集中化**：将所有状态更新逻辑从组件的事件处理器中提取到单一的 Reducer 函数中，使组件更侧重于渲染。
-    - **可预测性**：状态的变更路径清晰，易于理解和调试。
-    - **可测试性**：Reducer 是纯函数，易于进行单元测试。
-    - **可维护性**：当状态更新逻辑复杂时，Reducer 能提供更好的组织结构。
+1. **Reducer 概念**
+
+    - **定义**：接收当前状态和一个“动作”（action），返回下一个状态的纯函数。
+    - **形式**：`(state, action) => newState`
+        - `currentState`：组件在动作发生前的状态。
+        - `action`：一个描述发生了什么的对象，通常至少包含一个`type`属性（字符串类型））来标识动作类型，也可以包含其他附加数据（payload）。
+        - `newState`：Reducer 根据当前状态和动作计算出的新状态。Reducer 必须是纯函数，不应直接修改`currentState`，而是返回一个全新的状态对象。
+    - **优点**：集中管理状态更新逻辑、可预测、易于测试和复用。
+
+2. **Action 对象**
+
+    - **基本结构**：具有 `type` 字段（通常是字符串或字面量联合类型），可选地携带 `payload`。
+    - **类型定义**：
+        ```ts
+        interface Action {
+          type: 'increment' | 'reset';
+          // payload?: any;
+        }
+        ```
+    - **字面量联合**：使用 TypeScript 联合类型限制有效 `type`，避免拼写错误。
+
+3. **`useReducer` 钩子用法**
+
+    - **签名**：`const [state, dispatch] = useReducer(reducer, initialState)`
+    - **参数**：
+        - `reducer`：纯函数，负责根据 action 计算新状态。
+        - `initialState`：初始状态值。
+    - **返回值**：
+        - `state`：当前状态；
+        - `dispatch`：触发 action 的函数，用于向 Reducer 派发（dispatch）一个 action 对象。调用方式 `dispatch({ type: '...' })`。会触发 Reducer 函数的执行。
+
+4. **Reducer 文件组织**
+
+    - 创建独立的 `counterReducer.ts`：
+        - 导出 reducer 函数；
+        - 定义并导出 `Action` 接口和可能的 action 类型。
+    - 在组件中只导入 reducer 与类型，不含状态逻辑。
+
+5. **组件中触发 Action**
+
+    - 在按钮或事件处理器中调用 `dispatch`，传入具 `type` 的 action 对象。
+    - 不直接使用 `setState`，所有更新通过 reducer 统一进行。
+
+6. **TypeScript 增强**
+
+    - 为 reducer 的参数和返回值添加类型注解，确保编译期类型安全；
+    - 使用 **字面量联合类型** 防止无效 action：
+        ```ts
+        type CounterAction = { type: 'increment' } | { type: 'reset' };
+        ```
 
 **代码示例**
 
@@ -3709,4 +3733,191 @@ export const ToDoForm: React.FC = () => {
     }
 
     export default Counter;
+    ```
+
+3.  reducer 是一个纯函数
+
+```ts
+// 纯 reducer：返回新状态，不修改原始 state
+function counterReducer(state: number, action: CounterAction): number {
+  switch (action.type) {
+    case 'increment':
+      return state + 1;
+    case 'reset':
+      return 0;
+    default:
+      return state;
+  }
+}
+
+// 非纯写法（不推荐）：直接修改 state 或产生副作用
+function badReducer(state: { count: number }, action: any) {
+  switch (action.type) {
+    case 'increment':
+      state.count += 1;       // 修改了原对象
+      console.log(state.count); // 输出副作用
+      return state;
+    default:
+      return state;
+  }
+}
+```
+
+在这里，“纯函数”有两个核心含义：
+
+1. **相同输入必得相同输出**  
+   给定完全相同的参数——在 reducer 里就是相同的 `state` 和相同的 `action`——函数总会返回相同的结果，不会因为外部环境的不同而改变。例如：
+
+    ```ts
+    // 纯函数：相同参数，永远返回相同值
+    function add(a: number, b: number): number {
+      return a + b;
+    }
+    ```
+
+2. **没有副作用**  
+   函数内部不会修改外部变量、不会产生网络请求、不会读写浏览器存储、也不会调用 `Date.now()`、`Math.random()` 等会导致结果不稳定的 API。它只是根据输入计算输出，并且**不会改变传入的参数**（避免直接修改 `state` 对象）：
+
+    ```ts
+    // 非纯函数：修改了外部变量 x
+    let x = 0;
+    function impureIncrement() {
+      x += 1;
+      return x;
+    }
+
+    // 非纯函数：修改了传入的数组
+    function impurePush(arr: number[], value: number) {
+      arr.push(value);
+      return arr;
+    }
+    ```
+
+在 reducer 的上下文里，这意味着：
+
+- **不直接修改 `state`**，而是返回一个全新的状态值或对象。
+- **仅依赖于传入的 `state` 和 `action`** 来计算新状态，不读取或修改组件外的任何数据。
+
+这样做好处是：
+
+- **可预测**：给定同样的当前状态和动作，你总能预先知道下一个状态是什么。
+- **易于测试**：只需给 reducer 输入各种状态+动作组合，就能断言输出。
+- **调试友好**：配合时间旅行调试（time-travel debugging）等工具时，状态变化始终可回溯、可重复。
+## 3- 创建复杂 Action
+
+> 简述：当不同的用户动作（Actions）需要携带不同结构或类型的附加数据（payload）时，应为每种动作定义专门的、具有明确 payload 结构的 Action 接口。通过 TypeScript 的联合类型，可以将这些具体的 Action 接口组合成一个总的 Action 类型，供 Reducer 进行类型安全的处理。
+
+**知识树**
+
+1.  Action Payload 的需求：
+    - 某些 Action（如添加任务）需要额外数据（如任务内容）。
+    - 另一些 Action（如删除任务）可能需要不同类型的数据（如任务 ID）。
+    - 还有些 Action（如重置）可能不需要任何额外数据。
+2.  为不同 Action 定义独立接口：
+    - 每个接口描述一种特定类型的 Action。
+    - 包含一个`type`属性，其值为唯一的字符串字面量（如`'ADD_TASK'`）。
+    - 包含该 Action 特有的`payload`属性（或直接将 payload 字段作为接口属性）。
+    - 示例：
+        ```typescript
+        interface AddTaskAction {
+          type: 'ADD_TASK';
+          payload: { id: number; title: string; }; // 或直接 task: Task;
+        }
+        interface DeleteTaskAction {
+          type: 'DELETE_TASK';
+          payload: { taskId: number; }; // 或直接 taskId: number;
+        }
+        ```
+3.  创建 Action 联合类型：
+    - 使用 TypeScript 的联合操作符 `|` 将所有具体的 Action 接口合并为一个总的 Action 类型。
+    - `type TaskAction = AddTaskAction | DeleteTaskAction;`
+    - Reducer 函数的`action`参数类型应为此联合类型。
+4.  Reducer 中处理类型化的 Action：
+    - 当在 Reducer 中使用`switch (action.type)`或`if (action.type === '...')`时，TypeScript 编译器能够在该分支内进行类型收窄（Type Narrowing）。
+    - 这意味着在特定`case`或`if`块中，`action`对象会被识别为对应的具体 Action 接口类型，从而可以安全地访问其特有的`payload`属性，并获得类型提示。
+5.  Dispatching 类型化的 Action：
+    - 在组件中调用`dispatch`函数时，传递的 action 对象必须符合联合类型中某个具体 Action 接口的结构。TypeScript 会对此进行检查。
+
+**代码示例**
+
+1.  定义任务相关的 Action 接口和联合类型 (`tasksReducer.ts` 或类型定义文件)
+
+    ```ts
+    // src/reducers/tasksReducer.ts (或 types.ts)
+    export interface Task {
+      id: number;
+      title: string;
+    }
+
+    export interface AddTaskAction {
+      type: 'ADD';
+      task: Task; // payload直接作为属性
+    }
+
+    export interface DeleteTaskAction {
+      type: 'DELETE';
+      taskId: number; // payload直接作为属性
+    }
+
+    // Action联合类型
+    export type TaskAction = AddTaskAction | DeleteTaskAction;
+    ```
+
+2.  `tasksReducer.ts` 实现
+
+    ```ts
+    // src/reducers/tasksReducer.ts
+    // (假设Task和TaskAction接口已导入或在此定义)
+
+    function tasksReducer(tasks: Task[], action: TaskAction): Task[] {
+      switch (action.type) {
+        case 'ADD':
+          // 在此分支，action被识别为AddTaskAction类型
+          // 可以安全访问 action.task
+          return [...tasks, action.task];
+        case 'DELETE':
+          // 在此分支，action被识别为DeleteTaskAction类型
+          // 可以安全访问 action.taskId
+          return tasks.filter(task => task.id !== action.taskId);
+        default:
+          return tasks;
+      }
+    }
+    export default tasksReducer;
+    ```
+
+3.  组件中 Dispatch 复杂 Action (`TaskList.tsx`)
+
+    ```tsx
+    // src/components/TaskList.tsx
+    import { useReducer } from 'react';
+    import tasksReducer, { Task, TaskAction } from '../reducers/tasksReducer';
+
+    function TaskList() {
+      const [tasks, dispatch] = useReducer(tasksReducer, []);
+
+      const handleAddTask = () => {
+        const newTask: Task = { id: Date.now(), title: `Task ${Date.now()}` };
+        dispatch({ type: 'ADD_TASK', task: newTask }); // 派发AddTaskAction
+      };
+
+      const handleDeleteTask = (taskId: number) => {
+        dispatch({ type: 'DELETE_TASK', taskId: taskId }); // 派发DeleteTaskAction
+      };
+      // ... (渲染逻辑)
+      return (
+          <div>
+              <button onClick={handleAddTask}>Add Task</button>
+              <ul>
+                  {tasks.map(task => (
+                      <li key={task.id}>
+                          {task.title}
+                          <button onClick={() => handleDeleteTask(task.id)}>Delete</button>
+                      </li>
+                  ))}
+              </ul>
+          </div>
+      );
+    }
+    export default TaskList;
     ```
