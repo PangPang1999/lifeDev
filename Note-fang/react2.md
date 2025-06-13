@@ -3634,7 +3634,7 @@ export const ToDoForm: React.FC = () => {
 
     - **定义**：接收当前状态和一个“动作”（action），返回下一个状态的纯函数。
     - **形式**：`(state, action) => newState`
-        - `currentState`：组件在动作发生前的状态。
+        - `state`：组件在动作发生前的状态。
         - `action`：一个描述发生了什么的对象，通常至少包含一个`type`属性（字符串类型））来标识动作类型，也可以包含其他附加数据（payload）。
         - `newState`：Reducer 根据当前状态和动作计算出的新状态。Reducer 必须是纯函数，不应直接修改`currentState`，而是返回一个全新的状态对象。
     - **优点**：集中管理状态更新逻辑、可预测、易于测试和复用。
@@ -3803,6 +3803,7 @@ function badReducer(state: { count: number }, action: any) {
 - **可预测**：给定同样的当前状态和动作，你总能预先知道下一个状态是什么。
 - **易于测试**：只需给 reducer 输入各种状态+动作组合，就能断言输出。
 - **调试友好**：配合时间旅行调试（time-travel debugging）等工具时，状态变化始终可回溯、可重复。
+
 ## 3- 创建复杂 Action
 
 > 简述：当不同的用户动作（Actions）需要携带不同结构或类型的附加数据（payload）时，应为每种动作定义专门的、具有明确 payload 结构的 Action 接口。通过 TypeScript 的联合类型，可以将这些具体的 Action 接口组合成一个总的 Action 类型，供 Reducer 进行类型安全的处理。
@@ -3920,4 +3921,96 @@ function badReducer(state: { count: number }, action: any) {
       );
     }
     export default TaskList;
+    ```
+
+## 4- Reducer 练习 - 登录状态管理
+
+> 简述：此练习通过实现一个管理用户登录和登出状态的 Reducer (`authReducer`)，来实践定义不同类型的 Action（一个带用户名 payload 的登录 Action，一个不带 payload 的登出 Action），并在`LoginStatus`组件中使用`useReducer` Hook 来驱动 UI 变化。
+
+**知识树**
+
+1.  需求分析：
+    - 状态：当前登录的用户名（字符串类型）。若为空字符串，则表示用户未登录。
+    - 动作：
+        - 登录 (Login)：需要提供用户名。
+        - 登出 (Logout)：无需额外数据。
+2.  Action 类型定义 (`authReducer.ts` 或类型文件)：
+    - `LoginAction`:
+        - `type: 'LOGIN';`
+        - `username: string;` (payload)
+    - `LogoutAction`:
+        - `type: 'LOGOUT';`
+    - `AuthAction` (联合类型): `LoginAction | LogoutAction;`
+3.  `authReducer.ts` 实现：
+    - `state`参数类型: `string`。
+    - `action`参数类型: `AuthAction`。
+    - 返回类型: `string`。
+    - 逻辑：
+        - `if (action.type === 'LOGIN')`: 返回 `action.username`。
+        - `if (action.type === 'LOGOUT')`: 返回 `''` (空字符串表示登出)。
+        - `default` (或 `else`): 返回当前 `state`。
+4.  `LoginStatus.tsx` 组件实现：
+    - 使用`useReducer(authReducer, '')`初始化状态和`dispatch`函数。
+        - 初始状态为空字符串，表示未登录。
+    - 登录按钮的`onClick`处理器：
+        - `dispatch({ type: 'LOGIN', username: 'mosh.hammedani' });`
+    - 登出按钮的`onClick`处理器：
+        - `dispatch({ type: 'LOGOUT' });`
+    - UI 根据当前`user`状态（即`useReducer`返回的`state`）条件渲染不同的内容（如欢迎信息或登录链接）。
+
+**代码示例**
+
+1.  `src/reducers/authReducer.ts`
+
+    ```ts
+    export interface LoginAction {
+      type: 'LOGIN';
+      username: string;
+    }
+
+    export interface LogoutAction {
+      type: 'LOGOUT';
+    }
+
+    export type AuthAction = LoginAction | LogoutAction;
+
+    function authReducer(state: string, action: AuthAction): string {
+      switch (action.type) {
+        case 'LOGIN':
+          return action.username;
+        case 'LOGOUT':
+          return '';
+        default:
+          return state;
+      }
+    }
+
+    export default authReducer;
+    ```
+
+2.  `src/components/LoginStatus.tsx`
+
+    ```tsx
+    import { useReducer } from 'react';
+    import authReducer from '../reducers/authReducer';
+
+    function LoginStatus() {
+      const [user, dispatch] = useReducer(authReducer, ''); // 初始状态为空字符串
+
+      if (user) { // 如果user非空，则已登录
+        return (
+          <>
+            <div>User: {user}</div>
+            <button onClick={() => dispatch({ type: 'LOGOUT' })}>Logout</button>
+          </>
+        );
+      }
+      return (
+        <button onClick={() => dispatch({ type: 'LOGIN', username: 'mosh.hammedani' })}>
+          Login
+        </button>
+      );
+    }
+
+    export default LoginStatus;
     ```
