@@ -2,3 +2,5 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL}
 websiteUrl: https://mystore.com
+swagger:
+  server-url: https://spring-store-production-b1cd.up.railway.app

@@ -6,3 +6,5 @@ spring:
   jpa:
     show-sql: true
 websiteUrl: http://localhost:4242
+swagger:
+  server-url: http://localhost:8080
