@@ -5,9 +5,9 @@ interface Login {
 interface Logout {
   type: "LOGOUT";
 }
-type Action = Login | Logout;
+export type AuthAction = Login | Logout;
 
-const loginReducer = (state: string, action: Action) => {
+const authnReducer = (state: string, action: AuthAction) => {
   switch (action.type) {
     case "LOGIN":
       return action.payload;
@@ -15,4 +15,4 @@ const loginReducer = (state: string, action: Action) => {
       return "";
   }
 };
-export default loginReducer;
+export default authnReducer;

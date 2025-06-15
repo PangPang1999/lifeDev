@@ -4014,3 +4014,165 @@ function badReducer(state: { count: number }, action: any) {
 
     export default LoginStatus;
     ```
+
+## 5- 使用 React Context 共享状态
+
+> **简述：**  
+> 当多个组件需要访问同一份状态时（如任务列表和导航栏都要读写任务数据），逐层通过 props 传递会导致“属性钻孔”（prop drilling），使代码臃肿、难维护。React Context 提供了跨层级共享数据的能力；配合自定义 Provider 和 `useContext` 钩子，可让任意子组件直接读取或更新上下文中的状态。
+
+---
+
+**知识树**
+
+1. **Prop Drilling 问题与状态提升**
+
+    - 传统做法：将状态提升（lift state up）到最近共同父组件，通过 props 逐层传递。
+    - 缺点：当组件层级深且中间层不需要该状态时，仍需负责转发 props，难以维护。
+
+2. **Context 的基本概念**
+
+    - `createContext<T>(defaultValue)`：创建一个带类型的上下文对象。
+    - `Context.Provider`：用来包装组件树，并通过 `value` 属性提供共享数据。
+    - `useContext(Context)`：在任意子组件中读取 Provider 提供的 `value`。
+
+3. **TypeScript 中 Context 类型定义**
+
+    - 定义共享数据的接口（如 `TasksContextType` 包含 `tasks: Task[]` 与 `dispatch: Dispatch<TaskAction>`）。
+    - 在 `createContext` 时以类型参数标注（并使用 `as` 绕过默认值校验）。
+
+4. **实现步骤**
+
+    1. **将状态提升到最近的父组件中，例如 App**：在 `App.tsx` 中用 `useReducer` 管理 `tasks` 与 `dispatch`，代替局部组件状态。
+    2. **创建 Context 模块**：
+
+        - 在 `state-management/context/tasksContext.ts` 中：
+            - 导入 `createContext`、`Dispatch`。
+            - 定义 `TasksContextType` 接口；
+            - 调用 `createContext<TasksContextType>( {} as TasksContextType )`；
+            - 导出 `TasksContext` 与（可选）Provider 包装组件。
+
+    3. **在 App 中提供 Context**：
+
+        ```tsx
+        <TasksContext.Provider value={{ tasks, dispatch }}>
+          <NavBar />
+          <TaskList />
+        </TasksContext.Provider>
+        ```
+
+        `value={{ tasks, dispatch}}是用来替换默认值的
+
+    4. **在子组件中消费 Context**：
+
+        - 在 `TaskList.tsx` 和 `NavBar.tsx` 中：
+            ```ts
+            const { tasks, dispatch } = useContext(TasksContext);
+            ```
+        - `TaskList` 使用 `dispatch({ type: 'add'… })` 或 `dispatch({ type: 'delete', taskId })`；
+        - `NavBar` 只关注 `tasks.length`，无需 `dispatch`。
+
+5. **注意事项与最佳实践**
+
+    - **默认值问题**：`createContext` 的默认值只在没有 Provider 时生效，实际项目中可传 `null` 并在 `useContext` 时校验。
+    - **避免过度使用 Context**：仅在真正需要跨多层时使用，局部或父子组件直接传 props 更简单。
+    - **性能优化**：Context 值改变会导致所有消费该 Context 的子组件重新渲染，必要时可拆分多个 Context 或使用 memoization。
+
+---
+
+**代码示例**
+
+1. **创建 Context（`state-management/context/tasksContext.ts`）**
+
+    ```ts
+    import { createContext, Dispatch } from 'react';
+    import { Task, TaskAction } from '../reducers/tasksReducer';
+
+    // 定义 Context 数据类型
+    export interface TasksContextType {
+      tasks: Task[];
+      dispatch: Dispatch<TaskAction>;
+    }
+
+    // 创建 Context，使用 as 绕过默认值校验
+    export const TasksContext = createContext<TasksContextType>(
+      {} as TasksContextType
+    );
+    ```
+
+2. **在 App 中提供 Context（`App.tsx`）**
+
+    ```tsx
+    import React, { useReducer } from 'react';
+    import { tasksReducer, Task } from './state-management/reducers/tasksReducer';
+    import { TasksContext } from './state-management/context/tasksContext';
+    import { NavBar } from './components/NavBar';
+    import { TaskList } from './components/TaskList';
+
+    export const App: React.FC = () => {
+      const [tasks, dispatch] = useReducer(tasksReducer, [] as Task[]);
+
+      return (
+        <TasksContext.Provider value={{ tasks, dispatch }}>
+          <NavBar />
+          <TaskList />
+        </TasksContext.Provider>
+      );
+    };
+    ```
+
+3. **在 TaskList 中消费 Context（`TaskList.tsx`）**
+
+    ```tsx
+    import React, { useContext } from 'react';
+    import { TasksContext } from '../state-management/context/tasksContext';
+
+    export const TaskList: React.FC = () => {
+      const { tasks, dispatch } = useContext(TasksContext);
+
+      return (
+        <div>
+          <button
+            onClick={() =>
+              dispatch({
+                type: 'add',
+                task: { id: Date.now(), title: `Task ${Date.now()}` },
+              })
+            }
+          >
+            添加任务
+          </button>
+          <ul>
+            {tasks.map(task => (
+              <li key={task.id}>
+                {task.title}
+                <button
+                  onClick={() =>
+                    dispatch({ type: 'delete', taskId: task.id })
+                  }
+                >
+                  删除
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    };
+    ```
+
+4. **在 NavBar 中消费 Context（`NavBar.tsx`）**
+
+    ```tsx
+    import React, { useContext } from 'react';
+    import { TasksContext } from '../state-management/context/tasksContext';
+
+    export const NavBar: React.FC = () => {
+      const { tasks } = useContext(TasksContext);
+
+      return (
+        <nav>
+          <p>任务数量：{tasks.length}</p>
+        </nav>
+      );
+    };
+    ```

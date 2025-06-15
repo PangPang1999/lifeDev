@@ -1,10 +1,10 @@
-import { useReducer, useState } from "react";
-import loginReducer from "./reducers/loginReducer";
-
-const LoginStatus = () => {
+import { useContext, useReducer, useState } from "react";
+import authReducer from "./reducers/AuthReducer";
+import AuthContext from "./context/authContext";
+const AuthStatus = () => {
   // const [user, setUser] = useState('');
-  const [user, dispatch] = useReducer(loginReducer, "");
-
+  // const [user, dispatch] = useReducer(authReducer, "");
+  const { user, dispatch } = useContext(AuthContext);
   if (user)
     return (
       <>
@@ -25,4 +25,4 @@ const LoginStatus = () => {
   );
 };
 
-export default LoginStatus;
+export default AuthStatus;
