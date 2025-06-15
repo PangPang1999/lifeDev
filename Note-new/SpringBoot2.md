@@ -8405,9 +8405,11 @@ payment_intent.payment_failed
 
 https://railway 中拷贝/checkout/webhook
 
-# Actuator 分析 Spring 接口性能
+# Actuator
 
-简述：Actuator
+## 分析 Spring 接口性能
+
+简述：Spring Boot Actuator 提供标准化的应用监控端点，支持实时查看各接口的请求次数、响应时长、异常统计等。通过 `/actuator/metrics/http.server.requests`，可多维度分析 Spring 接口性能瓶颈。
 
 **知识树**
 
@@ -8485,3 +8487,142 @@ https://railway 中拷贝/checkout/webhook
     - `tag=status:201`：仅看所有创建类（201）请求
     - `tag=exception:None`：仅统计未抛异常的请求
     - 标签可任意组合，如筛选所有 4xx 错误的 POST 请求
+
+## Prometheus、Grafana 可视化
+
+1.  引用和配置依赖
+
+    1. 依赖添加
+        ```xml
+        <dependency>
+        		<groupId>org.springframework.boot</groupId>
+        		<artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        ```
+    2. 设置配置文件（SpringBoot 3.x 版本可省略 endpoint）
+
+        ```yaml
+        management:
+          endpoints:
+            web:
+              exposure:
+                include: "prometheus"     # 或 "*"
+          endpoint:
+            prometheus:
+              enabled: true              # 强烈建议显式写上
+        ```
+
+2.  测试
+
+    - 访问`http://localhost:8080/actuator/prometheus`
+    - 若无法打开`/actuator/prometheus`，尝试`./mvnw clean install`，或者`mvn clean install`
+
+3.  软件下载
+
+    1.  Prometheus
+
+        - https://prometheus.io/download/
+        - 下载 LTS 版本，arm 对应 Mac 的 m 芯片，amd 对应 intel 芯片
+        - 推荐放置到`opt`目录，终端执行下列代码完成放置，可自行替换文件名（Mac 系统）
+
+            ```sh
+            # 1. 解压（假设在 ~/Downloads/）
+            cd ~/Downloads
+            tar -xvf prometheus-2.53.4.darwin-arm64.tar
+
+            # 2. 删除原压缩包（可选）
+            rm prometheus-2.53.4.darwin-arm64.tar
+
+            # 3. 创建标准目录结构
+            sudo mkdir -p /opt/prometheus/{data,config,logs}
+
+            # 4. 移动解压后的整个目录
+            sudo mv prometheus-2.53.4.darwin-arm64 /opt/prometheus/
+
+            # 5. （可选）重命名为固定目录，便于脚本化管理
+            cd /opt/prometheus
+            sudo mv prometheus-2.53.4.darwin-arm64 prometheus
+
+            # 6. 分离配置文件
+            sudo mv /opt/prometheus/prometheus/prometheus.yml /opt/prometheus/config/
+
+            # 7. 设置隔离属性（避免Mac访问无法验证）
+            sudo xattr -d com.apple.quarantine /opt/prometheus/prometheus/prometheus
+            ```
+
+    2.  Grafana
+        1. https://grafana.com/grafana/download/
+        2. 下载最新版本，`+security01`是官方发布的安全补丁版本，同版本有则优先安装
+        3. 推荐安装方式为 homebrew 指令，OSS 为 Open Source Software
+            ```sh
+            brew update
+            brew install grafana
+            ```
+
+4.  配置与使用
+
+    1.  修改配置文件 Prometheus
+
+        ```yml
+        scrape_configs:
+          - job_name: "spring-actuator"
+            metrics_path: "/actuator/prometheus"
+            static_configs:
+              - targets: ["localhost:8080"] # 你的 Spring Boot 服务地址
+        ```
+
+    2.  给予 data 以及 log 写入权限
+
+        ```sh
+        sudo chown -R $(whoami) /opt/prometheus/data /opt/prometheus/logs
+        ```
+
+    3.  使用指定配置文件，前台启动 Prometheus，control+C 可关闭
+
+        ```sh
+        /opt/prometheus/prometheus/prometheus \
+          --config.file=/opt/prometheus/config/prometheus.yml \
+          --storage.tsdb.path=/opt/prometheus/data
+        ```
+
+        1.  Prometheus 后台启动的标准方法，通过`ps aux | grep prometheus`以及 kill 可杀死，此外推荐 system 方式后台运行（暂未补充）
+
+            ```sh
+            nohup /opt/prometheus/prometheus/prometheus \
+              --config.file=/opt/prometheus/config/prometheus.yml \
+              --storage.tsdb.path=/opt/prometheus/data \
+            > /opt/prometheus/logs/prometheus.log 2>&1 &
+            ```
+
+            - `nohup` 保证你关闭终端后 Prometheus 不会被杀死
+            - `&` 表示后台运行
+            - `> ... 2>&1` 把标准输出和错误都写到日志文件（可随时查看运行状态）
+
+    4.  访问 http://localhost:9090 ，查询 http_server_requests_seconds_count 等指标
+
+    5.  启动 grafana，关闭指令为`brew services stop grafana`
+
+        ```sh
+        brew services start grafana
+        ```
+
+    6.  访问 http://localhost:3000 ，默认账号/密码 admin/admin
+    7.  grafana 添加数据源
+
+        - 首页 → “Add data source” → 选 Prometheus
+        - URL 填写 http://localhost:9090
+
+    8.  grafana 快速创建仪表盘
+        1. 新建 Dashboard
+        2. 添加 Panel（面板）
+        3. 使用：
+            - 选择一个 metric，从 builder 改为 code 模式，输入代码执行
+        4. 查询语句举例（针对接口性能）：
+            - QPS：
+                - `sum(rate(http_server_requests_seconds_count[1m])) by (uri)`
+            - 平均耗时
+                - `sum(rate(http_server_requests_seconds_sum[1m])) by (uri) / sum(rate(http_server_requests_seconds_count[1m])) by (uri)`
+            - 最大耗时
+                - `max(http_server_requests_seconds_max) by (uri)`
+            - 异常请求数
+                - `sum(rate(http_server_requests_seconds_count{status="500"}[1m])) by (uri)`
