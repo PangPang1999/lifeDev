@@ -4176,3 +4176,165 @@ function badReducer(state: { count: number }, action: any) {
       );
     };
     ```
+
+## 6- Context 练习 - 共享认证状态
+
+> 简述：此练习通过创建一个`AuthContext`来共享由`authReducer`管理的用户认证状态（当前用户名和`authDispatch`函数）。目的是将这些状态从`App`组件提供出去，使得应用中的任何组件（如`LoginStatus`或`TaskList`）都能方便地访问和修改认证信息，而无需通过 props 逐层传递。
+
+**知识树**
+
+1.  目标：将`App`组件中管理的认证状态（`user`和`authDispatch`）通过 Context 共享。
+2.  步骤回顾与应用：
+    - **定义`AuthContextType`接口** (`src/contexts/authContext.ts`)：
+        - `user: string;`
+        - `dispatch: React.Dispatch<AuthAction>;` (其中`AuthAction`是之前为`authReducer`定义的联合类型)
+    - **创建`AuthContext`对象** (`src/contexts/authContext.ts`)：
+        - `const AuthContext = React.createContext<AuthContextType>({} as AuthContextType);`
+    - **在`App.tsx`中提供 Context 值**：
+        1.  确保`user`状态和`authDispatch`函数（可能需要从`useReducer`的返回中解构并重命名，以区分其他 dispatch 函数如`tasksDispatch`）在`App`组件中可用。
+        2.  使用`<AuthContext.Provider value={{ user, dispatch: authDispatch }}>`包裹需要访问认证状态的组件树部分。
+    - **在消费组件中（如`LoginStatus.tsx`）使用`useContext`**：
+        - `import AuthContext from '../contexts/authContext';`
+        - `const { user, dispatch } = useContext(AuthContext);`
+        - 组件现在可以直接使用从 Context 获取的`user`和`dispatch`，而不再需要通过 props 接收或在自身内部管理这些状态。
+    - **在其他组件中（如`TaskList.tsx`）按需消费**：
+        - 如果`TaskList`需要显示当前用户名，同样可以使用`useContext(AuthContext)`来获取`user`。
+3.  消除 Prop Drilling：
+    - 通过 Context，`LoginStatus`等组件可以直接获取认证状态，无需`App`组件或其他中间组件为其传递 props。
+4.  类型导出与导入：
+    - 确保`AuthAction`类型从`authReducer.ts`中导出，以便在`AuthContextType`和消费组件中使用。
+
+**代码示例**
+
+1.  `src/contexts/authContext.ts`
+
+    ```ts
+    import React, { Dispatch } from 'react';
+    import { AuthAction } from '../reducers/authReducer'; // 假设AuthAction已导出
+
+    export interface AuthContextType {
+      user: string;
+      dispatch: Dispatch<AuthAction>;
+    }
+
+    const AuthContext = React.createContext<AuthContextType>({
+        user: '',
+        dispatch: () => {}
+    } as AuthContextType);
+
+    export default AuthContext;
+    ```
+
+2.  `src/App.tsx` (提供`AuthContext`)
+
+    ```tsx
+    // src/App.tsx
+    import { useReducer } from 'react';
+    import authReducer, { AuthAction } from './reducers/authReducer';
+    import AuthContext, { AuthContextType } from './contexts/authContext';
+    // ... (TasksContext等其他导入和状态)
+    import LoginStatus from './components/LoginStatus';
+    import TaskList from './components/TaskList';
+
+
+    function App() {
+      const [user, authDispatch] = useReducer(authReducer, ''); // 认证状态
+      // const [tasks, tasksDispatch] = useReducer(tasksReducer, []); // 任务状态
+
+      const authContextValue: AuthContextType = { user, dispatch: authDispatch };
+      // const tasksContextValue: TasksContextType = { tasks, dispatch: tasksDispatch };
+
+      return (
+        <AuthContext.Provider value={authContextValue}>
+          {/* <TasksContext.Provider value={tasksContextValue}> */}
+            <LoginStatus />
+            <TaskList />
+            {/* 其他组件 */}
+          {/* </TasksContext.Provider> */}
+        </AuthContext.Provider>
+      );
+    }
+    export default App;
+    ```
+
+3.  `src/components/LoginStatus.tsx` (消费`AuthContext`)
+
+    ```tsx
+    // src/components/LoginStatus.tsx
+    import { useContext } from 'react';
+    import AuthContext from '../contexts/authContext';
+
+    function LoginStatus() {
+      const { user, dispatch } = useContext(AuthContext); // 从Context获取
+
+      if (user) {
+        return (
+          <>
+            <div>User: {user}</div>
+            <button onClick={() => dispatch({ type: 'LOGOUT' })}>Logout</button>
+          </>
+        );
+      }
+      return (
+        <button onClick={() => dispatch({ type: 'LOGIN', username: 'mosh.hammedani' })}>
+          Login
+        </button>
+      );
+    }
+    export default LoginStatus;
+    ```
+
+4.  `src/components/TaskList.tsx` (示例：按需消费`AuthContext`显示用户名)
+
+    ```tsx
+    // src/components/TaskList.tsx
+    import { useContext } from 'react';
+    import AuthContext from '../contexts/authContext';
+    // import TasksContext from '../contexts/tasksContext';
+
+    function TaskList() {
+      const { user } = useContext(AuthContext); // 获取当前用户
+      // const { tasks, dispatch: tasksDispatch } = useContext(TasksContext); // 获取任务相关
+
+      return (
+        <div>
+          <p>Current User in TaskList: {user || 'Guest'}</p>
+          {/* ... 任务列表和操作 ... */}
+        </div>
+      );
+    }
+    export default TaskList;
+    ```
+
+## 7- 使用 React DevTools 调试 Context
+
+> 简述：React DevTools 浏览器扩展的“Components”面板能够可视化 React 组件树，并允许检查每个 Context Provider 传递的`value`。这使得开发者可以在运行时查看和验证 Context 中共享的状态数据，辅助调试。
+
+**知识树**
+
+1.  React DevTools 的“Components”面板：
+    - 功能：展示当前页面渲染的 React 组件层级结构。
+    - 选择组件：点击面板中的组件名，可以在右侧检查器中查看其 props、state 和 hooks。
+2.  Context Provider 在 DevTools 中的显示：
+    - Context Provider（如`<AuthContext.Provider>`或`<TasksContext.Provider>`）本身会作为组件树中的一个节点出现。
+    - 其名称通常反映了 Context 对象的`displayName`（如果设置了）或一个通用名称。
+3.  检查 Context 的`value`：
+    - 选中 DevTools 中的 Context Provider 节点。
+    - 在右侧的 Props 检查器中，会显示该 Provider 的`value` prop 及其当前值。
+    - `value`通常是一个对象，包含了通过该 Context 共享的所有数据（如`user`, `dispatch`函数，`tasks`数组等）。
+4.  动态观察：
+    - 当应用状态改变导致 Context 的`value`更新时（例如，用户登录后`user`状态变化），DevTools 中显示的`value`会实时反映这些变化。
+    - 这对于追踪 Context 数据流和验证状态更新是否按预期工作非常有用。
+5.  多个 Context：
+    - 如果应用中使用了多个 Context（如`AuthContext`, `TasksContext`, 以及 React Query 内部的 Context），它们都会在 DevTools 的组件树中各自显示为 Provider 节点。
+
+**代码示例**
+
+(本节内容为工具使用说明，无直接代码示例。以下为操作步骤描述)
+
+1.  打开浏览器开发者工具，切换到 "Components" (或 "React") 标签页。
+2.  在左侧组件树中找到你的 Context Provider 组件，例如 `AuthContext.Provider`。
+3.  点击选中该 Provider。
+4.  在右侧的 "props" 部分，找到 `value` 属性。
+5.  展开 `value` 对象，可以看到其中共享的状态，如 `user: "mosh.hammedani"` 或 `tasks: [...]`。
+6.  在应用中执行会改变这些状态的操作（如点击登录/登出按钮，添加/删除任务），观察 DevTools 中 `value` 的实时变化。
