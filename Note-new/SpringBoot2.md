@@ -8404,3 +8404,84 @@ payment_intent.payment_failed
 链接设置为
 
 https://railway 中拷贝/checkout/webhook
+
+# Actuator 分析 Spring 接口性能
+
+简述：Actuator
+
+**知识树**
+
+1.  引用方式
+
+    1. 依赖添加
+        ```xml
+        <dependency>
+        		<groupId>org.springframework.boot</groupId>
+        		<artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        ```
+    2. 设置配置文件
+        ```yaml
+        management:
+          endpoints:
+            web:
+              exposure:
+                include: "*"  # 或 "health", "info" 等
+        ```
+    3. 接口放行
+
+        ```java
+        @Component
+        public class ActuatorSecurityRules implements SecurityRules {
+
+            @Override
+            public void configure(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) {
+                registry
+                        .requestMatchers("/actuator/**").permitAll(); // 允许访问所有 actuator 端点
+            }
+        }
+        ```
+
+2.  常用使用方式
+
+    - 总览
+        - `GET /actuator/metrics/http.server.requests`
+        - 查看所有接口的聚合标签与可用指标。
+    - 按接口统计
+        - `GET /actuator/metrics/http.server.requests?tag=uri:/users`
+        - 查看 `/users` 接口的总请求数、平均/最大耗时等。
+    - 接口 + 方法
+        - `GET /actuator/metrics/http.server.requests?tag=uri:/users&tag=method:POST`
+        - 仅统计 `/users` 的 POST 请求相关指标。
+    - 按方法统计
+        - `GET /actuator/metrics/http.server.requests?tag=method:POST`
+        - 聚合所有接口的 POST 请求性能。
+
+3.  常用标签说明
+
+    - `uri`：接口模板路径（如 `/users`、`/users/{id}`）
+    - `method`：HTTP 方法（如 GET、POST、PUT、DELETE）
+    - `status`：响应状态码（如 200、201、400、500）
+    - `outcome`：结果类型（SUCCESS、CLIENT_ERROR、SERVER_ERROR、REDIRECTION）
+    - `exception`：异常类名（如 `NullPointerException`，无异常时为 `None`）
+
+4.  用法举例
+
+    - 统计某接口下所有请求方式
+        `?tag=uri:/users`
+    - 统计某接口的指定方法
+        `?tag=uri:/users&tag=method:POST`
+    - 统计所有 500 错误请求
+        `?tag=status:500`
+    - 统计所有服务器错误
+        `?tag=outcome:SERVER_ERROR`
+    - 多标签组合筛选
+        `?tag=uri:/users&tag=method:GET&tag=status:200`
+    - 查询所有 GET 且重定向的请求
+        `?tag=method:GET&tag=outcome:REDIRECTION`
+
+5.  实用技巧
+
+    - `tag=status:201`：仅看所有创建类（201）请求
+    - `tag=exception:None`：仅统计未抛异常的请求
+    - 标签可任意组合，如筛选所有 4xx 错误的 POST 请求
