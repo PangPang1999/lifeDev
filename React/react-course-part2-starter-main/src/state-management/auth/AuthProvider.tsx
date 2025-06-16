@@ -1,6 +1,5 @@
 import { ReactNode, useReducer } from "react";
 import AuthContext from "./authContext";
-import authReducer from "./AuthReducer";
 interface Login {
   type: "LOGIN";
   payload: string;
@@ -10,7 +9,7 @@ interface Logout {
 }
 export type AuthAction = Login | Logout;
 
-const authnReducer = (state: string, action: AuthAction) => {
+const authReducer = (state: string, action: AuthAction) => {
   switch (action.type) {
     case "LOGIN":
       return action.payload;
