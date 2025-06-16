@@ -1,5 +1,5 @@
-import AuthStatus from "./AuthStatus";
-import useTasks from "./hooks/useTasks";
+import AuthStatus from "./auth/AuthStatus";
+import useTasks from "./tasks/useTasks";
 const NavBar = () => {
   const { tasks } = useTasks();
   return (

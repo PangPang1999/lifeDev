@@ -2,6 +2,8 @@
 
 技巧
 commond+g :31 可以跳到 31 行
+commond+p 查找文件
+commond+T 查找方法名
 
 ## 1- 简介
 
@@ -4639,6 +4641,7 @@ function badReducer(state: { count: number }, action: any) {
 4. **创建自定义 Hook：`useTasks`**
 
     - 在 `hooks/useTasks.ts` 中：
+
         ```ts
         import { useContext } from 'react';
         import { TasksContext } from '../state-management/context/tasksContext';
@@ -4651,6 +4654,7 @@ function badReducer(state: { count: number }, action: any) {
           return context;
         }
         ```
+
     - Hook 内部封装 `useContext` 调用，并可自行做边界检查。
 
 5. **在消费组件中调用**
@@ -4780,3 +4784,204 @@ function badReducer(state: { count: number }, action: any) {
 > -   **Provider 嵌套顺序**：确保 `TasksProvider` 在消费组件之外覆盖整个树；
 > -   **性能考虑**：Context 更新会引起所有消费组件重渲染，可按需拆分多个 Context 或使用 `React.memo` 优化。
 > -   **一致性**：自定义 Hook 可统一处理边界检查，避免误用。
+
+## 11- 组织代码
+
+> **简述：**  
+> 随着功能增长，相关文件零散分布会降低代码可读性与维护效率。将同一领域（如任务管理）的 Reducer、Context、Provider、Hook 和组件聚合到同一目录，并通过 `index.ts` 暴露公共接口，私有实现隐藏在内部，可以构建清晰、模块化且易演进的代码结构。
+
+---
+
+**知识树**
+
+1. **为什么要模块化（Package）**
+
+    - **关注点聚合**：将相同功能相关的文件放在一个目录下，快速定位并理解整个功能模块。
+    - **隐藏实现细节**：只向外暴露必要的接口，内部实现可随意重构而不影响调用方。
+    - **简化导入路径**：在根目录中只需 `import { TasksProvider, TaskList } from './tasks'`，而无需具体指向每个文件。
+
+2. **模块内部的文件分工**
+
+    - **实现文件（私有）**：例如 `tasksReducer.tsx`、`tasksContext.tsx`；不向外部直接暴露。
+    - **公共组件（公共接口）**：如 `TaskList.tsx`、`TasksProvider.tsx`；在 `index.ts` 中统一导出。
+    - **辅助 Hook**：如 `useTasks`（可根据使用频率决定是否独立文件或内嵌于组件）。
+
+3. **`index.ts` 的作用**
+
+    - **统一导出**：仅将模块的公共 API（组件、Hook、类型）导出；
+    - **隔离引用**：调用方无需知道底层文件名或目录结构，只需从模块根导入。
+
+4. **隐藏私有实现**
+
+    - **Reducer 与 Context**：不在模块根暴露，放在子文件并不导出；
+    - **Hook 内联**：如果某个 Hook 只在单个组件内部使用，可内联到组件文件中，减少文件数量。
+
+5. **导航与查找技巧**
+
+    - **文件查找（Command / Ctrl+P）**：快速打开文件。
+    - **符号查找（Command / Ctrl+T）**：根据函数、类型名定位实现，即使不在独立文件也能找到。
+
+6. **模块演进与重构**
+
+    - 内部实现可以随意调整（用其他状态管理库、重写 Reducer 等），只要 `index.ts` 中暴露的接口不变，调用方不受影响。
+    - 当需要新增公共 API 时，只需在 `index.ts` 增加相应导出；当移除或重命名时，自动编译报错，提醒调用方更新依赖。
+
+---
+
+**代码示例**
+
+1. **重构前结构（散落各处）**
+
+    ```
+    src/
+    ├─ context/
+    │  └─ tasksContext.ts
+    ├─ reducers/
+    │  └─ tasksReducer.ts
+    ├─ hooks/
+    │  └─ useTasks.ts
+    ├─ components/
+    │  ├─ TaskList.tsx
+    │  └─ TasksProvider.tsx
+    └─ App.tsx
+    ```
+
+2. **重构后结构（模块化）**
+
+    ```
+    src/
+    ├─ tasks/
+    │  ├─ index.ts            # 公共接口：TaskList, TasksProvider
+    │  ├─ tasksContext.ts     # 私有实现
+    │  ├─ tasksProvider.tsx   # 公共组件
+    │  ├─ tasksReducer.ts     # 私有实现（已内联到 provider 中可选）
+    │  ├─ TaskList.tsx        # 公共组件
+    │  └─ useTasks.ts         # Hook（可内联）
+    ├─ App.tsx
+    ```
+
+3. **`tasks/index.ts`（统一导出）**
+
+    ```ts
+    // tasks/index.ts
+    export { default as TasksProvider } from "./TasksProvider";
+    export { default as TaskList } from "./TaskList";
+    // 如有更多公共导出 (e.g., types or hooks)，在此添加
+    ```
+
+4. **调用方只需**
+
+    ```ts
+    // App.tsx
+    import React from 'react';
+    import { TasksProvider, TaskList } from './tasks';
+
+    export const App: React.FC = () => (
+      <TasksProvider>
+        <TaskList />
+      </TasksProvider>
+    );
+    ```
+
+---
+
+**注意事项与实践**
+
+- **私有实现不暴露**：未在 `index.ts` 导出的文件和类型视为内部实现，可随时重构。
+- **模块根导入**：上层只需 `import { X } from '.../tasks'`，避免修改内部路径。
+- **保持一致性**：不同功能域（如 `auth`、`game`）各自一个目录，统一采用相同的模块化规范。
+- **适度拆分**：当模块过大或子功能复杂时，可进一步细分子目录，但入口仍由顶层 `index.ts` 统一导出。
+
+通过以上模块化组织，你的项目将具备更高的可扩展性、可维护性和易读性，各团队成员也能更快理解与定位功能代码。
+
+
+
+下面是按功能域（feature）划分后的最终项目结构示例，将与 “当前用户” 相关的所有文件都放到 `state-management/auth` 目录下，并对 `counter` 模块做同样处理。
+
+```
+src/
+├── state-management/
+│   ├── auth/
+│   │   ├── authContext.ts          # ❌ 私有实现，不会在 index.ts 导出
+│   │   ├── authProvider.tsx        # ✅ 自定义 Provider（内部包含 reducer 逻辑）
+│   │   ├── useAuth.ts              # ✅ 自定义 Hook（封装 useContext(AuthContext)）
+│   │   ├── LoginStatus.tsx         # ✅ 登录组件，消费 useAuth()
+│   │   └── index.ts                # ✅ 只导出公共 API：AuthProvider, useAuth, LoginStatus
+│   │
+│   ├── counter/
+│   │   ├── Counter.tsx             # ✅ 计数器组件
+│   │   └── counterReducer.ts       # ✅ 计数器状态的 reducer（私有或通过 index.ts 导出）
+│   │
+│   └── tasks/
+│       ├── tasksProvider.tsx       # ✅ 自定义 Provider（内部包含 reducer 逻辑）
+│       ├── TaskList.tsx            # ✅ 任务列表组件
+│       ├── tasksContext.ts         # ❌ 私有 Context 定义
+│       ├── useTasks.ts             # ✔️（可选）自定义 Hook，封装 useContext(TasksContext)
+│       └── index.ts                # ✅ 只导出公共 API：TasksProvider, TaskList, useTasks
+│
+├── App.tsx                         # 只从各模块根目录导入
+└── ...
+```
+
+---
+
+### auth/index.ts 示例
+
+```ts
+// state-management/auth/index.ts
+
+export { AuthProvider }   from './authProvider';
+export { useAuth }        from './useAuth';
+export { LoginStatus }    from './LoginStatus';
+```
+
+### counter/index.ts（可选）
+
+```ts
+// state-management/counter/index.ts
+
+export { Counter }        from './Counter';
+```
+
+### tasks/index.ts 示例
+
+```ts
+// state-management/tasks/index.ts
+
+export { TasksProvider }  from './tasksProvider';
+export { TaskList }       from './TaskList';
+export { useTasks }       from './useTasks';
+```
+
+---
+
+#### 调整完成后，`App.tsx` 仅需这样写
+
+```tsx
+import React from 'react';
+import { AuthProvider, LoginStatus, useAuth } from './state-management/auth';
+import { TasksProvider, TaskList, useTasks } from './state-management/tasks';
+import { Counter } from './state-management/counter';
+
+export const App: React.FC = () => (
+  <AuthProvider>
+    <TasksProvider>
+      <LoginStatus />
+      <TaskList />
+      <Counter />
+    </TasksProvider>
+  </AuthProvider>
+);
+```
+
+---
+
+**优点回顾**
+
+- **按功能域组织**：每个目录只包含该功能相关的私有与公共文件，增强可读性。
+    
+- **隐藏实现细节**：私有的 reducer/context 文件不在 `index.ts` 中导出，调用方无法直接依赖。
+    
+- **统一入口**：所有公共组件和 Hook 通过模块根的 `index.ts` 暴露，导入路径更加简洁。
+    
+- **便于重构**：内部实现可随意调整，只要 `index.ts` 中的公共接口保持不变，调用方不受影响。
