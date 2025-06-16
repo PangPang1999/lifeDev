@@ -3923,7 +3923,7 @@ function badReducer(state: { count: number }, action: any) {
     export default TaskList;
     ```
 
-## 4- Reducer 练习 - 登录状态管理
+## 4- Reducer 练习 - 登录
 
 > 简述：此练习通过实现一个管理用户登录和登出状态的 Reducer (`authReducer`)，来实践定义不同类型的 Action（一个带用户名 payload 的登录 Action，一个不带 payload 的登出 Action），并在`LoginStatus`组件中使用`useReducer` Hook 来驱动 UI 变化。
 
@@ -4015,7 +4015,7 @@ function badReducer(state: { count: number }, action: any) {
     export default LoginStatus;
     ```
 
-## 5- 使用 React Context 共享状态
+## 5- React Context 共享状态
 
 > **简述：**  
 > 当多个组件需要访问同一份状态时（如任务列表和导航栏都要读写任务数据），逐层通过 props 传递会导致“属性钻孔”（prop drilling），使代码臃肿、难维护。React Context 提供了跨层级共享数据的能力；配合自定义 Provider 和 `useContext` 钩子，可让任意子组件直接读取或更新上下文中的状态。
@@ -4177,249 +4177,606 @@ function badReducer(state: { count: number }, action: any) {
     };
     ```
 
-## 6- Context 练习 - 共享认证状态
+## 6- Context 共享用户状态
 
-> 简述：此练习通过创建一个`AuthContext`来共享由`authReducer`管理的用户认证状态（当前用户名和`authDispatch`函数）。目的是将这些状态从`App`组件提供出去，使得应用中的任何组件（如`LoginStatus`或`TaskList`）都能方便地访问和修改认证信息，而无需通过 props 逐层传递。
+> **简述：**  
+> 当应用中多个组件都需要访问或修改“当前用户”（如 `LoginStatus`、`TaskList` 等），直接在局部组件中使用 `useState` 并通过 props 逐层传递会导致代码臃孔。React Context 可让我们将“当前用户”及其更新函数提升到祖先组件，并在任意后代组件中直接读取或派发动作，消除 prop drilling。
+
+---
 
 **知识树**
 
-1.  目标：将`App`组件中管理的认证状态（`user`和`authDispatch`）通过 Context 共享。
-2.  步骤回顾与应用：
-    - **定义`AuthContextType`接口** (`src/contexts/authContext.ts`)：
-        - `user: string;`
-        - `dispatch: React.Dispatch<AuthAction>;` (其中`AuthAction`是之前为`authReducer`定义的联合类型)
-    - **创建`AuthContext`对象** (`src/contexts/authContext.ts`)：
-        - `const AuthContext = React.createContext<AuthContextType>({} as AuthContextType);`
-    - **在`App.tsx`中提供 Context 值**：
-        1.  确保`user`状态和`authDispatch`函数（可能需要从`useReducer`的返回中解构并重命名，以区分其他 dispatch 函数如`tasksDispatch`）在`App`组件中可用。
-        2.  使用`<AuthContext.Provider value={{ user, dispatch: authDispatch }}>`包裹需要访问认证状态的组件树部分。
-    - **在消费组件中（如`LoginStatus.tsx`）使用`useContext`**：
-        - `import AuthContext from '../contexts/authContext';`
-        - `const { user, dispatch } = useContext(AuthContext);`
-        - 组件现在可以直接使用从 Context 获取的`user`和`dispatch`，而不再需要通过 props 接收或在自身内部管理这些状态。
-    - **在其他组件中（如`TaskList.tsx`）按需消费**：
-        - 如果`TaskList`需要显示当前用户名，同样可以使用`useContext(AuthContext)`来获取`user`。
-3.  消除 Prop Drilling：
-    - 通过 Context，`LoginStatus`等组件可以直接获取认证状态，无需`App`组件或其他中间组件为其传递 props。
-4.  类型导出与导入：
-    - 确保`AuthAction`类型从`authReducer.ts`中导出，以便在`AuthContextType`和消费组件中使用。
+1. **状态提升（Lifting State Up）**
+
+    - 原始：`LoginStatus` 里用 `useState<string>` 存储 `currentUser`。
+    - 提升：剪切到 `App.tsx`，改为 `useReducer(authReducer, '')`（或 `useState`），让更高层负责管理。
+
+2. **定义 Context 类型**
+
+    - 创建接口 `AuthContextType`，包含：
+        - `currentUser: string`
+        - `dispatch: Dispatch<AuthAction>`（来自 `authReducer` 的 action 派发函数）
+    - 在 `authReducer.ts` 中导出 `AuthAction` 类型供 Context 使用。
+
+3. **创建并导出 Context**
+
+    - 在 `state-management/context/authContext.ts`：
+        ```ts
+        export const AuthContext = createContext<AuthContextType>(
+          {} as AuthContextType
+        );
+        ```
+
+4. **在 App 中提供 Context**
+
+    - 用 `<AuthContext.Provider value={{ currentUser, dispatch }}>` 包裹组件树，向下传递状态与派发函数。
+
+5. **消费 Context**
+
+    - 在任意子组件（如 `LoginStatus`、`TaskList`）中：
+        ```ts
+        const { currentUser, dispatch } = useContext(AuthContext);
+        ```
+    - `LoginStatus` 可调用 `dispatch({ type: 'login', userName })` 或 `dispatch({ type: 'logout' })`；
+    - `TaskList` 可读取 `currentUser` 用于个性化渲染，或不取用 `dispatch`。
+
+6. **注意事项**
+
+    - **默认值**：`createContext` 的默认值仅在未被 Provider 包裹时生效，实际项目可传 `null` 并在消费端校验。
+    - **性能**：Context 更新会触发所有消费该 Context 的组件重渲染，可按需拆分多个 Context 或使用 memo 优化。
+
+---
 
 **代码示例**
 
-1.  `src/contexts/authContext.ts`
+1. **创建 Auth Context**
 
     ```ts
-    import React, { Dispatch } from 'react';
-    import { AuthAction } from '../reducers/authReducer'; // 假设AuthAction已导出
+    // state-management/context/authContext.ts
+    import { createContext, Dispatch } from 'react';
+    import { AuthAction } from '../reducers/authReducer';
 
+    // Context 中共享的类型
     export interface AuthContextType {
-      user: string;
+      currentUser: string;
       dispatch: Dispatch<AuthAction>;
     }
 
-    const AuthContext = React.createContext<AuthContextType>({
-        user: '',
-        dispatch: () => {}
-    } as AuthContextType);
-
-    export default AuthContext;
+    // 创建 Context，使用类型断言绕过默认值校验
+    export const AuthContext = createContext<AuthContextType>(
+      {} as AuthContextType
+    );
     ```
 
-2.  `src/App.tsx` (提供`AuthContext`)
+2. **在 App 中提供 Context**
 
     ```tsx
-    // src/App.tsx
-    import { useReducer } from 'react';
-    import authReducer, { AuthAction } from './reducers/authReducer';
-    import AuthContext, { AuthContextType } from './contexts/authContext';
-    // ... (TasksContext等其他导入和状态)
-    import LoginStatus from './components/LoginStatus';
-    import TaskList from './components/TaskList';
+    // App.tsx
+    import React, { useReducer } from 'react';
+    import { authReducer } from './state-management/reducers/authReducer';
+    import { AuthContext } from './state-management/context/authContext';
+    import { LoginStatus } from './components/LoginStatus';
+    import { TaskList } from './components/TaskList';
 
-
-    function App() {
-      const [user, authDispatch] = useReducer(authReducer, ''); // 认证状态
-      // const [tasks, tasksDispatch] = useReducer(tasksReducer, []); // 任务状态
-
-      const authContextValue: AuthContextType = { user, dispatch: authDispatch };
-      // const tasksContextValue: TasksContextType = { tasks, dispatch: tasksDispatch };
+    export const App: React.FC = () => {
+      // 提升后在 App 里管理当前用户状态
+      const [currentUser, authDispatch] = useReducer(authReducer, '');
 
       return (
-        <AuthContext.Provider value={authContextValue}>
-          {/* <TasksContext.Provider value={tasksContextValue}> */}
-            <LoginStatus />
-            <TaskList />
-            {/* 其他组件 */}
-          {/* </TasksContext.Provider> */}
+        <AuthContext.Provider value={{ currentUser, dispatch: authDispatch }}>
+          <LoginStatus />
+          <TaskList />
         </AuthContext.Provider>
       );
-    }
-    export default App;
+    };
     ```
 
-3.  `src/components/LoginStatus.tsx` (消费`AuthContext`)
+3. **LoginStatus 消费 Context**
 
     ```tsx
-    // src/components/LoginStatus.tsx
-    import { useContext } from 'react';
-    import AuthContext from '../contexts/authContext';
+    // components/LoginStatus.tsx
+    import React, { useContext } from 'react';
+    import { AuthContext } from '../state-management/context/authContext';
 
-    function LoginStatus() {
-      const { user, dispatch } = useContext(AuthContext); // 从Context获取
+    export const LoginStatus: React.FC = () => {
+      const { currentUser, dispatch } = useContext(AuthContext);
 
-      if (user) {
-        return (
-          <>
-            <div>User: {user}</div>
-            <button onClick={() => dispatch({ type: 'LOGOUT' })}>Logout</button>
-          </>
-        );
-      }
-      return (
-        <button onClick={() => dispatch({ type: 'LOGIN', username: 'mosh.hammedani' })}>
-          Login
+      return currentUser ? (
+        <>
+          <p>当前用户：{currentUser}</p>
+          <button onClick={() => dispatch({ type: 'logout' })}>
+            登出
+          </button>
+        </>
+      ) : (
+        <button
+          onClick={() =>
+            dispatch({ type: 'login', userName: 'mosh.hammedani' })
+          }
+        >
+          登录
         </button>
       );
-    }
-    export default LoginStatus;
+    };
     ```
 
-4.  `src/components/TaskList.tsx` (示例：按需消费`AuthContext`显示用户名)
+4. **TaskList 读取当前用户**
 
     ```tsx
-    // src/components/TaskList.tsx
-    import { useContext } from 'react';
-    import AuthContext from '../contexts/authContext';
-    // import TasksContext from '../contexts/tasksContext';
+    // components/TaskList.tsx
+    import React, { useContext } from 'react';
+    import { AuthContext } from '../state-management/context/authContext';
 
-    function TaskList() {
-      const { user } = useContext(AuthContext); // 获取当前用户
-      // const { tasks, dispatch: tasksDispatch } = useContext(TasksContext); // 获取任务相关
+    export const TaskList: React.FC = () => {
+      const { currentUser } = useContext(AuthContext);
 
       return (
         <div>
-          <p>Current User in TaskList: {user || 'Guest'}</p>
-          {/* ... 任务列表和操作 ... */}
+          <p>当前用户（来自 Context）：{currentUser || '未登录'}</p>
+          {/* 其他任务列表 UI */}
         </div>
       );
-    }
-    export default TaskList;
+    };
     ```
 
-## 7- 使用 React DevTools 调试 Context
+---
 
-> 简述：React DevTools 浏览器扩展的“Components”面板能够可视化 React 组件树，并允许检查每个 Context Provider 传递的`value`。这使得开发者可以在运行时查看和验证 Context 中共享的状态数据，辅助调试。
+> **总结：**
+>
+> -   **提取状态** 到 `App` 并用 `useReducer` / `useState` 管理；
+> -   **创建 Context** 定义共享数据结构；
+> -   **Provider** 提供 `value` 给上下文；
+> -   **消费** 用 `useContext` 在任意后代组件中读取或派发更新。  
+>      这样即可在整个组件树中无缝共享“当前用户”状态，避免层层传 props。
 
-**知识树**
+## 7- React DevTools 调试
 
-1.  React DevTools 的“Components”面板：
-    - 功能：展示当前页面渲染的 React 组件层级结构。
-    - 选择组件：点击面板中的组件名，可以在右侧检查器中查看其 props、state 和 hooks。
-2.  Context Provider 在 DevTools 中的显示：
-    - Context Provider（如`<AuthContext.Provider>`或`<TasksContext.Provider>`）本身会作为组件树中的一个节点出现。
-    - 其名称通常反映了 Context 对象的`displayName`（如果设置了）或一个通用名称。
-3.  检查 Context 的`value`：
-    - 选中 DevTools 中的 Context Provider 节点。
-    - 在右侧的 Props 检查器中，会显示该 Provider 的`value` prop 及其当前值。
-    - `value`通常是一个对象，包含了通过该 Context 共享的所有数据（如`user`, `dispatch`函数，`tasks`数组等）。
-4.  动态观察：
-    - 当应用状态改变导致 Context 的`value`更新时（例如，用户登录后`user`状态变化），DevTools 中显示的`value`会实时反映这些变化。
-    - 这对于追踪 Context 数据流和验证状态更新是否按预期工作非常有用。
-5.  多个 Context：
-    - 如果应用中使用了多个 Context（如`AuthContext`, `TasksContext`, 以及 React Query 内部的 Context），它们都会在 DevTools 的组件树中各自显示为 Provider 节点。
+> **简述：**  
+> 在开发中，除了 Redux、React Query 等外部库，Context 也是常用的状态共享手段。React DevTools 的 **Components** 面板能够直观地展示各级 Provider 所提供的 Context 值，帮助你实时观察状态变化，快速定位问题。
 
-**代码示例**
-
-(本节内容为工具使用说明，无直接代码示例。以下为操作步骤描述)
-
-1.  打开浏览器开发者工具，切换到 "Components" (或 "React") 标签页。
-2.  在左侧组件树中找到你的 Context Provider 组件，例如 `AuthContext.Provider`。
-3.  点击选中该 Provider。
-4.  在右侧的 "props" 部分，找到 `value` 属性。
-5.  展开 `value` 对象，可以看到其中共享的状态，如 `user: "mosh.hammedani"` 或 `tasks: [...]`。
-6.  在应用中执行会改变这些状态的操作（如点击登录/登出按钮，添加/删除任务），观察 DevTools 中 `value` 的实时变化。
-
-## 8- 创建自定义 Provider 组件
-
-> 简述：自定义 Provider 组件是一种将特定状态管理逻辑（如使用`useReducer`）及其对应的 Context Provider 封装在一起的 React 组件。这种模式有助于代码的模块化、复用性，并使应用根组件（如`App.tsx`）更简洁。
+---
 
 **知识树**
 
-1.  动机与优势：
-    - **封装性**：将状态声明、Reducer 逻辑、Context 创建和 Provider 的渲染逻辑集中在一个专用组件中。
-    - **模块化**：应用根组件（如`App.tsx`）不再直接管理这些特定状态，而是通过组合自定义 Provider 来提供这些状态。
-    - **可复用性**：自定义 Provider 组件可以在应用的不同部分或不同项目中复用。
-    - **关注点分离**：状态管理逻辑与应用的主要结构和路由逻辑分离。
-    - **代码整洁**：`App.tsx`等顶层组件变得更轻量，只关注于布局和组合 Provider。
-2.  自定义 Provider 组件的结构：
-    - **组件定义**：创建一个新的函数组件（如`AuthProvider.tsx`）。
-    - **内部状态管理**：在该组件内部使用`useState`或`useReducer`来管理需要通过 Context 共享的状态。
-        - 例如，在`AuthProvider`内部调用`useReducer(authReducer, '')`。
-    - **Context Provider 渲染**：组件的返回值是对应的 Context Provider（如`<AuthContext.Provider>`）。
-        - `value` prop：将内部管理的状态（如`user`）和更新函数（如`dispatch`）作为对象传递给 Provider 的`value`。
-    - **`children` prop**：
-        - 自定义 Provider 组件必须接收并渲染其`children` prop。
-        - `children`的类型通常是`React.ReactNode`。
-        - `{children}`应被放置在 Context Provider 标签内部，这样被包裹的组件树才能访问到 Context。
-3.  使用自定义 Provider：
-    - 在应用的适当层级（通常是`App.tsx`或更上层），用自定义 Provider 组件包裹需要共享该特定状态的子组件树。
-    - 例如：`<AuthProvider><TasksProvider><MainAppLayout /></TasksProvider></AuthProvider>`
-4.  命名约定：
-    - 通常以`[Feature]Provider`命名，如`AuthProvider`, `TasksProvider`, `ThemeProvider`。
+1. **打开 Components 面板**
+
+    - 在 Chrome DevTools 中切换到 “Components” 选项卡；
+    - 左侧树状结构展示整个 React 组件树。
+
+2. **查看 Context Providers**
+
+    - 在组件树顶部会列出所有 **Context Providers**，包括第三方库（如 React Query）和自定义的 Context；
+    - 每个 Provider 节点下方会显示它的 `value`（即 `Provider value={...}` 中的对象）。
+
+3. **监控 Context 值变化**
+
+    - 选择对应的 Provider 节点：右侧 **Props** 窗格会显示当前 `value` 对象的所有属性；
+    - 对登录状态的 Context：可见 `currentUser` 与 `dispatch`；登录或登出时 `currentUser` 实时更新；
+    - 对任务列表的 Context：可见 `tasks` 数组与 `dispatch`；添加或删除任务时数组变化立刻反映。
+
+4. **在子组件中定位 Context**
+
+    - 也可以选中消费 Context 的组件（如 `LoginStatus` 或 `TaskList`），右侧 **Hooks** 窗格（需安装 React DevTools Hooks 插件）会展示 `useContext` 返回的值；
+    - 通过查看 Hooks 面板下的 `useContext(YourContext)`，能直接看到该组件消费的 Context 数据快照。
+
+5. **调试小技巧**
+
+    - **搜索 Context**：在组件树上方的过滤框输入 Context 名称（如 `AuthContext`），快速定位对应 Provider；
+    - **高亮更新**：勾选 “⚛️ Highlight updates” 可在状态变化时高亮渲染的组件，直观感受更新范围；
+    - **记录快照**：在 Profiler 面板录制交互，检视各次渲染时 Context 值的快照，便于回溯问题。
+
+---
+
+> **总结：**  
+> 利用 React DevTools 的 Components 与 Hooks 面板，你可以：
+>
+> 1. 直观查看各级 Context 提供的 `value`；
+> 2. 实时监控 `value` 对象的属性变化；
+> 3. 快速定位状态更新引发的组件渲染，极大提升调试效率。
+
+## 8- 创建可复用的自定义 Provider
+
+> **简述：**  
+> 当一个组件树中需要提供同一份 Context 状态与派发函数时，将 Context.Provider 与状态管理逻辑提取到一个自定义 Provider 组件中，可以让 App 组件更简洁，增强模块化和可复用性。自定义 Provider 组件内部维护状态，并在其 `value` 中统一传递给后代。
+
+---
+
+**知识树**
+
+1. **为何需要自定义 Provider**
+
+    - **命名冲突**：在 App 中同时维持多种状态（如任务和用户），需要分别命名多种 `dispatch`；
+    - **职责单一**：App 组件只负责组装页面，自定义 Provider 专注管理一类状态；
+    - **可复用性**：将 Provider 与状态逻辑打包，可在不同项目或不同位置复用。
+
+2. **自定义 Provider 组件结构**  
+   2.1 **文件与组件命名**：
+
+    - 新建 `authProvider.tsx`，组件名 `AuthProvider`；  
+       2.2 **状态管理迁移**：
+    - 将原 App 中的 `useReducer(authReducer, '')` 剪切至 Provider 内部；  
+       2.3 **Context.Provider 包装**：
+    - 在返回的 JSX 中，用 `<AuthContext.Provider value={{ currentUser, dispatch }}>` 包裹 `children`；
+
+3. **Props 类型定义**
+
+    - 定义接口 `AuthProviderProps`：
+        ```ts
+        interface AuthProviderProps {
+          children: ReactNode;
+        }
+        ```
+    - `children: ReactNode` 确保能够接收任意 React 元素。
+
+4. **App 中调用自定义 Provider**
+
+    - 用 `<AuthProvider>…</AuthProvider>` 替换原先的 `<AuthContext.Provider>`；
+    - App 更加简洁，仅关注 Provider 嵌套与组件排列。
+
+5. **多 Provider 组合**
+
+    - 对于多种全局状态（如 Task、Auth），可分别创建 `TaskProvider`、`AuthProvider`，并在 App 中按需嵌套。
+
+---
 
 **代码示例**
 
-1.  创建`AuthProvider.tsx`
+1. **`authProvider.tsx`**
 
     ```tsx
-    // src/providers/AuthProvider.tsx
-    import React, { useReducer, ReactNode, Dispatch } from 'react';
-    import authReducer, { AuthAction } from '../reducers/authReducer';
-    import AuthContext, { AuthContextType } from '../contexts/authContext';
+    // state-management/context/authProvider.tsx
+    import React, { ReactNode, useReducer } from 'react';
+    import { AuthContext } from './authContext';
+    import { authReducer, AuthAction } from '../reducers/authReducer';
 
+    // Props 接口：接收任意子组件
     interface AuthProviderProps {
       children: ReactNode;
     }
 
-    function AuthProvider({ children }: AuthProviderProps) {
-      const [user, dispatch] = useReducer(authReducer, '');
-
-      const authContextValue: AuthContextType = {
-        user,
-        dispatch,
-      };
+    // 自定义 Provider 组件
+    export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+      // 在 Provider 内部管理用户状态
+      const [currentUser, dispatch] = useReducer(authReducer, '');
 
       return (
-        <AuthContext.Provider value={authContextValue}>
+        <AuthContext.Provider value={{ currentUser, dispatch }}>
           {children}
         </AuthContext.Provider>
       );
-    }
-
-    export default AuthProvider;
+    };
     ```
 
-2.  在`App.tsx`中使用`AuthProvider`
+2. **更新 `App.tsx`**
 
     ```tsx
-    // src/App.tsx
-    import AuthProvider from './providers/AuthProvider';
-    // import TasksProvider from './providers/TasksProvider'; // 假设也有TasksProvider
-    import NavBar from './components/NavBar';
-    import HomePage from './components/HomePage'; // 假设HomePage包含TaskList等
+    // App.tsx
+    import React from 'react';
+    import { AuthProvider } from './state-management/context/authProvider';
+    import { TasksProvider } from './state-management/context/tasksProvider';
+    import { LoginStatus } from './components/LoginStatus';
+    import { TaskList } from './components/TaskList';
 
-    function App() {
+    export const App: React.FC = () => {
       return (
+        // 嵌套多个 Provider，按需组合
         <AuthProvider>
-          {/* <TasksProvider> */}
-            <NavBar />
-            <HomePage />
-          {/* </TasksProvider> */}
+          <TasksProvider>
+            <LoginStatus />
+            <TaskList />
+          </TasksProvider>
         </AuthProvider>
       );
-    }
-    export default App;
+    };
     ```
 
-    - `App.tsx`不再直接管理`authReducer`的状态，而是委托给`AuthProvider`。
-    - `authDispatch`在`AuthProvider`内部可以简写为`dispatch`，因为作用域内唯一。
+---
+
+**注意事项与总结**
+
+- **职责清晰**：Provider 组件只做状态管理与 Context 提供，子组件只消费；
+- **ReactNode**：`children` 类型必须为 `ReactNode`，否则可能无法接收 JSX；
+- **组合灵活**：可按功能拆分多个 Provider，无需在单个组件中混杂多种状态；
+- **模块化复用**：将自定义 Provider 及其 Context 一起打包，可轻松移植到其他项目。
+
+---
+
+**实施步骤回顾**
+
+1. 在 `context` 目录新建 `authProvider.tsx`。
+2. 定义 `AuthProviderProps` 接口，标注 `children: ReactNode`。
+3. 将 `useReducer(authReducer, '')` 从 App 剪切到 Provider 内。
+4. 在组件返回值中，用 `<AuthContext.Provider value={{…}}>` 包裹 `{children}`。
+5. 在 App 中替换为 `<AuthProvider>…</AuthProvider>`，并按需嵌套其他 Provider。
+
+## 9- 创建用于访问 Context 的自定义 Hook
+
+> **简述：**  
+> 当你多次在各个组件中调用 `useContext(SomeContext)` 时，会反复书写相同的导入与钩子调用逻辑。通过为每个 Context 编写一个专用的自定义 Hook（如 `useAuth`），可以进一步简化组件代码，让你只需调用 `useAuth()` 即可访问 Context 值，提升可读性和可维护性。
+
+---
+
+**知识树**
+
+1. **动机与场景**
+
+    - 避免在多个组件中反复导入 `useContext` 和 `SomeContext`；
+    - 提升代码可读性：组件只需关注业务逻辑，不必关心 Context 的来源；
+    - 便于重构：若 Context 文件路径或名称变化，只需在自定义 Hook 中调整一次。
+
+2. **自定义 Hook 定义**
+
+    - Hook 名称需以 `use` 开头，如 `useAuth`、`useTasks`；
+    - 函数内部调用 `useContext(AuthContext)` 并返回其值；
+    - 可在自定义 Hook 中添加额外校验（如检查是否在 Provider 范围内使用）。
+
+3. **类型注解（TypeScript）**
+
+    - 自定义 Hook 的返回值类型与 Context 的 `value` 类型保持一致；
+    - 如果 Context 类型可能为 `null`，可在 Hook 中抛出错误或返回默认值，以保证调用组件安全。
+
+4. **组件中使用**
+
+    - 在组件顶部直接调用 `const { currentUser, dispatch } = useAuth();`；
+    - 不再需要手动导入 `AuthContext` 与 `useContext`。
+
+5. **最佳实践**
+
+    - 对每个自定义 Context 都编写对应的 Hook（如 `useAuth`, `useTasks`）；
+    - 在 Hook 内可统一处理错误边界（如在 Provider 之外调用时抛错）；
+    - 将所有 Context-Hook 文件统一放在 `hooks/` 目录，保持项目结构清晰。
+
+---
+
+**代码示例**
+
+1. **自定义 Hook：`useAuth.ts`**
+
+    ```ts
+    // hooks/
+    import { useContext } from 'react';
+    import { AuthContext } from '../state-management/context/authContext';
+
+    /**
+     - 自定义 Hook：用于访问 AuthContext 的值
+     */
+    export function useAuth() {
+      const context = useContext(AuthContext);
+      if (!context) {
+        // 如果未在 AuthProvider 范围内使用，可抛出错误
+        throw new Error('useAuth 必须在 AuthProvider 内使用');
+      }
+      return context;
+    }
+    ```
+
+2. **组件中使用：`LoginStatus.tsx`**
+
+    ```tsx
+    // components/LoginStatus.tsx
+    import React from 'react';
+    import { useAuth } from '../hooks/useAuth';
+
+    export const LoginStatus: React.FC = () => {
+      const { currentUser, dispatch } = useAuth();
+
+      return currentUser ? (
+        <>
+          <p>当前用户：{currentUser}</p>
+          <button onClick={() => dispatch({ type: 'logout' })}>
+            登出
+          </button>
+        </>
+      ) : (
+        <button
+          onClick={() =>
+            dispatch({ type: 'login', userName: 'mosh.hammedani' })
+          }
+        >
+          登录
+        </button>
+      );
+    };
+    ```
+
+3. **其他消费组件同理**
+
+    ```tsx
+    // components/TaskList.tsx
+    import React from 'react';
+    import { useAuth } from '../hooks/useAuth';
+
+    export const TaskList: React.FC = () => {
+      const { currentUser } = useAuth();
+
+      return <p>当前用户（来自 Context）：{currentUser || '未登录'}</p>;
+    };
+    ```
+
+---
+
+> **总结：**  
+> 自定义访问 Context 的 Hook 是一种优雅的封装，能够将 Context 的导入、类型验证和边界处理统一到一个文件，让你的组件代码更专注于业务逻辑，提升项目一致性和可维护性。
+
+## 10- 为任务列表创建可复用的 Provider 与 Hook
+
+> **简述：**  
+> 将任务状态与派发函数从 App 组件中剥离，封装到一个自定义的 `TasksProvider` 中，并提供一个 `useTasks` Hook，方便在任意后代组件中读取或更新任务列表，避免在 App 中维护多种状态、避免 prop drilling，让组件职责更聚焦、结构更清晰。
+
+---
+
+**知识树**
+
+1. **提取状态管理逻辑到 Provider**
+
+    - 在 `state-management/context` 目录下创建 `tasksProvider.tsx`。
+    - 将原来在 App 组件中对任务使用 `useReducer(tasksReducer, [])` 的逻辑剪切到 Provider 内部。
+    - Provider 内部维护 `tasks: Task[]` 与 `dispatch: Dispatch<TaskAction>`。
+
+2. **封装自定义 Provider 组件**
+
+    - 定义 `TasksProviderProps` 接口：
+        ```ts
+        interface TasksProviderProps {
+          children: ReactNode;
+        }
+        ```
+    - 在 `TasksProvider` 内部：
+        ```tsx
+        const [tasks, dispatch] = useReducer(tasksReducer, []);
+        return (
+          <TasksContext.Provider value={{ tasks, dispatch }}>
+            {children}
+          </TasksContext.Provider>
+        );
+        ```
+
+3. **在 App 中使用 Provider**
+
+    - 用 `<TasksProvider>…</TasksProvider>` 替换原先的 `<TasksContext.Provider>`。
+    - App 组件无需再直接管理任务状态，只需关注页面布局与 Provider 嵌套。
+
+4. **创建自定义 Hook：`useTasks`**
+
+    - 在 `hooks/useTasks.ts` 中：
+        ```ts
+        import { useContext } from 'react';
+        import { TasksContext } from '../state-management/context/tasksContext';
+
+        export function useTasks() {
+          const context = useContext(TasksContext);
+          if (!context) {
+            throw new Error('useTasks 必须在 TasksProvider 内使用');
+          }
+          return context;
+        }
+        ```
+    - Hook 内部封装 `useContext` 调用，并可自行做边界检查。
+
+5. **在消费组件中调用**
+
+    - **TaskList**：
+        ```tsx
+        const { tasks, dispatch } = useTasks();
+        ```
+    - 其他需要读写任务的组件同样调用 `useTasks()`。
+
+6. **优点总结**
+
+    - **模块化**：Provider 与 Hook 合为一体，易于移植与复用。
+    - **职责清晰**：Provider 组件专注提供状态，消费组件只关注业务。
+    - **消除 Prop Drilling**：任意后代都能直接访问任务状态与 dispatch。
+
+---
+
+**代码示例**
+
+1. **`tasksProvider.tsx`：自定义 Provider**
+
+    ```tsx
+    // state-management/context/tasksProvider.tsx
+    import React, { ReactNode, useReducer } from 'react';
+    import { TasksContext } from './tasksContext';
+    import { tasksReducer, Task, TaskAction } from '../reducers/tasksReducer';
+
+    // Props 接口：接收子节点
+    interface TasksProviderProps {
+      children: ReactNode;
+    }
+
+    // 自定义 Provider 组件
+    export const TasksProvider: React.FC<TasksProviderProps> = ({ children }) => {
+      // 在 Provider 内部维护任务状态
+      const [tasks, dispatch] = useReducer<Task[], TaskAction>(tasksReducer, []);
+
+      return (
+        <TasksContext.Provider value={{ tasks, dispatch }}>
+          {children}
+        </TasksContext.Provider>
+      );
+    };
+    ```
+
+2. **`useTasks.ts`：自定义 Hook**
+
+    ```ts
+    // hooks/useTasks.ts
+    import { useContext } from 'react';
+    import { TasksContext } from '../state-management/context/tasksContext';
+
+    /**
+     - Hook：用于访问 TasksContext
+     */
+    export function useTasks() {
+      const context = useContext(TasksContext);
+      if (!context) {
+        throw new Error('useTasks 必须在 TasksProvider 内使用');
+      }
+      return context;
+    }
+    ```
+
+3. **更新 `App.tsx`**
+
+    ```tsx
+    // App.tsx
+    import React from 'react';
+    import { AuthProvider } from './state-management/context/authProvider';
+    import { TasksProvider } from './state-management/context/tasksProvider';
+    import { LoginStatus } from './components/LoginStatus';
+    import { TaskList } from './components/TaskList';
+
+    export const App: React.FC = () => (
+      <AuthProvider>
+        <TasksProvider>
+          <LoginStatus />
+          <TaskList />
+        </TasksProvider>
+      </AuthProvider>
+    );
+    ```
+
+4. **消费示例：`TaskList.tsx`**
+
+    ```tsx
+    // components/TaskList.tsx
+    import React from 'react';
+    import { useTasks } from '../hooks/useTasks';
+
+    export const TaskList: React.FC = () => {
+      const { tasks, dispatch } = useTasks();
+
+      return (
+        <div>
+          <button
+            onClick={() =>
+              dispatch({
+                type: 'add',
+                task: { id: Date.now(), title: `Task ${Date.now()}` },
+              })
+            }
+          >
+            添加任务
+          </button>
+          <ul>
+            {tasks.map(task => (
+              <li key={task.id}>
+                {task.title}
+                <button onClick={() => dispatch({ type: 'delete', taskId: task.id })}>
+                  删除
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    };
+    ```
+
+---
+
+> **注意事项：**
+>
+> -   **Provider 嵌套顺序**：确保 `TasksProvider` 在消费组件之外覆盖整个树；
+> -   **性能考虑**：Context 更新会引起所有消费组件重渲染，可按需拆分多个 Context 或使用 `React.memo` 优化。
+> -   **一致性**：自定义 Hook 可统一处理边界检查，避免误用。
