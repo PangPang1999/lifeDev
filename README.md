@@ -4,6 +4,7 @@
 - [JavaScript 笔记 | JavaScript Notes](./Note-new/JavaScript.md)
 - [Java 笔记 | Java Notes](./Note-new/Java.md)
 - [Spring Boot 笔记 | Spring Boot Notes]：[Part1](./Note-new/SpringBoot.md)、[Part2](./Note-new/SpringBoot2.md)
+- [慢 SQL 调优](./Note-new/MySQL慢查询优化.md)
 
 # lifeDev · 技术学习成长项目
 
