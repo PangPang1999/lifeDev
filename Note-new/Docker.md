@@ -1,0 +1,1099 @@
+> Prerequisites
+>
+> -   基本前后端、API 观念
+> -   Git 基本用法
+
+# 指令记录
+
+## Linux
+
+**记录一些快捷方式**
+
+- `control+W`：删除一整个单词
+
+## Docker
+
+```bash
+# 检查版本
+docker version
+
+
+# Docker 文件基本演示
+	# 使用精简版 Node 基础镜像（alpine）
+	FROM node:alpine
+	# 将当前目录的全部文件拷贝到镜像的 /app 目录下
+	COPY . /app
+	# 设置容器内的工作目录为 /app
+	WORKDIR /app
+	# 指定启动容器时运行的命令
+	CMD node app.js
+
+
+# 构建命令，`-t`是 `--tag` 的缩写，最后的`.`是构建镜像时的工作目录，Docker 会在这个目录中寻找 `Dockerfile`，hello-docker为镜像名称，后面可以额外跟版本号
+docker build -t hello-docker .
+
+# 查看本地 Docker 镜像列表
+docker image ls
+
+# 启动 Docker 容器，hello-docker是镜像名称，也可以根据ID启动，只需输入前几个数字即可
+docker run hello-docker
+
+
+```
+
+# Introduction
+
+## Docker 基础概念
+
+> 简述：Docker 是一种用于一致地构建、运行和发布应用的平台，它将应用与其依赖项打包进一个隔离环境（容器），确保应用跨不同环境表现一致。
+
+**知识树**
+
+1. Docker 本质
+
+    - 平台：构建（build）、运行（run）、发布（ship）应用
+    - 一致性：确保跨环境的一致表现（开发机、测试机、生产机）
+
+2. Docker 出现原因
+
+    - 应用缺少部署文件或资源（文件缺失）
+    - 环境差异（软件版本不一致，如 Node、MongoDB）
+    - 配置不一致（环境变量差异）
+
+3. Docker 的核心机制：容器（Container）
+
+    - 隔离环境：应用与依赖项的完整封装
+    - 同机多版本并存，互不干扰
+
+4. Docker 的价值体现
+
+    - 部署便利：
+        - 一键启动应用及其依赖
+        - 新人入职无需繁琐环境配置
+    - 环境清洁：
+        - 应用删除即彻底清除依赖
+        - 避免开发环境臃肿混乱
+
+5. Docker 技能的行业价值
+
+    - 软件开发与 DevOps 工程师必备技能
+    - 促进应用交付效率与质量，提高市场竞争力
+
+## 容器与虚拟机
+
+> 简述：容器（Container）和虚拟机（Virtual Machine, VM）均提供应用隔离环境，但容器更轻量高效，共享宿主操作系统，而虚拟机则独占完整操作系统。
+
+**知识树**
+
+1. 虚拟机（VM）本质
+
+    - 模拟物理硬件环境的软件抽象
+    - 依赖于 Hypervisor 管理（如 VirtualBox、VMware、Hyper-V）
+
+2. 虚拟机的优缺点
+
+    - 优点：
+        - 完整隔离应用及依赖环境
+        - 支持多种操作系统（如 Windows 与 Linux 并存）
+    - 缺点：
+        - 启动缓慢（加载完整操作系统）
+        - 资源消耗大（CPU、内存、磁盘专属分配）
+        - 维护成本高（需单独授权、更新和监控各虚拟机系统）
+
+3. 容器本质
+
+    - 应用级别的隔离环境，共享宿主操作系统内核
+    - 无需独立完整的操作系统镜像
+
+4. 容器的优缺点
+
+    - 优点：
+        - 启动快速（秒级启动）
+        - 轻量高效（无专属硬件资源分配，宿主资源弹性共享）
+        - 运维成本低（仅维护单一宿主操作系统）
+    - 缺点：
+        - 共享内核，安全隔离程度略低于虚拟机
+
+## Docker Architecture
+
+> 简述：Docker 采用客户端-服务器架构，通过共享宿主内核实现容器轻量化，本质上容器即特殊进程，依赖于宿主内核提供运行环境。
+
+**知识树**
+
+1. Docker 架构模式
+
+    - 客户端-服务器模型（Client-Server）
+    - Docker 客户端通过 RESTful API 与 Docker 引擎（服务器）通信
+
+2. Docker 引擎（Docker Engine）
+
+    - 后台运行，负责容器的创建、管理、运行
+    - 容器本质是宿主机上的特殊进程
+
+3. 内核（Kernel）共享机制：
+
+    - 容器不含完整操作系统，仅共享宿主内核
+    - 内核核心功能：
+        - 管理硬件资源（CPU、内存）
+        - 管理进程运行环境与应用调用接口（API）
+    - 不同操作系统内核差异明显，导致容器运行环境限制：
+        - Linux 宿主机：仅支持 Linux 容器
+        - Windows 宿主机：
+            - 自带 Windows 内核（运行 Windows 容器）
+            - 集成 Linux 内核（额外支持 Linux 容器）
+        - macOS 宿主机：
+            - 无容器原生支持，Docker 使用轻量 Linux 虚拟机运行容器
+
+4. 核心架构特点：
+
+    - 跨平台容器运行环境差异（Linux/Windows/macOS）
+    - 通过宿主内核共享机制显著提升启动速度与资源效率
+
+## Installing Docker
+
+> 简述：Docker 的安装需根据操作系统选择合适版本，并确保系统环境满足要求。启动 Docker 后，通过命令验证服务正常运行。
+
+**知识树**
+
+1. 获取与安装 Docker
+
+    - 官方地址：[docs.docker.com](https://docs.docker.com)
+    - Windows/macOS/Linux：下载 Docker Desktop（集成引擎及工具）
+
+2. 安装前准备
+
+    - 核查系统要求（如内存、CPU、虚拟化支持等）
+    - 如 Windows 需启用 Hyper-V 与 Containers 功能
+
+3. 正确启动 Docker
+
+    - Windows/macOS/Linux：安装后手动启动 Docker Desktop（如 Mac 需要确认状态栏有 Docker 图标）
+
+4. 验证 Docker 是否可用
+
+    - 打开终端，执行 `docker version` 查看 client/server 版本
+    - 若 server 信息未显示，说明 Docker Engine 未启动
+
+## Development Workflow
+
+> 简述：Docker 开发流程指将任意应用程序封装为独立、可移植的容器镜像，以便在任意环境中一致地运行和管理。
+
+**知识树**
+
+1. Dockerize 应用程序
+
+    - 含义：对任意应用进行小改动，使之能被 Docker 运行。
+    - 方法：通过添加 Dockerfile（文本文件，含镜像构建指令）。
+
+2. Dockerfile
+
+    - 本质：纯文本指令文件，用于构建镜像。
+    - 内容：基础操作系统、运行时环境（如 Node、Python）、应用文件、依赖库、环境变量。
+
+3. 镜像（Image）
+
+    - 特性：
+        - 包含应用程序所有运行必需的文件。
+        - 可移植，一次构建，多处运行。
+    - 用途：发布至 Docker Registry（如 Docker Hub），实现镜像共享与分发。
+
+4. 容器（Container）
+
+    - 本质：由镜像启动的进程，提供独立的文件系统与隔离环境。
+    - 优势：
+        - 环境一致性，避免配置差异问题。
+        - 无需复杂的发布文档，实现“随处运行”。
+
+## Docker in Action
+
+> 简述：通过创建最小化项目，直观展示 Docker 使用流程，从构建到部署的完整链路。
+
+**知识树**
+
+1. 构建 Node 示例项目
+
+    - 在桌面新建目录 `hello-docker`，并使用 VS Code 打开。
+
+    - 创建文件 `app.js`，内容如下：
+
+        ```javascript
+        // 在终端输出信息
+        console.log("hello docker");
+        ```
+
+    - 使用命令启动项目（需安装 Node 环境，未安装则运行 `brew install node`）：
+
+        ```bash
+        node app.js
+        ```
+
+2. 明确项目构建步骤
+
+    - 该简单项目的部署流程如下：
+
+        1. 选择基础操作系统（如 Linux）
+        2. 安装运行环境（Node）
+        3. 拷贝应用程序代码到指定目录
+        4. 执行命令运行程序：`node app.js`
+
+    - 实际生产环境中的复杂项目通常涉及更多文件和操作步骤。
+
+3. 使用 Docker 的优势
+
+    - Docker 将上述构建和部署流程标准化并写入 Dockerfile 文件，以镜像方式统一管理和运行，极大简化发布和运行过程。
+
+4. Docker 操作实操
+
+    - 创建 Dockerfile 文件（建议安装 VS Code Docker 扩展）：
+
+        ```Dockerfile
+        # 使用精简版 Node 基础镜像（alpine）
+        FROM node:alpine
+
+        # 将当前目录的全部文件拷贝到镜像的 /app 目录下
+        COPY . /app
+
+        # 设置容器内的工作目录为 /app
+        WORKDIR /app
+
+        # 指定启动容器时运行的命令
+        CMD node app.js
+        ```
+
+    - 构建 Docker 镜像（`-t`是 `--tag` 的缩写，最后的`.`是构建镜像时的工作目录，Docker 会在这个目录中寻找 `Dockerfile`）：
+
+        ```bash
+        docker build -t hello-docker .
+        ```
+
+    - 查看本地 Docker 镜像列表：
+
+        ```bash
+        docker image ls
+        ```
+
+    - 启动 Docker 容器：
+
+        ```bash
+        docker run hello-docker
+        ```
+
+5. Docker 下拉镜像演示
+
+    - 测试网址（包哈一个 Linux 系统以及 Docker）
+        - https://labs.play-with-docker.com/#
+    - 指令
+        - `docker version`
+        - `docker pull codewithmosh/hello-docker`
+        - `docker image ls`
+        - `docker run codewithmosh/hello-docker`
+
+## Docker 容器镜像操作
+
+1.  `docker run <镜像>`
+
+    - 创建并启动一个新容器，部分服务会因为没有使用交互式启动而直接停止，比如 `ubuntu`，交互式启动方式为`docker run -it <镜像>`，或者`docker run -i -t <镜像>`。
+        - `i`为 `interactive`，让容器的 标准输入 (STDIN) 保持打开状态。
+        - `t`为伪终端（TTY），让你获得类似普通终端的体验，让输出变得更人类友好（比如你在 bash 中看到的颜色、高亮等）允许你使用清屏、方向键、命令补全等交互功能
+        - 补充
+            - `docker run -i ubuntu`：允许输入，但无格式化终端
+            - `docker run -t ubuntu`：分配终端，但无法交互输入
+            - `docker run -it ubuntu`：完整交互终端，常用于 shell
+
+2.  `docker start <容器 ID 或 NAME>`
+
+    - 启动一个已存在但停止的容器，同样的，部分服务会因为没有使用交互式启动而直接停止，比如 `ubuntu`，交互式启动方式为`docker start -ai <容器 ID 或 NAME>`
+        - `a`：attach，附加当前终端到容器的 stdout/stderr（可以看到输出）
+        - `i`：interactive，保持标准输入开启（允许你输入命令）
+        - `start`的`ai`等价于`run`的`it`
+
+3.  `docker exec -it <容器 ID> bash/sh`
+
+    - 进入**已启动**容器的 shell，默认是 root 用户，也可以指定其他用户`docker exec -u otherUser -it <容器ID> bash`，这取决于容器中是否有这个用户。
+    - ubuntu 中，root 用户为`#`，普通用户为`$`
+
+4.  `docker stop <容器 ID>`
+
+    - 停止一个正在运行的容器
+
+5.  `docker rm <容器 ID>`
+
+    - 删除一个容器（需要先停止）
+
+# Linux 基础
+
+## Linux distributions
+
+> 简述：Linux 发行版（distributions）是 Linux 系统的不同版本，由不同的社区或个人基于 Linux 开源核心，按特定需求定制而成。
+
+**知识树**
+
+1. 概念定义
+
+    - Linux 是开源软件，任何人可自由修改和发布自己的版本，即“发行版”。
+
+2. 发行版用途分类
+
+    - 服务器用途：CentOS、Debian
+    - 桌面用途：Ubuntu、Fedora
+    - 轻量级用途（适合容器）：Alpine
+    - 移动设备用途：Android
+
+3. 常见发行版示例：
+
+    - Ubuntu：最流行，适合初学者与日常桌面使用。
+    - Debian：稳定性著称，广泛用于服务器。
+    - Alpine：极简精巧，常用于容器环境（如 Docker）。
+    - Fedora、CentOS：企业级应用广泛使用，尤其适用于服务器环境。
+
+4. 注意事项
+
+    - 大部分发行版共享核心命令，但个别命令可能存在细微差异。
+    - 本节从流行的发行版 Ubuntu 开始入门。
+
+## Running Linux
+
+> 简述：演示如何使用 Docker 快速运行 Ubuntu 系统，并通过 Shell 进行命令交互，以便用户理解容器、Shell 命令以及基本 Linux 操作。
+
+**知识树**
+
+1. 拉取并启动 Ubuntu 容器
+
+    - 明确拉取镜像
+        - `docker pull ubuntu`
+    - 快速运行，若无镜像则自动拉取（推荐）
+        - `docker run ubuntu`
+
+2. 容器运行状态管理
+
+    - 查看运行中容器
+        - `docker ps`
+    - 查看所有（含停止）容器
+        - `docker ps -a`
+        - 容器启动后无交互指令即停止运行。
+
+3. 交互式运行容器
+
+    - 使用交互模式启动 Ubuntu 容器：
+
+        ```bash
+        docker run -it ubuntu
+        ```
+
+    - 参数说明：
+        - `-i`：交互模式（interactive），保持容器输入流打开。
+        - `-t`：分配终端（terminal），允许命令交互。
+
+4. 理解 Linux Shell 环境
+
+    - Shell：命令解释器，负责传递命令到内核执行。
+    - Shell 提示符含义解析：
+        - 示例提示符：`root@容器ID:/#`
+            - `root`：当前登录用户。
+            - `@容器ID`：容器的唯一标识（Docker 自动生成）。
+            - `/`：当前所在目录（根目录）。
+            - `#`：超级用户（root）的权限标识，普通用户为 `$`。
+    - 常用基本命令演示：
+
+        ```bash
+        # 输出文本
+        echo hello
+
+        # 查看当前用户
+        whoami
+
+        # 查看当前Shell程序位置
+        echo $0  # 输出：/bin/bash，bash 即“Bourne Again Shell”
+        ```
+
+    - Linux 与 Windows 差异：
+        - 路径分隔符：Linux 用 `/`，Windows 用 `\`。
+        - 大小写敏感：命令、文件名、用户名区分大小写。
+    - Shell 使用技巧：
+        - 上下箭头键翻阅历史命令。
+        - 查看历史命令：
+            ```bash
+            history
+            ```
+        - 使用历史命令编号快速执行命令：
+            ```bash
+            !编号
+            ```
+
+## Managing Packages
+
+> 简述：APT 是 Linux（如 Ubuntu）上的高级包管理工具，用于安装、更新、卸载及管理软件包。
+
+**知识树**
+
+1. APT 基础知识
+
+    - APT (`Advanced Package Tool`) 是 Ubuntu 默认的包管理器。
+    - 常见类似工具：npm、yarn（Node.js），pip（Python）。
+
+2. APT 常用命令
+
+    - 显示包管理器帮助：
+        - `apt`或者`apt-get`
+    - 列出包数据库中所有包：
+        - `apt list`
+        - 并非每一个包都已经安装在本地
+    - 更新包数据库（下载最新包列表）：
+        - `apt update`
+        - 当安装包时，需要先更新包数据库，再进行安装（需要网络环境良好）
+    - 搜索特定包：
+        - `apt search <package_name>`
+
+3. 安装/卸载软件包流程
+
+    ```bash
+    apt update  # 必须在安装前执行，确保最新包信息
+    apt install nano
+    nano  # 启动nano文本编辑器，并根据提示退出
+    apt remove nano
+    nano  # 验证是否被成功卸载
+    ```
+
+4. 关键注意点：
+
+    - 安装前总需执行 `apt update`。
+    - Linux 包管理工具依赖包数据库，非实时同步，需主动更新。
+    - 包数据库包含软件包列表，但并非所有包默认安装。
+
+## Linux File System
+
+> 简述：Linux 文件系统采用树形（分层）结构，一切皆文件。每个目录和文件都有明确的功能分区，便于管理和扩展。
+
+**知识树**
+
+1. 层次化结构
+
+    - 所有文件和目录以“根目录 `/`”为顶点，形成树状结构。
+
+2. 常见目录及功能
+
+    - `/bin`：存放常用二进制程序（命令/工具）。
+    - `/boot`：系统启动相关文件（如内核）。
+    - `/dev`：设备文件（所有硬件以“文件”方式表示）。
+    - `/etc`：系统配置文件（多为文本，可编辑）。
+    - `/home`：普通用户的主目录（个人数据存放处）。
+    - `/root`：超级用户（root）的主目录，仅 root 可访问。
+    - `/lib`：库文件，程序运行依赖的共享库。
+    - `/var`：内容经常变化的文件（如日志、缓存）。
+    - `/proc`：内核和进程信息的伪文件系统（动态生成，非真实存储）。
+
+3. 一切皆文件
+
+    - 普通文件、目录、设备、进程、网络连接等，都以文件形式存在。
+    - 不同目录有严格分工，便于系统管理和维护。
+    - 不必死记各目录名，理解其功能和整体结构即可快速上手。
+
+## Navigating the File System
+
+> 简述：Linux 文件系统采用树状结构。掌握常用命令，可以在不同目录间高效切换、查看内容，是一切 Linux 操作的基础。
+
+**知识树**
+
+1. 根目录与路径
+
+    - `/` 表示根目录，所有文件和文件夹都从这里开始。
+    - 路径分为绝对路径（从 `/` 开始，如 `/etc`）和相对路径（相对于当前目录，如 `../`）。
+
+2. 基础命令
+
+    - `pwd`：显示当前工作目录（print working directory）。
+    - `ls`：列出当前目录内容（list）。
+        - `ls -1`：长格式
+        - `ls -l`：长格式，显示权限、拥有者、大小、时间等信息。
+        - `ls -a`：查看目录所有内容，包含隐藏文件。
+        - `ls 路径`：显示指定目录内容，可用绝对或相对路径，如`ls /home `查看所有用户目录。
+    - `cd`：切换目录（change directory）。
+        - `cd 路径`：进入指定目录，如`cd /etc/apt/`。
+        - `cd ~`：切换到当前用户主目录，root 用户将会切换到 root 目录。
+        - `cd ..`：返回上一级目录。
+    - Tab 补全：输入目录/文件名前几位，按 `Tab` 键自动补全，加速输入。
+
+## Manipulating Files and Directories
+
+> 简述：本节讲解如何在终端中创建、移动、重命名和删除文件与目录。终端是与系统交互的命令界面，通过命令行输入指令管理文件和文件夹。
+
+**知识树**
+
+1. 创建目录 (`mkdir`，建议在 root 目录下)
+
+    - `mkdir test`： 创建名为`test`的目录
+
+2. 创建文件 (`touch`)
+
+    - `touch file`：创建单个文件，如`touch hello.txt`
+    - `touch file1 file2 file3`：同时创建多个文件，如`touch file1.txt file2.txt file3.txt`
+
+3. 移动与重命名 (`mv`)
+
+    - `mv oldname newname`：重命名目录，如`mv test docker`
+    - `mv oldfile newfile`：重命名文件：如`mv hello.txt hello-docker.txt`
+    - `mv file.txt /path/to/destination`：移动文件到指定目录，如`mv hello.txt /etc`（仅演示，不用执行）
+
+4. 删除文件与目录 (`rm`)
+
+    - `rm file`：删除单个文件，如`rm hello-docker.txt`
+    - `rm file1 file2 file3`：删除多个文件：`rm file1.txt file2.txt file3.txt`
+    - `rm file*`：使用通配符删除：
+    - `rm -r directory`：删除目录及其内容（递归），如`rm -r docker/`
+
+## Editing and Viewing Files
+
+> 简述：学习如何使用 Linux 命令行中的编辑器和文件查看工具，包括 nano 编辑器、cat、more、less、head 和 tail 命令，帮助初学者熟悉基本的文件操作。
+
+**知识树**
+
+1. 文本编辑器 nano
+
+    - nano 是一款简单易用的 Linux 文本编辑器。
+    - 使用示例：
+        - 打开或创建文件：`nano filename`，如`nano hello.txt`
+        - 退出保存：`Ctrl + X` → 输入`Y`保存 → 回车确认文件名。
+
+2. 查看文件内容
+
+    - Cat
+        - 显示文件内容或拼接多个文件（短文件推荐，无需额外安装）。
+        - 使用示例：`cat hello.txt`
+    - more 命令
+        - 分页显示长文件内容，但只能向下滚动（无需额外安装）。
+        - 使用示例：`more /etc/debconf.conf`（若无效可以尝试自行找一个长文件）
+        - 按`空格键`翻页，`回车键`逐行滚动，退出按`q`。
+    - less 命令
+        - 功能强于 more，可上下滚动（需额外安装，`apt install less`）。
+        - 使用示例：`less /etc/debconf.conf`
+        - 使用上下箭头滚动，空格翻页，`q`退出。
+    - head 命令
+        - 查看文件前几行。
+        - 使用示例：`head -n 5 /etc/debconf.conf`，查看前 5 行
+    - tail 命令
+        - 查看文件后几行。
+        - 使用示例：`tail -n 5 /etc/debconf.conf`，查看最后 5 行
+
+## Redirection
+
+> 简述：标准输入（stdin）代表键盘输入，标准输出（stdout）代表屏幕输出。重定向（Redirection）允许改变命令输入源或输出目标，实现数据灵活操作。
+
+**知识树**
+
+1. 标准输入输出定义
+
+    - 标准输入（stdin）：默认从键盘获取数据。
+    - 标准输出（stdout）：默认输出到屏幕。
+
+2. 输出重定向（`>`）
+
+    - 用于将命令的输出结果从默认的终端（屏幕）保存到文件中。
+    - 例如，可用 echo 输出一行文本到文件，或用 cat 重定向多个文件内容到新文件。
+
+    ```bash
+    # 将文件内容输出到屏幕
+    cat file.txt
+
+    # 重定向输出到另一个文件（覆盖写入）
+    cat file.txt > newfile.txt
+
+    # 合并多个文件到新文件
+    cat file1.txt file2.txt > combined.txt
+
+    # 覆盖文本到已有文件（若没有则自动创建）
+    echo "Hello" > file.txt
+    ```
+
+3. 追加输出重定向（`>>`）
+
+    - 将输出追加到文件末尾，不覆盖已有内容。
+
+    ```bash
+    # 追加文本到已有文件
+    echo "Hello again" >> file.txt
+    ```
+
+4. 输入重定向（`<`）
+
+    - 改变命令输入来源，从文件读取数据而非键盘。
+    - 较少使用，但在某些脚本和程序场景中有用。
+
+    ```bash
+    # 使用文件内容作为命令输入
+    sort < unsorted.txt
+    ```
+
+5. 常用实例：列出目录内容并保存到文件
+
+    ```bash
+    ls -l /etc > files.txt  # 将/etc目录详细列表保存至files.txt
+    ```
+
+6. 注意事项
+
+    - `>` 会覆盖文件内容，使用前需谨慎。
+    - 使用 `>>` 追加避免误覆盖。
+    - 输入重定向 `<` 较为罕见，但了解其功能，掌握全面。
+
+## Searching for Text
+
+> 简述：`grep`（Global Regular Expression Print）命令用于在文件中查找并显示符合特定文本模式的内容，支持多文件、递归搜索及不区分大小写等灵活选项。
+
+**知识树**
+
+1. grep 命令基础
+
+    ```bash
+    # 默认区分大小写搜索文本。
+    grep "hello" file.txt  # 搜索file.txt中包含"hello"的行
+
+    # 不区分大小写搜索 (`-i`)
+    grep -i "hello" file.txt  # 不区分大小写地搜索"hello"
+
+    # 在特定文件中搜索
+    grep "root" /etc/passwd  # 搜索passwd文件中包含"root"的行
+
+    # 递归搜索 (`-r`)
+    grep -r "hello" .  # 递归搜索当前目录中所有文件内含"hello"的内容
+
+    # 多个选项可以合并使用。
+    grep -ri "hello" .  # 不区分大小写，递归搜索当前目录
+
+    # 文件名通配符搜索
+    grep "hello" file*  # 在以"file"开头的所有文件中搜索"hello"
+    ```
+
+## Finding Files and Directories
+
+> 简述：`find`命令用于在 Linux 系统中递归地搜索文件或目录，支持按路径、类型、名称（区分大小写或忽略大小写）等多种方式过滤结果。
+
+**知识树**
+
+1. `find`命令基础
+
+    ```bash
+    # 默认递归列出当前目录所有文件和目录，包括隐藏项。
+    find
+
+    # 明确搜索的起始目录。
+    find /etc   # 从/etc目录开始，递归搜索所有文件和目录
+
+    # 只搜索目录或文件。
+    find . -type d   # 仅搜索当前目录下所有子目录
+    find . -type f   # 仅搜索当前目录下所有文件
+
+    # 按名称模式过滤结果，区分大小写。
+    find . -name "F*"   # 查找当前目录下名称以F开头的文件或目录（区分大小写）
+    # 忽略大小写使用`-iname`。
+    find . -iname "f*"  # 查找当前目录下名称以f或F开头的文件或目录（不区分大小写）
+    ```
+
+2. 使用示例
+
+    ```bash
+    # 查找系统中所有Python文件并保存至python_files.txt
+    find / -type f -name "*.py" > python_files.txt
+    ```
+
+3. 常见应用场景：
+
+    - 定位特定扩展名文件（如`.log`、`.py`）。
+    - 管理和清理旧文件。
+    - 文件备份和批量操作。
+
+4. 注意事项：
+
+    - 默认搜索区分大小写。
+    - 从根目录开始搜索耗时长，建议精确指定搜索范围或过滤条件。
+
+## Chaining Commands
+
+> 简述：在 Linux 中，可以使用特殊符号将多个命令链接起来依次或有条件地执行，也可以使用管道将一个命令的输出作为另一个命令的输入。
+
+**知识树**
+
+1. 命令顺序执行 (`;`)
+
+    - 多个命令依次运行，不受前后成功或失败影响。
+
+    ```bash
+    # 创建test目录，进入test，打印done
+    mkdir test; cd test; echo "done"
+    ```
+
+2. 条件执行：AND 逻辑 (`&&`)
+
+    - 前一命令成功，才执行下一命令。
+
+    ```bash
+    # 若mkdir成功，则继续执行后续命令，否则停止
+    mkdir test && cd test && echo "done"
+    ```
+
+3. 条件执行：OR 逻辑 (`||`)
+
+    - 前一命令失败，才执行下一命令。
+
+    ```bash
+    # mkdir失败（目录已存在），打印提示
+    mkdir test || echo "directory exists"
+    ```
+
+4. 管道（Pipe `|`）：输出转输入
+
+    - 将命令的标准输出（stdout）直接作为另一个命令的标准输入（stdin）。
+    - 管道常用示例：
+
+    ```bash
+    # 将/bin目录的内容用less分页显示
+    ls /bin | less
+
+    # 限制输出行数（`head`、`tail`）：
+    ls /bin | head -n 5 # 显示/bin目录下前5个文件
+
+
+    # 搜索输出内容（`grep`）：
+    ls /bin | grep "bash"# 查找/bin目录下包含bash的文件名
+    ```
+
+5. 长命令换行（`\`）
+
+    - 提高长命令可读性，将单个长命令分行书写。
+
+    ```bash
+    mkdir hello; \
+    cd hello; \
+    echo "done"
+    # 创建hello目录，进入目录，打印done，分多行书写
+    ```
+
+## Environment Variables
+
+> 简述：环境变量是 Linux 系统用于保存配置信息的变量，应用程序可通过读取这些变量实现动态配置。变量作用域分临时（当前会话）和持久（跨会话）。
+
+**知识树**
+
+1. 环境变量基础：
+
+    - 存储应用配置的键值对（`key=value`）。
+    - `printenv`：显示所有变量。
+    - 常用环境变量：
+        - `PATH`：定义系统查找可执行程序的目录，多个路径以冒号`:`分隔。
+        - `HOME`：当前用户的主目录。
+        - `PWD`：当前所在目录路径。
+
+2. 查看单个变量：
+
+    - 使用`printenv`，或`echo`查看变量值（变量名前需加`$`）。
+
+    ```bash
+    printenv PATH  # 显示PATH变量
+    echo $PATH     # 等效方式，显示PATH变量
+    ```
+
+3. 设置临时变量：
+
+    - 当前终端会话有效，关闭终端后消失。
+    - 使用`export`命令。
+        ```bash
+        export DB_USER=mosh     # 设置环境变量DB_USER
+        echo $DB_USER           # 验证变量值
+        ```
+
+4. 设置持久变量：
+
+    - 跨会话生效，需写入用户启动文件（如`.bashrc`）。
+    - 推荐使用追加方式（`>>`），防止覆盖原有内容。
+        ```bash
+        echo "export DB_USER=mosh" >> ~/.bashrc   # 添加持久环境变量
+        source ~/.bashrc                          # 立即生效，无需重启终端
+        ```
+
+5. 安全注意事项：
+
+    - 环境变量以明文形式存储于文件，禁止存储敏感信息（如密码、密钥等）。
+
+## Managing Processes
+
+> 简述：进程（Process）是程序在 Linux 中的运行实例，系统中每个运行的程序对应一个进程，拥有独立的进程 ID（PID）。用户可查看、管理、终止进程。
+
+**知识树**
+
+1. 进程基本概念
+
+    - 进程是程序执行时的实例。
+    - 每个进程有唯一标识：进程 ID（PID）。
+    - 使用`ps`命令查看当前运行的进程。
+
+2. `ps`命令常见输出说明：
+
+    - PID：进程标识符。
+    - TTY（终端类型）：如`pts/0`（第一个伪终端窗口）。
+    - TIME：进程占用的累计 CPU 时间。
+    - CMD：运行的命令或程序名称。
+
+    ```bash
+    ps
+    # 输出示例：
+    # PID   TTY      TIME   CMD
+    # 1     pts/0    00:00  bash
+    # 12    pts/0    00:00  ps
+    ```
+
+3. 后台运行进程：
+
+    - 在命令末尾使用`&`，进程进入后台运行，不占用当前终端。
+
+    ```bash
+    sleep 300 &  # 后台运行sleep命令，持续300秒
+    ```
+
+4. 终止进程（`kill`命令）：
+
+    - 根据进程 ID 终止进程，释放资源。
+
+    ```bash
+    kill <PID>  # 终止指定PID的进程
+    ```
+
+5. 完整演示示例：
+
+    ```bash
+    sleep 500 &      # 启动后台进程
+    ps               # 查看进程，找到PID，如1234
+    kill 1234        # 终止该进程
+    ps               # 验证进程是否被终止
+    ```
+
+6. 注意事项：
+
+    - 谨慎使用`kill`命令，避免意外终止关键系统进程。
+    - `ps`仅显示当前终端进程，查看系统所有进程需使用`ps aux`。
+
+7. 扩展常用`ps`命令选项
+
+    ```bash
+    ps aux       # 显示所有用户的进程详细信息
+    ps aux | grep bash  # 查找包含bash的进程
+    ```
+
+## Managing Users
+
+> 简述：Linux 用户管理涉及创建、修改、删除系统用户，每个用户拥有独立权限、主目录和默认 Shell，以实现资源隔离与权限控制。
+
+**知识树**
+
+1. 用户管理基本命令：
+
+    - `useradd`：创建用户（非交互式）。
+        - 输入 `useradd` 后，会提示许多帮助信息，最普通的创建方式为`useradd -m username`，如`useradd -m pang`。`-m`为`--create-home`，即为用户创建一个主目录（home directory），若不设置会出问题。
+    - `usermod`：修改用户信息。
+        - 示例：新用户默认交互为 Shell，使用`usermod -s /bin/bash username`命令可以修改默认为 bash（增强型 Shell）
+    - `userdel`：删除用户。
+        - 如`userdel pang`
+
+2. 用户信息存储文件：
+
+    - `/etc/passwd`
+        - 存储用户名、用户 ID（UID）、主目录和默认 Shell 等信息（非密码）。
+        - 查看方式如`cat /etc/passwd`
+    - `/etc/shadow`：
+        - 存储用户密码的加密形式，仅 root 可读，非 root 用户执行时显示权限拒绝错误。
+        - 查看方式如：`cat /etc/shadow`
+
+3. 用户登录与切换：
+
+    - `docker run ubuntu`： 创建并启动一个全新的容器，运行 Ubuntu 镜像。
+    - `docker exec -it <容器ID> bash`：进入**已启动**容器的 shell，默认是 root 用户
+    - `docker exec -u otherUser -it <容器ID> bash`：指定其他用户，这取决于容器中是否有这个用户。普通用户提示符为 `$`，root 用户提示符为 `#`。
+
+4. 主目录与默认 Shell：
+
+    - 用户创建时可设置主目录（`-m`）与默认 Shell（`-s`）。
+    - 常用 Shell：
+        - `/bin/sh`（传统 Shell）
+        - `/bin/bash`（增强型 Shell）
+    - 创建时指定 bash
+        - 如：`useradd -m -s /bin/bash john`，`-s`指定用户的默认登录 shell
+    - 修改用户默认 shell 为 bash
+        - 如：`usermod -s /bin/bash pang`
+
+5. 交互式用户创建（`adduser`）：
+
+    - 更易用、交互式地创建用户，自动完成创建主目录、分配用户组并提示输入密码等信息。
+
+    ```bash
+    # 交互式创建用户bob，提示密码、全名、电话等信息
+    adduser bob
+    ```
+
+    - 实际部署或自动化脚本环境建议使用非交互式的`useradd`。
+
+6. 演示
+
+    ```bash
+    # 启动容器（若容器已停止）
+    docker start -ai <CONTAINER ID>
+
+
+    # 创建Pang，并设置目录
+    useradd -m pang
+
+    # 检查用户是否存在（最后一行）
+    cat /etc/passwd
+
+    # 修改用户默认shell为bash，并再次检查
+    usermod -s /bin/bash pang
+    cat /etc/passwd
+
+    # 新开一个终端，以用户 pang 登录容器并进入交互式Shell，表示为 $
+    docker exec -it -u pang <容器ID> bash
+
+    # 普通用户查看/etc/shadow，提示Permission denied
+    cat /etc/shadow
+
+    # 前往普通用户home，并查看地址，为/home/pang
+    cd ~
+    pwd
+
+    # 删除命令，只有root有权限（暂不执行）
+    userdel pang
+    ```
+
+## Managing Groups
+
+> 简述：用户组（group）是 Linux 中用于统一管理多个用户权限的方式。每个用户拥有一个主组（primary group）和若干辅助组（supplementary groups），便于统一权限控制。组相关命令必须通过 root 执行。
+
+**知识树**
+
+1. 主组与附加组
+
+    - 主组
+        - 创建文件默认组属：用户创建的文件/目录默认属于主组
+        - 组权限继承：文件权限中间部分是“组权限”，主组决定你默认在哪个组享受权限
+        - 默认用户组（系统自动生成）：若不指定主组，Linux 通常自动为每个用户创建与用户名同名的主组
+    - 附加组理解
+        - 想象你是公司员工 pang，你的主组是 devteam（开发团队，但你还被加入了：
+            - docker：允许你运行容器（如 docker ps）
+            - video：允许你访问摄像头（在某些系统中）
+            - sudo：允许你使用管理员命令（比如 sudo apt install）
+        - 这些组就是你的 附加组，不改变你默认的文件归属，但赋予你更多能力和权限。
+
+2. 组管理基本命令：
+
+    - 创建组（`groupadd`）：
+
+        ```bash
+        groupadd developers  # 创建名为developers的组
+        ```
+
+    - 修改组（`groupmod`）：修改已有组名或组 ID。
+
+    - 删除组（`groupdel`）：
+
+        ```bash
+        groupdel developers  # 删除developers组，暂不执行
+        ```
+
+3. 组信息存储文件：
+
+    - `/etc/group`
+        - 存储组名、组 ID 和组内成员。
+        - 访问方式
+            - `cat /etc/group`
+            - 或通过筛选查询
+                - `cat /etc/group | grep developers`
+                - `grep developers /etc/group`
+
+4. 添加用户到组：
+
+    - 修改辅助组（`usermod -G`）
+        - 如：`usermod -G developers pang`，将 pang 加入 developers 辅助组
+    - 修改主组（`usermod -g`）
+
+5. 查看用户组信息：
+
+    - 查看用户的所属组：
+        - 如`groups john`，查看 john 所属的所有组（主组和辅助组），输出为`pang : pang developers`，即主组为`pang`，附加组为`developers`
+        - 还可以访问`/etc/passwd`查看用户主组与附加组的编号
+            - `grep pang /etc/passwd`
+            - `cat /etc/passwd | grep pang`
+
+6. 注意事项：
+
+    - 用户创建时自动生成主组，与用户名相同。
+    - 添加辅助组时，注意使用大写`-G`选项，小写`-g`为修改主组。
+    - 删除组前，需确认组内无成员，避免权限问题。
+
+## File Permissions
+
+> 简述：Linux 使用文件权限控制用户访问文件和目录的方式，权限分为读、写、执行三类，对象分为文件所有者（user）、所属组（group）和其他用户（others）。
+
+**知识树**
+
+1. 文件权限基础：
+
+    - 理解：
+        - 用户权限为 10 个字符，第一个为`-`或者`d`，表示其为文件或者目录，另外 9 个字符分为三组，三组代表三类对象，每组由`rwx`顺序排列以及可能的`-`四类字符组成，`rwx`代表不同的权限，`-`代表无权限
+    - 三种权限：读（`r`）、写（`w`）、执行（`x`）。
+
+        - 文件权限：
+            - `r`：读取文件内容。
+            - `w`：修改文件内容。
+            - `x`：执行文件（如脚本）。
+        - 目录权限：
+            - `r`：列出目录内容。
+            - `w`：修改目录内文件（创建/删除文件）。
+            - `x`：进入目录（`cd`）。
+
+    - 三类对象：
+
+        - 用户（owner）：文件所有者。
+        - 用户组（group）：文件所属用户组。
+        - 其他用户（others）：不属于以上两者的其他用户。
+
+    - 通过`ls -l`查看权限：
+
+        - 权限以 9 个字符表示，每 3 个一组分别对应 owner、group、others。
+
+2. 演示查询文件权限
+
+    ```bash
+    # 选择目录
+    cd /home
+
+    # 创建测试文件，包含代码 echo hello
+    echo echo hello > deploy.sh
+
+    # 查看权限
+    ls -l deploy.sh
+    # 输出示例：-rw-r--r--
+    # 表示：所有者rw-，组r--，其他r--
+
+    # 查看所有文件权限，包含文件 deploy.sh 以及 文件夹 pang
+    ls -l
+
+    # 执行 deploy.sh，提示 Permission denied
+    ./deploy.sh
+    ```
+
+3. 修改权限（`chmod`）：
+
+    - 格式：`chmod [对象][操作][权限] 文件名`
+        - 对象：`u` (owner)，`g` (group)，`o` (others)
+        - 操作：`+`增加权限，`-`移除权限
+    - 操作示例
+
+        ```bash
+        # 如
+        chmod u+x deploy.sh    # 给文件所有者增加执行权限
+        chmod o+x deploy.sh    # 给其他用户增加执行权限
+        chmod og+rx deploy.sh  # 给组与其他用户增加读、执行权限
+        chmod u-r deploy.sh    # 移除所有者读权限
+        chmod og+x+w-r *.sh    # 不可以写成 chmod og+xw-r ，表达式混乱，没有明确的分隔操作
+
+        # 执行操作赋予执行权限
+        chmod u+x deploy.sh # 执行之后，可以执行 deploy.sh 了
+        chmod o+x deploy.sh # 执行之后，其他用户比如 pang，也可以执行 deploy.sh 了
+
+        ```
