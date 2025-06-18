@@ -4892,11 +4892,55 @@ function badReducer(state: { count: number }, action: any) {
 - **保持一致性**：不同功能域（如 `auth`、`game`）各自一个目录，统一采用相同的模块化规范。
 - **适度拆分**：当模块过大或子功能复杂时，可进一步细分子目录，但入口仍由顶层 `index.ts` 统一导出。
 
-通过以上模块化组织，你的项目将具备更高的可扩展性、可维护性和易读性，各团队成员也能更快理解与定位功能代码。
+## 12- 按功能域组织代码
 
+> **简述：**  
+> 随着项目规模增大，按技术类型（Reducer、Context、Hook）分散文件会让功能相关的代码散落各处，难以维护。最佳做法是按 **功能域**（Feature）划分，将同一功能的 Reducer、Context、Provider、Hook、组件集中到同一文件夹，并通过该文件夹的 `index.ts` 或直接默认导出其公共接口，对外提供统一模块，内部隐藏实现细节。
 
+---
 
-下面是按功能域（feature）划分后的最终项目结构示例，将与 “当前用户” 相关的所有文件都放到 `state-management/auth` 目录下，并对 `counter` 模块做同样处理。
+**知识树**
+
+1. **功能域概念**
+
+    - **功能域（Feature）**：应用中的独立业务单元，如“认证”（auth）、“计数器”（counter）、“任务列表”（tasks）等；
+    - 按功能域组织代码，可快速定位一项功能所需的所有构件，增强可读性与模块边界。
+
+2. **重构步骤**
+
+    1. **创建功能文件夹**：在 `state-management/` 下新增 `auth/`、`counter/`、`tasks/` 目录。
+    2. **移动相关文件**：将对应功能的 Context、Reducer、Provider、Hook、组件等文件剪切到新文件夹中。
+    3. **合并内部实现**：对于只在包内部使用的 Reducer，可内联到 Provider 文件中并取消导出。
+    4. **调整导入路径**：修改所有引用位置，统一从功能文件夹根引入。
+
+3. **公共接口与隐藏实现**
+
+    - **公共文件**：如 `AuthProvider.tsx`、`useAuth.ts`、`LoginStatus.tsx`；在文件夹根通过 `index.ts` 或直接导出；
+    - **私有实现**：如 `authReducer.ts`、`authContext.ts`；不在根导出，仅在 Provider 内部引用。
+
+4. **最终目录结构**
+
+    ```
+    src/
+    └─ state-management/
+       ├─ auth/
+       │  ├─ authContext.ts        // 私有
+       │  ├─ authProvider.tsx      // 公共
+       │  ├─ authReducer.ts        // (可内联) 私有
+       │  ├─ useAuth.ts            // 公共 Hook
+       │  ├─ LoginStatus.tsx       // 公共组件
+       │  └─ index.ts              // (可选) 统一导出
+       ├─ counter/
+       │  ├─ counterReducer.ts     // 私有
+       │  ├─ Counter.tsx           // 公共组件
+       │  └─ index.ts              // 导出 Counter
+       └─ tasks/
+          ├─ tasksProvider.tsx     // 公共
+          ├─ useTasks.ts           // 公共 Hook
+          ├─ TaskList.tsx          // 公共组件
+          ├─ tasksContext.ts       // 私有
+          └─ index.ts              // 统一导出 TasksProvider, TaskList
+    ```
 
 ```
 src/
@@ -4925,63 +4969,881 @@ src/
 
 ---
 
-### auth/index.ts 示例
+---
 
-```ts
-// state-management/auth/index.ts
+**代码示例**
 
-export { AuthProvider }   from './authProvider';
-export { useAuth }        from './useAuth';
-export { LoginStatus }    from './LoginStatus';
-```
+1. **`state-management/auth/index.ts`（统一导出）**
 
-### counter/index.ts（可选）
+    ```ts
+    export { AuthProvider } from './authProvider';
+    export { useAuth } from './useAuth';
+    export { LoginStatus } from './LoginStatus';
+    ```
 
-```ts
-// state-management/counter/index.ts
+2. **`App.tsx` 中引用**
 
-export { Counter }        from './Counter';
-```
+    ```tsx
+    import React from 'react';
+    import { AuthProvider, LoginStatus } from './state-management/auth';
+    import { Counter } from './state-management/counter';
+    import { TasksProvider, TaskList } from './state-management/tasks';
 
-### tasks/index.ts 示例
+    export const App: React.FC = () => (
+      <AuthProvider>
+        <Counter />
+        <TasksProvider>
+          <LoginStatus />
+          <TaskList />
+        </TasksProvider>
+      </AuthProvider>
+    );
+    ```
 
-```ts
-// state-management/tasks/index.ts
+> **要点回顾：**
+>
+> -   **按功能域**（而非技术类型）划分目录，聚焦业务逻辑；
+> -   在模块根通过 `index.ts` 或直接默认导出公共 API，隐蔽实现细节；
+> -   内部实现（Reducer、Context）可灵活移动或重写，调用方不受影响。
 
-export { TasksProvider }  from './tasksProvider';
-export { TaskList }       from './TaskList';
-export { useTasks }       from './useTasks';
-```
+## 13- 分割 Context 的原则
+
+> **简述：**  
+> React Context 在其值变化时，会导致所有消费该 Context 的组件重新渲染。为了避免不必要的渲染，Context 应当只保存高度相关、会一起变化的数据。通过将职责单一化的 Context（如 `AuthContext`、`TasksContext`）拆分开来，可以显著提升应用的性能和可维护性。
 
 ---
 
-#### 调整完成后，`App.tsx` 仅需这样写
+**知识树**
 
-```tsx
-import React from 'react';
-import { AuthProvider, LoginStatus, useAuth } from './state-management/auth';
-import { TasksProvider, TaskList, useTasks } from './state-management/tasks';
-import { Counter } from './state-management/counter';
+1. **Context 重渲染原理**
 
-export const App: React.FC = () => (
-  <AuthProvider>
-    <TasksProvider>
-      <LoginStatus />
-      <TaskList />
-      <Counter />
-    </TasksProvider>
-  </AuthProvider>
-);
-```
+    - 任何传入 `Provider value` 的值变化，都会触发该 Context 下所有消费组件的重新渲染。
+    - 无差别更新可能导致大量无意义渲染，影响性能。
+
+2. **单一职责原则**
+
+    - 每个 Context 只管理一类数据：
+        - `AuthContext` → 当前用户信息
+        - `TasksContext` → 任务列表及更新方法
+    - 确保在数据无需变化时，不影响无关组件。
+
+3. **拆分 Context 示例**
+
+    ```ts
+    // AuthContext.ts
+    export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+
+    // TasksContext.ts
+    export const TasksContext = createContext<TasksContextType>({} as TasksContextType);
+    ```
+
+    - `NavBar` 只订阅 `AuthContext`，只有用户变化时才重渲染；
+    - `TaskList` 只订阅 `TasksContext`，只有任务列表变化时才重渲染。
+
+4. **过度拆分的风险**
+
+    - 将状态与其更新函数强行拆成两个 Context（`TasksStateContext` + `TasksDispatchContext`），会造成：
+        - 组件树中 Provider 数剧倍增长，结构混乱；
+        - 更新函数和状态往往密不可分，分离后使用复杂度反而增加。
+
+5. **状态与派发函数应同属一 Context**
+
+    - 对于密切相关的数据（如 `tasks`）及其更新方法（`dispatch`），应一起放在同一个 Context，保证一致性与易用性。
+
+6. **实战建议**
+
+    - 根据实际场景拆分 Context，不要一味追求细粒度；
+    - 在性能调优时，可使用 `React.memo` 或 `useMemo` 辅助优化子组件；
+    - 保持 Context 数量适中，每个 Context 都有明确的业务边界。
 
 ---
 
-**优点回顾**
+> **核心要点：**
+>
+> -   **职责单一**：Context 应只保存一类高度相关的数据。
+> -   **按需订阅**：消费组件只订阅所需 Context，避免不相关更新。
+> -   **避免过度拆分**：状态与更新方法合并使用，减少 Provider 数量和调用复杂度。
 
-- **按功能域组织**：每个目录只包含该功能相关的私有与公共文件，增强可读性。
-    
-- **隐藏实现细节**：私有的 reducer/context 文件不在 `index.ts` 中导出，调用方无法直接依赖。
-    
-- **统一入口**：所有公共组件和 Hook 通过模块根的 `index.ts` 暴露，导入路径更加简洁。
-    
-- **便于重构**：内部实现可随意调整，只要 `index.ts` 中的公共接口保持不变，调用方不受影响。
+## 14- 何时使用 React Context
+
+> 简述：  
+> React Context 适用于在组件树中跨层级共享**客户端状态**（如当前用户、UI 主题、选中筛选条件等），而不适合用来管理**服务器状态**（从后端获取的数据）。在需要全局、可预测地存取和更新本地 UI 状态时，可结合 `useState`/`useReducer` 与 Context；对于频繁变化或分页缓存的服务器数据，应交由 React Query 等专用工具处理。
+
+---
+
+**知识树**
+
+1. **区分服务器状态与客户端状态**
+
+    - 服务器状态（Server State）：后端 API 返回的数据，典型例子有列表、详情、分页结果。
+    - 客户端状态（Client State）：仅存在于 UI 层面，反映用户交互或全局偏好，如当前用户、主题、选中筛选条件等。
+
+2. **何时避免使用 Context 管理服务器状态**
+
+    - 会产生大量 Context：每种资源（genres、platforms、games、…）都需一个 Context，导致组件树过度复杂。
+    - 功能重复造轮子：Context 本身不具备缓存、失效、重试、分页等机制，要自行实现成本高。
+    - 推荐方案：使用 React Query、SWR 等专门的服务器状态管理库，让它们负责数据获取与缓存。
+
+3. **何时使用 Context 管理客户端状态**
+
+    - 需要在多个、深层组件间共享的小规模 UI 状态。
+    - 状态更新逻辑简单，可直接用 `useState`；或更新逻辑复杂、多处分散时，可用 `useReducer` 集中管理。
+    - 在 Context 外层提升状态，对子组件进行“直接注入”，无须层层 Prop Drilling。
+
+4. **选择 `useState` 还是 `useReducer`**
+
+    - **`useState`**：适合简单的布尔、字符串、数字，或少量相关字段；更新逻辑单一。
+    - **`useReducer`**：适合逻辑复杂、多个操作类型、需要按动作（action）分支处理的场景；可将所有更新逻辑集中到 reducer 函数中。
+
+5. **Context 的单一职责原则**
+
+    - 一个 Context 应只存储一类高度相关的数据（如“认证信息”或“任务列表”），且这部分数据会一起变化。
+    - 拆分 Context 可减少无关组件的重复渲染，但过度拆分（状态与 dispatch 分开、每个字段分开）会增加复杂度，不推荐。
+
+6. **何时考虑使用专用状态管理工具**
+
+    - 当 Context 细分后仍出现大量无效渲染，或数据更新与订阅需求复杂（部分订阅、异步派发、持久化等）。
+    - 可选方案：Redux、MobX、Recoil、XState、Zustand 等，它们支持选择性订阅、挂载中间件、易于调试和测试。
+    - 推荐场景：大型应用、状态变动频繁且来源多样、需要时间旅行调试或严格可预测的状态流。
+
+---
+
+> **核心建议：**
+>
+> -   **服务器数据** → 使用 React Query 等专用工具；
+> -   **客户端 UI 状态** → 用 `useState`/`useReducer` + Context；
+> -   **Context 内容** → 保持单一职责，避免一 Context 跨越多种功能；
+> -   **性能权衡** → 若 Context 导致过多重渲染，再考虑拆分或引入更细粒度的状态管理库。
+
+| 状态类型           | 推荐方案      | 示例                   | 优势                             |
+| ------------------ | ------------- | ---------------------- | -------------------------------- |
+| 服务器状态         | React Query   | 产品列表、用户订单     | 自动缓存、错误处理、数据自动更新 |
+| 客户端状态         | React Context | 当前用户、主题         | 简单易用，减少组件层级传递复杂度 |
+| 本地简单状态       | useState      | 弹窗开关状态           | 实现简单、代码精简               |
+| 本地复杂状态       | useReducer    | 购物车逻辑             | 集中管理逻辑、维护性高           |
+| 复杂客户端状态管理 | Zustand 等库  | 全局设置、复杂交互状态 | 性能高效、简洁且易于维护         |
+
+## 15- Context vs Redux 对比
+
+> **简述：**  
+> 虽然 React Context 与 Redux 都能实现跨组件共享状态，但二者定位不同：**Context** 只是用于在组件树中“运输”数据，不提供内置的存储、缓存或中间件支持；**Redux** 则是一个完整的状态管理库，提供集中式存储、可撤销操作、日志记录、跨框架解耦以及强大的调试工具。选择何者，需要基于项目实际需求，而非盲目跟风。
+
+---
+
+**知识树**
+
+1. **什么是 Redux**
+
+    - **集中式 Store**：所有应用状态都保存在一个全局 store 中；
+    - **Action & Reducer**：通过 `dispatch(action)` 修改状态；
+    - **避免 Prop Drilling**：组件从 store 中直接获取所需状态，无需层层传递。
+
+2. **Context 的定位**
+
+    - **运输工具**：`Context.Provider` 只是将状态通过树状结构传递给后代组件，只是一种在应用程序中传输和共享状态的方式；
+    - **不负责存储或更新**：需要配合 `useState` 或 `useReducer` 等钩子来管理实际状态。
+
+3. **Redux 的优势**
+
+    - **服务器状态缓存与持久化**：可将 server state 缓存并持久化保存在 localStorage，以便在刷新时重载它
+    - 组件可以选择某些数据片段 并仅在这些值更改时重新渲染、撤销操作、使用中间件来记录每个操作 、使应用程序与 react 解耦、可以看到随时间推移的状态变化
+    - **中间件与日志**：可拦截所有 action，记录日志、做异步处理（thunk、saga 等）；
+    - **时间旅行调试**：Redux DevTools 支持查看历史 state 列表、撤销重做等；
+    - **跨框架解耦**：组件与框架无关，可在 React、Angular、Vue 等间复用。
+
+4. **Redux 的复杂度**
+
+    - **样板代码多**：需配置 store、编写 action creator、定义 reducer、连接组件；
+    - **学习曲线陡**：需理解 middleware、selector、thunk/saga 等概念；
+    - **过度使用风险**：若业务不需要撤销、日志或大规模共享，Redux 反而增加不必要的复杂度。
+
+5. **现代替代方案**
+
+    - **React Query**：专注**服务器状态**管理，自动缓存、刷新、错误重试；
+    - **React Context + `useReducer`/`useState`**：足以管理大多数**客户端状态**；
+    - **Zustand**（或其他轻量状态库）：在需要更细粒度订阅或跨 Context 性能优化时使用，简单高效。
+
+6. **选型蓝图**
+
+    - **先定义问题**：是否需要撤销、全局日志、中间件等高级功能？
+    - **服务器状态**：优先选 React Query，避免自建缓存层；
+    - **简单客户端状态**：`useState` + Context；
+    - **复杂客户端状态**：`useReducer` + Context；
+    - **性能优化或更强大功能**：可引入 Zustand，但除非真正需要，不必使用 Redux。
+
+---
+
+> **要点回顾：**
+>
+> -   **Context ≠ 状态管理库**，它只是共享现有状态的管道；
+> -   **Redux** 功能强大但引入大量样板与复杂性；
+> -   **优先根据业务需求选型**：现代前端已有更轻量、高效的替代方案。
+
+## 16- Zustand 状态管理
+
+> Zustand 是一个轻量、快速、可扩展的状态管理库。它利用自定义 Hook 的方式，提供一个中心化的“Store”来存储和管理应用状态。其核心思想是将状态（state）和更新状态的逻辑（actions）封装在一起，使得组件可以不通过 Props 或 Context，直接订阅和修改共享状态，极大地简化了跨组件状态管理的复杂性。
+
+**知识树**
+
+2. **核心概念**
+
+    - **Store**: 一个封装了状态 (state) 和动作 (actions) 的对象，由 `create` 函数生成。它本质上是一个自定义 Hook。
+    - **State**: 应用中需要被管理的数据。
+    - **Action**: 用于修改状态的函数。
+
+3. **安装**：`npm install zustand`
+4. **创建 Store (store.ts)**
+
+    - **第一步：定义 Store 形态 (Shape)**
+        - 使用 TypeScript 的 `interface` 来精确描述 Store 的结构。
+        - 此接口应包含所有状态属性和动作方法的类型定义。
+            - **状态属性**: 例如 `counter: number`。
+            - **动作方法**: 例如 `increment: () => void`。
+    - **第二步：使用 `create` 函数**
+        - 从 `zustand` 库中导入 `create` 函数。
+        - `create` 是一个泛型函数，需要传入 Store 的 `interface` 作为类型参数，以实现完整的类型安全：`create<CounterStore>(...)`。
+        - 此函数调用后会返回一个可供组件使用的自定义 Hook。
+    - **第三步：实现 Store 逻辑**
+        - `create` 函数接收一个回调函数作为其唯一参数。
+        - 此回调函数的签名为 `(set, get) => ({...})`。
+            - `set`: 更新状态的核心函数。
+            - `get`: (本例未用) 用于在动作内部获取当前最新状态的函数。
+        - 回调函数必须返回一个对象，该对象是 Store 的具体实现，包括：
+            - **状态初始值**: 为 `interface` 中定义的每个状态属性提供初始值。
+            - **动作具体实现**: 实现 `interface` 中定义的每个动作方法。
+    - **第四步：导出自定义 Hook**
+        - 将 `create` 函数的返回值存储在一个常量中，并使用命名导出 `export const ...`。
+        - 这种方式有利于在其他组件中进行清晰、快捷的自动导入。
+
+5. **状态更新机制**
+
+    - **`set` 函数**: Store 中修改状态的唯一途径。
+    - **工作模式**: `set` 函数接收一个回调 `(state) => (partialState)`。
+        - `state`: 当前的完整状态对象。
+        - `partialState`: 一个包含**待更新字段**的对象。
+        - 示例：`set(state => ({ counter: state.counter + 1 }))`。
+    - **自动合并 (Shallow Merge)**
+        - Zustand 会自动将 `partialState` 对象与当前状态进行浅合并。
+        - 开发者**无需**手动扩展旧状态（如 `...state`），只需提供变化的属性即可，这简化了更新逻辑。
+    - **无依赖更新**: 如果状态更新不依赖于前一个状态，可以直接传入一个对象，例如 `set({ counter: 0 })`
+
+6. **在 React 组件中使用 Store**
+
+    - **导入 Hook**: 在需要使用共享状态的组件中，导入创建好的自定义 Hook。
+    - **调用 Hook**: 在组件函数体顶层调用 Hook 以访问 Store。
+        - `const store = useCounterStore();`
+    - **订阅与选择 (Selection)**
+        - Hook 的返回值是整个 Store 对象。
+        - 推荐使用对象解构来获取组件所需的特定状态和动作。
+            - `const { counter, increment } = useCounterStore();`
+        - 组件仅会订阅并响应其所解构出的状态片段的变化，从而实现自动的性能优化。
+    - **UI 绑定**
+        - 将状态值用于渲染：`<p>{counter}</p>`。
+        - 将动作函数绑定到事件处理器：`onClick={increment}`。
+
+7. **Zustand 的优势**
+
+    1. `轻量级` Zustand 的体积非常小，只有 1kb 左右。
+    2. `简单易用` Zustand 不需要像 Redux，去通过`Provider`包裹组件，Zustand 提供了简洁的 API，能够快速上手。
+    3. `易于集成` Zustand 可以轻松的与 React 和 Vue 等框架集成。(Zustand 也有 Vue 版本)
+    4. `扩拓展性` Zustand 提供了中间件的概念，可以通过插件的方式扩展功能，例如(持久化,异步操作，日志记录)等。
+    5. `无副作用` Zustand 推荐使用  `immer`库处理不可变性， 避免不必要的副作用。
+
+8. 深层次状态处理
+    - Zustand 会合并第一层的 state，但是对于深层次的状态更新，需要手动合并状态
+
+---
+
+**代码示例**
+
+1. **创建 Store (`src/counter/store.ts`)**
+
+    - 定义 Store 的数据结构和行为，并利用 `create` 函数生成自定义 Hook。
+
+    ```TypeScript
+    import { create } from 'zustand';
+
+    // 1. 使用 interface 定义 Store 的形态
+    interface CounterStore {
+      counter: number;
+      increment: () => void;
+      reset: () => void;
+    }
+
+    // 2. 使用 create 函数创建 Store，它会返回一个 Hook,传入一个函数，返回一个对象
+    /**
+    *
+    - @param set 用于更新状态
+    - @param get 用于获取状态
+    - @returns 返回一个对象，对象中的方法可以用于更新状态
+    - */
+    const useCounterStore = create<CounterStore>((set) => ({
+      // 3. 定义初始状态
+      counter: 0,
+
+      // 4. 定义更新状态的 actions
+      increment: () => {
+        // set 函数接收一个函数，用于计算下一个状态
+        // Zustand 会自动合并状态，无需展开运算符 `...`
+        set((state) => ({ counter: state.counter + 1 }));
+      },
+
+      reset: () => {
+        // 对于不依赖旧状态的更新，可以直接传入一个对象
+        set({ counter: 0 });
+      },
+    }));
+    export default useCounterStore;
+    ```
+
+2. **在主组件中使用 Store (`src/counter/Counter.tsx`)**
+
+    - 替换原有的 `useReducer` 逻辑，直接调用 `useCounterStore` Hook 获取状态和动作。
+
+    ```TypeScript
+    import { useCounterStore } from './store';
+
+    const Counter = () => {
+      // 调用 Hook 并解构出所需的状态和方法
+      const { counter, increment, reset } = useCounterStore();
+
+      return (
+        <div>
+          {/* 将状态绑定到视图 */}
+          <p>{counter}</p>
+          {/* 将方法绑定到事件 */}
+          <button onClick={increment} className="btn btn-primary mx-1">
+            Increment
+          </button>
+          <button onClick={reset} className="btn btn-secondary mx-1">
+            Reset
+          </button>
+        </div>
+      );
+    };
+
+    export default Counter;
+    ```
+
+3. **在其他组件中共享状态 (`src/NavBar.tsx`)**
+
+    - 在任意其他组件中调用同一个 Hook，可以访问到同步的状态。组件可以选择只获取它关心的部分。
+
+    ```TypeScript
+    import { useCounterStore } from './counter/store';
+
+    const NavBar = () => {
+      // 在此组件中，我们只关心 counter 的值，不关心 action
+      // 组件只会订阅 counter 的变化
+      const { counter } = useCounterStore();
+
+      return (
+        <nav>
+          Tasks Counter: {counter}
+        </nav>
+      );
+    };
+
+    export default NavBar;
+    ```
+
+4. 深层次状态处理
+
+    - 注意：如果不进行状态合并，其他状态会丢失。每次更新都需要手动合并状态，这在实际开发中会变得很繁琐。
+
+    ```TypeScript
+    import { create } from 'zustand'
+
+    interface User {
+        gourd: {
+            oneChild: string,
+            twoChild: string,
+            threeChild: string,
+            fourChild: string,
+            fiveChild: string,
+            sixChild: string,
+            sevenChild: string,
+        },
+        updateGourd: () => void
+    }
+
+    // 创建 store
+    const useUserStore = create<User>(((set) => ({
+        // 初始化葫芦娃状态
+        gourd: {
+            oneChild: '大娃',
+            twoChild: '二娃',
+            threeChild: '三娃',
+            fourChild: '四娃',
+            fiveChild: '五娃',
+            sixChild: '六娃',
+            sevenChild: '七娃',
+        },
+        // 更新方法
+        updateGourd: () => set((state) => ({
+            gourd: {
+                // ...state.gourd,  // 需要手动合并状态
+                oneChild: '大娃-超进化',
+            }
+        }))
+    })))
+
+    export default useUserStore;
+    ```
+
+## 16.1- 使用 immer 中间件
+
+1. 安装：`npm install immer`
+2. immer 原理剖析
+   immer.js 通过 Proxy 代理对象的所有操作，实现不可变数据的更新。当对数据进行修改时，immer 会创建一个被修改对象的副本，并在副本上进行修改，最后返回修改后的新对象，而原始对象保持不变。这种机制确保了数据的不可变性，同时提供了直观的修改方式。
+
+3. immer 的核心原理基于以下两个概念：
+
+    1. 写时复制 (Copy-on-Write)
+        - 无修改时：直接返回原对象
+        - 有修改时：创建新对象
+    2. 惰性代理 (Lazy Proxy)
+        - 按需创建代理
+        - 通过 Proxy 拦截操作
+        - 延迟代理创建
+
+**代码示例:**
+
+1. 工作流程
+
+```ts
+	type Draft<T> = {
+	  -readonly [P in keyof T]: T[P];
+	};
+
+	function produce<T>(base: T, recipe: (draft: Draft<T>) => void): T {
+	  // 用于存储修改过的对象
+	  const modified: Record<string, any> = {};
+
+	  const handler = {
+	    get(target: any, prop: string) {
+	      // 如果这个对象已经被修改过，返回修改后的对象
+	      if (prop in modified) {
+	        return modified[prop];
+	      }
+
+	      // 如果访问的是对象，则递归创建代理
+	      if (typeof target[prop] === 'object' && target[prop] !== null) {
+	        return new Proxy(target[prop], handler);
+	      }
+	      return target[prop];
+	    },
+	    set(target: any, prop: string, value: any) {
+	      // 记录修改
+	      modified[prop] = value;
+	      return true;
+	    }
+	  };
+
+	  // 创建代理对象
+	  const proxy = new Proxy(base, handler);
+
+	  // 执行修改函数
+	  recipe(proxy);
+
+	  // 如果没有修改，直接返回原对象
+	  if (Object.keys(modified).length === 0) {
+	    return base;
+	  }
+
+	  // 创建新对象，只复制修改过的属性
+	  return JSON.parse(JSON.stringify(proxy))
+	}
+
+	// 使用示例
+	const state = {
+	  user: {
+	    name: '张三',
+	    age: 25
+	  }
+	};
+
+	const newState = produce(state, draft => {
+	  draft.user.name = '李四';
+	  draft.user.age = 26;
+	});
+
+	console.log(state);     // { user: { name: '张三', age: 25 } }
+	console.log(newState);  // { user: { name: '李四', age: 26 } }
+```
+
+    注意：这是一个简化实现，没有考虑数组的情况和深层次的代理，只实现了其核心思想。
+
+2.  基础用法：
+
+    ```TypeScript
+    import { produce } from 'immer'
+
+    const data = {
+     user: {
+       name: '张三',
+       age: 18
+     }
+    }
+
+    // 使用 produce 创建新状态
+    const newData = produce(data, draft => {
+     draft.user.age = 20  // 直接修改 draft
+    })
+
+    console.log(newData, data)
+    // 输出:
+    // { user: { name: '张三', age: 20 } }
+    // { user: { name: '张三', age: 18 } }
+    ```
+
+3.  在 Zustand 中使用
+
+    ```TypeScript
+    import { create } from 'zustand'
+    import { immer } from 'zustand/middleware/immer'
+
+    // 注意：使用 immer 中间件时的特殊结构
+    const useUserStore = create<User>()(immer(((set) => ({
+        gourd: {
+            oneChild: '大娃',
+            twoChild: '二娃',
+            threeChild: '三娃',
+            fourChild: '四娃',
+            fiveChild: '五娃',
+            sixChild: '六娃',
+            sevenChild: '七娃',
+        },
+        updateGourd: () => set((state) => {
+            // 直接修改状态，无需手动合并
+            state.gourd.oneChild = '大娃-超进化'
+            state.gourd.twoChild = '二娃-谁来了'
+            state.gourd.threeChild = '三娃-我来了'
+        })
+    }))))
+    ```
+
+## 17- 练习：使用 Zustand 管理认证状态
+
+> 本节应用 Zustand 的核心概念来创建一个新的 Store，专门用于管理和共享用户的认证状态。其过程包括定义 Store 的形态、实现登录和登出逻辑，并以此重构现有组件，最终移除旧的、基于 Context 和 Reducer 的状态管理代码，从而简化整个应用的结构。
+
+**知识树**
+
+1. **练习目标与范围**
+
+    - **核心任务**: 创建一个 `AuthStore` 来全局管理用户登录状态。
+    - **管理内容**:
+        - 当前登录的 `user` (string)。
+        - `login` 动作。
+        - `logout` 动作。
+    - **重构目标**: 替换掉原有的认证状态管理方案，并清理相关冗余代码。
+
+2. **创建认证 Store (`auth/store.ts`)**
+
+    - **定义接口 (`AuthStore`)**:
+        - `user: string`: 用户名。
+        - `login: (username: string) => void`: 登录方法。
+        - `logout: () => void`: 登出方法。
+    - **实现 Store**:
+        - 使用 `create<AuthStore>((set) => ({...}))` 结构。
+        - **初始状态**: 设置 `user` 的初始值为空字符串 `''`。
+        - **动作实现**:
+            - `login: (username) => set({ user: username })`。
+            - `logout: () => set({ user: '' })`。
+    - **`set` 函数的简化应用**:
+        - 由于 `login` 和 `logout` 的新状态不依赖于旧状态，因此可以直接向 `set` 函数传递一个包含更新后状态的对象，而无需使用 `(state) => ({...})` 的回调形式。这使得代码更简洁。
+
+3. **应用重构流程**
+
+    - **第一步：替换组件内的状态逻辑 (`LoginStatus.tsx`, `TaskList.tsx`)**
+        - 删除对旧的自定义认证 Hook (如 `useAuth`) 的引用。
+        - 导入并调用新的 `useAuthStore` Hook。
+        - 通过解构从 `useAuthStore` 获取 `user`, `login`, `logout`。
+        - 将原先通过 `dispatch` 触发的事件，改为直接调用 `login(username)` 和 `logout()`。
+    - **第二步：清理应用根组件 (`App.tsx`)**
+        - Zustand 无需 `Provider`。因此，直接移除旧的 `AuthProvider` 的导入语句。
+        - 在 JSX 中，删除包裹应用组件树的 `<AuthProvider>` 标签。
+        - 此步骤显著简化了组件树的嵌套层级。
+    - **第三步：删除废弃文件**
+        - 完成重构后，原有的 `Context`、`Provider`、`Reducer` 以及自定义 `Hook` 文件均可被安全删除。
+
+4. **重构后的收益**
+
+    - **中心化逻辑**: 所有认证逻辑都聚合在 `auth/store.ts` 中，易于维护。
+    - **简化的 API**: 组件交互从 `dispatch` 变为类型安全、意图明确的函数调用 (`login()`, `logout()`)。
+    - **简化的组件树**: 移除了 Provider 使根组件更干净、易读。
+    - **代码精简**: 整体代码量减少，消除了状态管理所需的模板代码。
+
+---
+
+**代码示例**
+
+1. **创建认证 Store (`src/auth/store.ts`)**
+
+    - 封装所有与用户认证相关的状态和逻辑。
+
+    ```TypeScript
+    import { create } from 'zustand';
+
+    interface AuthStore {
+      user: string;
+      login: (username: string) => void;
+      logout: () => void;
+    }
+
+    export const useAuthStore = create<AuthStore>((set) => ({
+      user: '',
+      login: (username) => set({ user: username }),
+      logout: () => set({ user: '' }),
+    }));
+    ```
+
+2. **重构登录状态组件 (`src/auth/LoginStatus.tsx`)**
+
+    - 用 `useAuthStore` 替换旧的 Hook，并直接调用 `login` 和 `logout` 方法。
+
+    ```TypeScript
+    import { useAuthStore } from './store';
+
+    const LoginStatus = () => {
+      // 1. 调用新的 Zustand Hook
+      const { user, login, logout } = useAuthStore();
+
+      if (user)
+        return (
+          <>
+            <div>
+              <span className="mx-2">{user}</span>
+              {/* 2. 直接调用 logout 方法 */}
+              <a onClick={() => logout()} href="#">
+                Logout
+              </a>
+            </div>
+          </>
+        );
+      return (
+        <div>
+          {/* 3. 直接调用 login 方法 */}
+          <a onClick={() => login('mosh.hamedani')} href="#">
+            Login
+          </a>
+        </div>
+      );
+    };
+
+    export default LoginStatus;
+    ```
+
+3. **重构应用根组件 (`src/App.tsx`)**
+
+    - 移除不再需要的 `AuthProvider`，简化组件树。
+
+    ```TypeScript
+    // 旧的 AuthProvider 导入被删除
+    // import AuthProvider from './auth/AuthProvider';
+    import TaskList from './tasks/TaskList';
+    import LoginStatus from './auth/LoginStatus';
+
+    function App() {
+      return (
+        // AuthProvider 包裹层被移除
+        <>
+          <LoginStatus />
+          <TaskList />
+        </>
+      );
+    }
+
+    export default App;
+    ```
+
+## 18- 使用选择器防止不必要的渲染
+
+> Zustand 允许通过“选择器 (Selector)”函数来优化组件的渲染行为。默认情况下，组件会订阅整个 Store 的变化，导致任何状态更新都会触发其重新渲染。使用选择器，组件可以精确声明其依赖的状态片段，从而仅在该特定数据发生变化时才重新渲染，有效避免了不必要的性能开销。
+
+**知识树**
+
+1. **问题背景：默认订阅行为**
+
+    - **默认机制**: 当组件调用 `useStore()` 时，它会订阅整个 Store 对象。
+    - **触发条件**: Store 中**任何**一个属性的值发生变化，都会通知所有订阅了该 Store 的组件进行重新渲染。
+    - **性能隐患**: 一个组件即便只使用了 Store 中的属性 `A`，但当 Store 中不相关的属性 `B` 改变时，该组件依然会进行一次无效的重新渲染。
+
+2. **核心概念：选择器 (Selector)**
+
+    - **定义**: 选择器是一个函数，作为 `useStore` Hook 的第一个参数传入。
+    - **作用**: 从完整的 Store 状态中，精确地挑选（select）出组件真正依赖的数据。
+    - **目的**: 将组件的订阅目标从“整个 Store 对象”缩小为“特定的数据值”。
+
+3. **选择器的工作机制**
+
+    - **语法**: `const selectedState = useStore(state => state.desiredProperty);`
+    - **执行流程**:
+        1. 组件调用 `useStore` 并传入选择器函数。
+        2. Zustand 不再返回整个 Store 对象，而是返回选择器函数的**执行结果**。
+        3. 每当 Store 发生变化时，Zustand 会重新执行该选择器函数。
+        4. Zustand 会使用**严格相等 (`===`)** 来比较本次选择器的返回值与上一次的返回值。
+        5. **仅当**两次返回值不相等时，Zustand 才会触发该组件的重新渲染。
+    - **结果**: 组件的渲染与它所依赖的数据片段被精确地绑定在了一起。
+
+4. **选择器的优势与应用**
+
+    - **性能优化**: 从根本上杜绝了因不相关状态更新而导致的组件重渲染。
+    - **精确订阅**: 让组件只对自己关心的数据变化做出反应，实现了更细粒度的控制。
+    - **代码意图明确**: 通过选择器，可以清晰地看出组件到底依赖 Store 中的哪一部分数据。
+
+---
+
+**代码示例**
+
+1. **扩展 Store (`src/counter/store.ts`)**
+
+    - 为 Store 增加一个新属性 `max`，并修改 `reset` 方法来更新它，以便于演示不相关的状态更新。
+
+    ```TypeScript
+    import { create } from 'zustand';
+
+    interface CounterStore {
+      counter: number;
+      max: number; // 新增属性
+      increment: () => void;
+      reset: () => void; // 修改此方法的功能用于演示
+    }
+
+    export const useCounterStore = create<CounterStore>((set) => ({
+      counter: 0,
+      max: 5, // 初始值
+      increment: () => {
+        set((state) => ({ counter: state.counter + 1 }));
+      },
+      // 为了演示，让 reset 更新 max 而非 counter
+      reset: () => {
+        set({ max: 10 });
+      },
+    }));
+    ```
+
+2. **未优化的组件 (`src/NavBar.tsx` - 无选择器)**
+
+    - 此实现会导致 `NavBar` 在 `max` 属性变化时也重新渲染，尽管它只使用了 `counter`。
+
+    ```TypeScript
+    import { useCounterStore } from './counter/store';
+
+    const NavBar = () => {
+      // 通过解构获取，组件订阅了整个 store 对象
+      const { counter } = useCounterStore();
+
+      console.log('Render Nav Bar');
+
+      return (
+        <nav>
+          Tasks Counter: {counter}
+        </nav>
+      );
+    };
+    ```
+
+    - **行为**: 调用 `increment()` 和 `reset()` 都会在控制台打印 "Render Nav Bar"。
+
+3. **优化后的组件 (`src/NavBar.tsx` - 使用选择器)**
+
+    - 通过传入选择器函数，组件只订阅 `counter` 属性的变化。
+
+    ```TypeScript
+    import { useCounterStore } from './counter/store';
+
+    const NavBar = () => {
+      // 传入一个选择器函数，直接获取 counter 的值
+      // 组件现在只订阅 counter 的变化
+      const counter = useCounterStore(state => state.counter);
+
+      console.log('Render Nav Bar');
+
+      return (
+        <nav>
+          Tasks Counter: {counter}
+        </nav>
+      );
+    };
+    ```
+
+    - **行为**: 只有调用 `increment()` 会打印 "Render Nav Bar"。调用 `reset()` 时，由于 `counter` 的值未变，组件不会重新渲染。## 19- 使用 Zustand DevTools 检查状态
+
+## 19- 使用 Zustand DevTools 检查 Store
+
+> 为了在开发过程中方便地调试和观察 Zustand Store 的状态，可以集成 `simple-zustand-devtools` 库。该库能将 Store 的状态和行为连接到 React 开发者工具，允许开发者实时检查状态值、跟踪变更，从而极大地提高了调试效率。此功能应仅在开发环境中启用。
+
+**知识树**
+
+1. **核心目的：Store 的内省与调试**
+
+    - **需求**: 在应用运行时，需要一个可视化界面来实时监控 Store 的内部数据。
+    - **解决方案**: 使用 `simple-zustand-devtools` 库，它充当 Zustand 和 React DevTools 扩展之间的桥梁。
+
+2. **集成步骤**
+
+    - **第一步：安装依赖**
+        - **主工具库**: `npm install simple-zustand-devtools`。
+        - **Node 类型定义 (为解决 TypeScript 编译错误)**: `npm install -D @types/node`。
+            - **原因**: 集成代码需要读取 `process.env.NODE_ENV` 环境变量来判断当前是否为开发模式。在标准的客户端 TypeScript 环境中，`process` 是 Node.js 的全局对象，其类型定义并非内置，因此需要手动安装 `@types/node` 以供 TypeScript 编译器识别。
+    - **第二步：在 Store 文件中挂载工具**
+        - **位置**: 在创建 Store Hook 之后，导出之前。
+        - **导入**: 从 `simple-zustand-devtools` 中导入 `mountStoreDevtools` 函数。
+        - **条件性执行**: 必须将挂载逻辑包裹在 `if (process.env.NODE_ENV === 'development')` 条件块内。
+            - **目的**: 确保 DevTools 的相关代码只在开发环境中执行，不会被打包进最终的生产版本，避免不必要的性能损耗和代码暴露。
+            - `process.env.NODE_ENV` 是由 Vite 或 Create React App 等构建工具在构建流程中自动注入的环境变量。
+        - **调用 `mountStoreDevtools`**:
+            - **函数签名**: `mountStoreDevtools(storeName, useStoreHook)`。
+            - **参数一 `storeName` (string)**: 一个自定义的字符串，将作为此 Store 在 React DevTools 中显示的名称。
+            - **参数二 `useStoreHook` (function)**: 要进行调试的 Zustand Store Hook 本身。
+
+3. **在浏览器中查看**
+
+    - **前提**: 浏览器已安装 React Developer Tools 扩展。
+    - **操作流程**:
+        1. 打开浏览器开发者工具，并切换到 "Components" 标签页。
+        2. 在左侧的组件树中，会看到一个名为 `DevTools` 的虚拟节点。
+        3. 展开此节点，即可找到以 `storeName` 命名的 Store。
+        4. 选中该 Store，即可在右侧面板中看到其当前所有状态属性和方法的实时快照。当应用内发生交互导致状态变更时，此处的视图会自动更新。
+
+---
+
+**代码示例**
+
+1. **在 Store 文件中集成 DevTools (`src/counter/store.ts`)**
+
+    - 在创建完 `useCounterStore` 后，添加条件判断逻辑来挂载开发工具。
+
+    ```TypeScript
+    import { create } from 'zustand';
+    // 1. 从库中导入 mountStoreDevtools 函数
+    import { mountStoreDevtools } from 'simple-zustand-devtools';
+
+    interface CounterStore {
+      counter: number;
+      max: number;
+      increment: () => void;
+      reset: () => void;
+    }
+
+    // 创建 Store Hook 的代码保持不变
+    export const useCounterStore = create<CounterStore>((set) => ({
+      counter: 0,
+      max: 5,
+      increment: () => {
+        set((state) => ({ counter: state.counter + 1 }));
+      },
+      reset: () => {
+        set({ max: 10 });
+      },
+    }));
+
+    // 2. 检查是否处于开发环境
+    if (process.env.NODE_ENV === 'development') {
+      // 3. 如果是，则挂载 DevTools
+      mountStoreDevtools('Counter Store', useCounterStore);
+    }
+    ```
+
+    - **说明**: 上述代码被添加到 Store 定义文件的末尾。它不会改变 Store 的任何功能，仅在开发模式下附加了调试能力。
