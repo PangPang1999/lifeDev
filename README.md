@@ -4,6 +4,7 @@
 - [JavaScript 笔记 | JavaScript Notes](./Note-new/JavaScript.md)
 - [Java 笔记 | Java Notes](./Note-new/Java.md)
 - [Spring Boot 笔记 | Spring Boot Notes]：[Part1](./Note-new/SpringBoot.md)、[Part2](./Note-new/SpringBoot2.md)
+- [MySQL 指南](./Note-new/MySQL.md) _to be refactored for better readability_
 - [慢 SQL 调优](./Note-new/MySQL慢查询优化.md)
 - [Docker & Linux](./Note-new/Docker.md) _current focus_
 
