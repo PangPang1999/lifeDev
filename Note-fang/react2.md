@@ -5788,7 +5788,7 @@ src/
         - **Node 类型定义 (为解决 TypeScript 编译错误)**: `npm install -D @types/node`。
             - **原因**: 集成代码需要读取 `process.env.NODE_ENV` 环境变量来判断当前是否为开发模式。在标准的客户端 TypeScript 环境中，`process` 是 Node.js 的全局对象，其类型定义并非内置，因此需要手动安装 `@types/node` 以供 TypeScript 编译器识别。
     - **第二步：在 Store 文件中挂载工具**
-        - **位置**: 在创建 Store Hook 之后，导出之前。
+        - **位置**: 在创建 Store Hook 之后， 导出之前。
         - **导入**: 从 `simple-zustand-devtools` 中导入 `mountStoreDevtools` 函数。
         - **条件性执行**: 必须将挂载逻辑包裹在 `if (process.env.NODE_ENV === 'development')` 条件块内。
             - **目的**: 确保 DevTools 的相关代码只在开发环境中执行，不会被打包进最终的生产版本，避免不必要的性能损耗和代码暴露。
@@ -5847,3 +5847,333 @@ src/
     ```
 
     - **说明**: 上述代码被添加到 Store 定义文件的末尾。它不会改变 Store 的任何功能，仅在开发模式下附加了调试能力。
+
+## 21- 练习：选择正确的状态管理方案
+
+> 本节对一个现有项目（Game Hub）的状态管理方式进行诊断。通过分析当前基于 `useState` 和 Props 传递的实现，识别出“属性钻探 (Prop Drilling)”和“更新逻辑分散”两大核心问题。在评估了 `React Context` 和 Zustand 两种解决方案后，阐明了为何 `Context` 会引发不必要的渲染性能问题，并最终论证了 Zustand 因其内置的选择器（Selector）机制而成为更优越的选择。
+
+**知识树**
+
+1. **现状诊断：识别当前实现的问题**
+
+    - **分析对象**: `gameQuery` 对象，一个用于存储游戏列表筛选条件（如类型、平台、排序等）的状态。
+    - **当前实现**: 在根组件 `App` 中使用 `useState` 进行管理，并通过 props 将状态和更新函数向下传递。
+    - **问题一：属性钻探 (Prop Drilling)**
+        - **表现**: props (如 `onSearch` 回调) 被迫经过多个中间组件（如 `NavBar`）传递，而这些中间组件本身并不需要使用它们，其唯一目的是将 props 送达深层子组件（如 `SearchInput`）。
+        - **负面影响**: 造成组件间的高度耦合，使得代码难以维护和重构。
+    - **问题二：更新逻辑分散 (Scattered Logic)**
+        - **表现**: 修改 `gameQuery` 对象不同属性的逻辑（如 `setGenreId`, `setPlatformId`）散布在根组件的多个不同位置。
+        - **负面影响**: 缺乏一个集中的地方来管理状态变更和执行相关的业务规则，导致代码可读性差且难以维护。
+
+2. **解决方案评估与权衡**
+
+    - **备选方案 A：`useReducer` + `React Context`**
+        - **优点**:
+            - `useReducer` 可以将所有更新逻辑集中到一个 reducer 函数中，解决“逻辑分散”问题。
+            - `Context` 可以将 `gameQuery` 对象和 `dispatch` 函数直接提供给组件树中的任何组件，解决“属性钻探”问题。
+        - **致命缺陷：导致不必要的重新渲染**
+            - **根本原因**: React Context 本身缺乏选择器（Selector）机制。当 Context 的值（`gameQuery` 对象）发生任何变化时，所有消费该 Context 的组件都会无差别地重新渲染。
+            - **具体示例**: 用户选择了一个新的游戏类型（`genreId` 改变），不仅 `GenreList` 会更新，`PlatformSelector`、`SortSelector` 等所有消费该 Context 的组件也会被强制重新渲染，即使它们的数据依赖并未改变。这造成了显著的性能浪费。
+    - **备选方案 B：专业状态管理库 (以 Zustand 为例)**
+        - **综合优势**: 能够解决所有已识别问题，同时规避了 `Context` 的性能缺陷。
+        - **如何解决问题**:
+            - **解决属性钻探**: 任何组件都可以通过调用 `useStore()` Hook 直接访问状态，无需 props。
+            - **解决逻辑分散**: 所有更新逻辑都统一封装在 Store 的 actions 中。
+            - **解决不必要渲染**: 这是 Zustand 的核心优势。它内置了**选择器**功能，允许组件只订阅其需要的特定状态片段。例如，`PlatformSelector` 可以只订阅 `gameQuery.platformId` 的变化，当 `genreId` 变化时，它将不会重新渲染。
+
+3. **最终决策**
+
+    - **选定方案**: Zustand。
+    - **决策理由**: 相较于 `Context` 方案，Zustand 在解决了代码结构问题的同时，通过其核心的选择器机制提供了细粒度的渲染控制，避免了性能陷阱。其 API 简洁，模板代码少，是解决此类复杂共享状态问题的理想选择。
+
+---
+
+**代码示例**
+
+1. **问题结构的概念性描述**
+
+    - 以下伪代码展示了在重构前，`App` 组件中存在的问题。
+
+    ```TypeScript
+    // App.tsx - 问题诊断
+
+    function App() {
+      const [gameQuery, setGameQuery] = useState<GameQuery>({});
+
+      // 问题2: 更新逻辑分散在各处
+      const handleSelectGenre = (genre: Genre) => {
+        setGameQuery({ ...gameQuery, genreId: genre.id });
+      };
+
+      const handleSelectPlatform = (platform: Platform) => {
+        setGameQuery({ ...gameQuery, platformId: platform.id });
+      };
+
+      const handleSearch = (searchText: string) => {
+        setGameQuery({ ...gameQuery, searchText });
+      };
+
+      return (
+        <div>
+          {/* 问题1: 属性钻探 (Prop Drilling)
+            onSearch 被传递给 NavBar，但 NavBar 自身并不使用它，
+            只是为了进一步传递给 SearchInput 组件。
+          */}
+          <NavBar onSearch={handleSearch} />
+
+          <GenreList
+            selectedGenreId={gameQuery.genreId}
+            onSelectGenre={handleSelectGenre}
+          />
+          <PlatformSelector
+            selectedPlatformId={gameQuery.platformId}
+            onSelectPlatform={handleSelectPlatform}
+          />
+        </div>
+      );
+    }
+    ```
+
+## 22- 练习：设置 Zustand Store
+
+> 本节是重构项目状态管理的第一步：为 `gameQuery` 对象建立一个专用的 Zustand Store。此过程包括定义 Store 的接口、设计并实现用于更新各个查询参数的 Actions，并特别区分了不同 Action（如 `setSearchText` 和 `setGenreId`）之间不同的业务逻辑。此步骤将所有与 `gameQuery` 相关的状态逻辑集中到一个文件中，为后续的组件重构奠定了基础。
+
+**知识树**
+
+1. **准备工作与文件结构**
+
+    - **依赖安装**: `npm install zustand`。
+    - **文件创建**: 在 `src` 目录下新建 `store.ts`，作为应用客户端状态的中心枢纽。
+
+2. **步骤一：定义 Store 的形态与结构**
+
+    - **集中化 `GameQuery` 类型**:
+        - 将原先定义在组件（`App.tsx`）中的 `GameQuery` 接口迁移至 `store.ts`。
+        - **设计原则**: Store 是状态的“唯一真理之源”，因此相关的类型定义应与 Store 的实现内聚在一起。
+        - **封装实现**: 移除 `GameQuery` 接口的 `export` 关键字，使其成为 `store.ts` 模块的私有类型，因为外部组件无需关心其具体结构，只需通过 Store 的 actions 与之交互。
+    - **设计精细化的 Actions**:
+        - 放弃单一、笼统的 `setGameQuery` 方法，转而为每个状态变更创建语义明确的独立 action。
+            - `setSearchText`
+            - `setGenreId`
+            - `setPlatformId`
+            - `setSortOrder`
+        - **设计理由**: 不同的用户操作可能对应不同的业务规则。例如，执行文本搜索时可能需要清空其他过滤器，而选择游戏类型时则需要保留其他过滤器。精细化的 action 使这些不同的逻辑能够被清晰地封装和实现。
+
+3. **步骤二：实现 Store 的核心逻辑**
+
+    - **初始化状态**: 将 `gameQuery` 的初始值设为空对象 `{}`。为了通过 TypeScript 类型检查，需将 `GameQuery` 接口中所有非必需的属性设为可选（`?`）。
+    - **实现 Actions**:
+        - **`setSearchText` (特殊逻辑)**:
+            - **业务规则**: 当用户输入文本进行搜索时，应重置游戏类型、平台等其他筛选条件，以确保搜索结果的广度。
+            - **实现方式**: `set({ gameQuery: { searchText } })`。这个操作用一个只包含 `searchText` 的新对象**完全替换**了旧的 `gameQuery` 对象，从而达到了清除其他属性的目的。
+        - **其他 Actions (`setGenreId`, `setPlatformId`, etc.) (标准逻辑)**:
+            - **业务规则**: 当用户更新单个筛选条件时，必须保留 `gameQuery` 中所有其他已存在的条件。
+            - **实现方式**: `set(store => ({ gameQuery: { ...store.gameQuery, genreId } }))`。
+            - **关键技术**: 必须使用展开运算符 (`...store.gameQuery`) 来浅拷贝旧的 `gameQuery` 对象，以继承其所有属性，然后再设置或覆盖当前需要更新的属性。
+
+4. **步骤三：导出 Hook 与重构说明**
+
+    - **创建并导出**: 将 `create` 函数返回的 Hook 赋值给一个常量 `useGameQueryStore`，并将其作为模块的默认导出。
+    - **关于中间破损状态**: 在一个多阶段的重构任务中，完成单个阶段（如本节创建 Store）可能会导致应用暂时无法编译或运行。这是一个正常的中间状态。应在完成所有相关重构步骤、使应用恢复正常工作后，再进行代码提交。
+
+---
+
+**代码示例**
+
+1. **创建游戏查询 Store (`src/store.ts`)**
+
+    - 此文件包含了 `GameQuery` 的类型定义、Store 的接口定义以及完整的 Store 实现。
+
+    ```TypeScript
+    import { create } from 'zustand';
+
+    // 将 GameQuery 接口移至此处并设为私有
+    interface GameQuery {
+      genreId?: number;
+      platformId?: number;
+      sortOrder?: string;
+      searchText?: string;
+    }
+
+    // 定义 Store 的完整形态
+    interface GameQueryStore {
+      gameQuery: GameQuery;
+      setSearchText: (searchText: string) => void;
+      setGenreId: (genreId: number) => void;
+      setPlatformId: (platformId: number) => void;
+      setSortOrder: (sortOrder: string) => void;
+    }
+
+    const useGameQueryStore = create<GameQueryStore>((set) => ({
+      gameQuery: {},
+      setSearchText: (searchText) => set({ gameQuery: { searchText } }),
+      setGenreId: (genreId) =>
+        set((store) => ({ gameQuery: { ...store.gameQuery, genreId } })),
+      setPlatformId: (platformId) =>
+        set((store) => ({ gameQuery: { ...store.gameQuery, platformId } })),
+      setSortOrder: (sortOrder) =>
+        set((store) => ({ gameQuery: { ...store.gameQuery, sortOrder } })),
+    }));
+
+    export default useGameQueryStore;
+    ```
+
+## 23- 练习：移除 Props 并使用 Store
+
+> 本节执行一次全面的应用重构，将所有组件从依赖 Props 传递 `gameQuery` 状态的方式，切换为直接从 Zustand Store 中获取。此过程系统性地移除了组件间的 Props 依赖，消除了属性钻探，并根据每个组件的具体需求，应用了不同的选择器（Selector）策略来优化性能。最终，应用实现了状态逻辑的完全集中化和组件的高度解耦。
+
+**知识树**
+
+1. **重构目标与核心原则**
+
+    - **目标**: 彻底消除 `gameQuery` 相关的属性钻探，使每个组件都能独立地从 `useGameQueryStore` 获取其所需的状态和方法。
+    - **核心原则**:
+        - **自上而下移除 Props**: 从根组件 (`App.tsx`) 开始，删除所有向子组件传递的 `gameQuery` 相关 props。
+        - **组件内自给自足**: 在每个子组件内部，直接调用 `useGameQueryStore` Hook，并通过选择器获取其所需的数据。
+        - **按需精确订阅**: 为每个组件量身定制选择器，确保它只订阅其渲染所必须的状态片段，从而将不必要的重新渲染降至最低。
+
+2. **系统性重构流程**
+
+    - **第一步：简化根组件 (`App.tsx`)**
+        - 移除 `useState` 对 `gameQuery` 的管理。
+        - 删除所有向子组件传递 `gameQuery` 及其更新函数的 props。根组件的职责简化为布局。
+    - **第二步：逐个重构消费组件**
+        - **通用模式**:
+            1. 在组件文件中，删除 `Props` 接口或类型定义。
+            2. 从组件的函数签名中移除 `props` 参数。
+            3. 在组件函数体内，调用 `useGameQueryStore` 并传入一个或多个选择器，以获取所需的状态值或 action 函数。
+            4. 清理文件中不再需要的 `import` 语句。
+    - **第三步：将状态依赖推入自定义 Hook**
+        - 对于 `GameGrid` 组件，其数据获取逻辑位于 `useGames` Hook 中。因此，将获取 `gameQuery` 的责任从 `GameGrid` 组件转移到 `useGames` Hook 内部。
+    - **第四步：编译、测试与验证**
+        - 确保所有文件编译通过。
+        - 全面测试应用功能，验证状态变更（如选择类型、平台、排序、搜索）的行为是否与重构前一致，并符合 Store 中定义的逻辑（如搜索时清空其他过滤器）。
+
+3. **选择器（Selector）的应用策略**
+
+    - **策略一：只选择 Action 函数（最高性能）**
+        - **场景**: 组件仅需触发一个动作，而其自身的渲染不依赖于 Store 中的任何状态。
+        - **示例**: `SearchInput.tsx` 只需调用 `setSearchText` 函数。
+        - **实现**: `const setSearchText = useGameQueryStore(s => s.setSearchText);`
+        - **效果**: 由于函数引用在 Store 初始化后是稳定的，该组件将**永远不会**因为 Store 的状态变化而重新渲染。
+    - **策略二：选择特定的状态片段**
+        - **场景**: 组件的渲染依赖于 Store 中某个或某几个特定的值。
+        - **示例**: `GenreList.tsx` 的渲染依赖于 `gameQuery.genreId`。
+        - **实现**: `const selectedGenreId = useGameQueryStore(s => s.gameQuery.genreId);`
+        - **效果**: 该组件**仅在** `genreId` 的值发生变化时重新渲染，完全忽略 `platformId` 等其他无关属性的变化。
+    - **策略三：选择整个状态对象（有意为之）**
+        - **场景**: 一个 Hook 或组件的逻辑依赖于整个状态对象的**任何**变化。
+        - **示例**: `useGames` 自定义 Hook，它需要根据 `gameQuery` 中的任何筛选条件变化来重新获取游戏数据。
+        - **实现**: `const gameQuery = useGameQueryStore(s => s.gameQuery);`
+        - **效果**: `gameQuery` 对象中的任何属性发生变化，都会导致该 Hook 重新执行，从而触发对后端的 API 调用。这是符合业务需求的正确设计。
+
+4. **重构收益总结**
+
+    - **代码量锐减**: 删除了大量 `Props` 接口、参数定义及组件间的传递代码。
+    - **组件解耦**: 组件不再依赖父组件提供状态，可以被轻松地移动或复用。
+    - **逻辑集中**: 所有与 `gameQuery` 相关的状态管理逻辑都集中在 `store.ts` 中，清晰且易于维护。
+    - **性能优化**: 通过精确使用选择器，避免了因 `Context` 或粗放式状态订阅而导致的大量无效渲染。
+
+---
+
+**代码示例**
+
+1. **`App.tsx` (重构后)**
+
+    - 移除了所有状态管理逻辑，变为一个纯粹的布局组件。
+
+    ```TypeScript
+    function App() {
+      return (
+        <Grid>
+          <GridItem area="nav">
+            <NavBar />
+          </GridItem>
+          <Show above="lg">
+            <GridItem area="aside" paddingX={5}>
+              <GenreList />
+            </GridItem>
+          </Show>
+          <GridItem area="main">
+            <Box paddingLeft={2}>
+              <GameHeading />
+              <HStack spacing={5} marginBottom={5}>
+                <PlatformSelector />
+                <SortSelector />
+              </HStack>
+            </Box>
+            <GameGrid />
+          </GridItem>
+        </Grid>
+      );
+    }
+    ```
+
+2. **`SearchInput.tsx` (策略一：仅选择 Action)**
+
+    ```TypeScript
+    const SearchInput = () => {
+      const ref = useRef<HTMLInputElement>(null);
+      const setSearchText = useGameQueryStore(s => s.setSearchText);
+
+      return (
+        <form onSubmit={(event) => {
+          event.preventDefault();
+          if (ref.current) setSearchText(ref.current.value);
+        }}>
+          {/* ... */}
+        </form>
+      );
+    };
+    ```
+
+3. **`GenreList.tsx` (策略二：选择特定值和 Action)**
+
+    ```TypeScript
+    const GenreList = () => {
+      const { data, isLoading, error } = useGenres();
+      const selectedGenreId = useGameQueryStore(s => s.gameQuery.genreId);
+      const setGenreId = useGameQueryStore(s => s.setGenreId);
+
+      // ...
+
+      return (
+        <List>
+          {data?.results.map((genre) => (
+            <ListItem key={genre.id} paddingY="5px">
+              <Button
+                fontWeight={genre.id === selectedGenreId ? 'bold' : 'normal'}
+                onClick={() => setGenreId(genre.id)}
+                // ...
+              >
+                {genre.name}
+              </Button>
+            </ListItem>
+          ))}
+        </List>
+      );
+    };
+    ```
+
+4. **`useGames.ts` (策略三：选择整个对象)**
+
+    ```TypeScript
+    const useGames = () => {
+      const gameQuery = useGameQueryStore(s => s.gameQuery);
+
+      return useInfiniteQuery<FetchResponse<Game>, Error>({
+        queryKey: ['games', gameQuery], // gameQuery 作为 queryKey 的一部分
+        queryFn: ({ pageParam = 1 }) =>
+          apiClient.getAll({
+            params: {
+              genres: gameQuery.genreId,
+              parent_platforms: gameQuery.platformId,
+              ordering: gameQuery.sortOrder,
+              search: gameQuery.searchText,
+              page: pageParam,
+            },
+          }),
+        // ...
+      });
+    };
+    ```

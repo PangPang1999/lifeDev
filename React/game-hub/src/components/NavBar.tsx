@@ -3,15 +3,14 @@ import logo from "../assets/logo.webp";
 import { Image } from "@chakra-ui/react";
 import ColorModeSwitch from "./ColorModeSwitch";
 import SearchInput from "./SearchInput";
-interface Props {
-  onSearch: (searchText: string) => void;
-}
-const NavBar = ({ onSearch }: Props) => {
+import useGameQueryStore from "../store";
+const NavBar = () => {
+  const setSearchText = useGameQueryStore((s) => s.setSearchText);
   return (
     <HStack padding="10px">
       <Image src={logo} boxSize="60px" />
       <SearchInput
-        onSearch={(searchText) => onSearch(searchText)}
+        onSearch={(searchText) => setSearchText(searchText)}
       ></SearchInput>
       <ColorModeSwitch />
     </HStack>
