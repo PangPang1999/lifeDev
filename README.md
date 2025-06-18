@@ -5,10 +5,11 @@
 - [Java 笔记 | Java Notes](./Note-new/Java.md)
 - [Spring Boot 笔记 | Spring Boot Notes]：[Part1](./Note-new/SpringBoot.md)、[Part2](./Note-new/SpringBoot2.md)
 - [慢 SQL 调优](./Note-new/MySQL慢查询优化.md)
+- [Docker & Linux](./Note-new/Docker.md) _current focus_
 
 # lifeDev · 技术学习成长项目
 
-> 自我驱动的学习项目，当前涵盖 HTML/CSS、JavaScript、Java、Spring Boot 核心内容。通过费曼学习法，将知识拆解、输出为结构化笔记，逐步构建起完整的知识体系。
+> 自我驱动的学习项目，当前涵盖 HTML/CSS、JavaScript、Java、Spring Boot 、Docker 核心内容。通过费曼学习法，将知识拆解、输出为结构化笔记，逐步构建起完整的知识体系。
 >
 > 这是一个长期项目。我不是试图记住所有内容，而是专注于系统地记笔记，这样当我忘记时，我可以轻松地查找并迅速回到正轨。
 
