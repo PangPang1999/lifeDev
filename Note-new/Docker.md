@@ -290,7 +290,15 @@ docker run hello-docker
 
 ## Docker 容器镜像操作
 
-1.  `docker run <镜像>`
+1. `docker ps`
+
+    - 查看启动的容器，加`-a`查看所有容器
+
+2. `docker images`
+
+    - 查看所有的镜像，有的镜像只是创建或下载了，并未分配容器
+
+3. `docker run <镜像>`
 
     - 创建并启动一个新容器，部分服务会因为没有使用交互式启动而直接停止，比如 `ubuntu`，交互式启动方式为`docker run -it <镜像>`，或者`docker run -i -t <镜像>`。
         - `i`为 `interactive`，让容器的 标准输入 (STDIN) 保持打开状态。
@@ -300,23 +308,23 @@ docker run hello-docker
             - `docker run -t ubuntu`：分配终端，但无法交互输入
             - `docker run -it ubuntu`：完整交互终端，常用于 shell
 
-2.  `docker start <容器 ID 或 NAME>`
+4. `docker start <容器 ID 或 NAME>`
 
     - 启动一个已存在但停止的容器，同样的，部分服务会因为没有使用交互式启动而直接停止，比如 `ubuntu`，交互式启动方式为`docker start -ai <容器 ID 或 NAME>`
         - `a`：attach，附加当前终端到容器的 stdout/stderr（可以看到输出）
         - `i`：interactive，保持标准输入开启（允许你输入命令）
         - `start`的`ai`等价于`run`的`it`
 
-3.  `docker exec -it <容器 ID> bash/sh`
+5. `docker exec -it <容器 ID> bash/sh`
 
     - 进入**已启动**容器的 shell，默认是 root 用户，也可以指定其他用户`docker exec -u otherUser -it <容器ID> bash`，这取决于容器中是否有这个用户。
     - ubuntu 中，root 用户为`#`，普通用户为`$`
 
-4.  `docker stop <容器 ID>`
+6. `docker stop <容器 ID>`
 
     - 停止一个正在运行的容器
 
-5.  `docker rm <容器 ID>`
+7. `docker rm <容器 ID>`
 
     - 删除一个容器（需要先停止）
 
@@ -1097,3 +1105,51 @@ docker run hello-docker
         chmod o+x deploy.sh # 执行之后，其他用户比如 pang，也可以执行 deploy.sh 了
 
         ```
+
+# Building Images
+
+## Images and Containers
+
+> 简述：Docker 镜像（image）是应用运行所需文件、库和环境配置的静态快照；容器（container）则是镜像启动后的动态实例，为应用提供独立、隔离的运行环境。
+
+**知识树**
+
+1. 镜像（Image）：
+
+    - 包含运行应用所需的一切资源：
+        - 基础操作系统（如 Ubuntu、Alpine）
+        - 应用程序文件
+        - 第三方依赖库
+        - 环境变量与配置
+    - 不可变（静态），作为模板启动容器。
+    - 查看命令： `docker ps -a`
+
+2. 容器（Container）：
+
+    - 镜像启动后的运行实例，本质为宿主系统的特殊进程。
+    - 提供隔离环境，有独立的文件系统（源自镜像）。
+    - 动态可变，每个容器之间的数据互相隔离（可以通过技术实现相互访问，后续介绍）。
+    - 查看命令： `docker images`
+
+3. 镜像与容器的关系：
+
+    - 一张镜像可启动多个容器。
+    - 每个容器拥有独立的写入层，互不影响。
+
+    ```bash
+    docker run -it ubuntu  # 从ubuntu镜像启动交互式容器
+    ```
+
+4. 容器隔离性示例：
+
+    - 同一镜像启动多个容器，数据不共享。
+
+    ```bash
+    # 容器A：创建文件
+    docker run -it ubuntu bash
+    touch /home/fileA.txt
+
+    # 容器B：看不到容器A创建的文件
+    docker run -it ubuntu bash
+    ls /home  # 输出为空
+    ```
