@@ -1171,58 +1171,63 @@ docker run hello-docker
 
 ## Dockerfile Instructions
 
-1m 20s
+> 简述：Dockerfile 是用于定义如何构建 Docker 镜像的指令文件，指定镜像内容、工作目录、文件拷贝、命令执行、环境变量及容器启动行为。
+
+**知识树**
+
+1. 指令基本介绍
+
+    1. FROM：指定基础镜像，构建镜像时以此镜像为起点，包含基础文件和目录
+    2. WORKDIR：设置工作目录，后续指令在此目录执行
+    3. COPY：复制本地文件或目录到镜像内
+    4. ADD：复制本地文件或目录到镜像内，支持自动解压本地 tar 包；也可下载远程文件（仅支持 HTTP/HTTPS）。
+    5. RUN：构建镜像时执行操作系统命令（如 shell 命令）。
+    6. ENV：设置环境变量
+    7. EXPOSE：声明容器对外暴露的端口，供文档和运行时端口映射使用。
+    8. USER：设置执行应用的用户，通常使用权限受限用户
+    9. 容器启动指令
+    10. CMD：指定容器启动时默认执行的命令或参数（可被 docker run 覆盖）。
+    11. ENTRYPOINT：指定容器启动时的主命令（一般不会被 docker run 覆盖，但可以追加参数）。
 
 ## Choosing the Right Base Image
 
-7m 29s
+> 简述：Dockerfile 必须以 FROM 指令开始，该指令决定了构建镜像时所使用的基础环境（操作系统或运行时）。选择合适的基础镜像可显著影响镜像大小、构建效率和运行性能。
 
-## Copying Files and Directories
+**知识树**
 
-5m 32s
+1. 镜像来源地址
 
-## Excluding Files and Directories
+    - 官方默认：[https://hub.docker.com](https://hub.docker.com)
 
-3m 03s
+2. 镜像选择注意事项
 
-## Running Commands
+    - 默认使用 Docker Hub 镜像，如选择其他仓库（如微软的 MCR），需明确输入完整镜像地址
+    - 推荐使用明确的版本标签（如 `node:16-alpine`），避免使用`latest`，防止更新带来的兼容性问题
+    - 测试环境优先选择体积小的 `alpine` 版本镜像，通常只有常规镜像的约十分之一大小
 
-1m 26s
+3. 查找合适镜像（示例流程）
 
-## Setting Environment Variables
+    - 访问 Docker Hub，搜索目标镜像，例如输入 `node`
+    - 使用过滤器筛选合适版本，如版本号 `16`，再进一步选择体积更小的 `alpine` 版本
 
-1m 25s
+4. Dockerfile 示例
 
-## Exposing Ports
+    ```Dockerfile
+    FROM node:16.0-alpine3.13
+    ```
 
-1m 27s
+    - 构建镜像命令：
 
-## Setting the User
+    ```bash
+    docker build -t react-app .
+    ```
 
-4m 49s
+    - 启动容器并进入交互式 shell：
 
-## Defining Entrypoints
+    ```bash
+    docker run -it react-app sh
+    ```
 
-6m 06s
-
-## Speeding Up Builds
-
-6m 38s
-
-## Removing Images
-
-2m 46s
-
-## Tagging Images
-
-5m 32s
-
-## Sharing Images
-
-4m 19s
-
-## Saving and Loading Images
-
-```
-
-```
+    - 默认执行 `docker run -it react-app` 时进入 Node 环境，而非 Shell
+    - Alpine 版本不包含 `bash`，需使用内置的简易 `sh` Shell
+    - 后续需使用 Dockerfile 中的 `COPY` 指令将应用文件添加至镜像
