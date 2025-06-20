@@ -1231,3 +1231,77 @@ docker run hello-docker
     - 默认执行 `docker run -it react-app` 时进入 Node 环境，而非 Shell
     - Alpine 版本不包含 `bash`，需使用内置的简易 `sh` Shell
     - 后续需使用 Dockerfile 中的 `COPY` 指令将应用文件添加至镜像
+
+## Copying Files and Directories
+
+> 简述：Dockerfile 通过使用 COPY 于 ADD，将文件加入镜像。一般使用 COPY，有特性需求时使用 ADD
+
+**知识树**
+
+1. COPY 与 ADD 指令：
+
+    - COPY
+        - 般用于本地文件、目录的复制，简单、安全，推荐优先用。
+    - ADD
+        - 可以做的事情更多，比如自动解压 tar 文件、支持从 URL 下载文件，但通常不建议滥用。
+    - 备注
+        - 命令大小写敏感
+        - 一个文件可以多次使用 COPY 和 ADD
+
+2. COPY 示例
+
+    ```Dockerfile
+    # 添加单个文件示例：将文件加入/app/目录下
+    COPY package.json /app/
+    # 通配符添加
+    COPY package*.json /app/
+    # 添加多个文件
+    COPY package.json README.md /app/
+    # 处理带空格的文件名
+    COPY ["hello world.txt", "/app/"]
+
+    # 添加所有文件示例：将所有文件加入/app/目录下
+    COPY . /app/
+    ```
+
+3. ADD 示例
+
+    ```Dockerfile
+    # 添加所有文件示例：将所有文件加入/app/目录下
+    ADD . /app/
+    # 从网址下载资源添加进容器/app/目录下
+    ADD http://...//file.json /app/
+    # 将文件解压添加进容器/app/目录下
+    ADD file.zip
+    ```
+
+4. WORKDIR 指令：
+
+    - 功能：
+        - 设置工作目录，后续指令默认基于此目录执行。
+    - 示例
+        ```Dockerfile
+        WORKDIR /app
+        COPY . .  # 将当前目录内容复制到/app目录
+        ```
+
+5. 当前 Dockerfle 示例
+
+    ```Dockerfile
+    FROM node:16.0-alpine3.13
+    WORKDIR /app
+    COPY . .
+    ```
+
+6. 再次测试演示
+
+    ```bash
+    # 重新构建镜像
+    docker build -t react-app .
+    # 打开交互式sh
+    docker run -it react-app sh
+    # 检查文件
+    ls
+    ```
+
+    - 打开交互式 sh 后，将自动处于工作目录`/app`
