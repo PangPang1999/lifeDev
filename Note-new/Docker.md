@@ -1153,3 +1153,76 @@ docker run hello-docker
     docker run -it ubuntu bash
     ls /home  # 输出为空
     ```
+
+## Sample Web Application
+
+> 简述：引入一个示例 React 项目，稍后使用这个项目进行 Docker 演示
+
+**知识树**
+
+1. app 地址：./Docker/react-app
+
+2. 使用
+
+    - 下载 Node16
+    - 下载依赖：`npm install`或`npm i`
+    - 启动： `npm start`
+    - 访问：前往 http://localhost:3000 查看示例项目效果
+
+## Dockerfile Instructions
+
+1m 20s
+
+## Choosing the Right Base Image
+
+7m 29s
+
+## Copying Files and Directories
+
+5m 32s
+
+## Excluding Files and Directories
+
+3m 03s
+
+## Running Commands
+
+1m 26s
+
+## Setting Environment Variables
+
+1m 25s
+
+## Exposing Ports
+
+1m 27s
+
+## Setting the User
+
+4m 49s
+
+## Defining Entrypoints
+
+6m 06s
+
+## Speeding Up Builds
+
+6m 38s
+
+## Removing Images
+
+2m 46s
+
+## Tagging Images
+
+5m 32s
+
+## Sharing Images
+
+4m 19s
+
+## Saving and Loading Images
+
+```
+
+```
