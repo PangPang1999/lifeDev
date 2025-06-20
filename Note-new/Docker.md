@@ -1305,3 +1305,34 @@ docker run hello-docker
     ```
 
     - 打开交互式 sh 后，将自动处于工作目录`/app`
+
+## Excluding Files and Directories
+
+> 简述：构建镜像时 Docker 客户端默认传输当前目录（构建上下文，build context）下的所有文件给 Docker 引擎。如果构建上下文较大，将导致传输缓慢。为避免此问题，应使用 `.dockerignore` 文件排除无需传输的文件与目录。
+
+**知识树**
+
+1. 构建问题
+
+    - 当使用`COPY . .`，Docker 构建镜像时默认会将 Dockerfile 所在目录全部文件（包括子目录）发送到 Docker 引擎的工作目录，称为 构建上下文。上下文过大会导致网络传输量大，以及镜像构建速度慢
+    - 典型的 Node 项目存在大量依赖，`node_modules` 目录巨大，无需传输，可排除。
+
+2. 排除文件与目录的方式
+
+    - 创建一个 `.dockerignore` 文件，位于构建上下文根目录，与 Dockerfile 同级。
+    - 格式和 `.gitignore` 相同，指定需要排除的文件和目录。
+    - 文件示例
+        ```.dockerignore
+        node_modules/
+        ```
+
+3. 测试演示
+
+    ```bash
+    # 重新构建镜像，速度非常快，大小非常小
+    docker build -t react-app .
+    # 打开交互式sh
+    docker run -it react-app sh
+    # 检查文件，不再存在node_modules
+    ls
+    ```
