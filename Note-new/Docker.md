@@ -359,6 +359,12 @@ docker run hello-docker
     - 大部分发行版共享核心命令，但个别命令可能存在细微差异。
     - 本节从流行的发行版 Ubuntu 开始入门。
 
+5. 系统包管理器差异（补充）
+
+    - 不同 Linux 发行版包管理器不同
+        - Debian/Ubuntu: `apt` 或 `apt-get`
+        - Alpine: `apk`
+
 ## Running Linux
 
 > 简述：演示如何使用 Docker 快速运行 Ubuntu 系统，并通过 Shell 进行命令交互，以便用户理解容器、Shell 命令以及基本 Linux 操作。
@@ -1335,4 +1341,91 @@ docker run hello-docker
     docker run -it react-app sh
     # 检查文件，不再存在node_modules
     ls
+    ```
+
+## Running Commands
+
+> 简述：利用 `RUN` 指令在 Docker 镜像构建过程中执行命令（如安装依赖）。常见用例为在 Node.js 项目中执行 `npm install`，以安装所需依赖包到镜像内。
+
+**知识树**
+
+1. `RUN` 指令作用
+
+    - 在镜像构建阶段执行任意终端命令（如 shell、npm、系统包管理器命令）。
+    - 常用于安装依赖、构建项目、创建目录等。
+
+2. 当前 Dockerfle 示例
+
+    ```Dockerfile
+    FROM node:16.0-alpine3.13
+    WORKDIR /app
+    COPY . .
+    # 安装项目依赖
+    RUN npm install
+    ```
+
+    - 不同 Linux 发行版包管理器不同，需根据基础镜像类型选择正确命令，如 Alpine 不支持 `apt`，支持 `apk`
+
+3. 测试演示
+
+    ```bash
+    # 重新构建镜像，
+    docker build -t react-app .
+    # 打开交互式sh
+    docker run -it react-app sh
+    # 检查文件，存在node_modules
+    ls
+    ```
+
+## Setting Environment Variables
+
+> 简述：环境变量用于为容器中的应用配置动态参数（如 API 地址、密钥等），使镜像更加灵活、可配置。通过 `ENV` 指令可在 Dockerfile 中声明环境变量，启动容器后自动生效。
+
+**知识树**
+
+1. 环境变量概念
+
+    - 提供运行时参数，无需硬编码进代码
+    - 适用于配置 API 地址、端口、密钥等
+    - 前端/后端应用常用来动态配置后端接口、数据库等
+    - 不要将敏感信息硬编码于 Dockerfile，可通过运行时覆盖（如 `docker run -e KEY=VALUE`）
+
+2. `ENV` 指令用法
+
+    - 用法一（推荐）：
+
+        ```Dockerfile
+        ENV KEY=VALUE
+        ```
+
+    - 用法二（支持多个变量）：
+
+        ```Dockerfile
+        ENV KEY VALUE
+        ENV KEY1=VALUE1 KEY2=VALUE2
+        ```
+
+    - ENV 指令可以在 Dockerfile 的任意位置定义，从它被定义开始，之后的所有 Dockerfile 指令以及最终容器启动时，环境变量都能读取到。
+
+3. 当前 Dockerfle 示例
+
+    ```Dockerfile
+    FROM node:16.0-alpine3.13
+    WORKDIR /app
+    COPY . .
+    RUN npm install
+    ENV API_URL=http://api.myapp.com
+    ```
+
+4. 测试演示
+
+    ```bash
+    # 重新构建镜像，
+    docker build -t react-app .
+    # 打开交互式sh
+    docker run -it react-app sh
+    # 查看全部环境变量
+    printenv
+    # 查看指定变量
+    echo $API_URL
     ```
