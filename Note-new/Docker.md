@@ -1377,6 +1377,8 @@ docker run hello-docker
     ls
     ```
 
+    - 构建镜像变久了，由于下载依赖，将在后面介绍优化方式
+
 ## Setting Environment Variables
 
 > 简述：环境变量用于为容器中的应用配置动态参数（如 API 地址、密钥等），使镜像更加灵活、可配置。通过 `ENV` 指令可在 Dockerfile 中声明环境变量，启动容器后自动生效。
@@ -1429,3 +1431,343 @@ docker run hello-docker
     # 查看指定变量
     echo $API_URL
     ```
+
+## Exposing Ports
+
+> 简述：容器中运行的应用默认只在容器内部监听端口。`EXPOSE` 指令用于声明容器对外开放的端口，是对镜像使用者的文档提示，并不自动映射到主机端口。
+
+**知识树**
+
+1. 容器端口与主机端口的隔离
+
+    - 容器中的服务仅在容器内监听端口
+    - 主机无法直接访问，需端口映射
+
+2. `EXPOSE` 指令作用
+
+    - 在 Dockerfile 中声明容器将使用的端口，并不会自动把容器的端口映射到宿主机上
+    - 主要作为文档和参考，便于团队协作和自动化工具识别
+
+    ```Dockerfile
+    # 声明容器将监听 3000 端口
+    EXPOSE 3000
+    ```
+
+3. 稍后介绍具体打开端口
+
+## Setting the User
+
+> 简述：Docker 容器默认以 root 用户运行，具有最高权限，存在安全隐患。推荐为应用创建专用低权限用户并切换运行身份，降低安全风险。
+
+**知识树**
+
+1. 容器默认用户
+
+    - 默认使用 root 用户（UID=0），拥有系统全部权限
+    - 不安全，若应用被攻破，攻击者可控制整个容器乃至宿主机
+
+2. 创建并使用普通用户
+
+    - 通过系统命令（如 `addgroup`、`adduser`）创建新组与新用户
+    - 推荐为每个应用创建同名用户和组，且用户类型为系统用户（非交互登录用户）
+    - 示例命令（Alpine Linux）：
+
+3. 当前 Dockerfle 示例
+
+    ```Dockerfile
+    FROM node:16.0-alpine3.13
+
+    # 创建组和系统用户app，并将其添加到该组
+    RUN addgroup app && adduser -S -G app app
+    WORKDIR /app
+    COPY . .
+    RUN npm install
+    RUN chown -R app:app /app
+    # 切换后续命令默认用户为app
+    USER app
+
+    ENV API_URL=http://api.myapp.com
+    ```
+
+    - 需要设置工作目录之前，否则切换用户之后会有问题
+
+4. 用户切换效果
+
+    - 之后所有 Dockerfile 指令及应用进程都以新建用户运行
+    - 提高安全性：限制对文件系统和系统资源的写权限
+
+5. 测试演示
+
+    ```bash
+    # 重新构建镜像，
+    docker build -t react-app .
+    # 打开交互式sh
+    docker run -it react-app sh
+    # 查看当前用户
+    whoami  # 输出: app
+    # 查看文件属主及权限
+    ls -l # 文件属主通常为 root，app 用户无写权限
+    ```
+
+## Defining Entrypoints
+
+> 简述：容器启动时需指定应用进程命令。`CMD` 与 `ENTRYPOINT` 用于设置默认启动命令，提升容器自动化和易用性。
+
+**知识树**
+
+1. 容器默认命令的必要性
+
+    - 启动容器需指定进程，否则容器立即退出
+    - 不希望每次手动指定命令，需在 Dockerfile 内预设
+
+2. `CMD` 指令
+
+    - 设置容器默认启动命令或参数，可被 `docker run ... <command>` 覆盖
+    - 推荐使用“exec form”写法（数组形式），避免额外 shell 进程、提升可靠性
+    - 对比：
+        - `CMD ["npm", "start"]`：实际等价于在容器里执行：`/bin/sh -c "npm start"`，会启动一个 shell（sh 或 cmd）作为父进程，npm 是子进程
+        - `CMD npm start`：直接将 npm 作为主进程（PID 1）运行，没有额外的 shell 包裹，更加“原生”和直接
+
+3. `ENTRYPOINT` 指令
+
+    - 固定启动主程序，通常不被 docker run 命令覆盖（需加 `--entrypoint` 才能更换）
+    - 适合无条件始终只执行一个主程序的场景
+    - 同理：推荐使用“exec form”写法，如`ENTRYPOINT ["npm", "start"]`
+
+4. `RUN` 指令与 CMD/ENTRYPOINT 的区别
+
+    - `RUN`：构建镜像时执行（如安装依赖），结果写入镜像
+    - `CMD`/`ENTRYPOINT`：运行容器时执行（作为主进程），不会改变镜像内容
+
+5. 常见误区与最佳实践
+
+    - 多个 `CMD`/`ENTRYPOINT` 只生效最后一个
+    - 推荐用 `CMD` 提供灵活的默认命令，便于覆盖
+    - 推荐使用“exec form”（数组）语法
+
+6. 当前 Dockerfle 示例
+
+    ```Dockerfile
+    FROM node:16.0-alpine3.13
+
+    # 创建组和系统用户app，并将其添加到该组
+    RUN addgroup app && adduser -S -G app app
+    WORKDIR /app
+    COPY . .
+    RUN npm install
+    RUN chown -R app:app /app
+    # 切换后续命令默认用户为app
+    USER app
+
+    ENV API_URL=http://api.myapp.com
+    CMD ["npm", "start"]
+    ```
+
+7. 启动补充
+
+    - 通过`docker run -it react-app sh`启动容器后，即便使用`npm start`启动了项目，提示了地址与端口，本地依旧无法访问，因为其启动的是容器的端口，而非是本地的端口
+
+## Speeding Up Builds
+
+> 简述：Docker 镜像由多层（layer）组成。每条 Dockerfile 指令生成新层，Docker 通过缓存机制加速构建。合理组织指令，可极大提升构建效率，避免重复耗时步骤。
+
+**知识树**
+
+1. 镜像层（Layer）与缓存原理
+
+    - 每条 Dockerfile 指令（FROM、RUN、COPY 等）创建一个新层
+    - 层只记录这一层指令导致的变化内容，镜像本质为多层叠加
+    - 构建时 Docker 通过复用旧层（缓存），能加速无变更部分
+
+2. 缓存命中规则
+
+    - 自顶向下逐条指令比较，完全一致且内容无变则命中缓存，复用已存在层
+    - 某一层变更后，该层及其下方所有层均需重建
+
+3. COPY 与缓存失效
+
+    - `COPY . .` 或 `ADD . .` 会监控所有源文件，只要有任何文件变动，此层及其后续层都被重建，导致如依赖安装（npm install）等耗时操作被重复执行
+
+4. 构建优化最佳实践
+
+    - 优先 COPY 变更不频繁的依赖声明文件（如 `package.json`、`package-lock.json`），再安装依赖
+    - 最后 COPY 代码与资源文件，将高频改动内容下置，最大限度利用依赖安装层的缓存
+
+    ```Dockerfile
+    FROM node:16.0-alpine3.13
+
+    RUN addgroup app && adduser -S -G app app
+    WORKDIR /app
+    # 仅拷贝依赖声明文件，变化少
+    COPY package*.json ./
+    # 安装依赖，缓存命中率高
+    RUN npm install
+    # 拷贝剩余源代码，变化多
+    COPY . .
+    RUN chown -R app:app /app
+    USER app
+
+    ENV API_URL=http://api.myapp.com
+    CMD ["npm", "start"]
+    ```
+
+5. 实际效果与验证
+
+    - 首次构建，所有层需重建
+    - 仅改动应用代码/文档时，依赖安装层命中缓存，构建极快
+    - 可用 `docker history <image>` 查看层及各层大小、来源指令
+    - 测试过程
+        - 修改 react-app 部分文件如 readme 后，重新构建
+
+6. 总结原则
+
+    - 频繁变动的内容放在 Dockerfile 末尾，静态内容放在开头
+    - 利用层缓存，极大缩短日常开发构建时间
+
+7. 二次优化
+
+    ```Dockerfile
+    FROM node:16.0-alpine3.13
+
+    RUN addgroup app && adduser -S -G app app
+    WORKDIR /app
+    COPY --chown=app:app package*.json .
+    RUN npm install
+    COPY --chown=app:app . .
+    USER app
+
+    ENV API_URL=http://api.myapp.com
+    CMD ["npm", "start"]
+    ```
+
+    - 分析`docker history <image>` 后，看到 `RUN chown -R app:app /app` 这一层，单独就有 408MB，这其实是 Docker 层机制导致的空间浪费！Docker 18.09+ 支持 `COPY --chown=app:app`，可以避免 `npm install` + `chown` 两套数据。
+
+## Removing Images
+
+> 简述：随着镜像反复构建与测试，系统中会积累无用的悬空镜像（dangling images）与停止容器，需定期清理以释放磁盘空间。
+
+**知识树**
+
+1. 悬空镜像（Dangling Images）&停止容器
+
+    - 悬空镜像
+        - 无标签（无 name/tag）的镜像层，源自旧构建，已与任何有效镜像无关
+        - 常见于反复构建、变更 Dockerfile 过程中
+    - 停止容器
+        - 一个镜像可以创建多个容器，在测试的过程中，积累了许多停止的容器，通过`docker ps -a`查看
+
+2. 清理悬空镜像&状态的容器
+
+    - 使用 `docker image prune` 自动删除所有悬空镜像，需要进行确认
+    - 使用 `docker container prune` 一键清理全部已停止容器
+
+3. 删除指定镜像
+
+    - 查看本地镜像`docker images`
+    - 通过名称或 ID 删除`docker image rm <镜像名或ID>`
+    - 支持一次删除多个镜像，用空格分隔
+
+## Tagging Images
+
+> 简述：镜像标签用于标识镜像的不同版本，有助于环境隔离、回滚和运维可追溯。默认标签为`latest`，但实际生产应使用显式版本号。
+
+**知识树**
+
+1. 标签（Tag）基本概念
+
+    - 同一个 tag（比如 latest），任何时刻只能指向一个镜像 ID。但你可以有多个不同的 tag，指向同一个镜像 ID。
+    - 标签是镜像的标识，形式为 `<镜像名>:<标签>`，如 `myapp:1.0`
+    - `latest` 仅为默认标签，无特殊含义，不等价于“最新版本”
+
+2. 设置标签
+
+    - 构建时设置：
+        - 通过 `-t` 参数指定镜像名与标签，如`docker build -t react-app:1.0 .`
+    - 删除单个标签（不影响镜像本体）：
+        - `docker image rm react-app:1.0`
+    - 后期打标签与更新标签
+        - 镜像构建后可随时追加，使用`tag`，如`docker image tag react-app:1.0 react-app:latest`（给`react-app:1.0`额外加上`latest`标签）
+
+3. 最新标签（latest）误区
+
+    - `latest` 不一定指向“最新”镜像，需手动指定
+    - 生产环境建议显式指定版本标签，避免运维混乱
+
+## Sharing Images
+
+> 简述：Docker Hub 是镜像托管和分发平台。将本地镜像推送到仓库后，任何人可在任意主机上拉取与运行该镜像，实现跨团队、跨环境的应用交付。
+
+**知识树**
+
+1. Docker Hub 账户与仓库
+
+    - 地址：https://app.docker.com
+    - 免费注册账户，支持公开/私有仓库
+    - 每个仓库可保存多版本标签（tags）
+
+2. 镜像重命名与标记
+
+    - 镜像推送需包含用户名前缀（如 `username/image:tag`）
+    - 本地重命名示例（打 tag）：
+        ```bash
+        docker image tag react-app:1.0 username/react-app:1.0
+        ```
+
+3. 登录与推送镜像
+
+    - 登录 Docker Hub
+        ```bash
+        docker login
+        ```
+    - 推送镜像到远程仓库示例
+        ```bash
+        docker push username/react-app:1.0
+        ```
+
+4. 镜像层与增量推送
+
+    - 首次推送会上传全部镜像层
+    - 后续如未变动底层依赖，仅上传新变更部分，推送更快
+
+5. 镜像分发与拉取
+
+    - 镜像一经推送，全球任何 Docker 主机均可拉取
+        ```bash
+        docker pull username/react-app:v2
+        ```
+
+## Saving and Loading Images
+
+> 简述：可将本地镜像导出为压缩文件，实现离线迁移、备份或跨主机传输，无需依赖 Docker Hub。
+
+**知识树**
+
+1. 镜像保存（导出为文件）
+
+    - 使用 `docker image save` 将镜像打包为 `.tar` 文件（包含全部层和元数据），使用`docker image save --help`可查看帮助
+    - 适合在局域网、无公网环境下迁移镜像
+    - 示例：
+        ```bash
+        # 导出镜像到本地文件
+        docker image save -o react-app.tar react-app:1.0
+        ```
+
+2. 镜像结构
+
+    - `.tar` 文件内含多层，每层为一目录，含 layer tar 包和 metadata
+    - 可解压查看具体层内容
+
+3. 镜像加载（从文件导入）
+
+    - 使用 `docker image load` 从 `.tar` 文件导入镜像到本地 Docker，导入后镜像 ID 和先前一致
+    - 示例：
+        ```bash
+        # 加载本地镜像文件
+        docker image load -i react-app.tar
+        ```
+
+4. 典型用例
+
+    - 跨主机物理拷贝镜像（如 U 盘/内网）
+    - 镜像冷备份与归档
+    - 离线分发环境
