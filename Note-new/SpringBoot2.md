@@ -8626,3 +8626,35 @@ https://railway 中拷贝/checkout/webhook
                 - `max(http_server_requests_seconds_max) by (uri)`
             - 异常请求数
                 - `sum(rate(http_server_requests_seconds_count{status="500"}[1m])) by (uri)`
+
+### 常见事务传播机制
+
+> 简述：Spring 事务传播机制是指当一个带事务的方法被另一个带事务的方法调用时，事务如何传播和行为表现。Spring 通过`@Transactional(propagation = ...)`的`propagation`属性设置传播行为，
+
+1. **REQUIRED**（默认）
+
+    - 如果当前有事务，则加入当前事务；如果没有，就新建一个事务。
+
+2. **REQUIRES_NEW**
+
+    - 每次都新建一个事务，暂停当前事务（如果有），新事务执行完再恢复外部事务。
+
+3. **SUPPORTS**
+
+    - 如果有事务则加入事务；没有事务就以非事务方式执行。
+
+4. **NOT_SUPPORTED**
+
+    - 总是以非事务方式执行，若存在事务则挂起当前事务。
+
+5. **MANDATORY**
+
+    - 必须在已有事务中运行，否则抛异常。
+
+6. **NEVER**
+
+    - 必须在没有事务的情况下运行，如果有事务则抛异常。
+
+7. **NESTED**
+
+    - 如果当前有事务，则在当前事务中嵌套一个子事务（依赖数据库支持）；没有事务则表现为 REQUIRED。
