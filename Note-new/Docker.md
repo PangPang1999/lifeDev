@@ -1476,15 +1476,20 @@ docker run hello-docker
 
     ```Dockerfile
     FROM node:16.0-alpine3.13
-
     # 创建组和系统用户app，并将其添加到该组
     RUN addgroup app && adduser -S -G app app
+    # 切换后续命令默认用户为app
+    USER app
     WORKDIR /app
+    # 建议使用--chown=app:app选项来设置文件的所有者
+    # 这样可以避免在容器中运行时出现权限问题
+    # 如果不使用--chown选项，可能会导致npm install时出现权限错误
+    # 这会导致npm无法正确安装依赖包
+    # 以及在运行时无法访问某些文件或目录
+    RUN chown app:app /app
     COPY . .
     RUN npm install
     RUN chown -R app:app /app
-    # 切换后续命令默认用户为app
-    USER app
 
     ENV API_URL=http://api.myapp.com
     ```
@@ -1549,15 +1554,13 @@ docker run hello-docker
 
     ```Dockerfile
     FROM node:16.0-alpine3.13
-
-    # 创建组和系统用户app，并将其添加到该组
     RUN addgroup app && adduser -S -G app app
+    USER app
     WORKDIR /app
+    RUN chown app:app /app
     COPY . .
     RUN npm install
     RUN chown -R app:app /app
-    # 切换后续命令默认用户为app
-    USER app
 
     ENV API_URL=http://api.myapp.com
     CMD ["npm", "start"]
@@ -1595,18 +1598,15 @@ docker run hello-docker
 
     ```Dockerfile
     FROM node:16.0-alpine3.13
-
     RUN addgroup app && adduser -S -G app app
+    USER app
     WORKDIR /app
     # 仅拷贝依赖声明文件，变化少
-    COPY package*.json ./
+    COPY --chown=app:app package*.json .
     # 安装依赖，缓存命中率高
     RUN npm install
     # 拷贝剩余源代码，变化多
-    COPY . .
-    RUN chown -R app:app /app
-    USER app
-
+    COPY --chown=app:app . .
     ENV API_URL=http://api.myapp.com
     CMD ["npm", "start"]
     ```
@@ -1623,24 +1623,6 @@ docker run hello-docker
 
     - 频繁变动的内容放在 Dockerfile 末尾，静态内容放在开头
     - 利用层缓存，极大缩短日常开发构建时间
-
-7. 二次优化
-
-    ```Dockerfile
-    FROM node:16.0-alpine3.13
-
-    RUN addgroup app && adduser -S -G app app
-    WORKDIR /app
-    COPY --chown=app:app package*.json .
-    RUN npm install
-    COPY --chown=app:app . .
-    USER app
-
-    ENV API_URL=http://api.myapp.com
-    CMD ["npm", "start"]
-    ```
-
-    - 分析`docker history <image>` 后，看到 `RUN chown -R app:app /app` 这一层，单独就有 408MB，这其实是 Docker 层机制导致的空间浪费！Docker 18.09+ 支持 `COPY --chown=app:app`，可以避免 `npm install` + `chown` 两套数据。
 
 ## Removing Images
 
@@ -1665,6 +1647,7 @@ docker run hello-docker
 
     - 查看本地镜像`docker images`
     - 通过名称或 ID 删除`docker image rm <镜像名或ID>`
+        - rm 默认删除为 `latest`，即`docker image rm <镜像名或ID>:latest`，也可以手动指定版本号
     - 支持一次删除多个镜像，用空格分隔
 
 ## Tagging Images
@@ -1736,6 +1719,10 @@ docker run hello-docker
         docker pull username/react-app:v2
         ```
 
+6. 测试
+
+    - 修改项目部分文件，以新标签重新构建`docker build -t username/react-app:2.0 .`，推送`docker push username/react-app:2.0`
+
 ## Saving and Loading Images
 
 > 简述：可将本地镜像导出为压缩文件，实现离线迁移、备份或跨主机传输，无需依赖 Docker Hub。
@@ -1771,3 +1758,357 @@ docker run hello-docker
     - 跨主机物理拷贝镜像（如 U 盘/内网）
     - 镜像冷备份与归档
     - 离线分发环境
+
+# Working with Containers
+
+## Starting Containers
+
+> 简述：Docker 提供一系列命令用于启动、管理和查看容器状态。容器本质上是特殊的进程，拥有独立的文件系统，由镜像提供。
+
+**知识树**
+
+1. 容器状态查看：
+
+    - 查看运行中的容器：` docker ps`
+        - ps 即 process
+    - 查看所有容器（包括已停止的）：`docker ps -a`
+
+2. 容器运行模式：
+
+    - 前台运行（默认模式）：`docker run react-app`
+        - 此时终端窗口被占用，按 `Ctrl+C` 终止容器
+    - 后台运行（分离模式）：`docker run -d react-app`
+        - 容器在后台运行，终端可继续执行其它命令
+
+3. 容器命名：
+
+    - 默认：Docker 自动分配随机容器名，可用 `docker ps` 最右列查看
+    - 自定义名称，便于后续管理：`docker run -d --name blue-sky react-app`
+
+## Viewing the Logs
+
+> 简述：容器后台运行时，无法直接在终端看到输出。Docker 提供日志命令，帮助实时或历史查看容器内应用的输出，便于故障排查与监控。
+
+**知识树**
+
+1. 查看容器日志：
+
+    - 查看指定容器日志：`docker logs <容器ID或名称>`
+
+        - 可只输入容器 ID 前几位
+        - 输出内容等同于前台运行时看到的标准输出
+
+2. 日志常用参数：
+
+    - 实时追踪日志（持续输出）：`docker logs -f <容器ID或名称>`
+        - `-f --follow`，类似 Linux `tail -f`
+        - 按 `Ctrl+C` 结束实时查看
+    - 仅查看最新若干行：`docker logs -n 20 <容器ID或名称>`
+        - 显示最近 20 行日志
+        - 也可以使用`docker logs --tail 20 <容器ID或名称>`
+    - 显示时间戳：`docker logs -t <容器ID或名称>`
+        - 每行前自动带上日志时间
+
+3. 场景与建议：
+
+    - 容器服务出错或需监控时，第一步应查看日志输出
+    - 可结合 `-f` 和 `--tail` 实时观测最新日志
+
+## Publishing Ports
+
+> 简述：容器内服务默认仅监听容器内部端口，主机无法直接访问。通过端口映射（publish），可将主机端口与容器端口绑定，实现外部访问容器服务。
+
+**知识树**
+
+1. 端口映射原理：
+
+    - 容器进程监听的是容器内部端口（如 3000），主机上并不自动开放此端口
+    - 需用 `-p <主机端口>:<容器端口>` 将主机端口与容器端口关联
+    - 端口映射（`-p <主机端口>:<容器端口>`）只能在容器启动时指定，已运行的容器无法动态修改或追加端口映射。
+
+2. 端口映射命令用法：
+
+    - 后台运行并发布端口：
+        ```bash
+        docker run -d -p 80:3000 --name c1 react-app
+        ```
+        - 访问本机 `http://localhost:80`，请求将转发到容器内 3000 端口
+    - 主机端口与容器端口可不同：
+        - 如 `-p 8080:3000`，左为主机端口，右为容器端口
+    - 同一镜像可多次运行容器，主机需为每个容器指定不同主机端口
+
+3. 端口映射状态查看：
+
+    - `docker ps` 输出的 PORTS 列显示主机与容器的端口对应关系
+
+4. 实用建议：
+
+    - 服务型容器（如 Web 应用）必须发布端口，外部才可访问
+    - 生产环境建议仅映射需要暴露的端口，提升安全性
+
+## Executing Commands in Running Containers
+
+> 简述：容器启动后，可用 `docker exec` 命令在其中执行任意命令（如 ls、shell），实现在线调试、排查和临时操作。不会中断原有容器进程。
+
+**知识树**
+
+1. `docker exec` 基本用法
+
+    - 语法：`docker exec <选项> <容器名或ID> <命令>`
+    - 用于在**已运行容器**内执行命令，而**不重启或中断主进程**
+
+2. 典型场景
+
+    - 查看容器内文件、目录等（如 `ls`、`cat`）
+    - 进入容器内部，进行交互式操作（如 `sh`、`bash`）
+    - 排查、调试应用问题，无需停止服务
+
+3. 常用选项与示例
+
+    - 执行一次命令（如 ls）：` docker exec react-app ls`
+    - 进入交互式 shell（推荐加 `-it`）：`docker exec -it react-app sh`
+
+4. 与 `docker run` 区别
+
+    - `docker run`：新建并启动一个容器，执行指定命令
+    - `docker exec`：在已运行的容器中，临时执行额外命令
+
+## Stopping and Starting Containers
+
+> 简述：容器类似于轻量级虚拟机，可随时停止与重启。停止后容器进程暂停，但文件系统和状态保留，重启可迅速恢复服务。
+
+**知识树**
+
+1. 停止容器
+
+    - 命令：`docker stop <容器名或ID>`
+
+        - 优雅终止容器进程
+        - 停止后服务不可用，但数据与文件系统保留
+
+2. 重启/启动已停止容器
+
+    - 命令：`docker start <容器名或ID>`
+
+        - 重新启动已停止的容器（保持原有状态和文件）
+        - 不会新建容器，也不会重新执行 build
+        - 适合短时维护、调试后恢复服务
+
+3. `docker run` vs `docker start`
+
+    - `docker run`：创建并启动**新**容器，通常会产生新 ID
+    - `docker start`：仅重启**已存在**、已停止的容器，不会产生新容器
+
+4. 实用场景
+
+    - 日常维护、升级、调试或资源释放时可安全 stop/start
+    - 停止状态下，容器数据不会丢失，可随时恢复
+
+## Removing Containers
+
+> 简述：Docker 支持随时删除不需要的容器，以释放系统资源和保持环境整洁。可删除单个或批量清理停止状态的容器。
+
+**知识树**
+
+1. 删除单个容器
+
+    - 命令一：`docker rm <容器名或ID>`
+        - **仅可删除已停止的容器**
+    - 命令二：`docker container rm <容器名或ID>`
+        - 与 `docker rm` 等价
+
+2. 强制删除正在运行的容器
+
+    - 加 `-f` 选项强制终止并删除容器：`docker rm -f <容器名或ID>`
+
+3. 批量清理所有已停止容器
+
+    - 一键清理：`docker container prune`
+        - 自动删除所有已停止容器，释放磁盘空间
+        - 执行前会提示确认
+
+4. 查看容器列表与筛选
+
+    - 查看所有容器（包含已停止）：`docker ps -a`
+    - 可结合 Linux 命令行工具筛选显示：`docker ps -a | grep <容器名或ID>`
+
+## Containers File System
+
+> 简述：每个容器拥有独立的文件系统，互不影响，数据默认仅存在于各自容器内部。容器删除后，其内部文件也会丢失。
+
+**知识树**
+
+1. 文件系统隔离特性
+
+    - 每个容器启动时，都会基于镜像分配独立文件系统
+    - 容器间文件系统互不可见
+
+2. 实验演示
+
+    - 在容器 A 内创建文件
+
+        ```bash
+        docker exec -it containerA sh
+        echo "data" > data.txt
+        exit
+        ```
+
+    - 在容器 B 内查找文件
+
+        ```bash
+        docker exec -it containerB sh
+        ls | grep data
+        # 输出为空，文件不存在
+        ```
+
+3. 容器数据生命周期
+
+    - 容器文件系统随容器销毁一并删除
+    - 不可用于持久化和共享重要数据
+
+4. 持久化需求
+
+    - 应用需保存或共享数据时，应使用 Docker 卷（volumes）
+
+## Persisting Data using Volumes
+
+> 简述：卷（Volume）是容器外部的持久化存储，独立于容器生命周期，可跨容器共享和复用。用卷可安全保存数据，防止容器销毁导致数据丢失。
+
+**知识树**
+
+1. 卷（Volume）基本概念
+
+    - 卷是由 Docker 管理的独立存储，物理上位于主机或云端
+    - 卷可被一个或多个容器挂载，实现数据共享与持久化
+
+2. 卷的创建与管理
+
+    - 创建卷（可选，运行时自动创建更常用）：`docker volume create app-data`
+    - 查看卷列表：`docker volume ls`
+    - 检查卷的信息：`docker volume inspect app-data`
+        - 如创建时间、Driver、地址等，可以使用云 Driver，这里的地址是在虚拟机器上，而非本机
+
+3. 卷的挂载与使用
+
+    - 挂载卷到容器目录：`-v <卷名>:<容器内目录>`
+        - 如：`docker run -d -v app-data:/app/data react-app`
+        - 卷如果不存在会自动创建
+        - 地址如果不存在，也会自动创建，如果挂载目录由 Docker 自动创建，属主为 root，普通用户（如 app 用户）无写权限，应该在 Dockerfile 中预先用应用用户创建目标目录，确保权限正确
+    - 容器内对 `/app/data` 的所有操作实际写入卷，主机和其它容器可复用
+
+4. 卷的生命周期与数据持久化
+
+    - 删除容器不会删除卷，数据不会丢失
+    - 重建容器并挂载同一卷，历史数据自动复用
+    - 可被多个容器同时挂载，实现共享存储
+
+5. 当前 Dockerfile 示例
+
+    ```Dockerfile
+    FROM node:16.0-alpine3.13
+    RUN addgroup app && adduser -S -G app app
+    USER app
+    WORKDIR /app
+    RUN mkdir data
+    COPY --chown=app:app package*.json .
+    RUN npm install
+    COPY --chown=app:app . .
+    ENV API_URL=http://api.myapp.com
+    CMD ["npm", "start"]
+    ```
+
+6. 演示步骤
+
+    ```bash
+    # 创建卷（可选）
+    docker volume create app-data
+    # 检查卷的信息（可选）
+    docker volume inspect app-data
+
+    # 启动容器并挂载卷
+    docker run -d -p 66:3000 -v app-data:/app/data --name react-app react-app
+
+    # 容器内写入数据
+    docker exec -it react-app sh
+    echo "data" > /app/data/data.txt
+    exit
+
+    # 删除并重建容器，数据依然存在
+    docker rm -f react-app
+    docker run -d -p 66:3000 -v app-data:/app/data --name react-app react-app
+    docker exec -it react-app ls /app/data  # 仍可看到 data.txt
+    ```
+
+## Copying Files between the Host and Containers
+
+> 简述：通过 `docker cp` 命令，可在主机与容器间直接复制文件或目录，实现日志导出、手动数据注入等操作，无需重建镜像。
+
+**知识树**
+
+1. 从容器复制到主机
+
+    - 语法：`docker cp <容器名或ID>:<容器内路径> <主机路径>`
+    - 示例：
+        - 将容器内 `/app/log.txt` 拷贝到主机当前目录（创建命令`echo hello > log.txt`）
+        - `docker cp react-app:/app/log.txt .`
+
+2. 从主机复制到容器
+
+    - 语法：`docker cp <主机路径> <容器名或ID>:<容器内路径>`
+    - 示例：
+        - 将主机 `secret.txt` 拷贝到容器 `/app` 目录（创建命令`echo hello > secret.txt`）
+        - `docker cp secret.txt react-app:/app`
+
+3. 场景与注意事项
+
+    - 适用于导出容器日志、配置或结果文件
+    - 可手动向容器内注入文件（如密钥、临时数据）
+    - 不会影响镜像本身，仅对目标容器生效
+
+4. 其它细节
+
+    - 路径可为文件或目录，目录复制会保留层级结构
+    - 目标路径需有写权限（受容器用户和目录权限影响）
+    - 支持 Linux、macOS，Windows 下命令格式类似
+
+## Sharing the Source Code with a Container
+
+> 简述：开发环境中可将主机目录直接映射到容器，实现代码热更新。主机改动立即反映到容器，省去重建镜像或手动复制，极大提升前端和后端开发效率。
+
+**知识树**
+
+1. 代码改动后
+
+    - 对于生产环境，需要构建新的镜像，打上标签，之后部署...稍后介绍
+    - 对于开发环境，可以通过映射实现代码热更新
+	    - 注意：仅适合开发环境，生产环境应以镜像为准避免源代码泄露
+
+3. 目录挂载与绑定（Bind Mount）
+
+    - 通过 `-v <主机路径>:<容器路径>` 将主机目录直接映射进容器
+    - 容器实时读取主机目录内容，适合代码开发与调试
+
+4. 典型用法与示例
+
+    - 挂载当前项目目录到容器 `/app`
+
+        ```bash
+        docker run -d -p 8080:3000 -v $(pwd):/app --name react-dev react-app
+
+        # 或者使用 \ 进行换行增加可读性
+        docker run -d -p 8080:3000 \
+          -v $(pwd):/app \
+          --name react-dev react-app
+        ```
+
+        - `$(pwd)` 为当前目录完整路径（Linux/macOS），Windows 下用 `%cd%` 或绝对路径
+        - 修改主机代码后，容器内应用立即生效（如 React 热重载）
+
+5. `Bind Mount` & `Named Volume`
+
+    - Bind Mount（绑定挂载）：挂载主机指定目录，内容实时同步，适合开发
+    - Named Volume（命名卷）：由 Docker 管理，适合持久化数据和生产环境
+
+6. Compose
+
+    - 相比用 docker run 手动输入复杂命令，Compose 更高效、易用，特别适合实际开发和多服务场景。下一节介绍
