@@ -6177,3 +6177,1302 @@ src/
       });
     };
     ```
+
+## 24- 讨论：构建可复用的组件
+
+> 本节探讨在使用 Zustand 等全局状态管理工具时，开发便利性与组件可复用性之间的权衡。直接从 Store 获取状态会简化代码，但使组件与特定的 Store 耦合，降低了其可复用性。通过 Props 传递数据则能构建更独立、可复用的组件。最终的结论是，不存在普适的“最佳实践”，开发者应基于具体项目需求进行独立思考和务实决策，而不是盲从任何技术教条。
+
+**知识树**
+
+1. **核心权衡：全局状态 (Zustand) vs. Props 传递**
+
+    - 这是一个在**架构设计**中常见的两难选择，关乎组件的**可复用性 (Reusability)**与**开发便利性 (Convenience)**。
+
+2. **两种模式的深度分析**
+
+    - **模式一：全局状态驱动 (Zustand)**
+        - **优点**:
+            - 代码极大简化。组件可直接从 Store 获取所需数据，彻底避免了属性钻探（Prop Drilling）。
+        - **缺点**:
+            - **降低可复用性**: 组件的实现与其所依赖的特定 Store 紧密耦合。
+            - **例证**: `GenreList` 组件内部写死了对 `useGameQueryStore` 的调用，导致它无法在另一个不使用此 Store 的项目或应用场景中被直接复用。
+    - **模式二：Props 驱动**
+        - **优点**:
+            - **增强可复用性**: 组件是“自包含”的(self-contained)。它不关心数据从何而来，只关心通过 `props` 传入的数据和回调函数是否符合其接口约定。这种组件具有极高的移植性和复用价值。
+        - **缺点**:
+            - 在组件层级较深的应用中，可能导致繁琐的属性钻探问题。
+
+3. **决策的核心原则：上下文永远优于教条**
+
+    - **拒绝“银弹思维”**: 在软件工程，尤其是在状态管理领域，不存在适用于所有情况的“一刀切”解决方案或绝对的“最佳实践”。
+    - **以项目需求为唯一准绳**:
+        - **进行务实评估**: 在当前项目中，被重构的组件（如 `GenreList`, `PlatformSelector`）未来在其他场景下被复用的可能性有多大？
+        - **本项目情景分析**: 对于 Game Hub 项目，这些组件是为核心功能高度定制的，在应用的其他部分以不同数据集复用的概率极低。
+        - **本项目权衡结论**: 在这种情况下，为了换取巨大的开发便利性而牺牲一个几乎不存在的复用场景，是完全合理且明智的工程决策。
+    - **架构的演化性**: 软件架构不是一成不变的。如果未来需求真的发生变化，需要复用这些组件，届时再将其重构为由 Props 驱动的模式也为时不晚。
+
+4. **对工程师的最终告诫**
+
+    - **警惕信息茧房**: 互联网上充斥着大量带有强烈个人偏见且绝对化的技术论调。开发者应具备批判性思维，审慎对待。
+    - **独立思考是前提**: 在做任何技术选型之前，必须深入分析当前项目的具体需求、约束和未来走向。
+    - **选择“合适”而非“正确”**: 最终的目标是选择最**适合**当前项目的方案，而不是某个被标榜为“最正确”或最流行的方案。
+
+---
+
+**代码示例**
+
+1. **耦合 Store 的组件 (便利，低复用性)**
+
+    - 此组件直接从内部调用 `useGameQueryStore`，其行为与该特定 Store 绑定。
+
+    TypeScript
+
+    ```
+    // components/GenreList.tsx
+
+    import { useGameQueryStore } from '../store';
+
+    const GenreList = () => {
+      const selectedGenreId = useGameQueryStore(s => s.gameQuery.genreId);
+      const setGenreId = useGameQueryStore(s => s.setGenreId);
+
+      // ... 渲染逻辑 ...
+    };
+    ```
+
+2. **Props 驱动的组件 (自包含，高复用性)**
+
+    - 此组件对其外部环境一无所知，所有行为都由传入的 `props` 决定，可在任何地方复用。
+
+    TypeScript
+
+    ```
+    // components/ReusableGenreList.tsx
+
+    interface Props {
+      genres: Genre[];
+      selectedGenreId?: number;
+      onSelectGenre: (genreId: number) => void;
+    }
+
+    const ReusableGenreList = ({ genres, selectedGenreId, onSelectGenre }: Props) => {
+      // ... 渲染逻辑，使用 props 中的数据和函数 ...
+    };
+    ```
+
+# 第三章
+
+## 1- React Router 入门
+
+> **简述：**  
+> 在单页应用（SPA）中，路由负责在不同“页面”之间切换，同时保持 URL 与组件视图同步。**React Router** 是业界常用的路由库，它提供了声明式的路由配置、导航组件以及强大的嵌套路由与守卫支持，让你轻松构建复杂的多页面体验。
+
+---
+
+**知识树**
+
+1. **核心组件与钩子**
+
+    - `<BrowserRouter>`：使用 HTML5 History API 管理路径
+    - `<Routes>`：路由容器，内部包裹多条 `<Route>`
+    - `<Route path="..." element={...} />`：定义路径与对应渲染组件
+    - `<Link to="...">` / `<NavLink>`：导航链接，替代 `<a>`，保持前端路由
+
+2. **导航与编程式跳转**
+
+    - `useNavigate()`：获取 `navigate` 函数，执行 `navigate('/path')` 实现跳转
+    - `navigate(-1)` / `navigate(1)`：回退与前进
+
+3. **动态路由与参数匹配**
+
+    - 路径参数：`<Route path="/users/:id" />`
+    - `useParams()`：获取动态参数 `{ id }`
+
+4. **嵌套路由**
+
+    - 父路由中配置子 `<Route>`：
+        ```jsx
+        <Route path="dashboard" element={<Dashboard />}>
+        	<Route path="stats" element={<Stats />} />
+        	<Route path="settings" element={<Settings />} />
+        </Route>
+        ```
+    - 在父组件中使用 `<Outlet />` 渲染子路由
+
+5. **错误边界与 404 处理**
+
+    - `<Routes>` 内可定义 `<Route path="*" element={<NotFound />} />` 捕获所有未匹配路由
+    - React Router v6 支持 `errorElement` 属性为 `<Route>` 添加错误边界
+
+6. **私有路由（Route Guard）**
+
+    - 根据登录或权限状态决定渲染 `<Navigate to="/login" replace />`
+    - 封装 `RequireAuth` 组件包裹受保护路由
+
+---
+
+**代码示例**
+
+1. **基本路由配置**
+
+    ```tsx
+    // App.tsx
+    import React from 'react';
+    import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+    import Home from './pages/Home';
+    import About from './pages/About';
+    import NotFound from './pages/NotFound';
+
+    export const App: React.FC = () => (
+      <BrowserRouter>
+        <nav>
+          <Link to="/">首页</Link> | <Link to="/about">关于</Link>
+        </nav>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    );
+    ```
+
+2. **动态路由与参数**
+
+    ```tsx
+    // pages/UserProfile.tsx
+    import React from 'react';
+    import { useParams } from 'react-router-dom';
+
+    const UserProfile: React.FC = () => {
+      const { id } = useParams<{ id: string }>();
+      return <div>用户 ID：{id}</div>;
+    };
+
+    export default UserProfile;
+    ```
+
+3. **嵌套路由**
+
+    ```tsx
+    // App.tsx
+    import Dashboard from './pages/Dashboard';
+    import Stats from './pages/Stats';
+    import Settings from './pages/Settings';
+
+    <Routes>
+      <Route path="dashboard" element={<Dashboard />}>
+        <Route path="stats" element={<Stats />} />
+        <Route path="settings" element={<Settings />} />
+      </Route>
+      {/* … */}
+    </Routes>
+    ```
+
+    ```tsx
+    // pages/Dashboard.tsx
+    import React from 'react';
+    import { Outlet, Link } from 'react-router-dom';
+
+    const Dashboard: React.FC = () => (
+      <div>
+        <h2>仪表盘</h2>
+        <Link to="stats">统计</Link> | <Link to="settings">设置</Link>
+        <Outlet /> {/* 渲染子路由 */}
+      </div>
+    );
+
+    export default Dashboard;
+    ```
+
+4. **私有路由示例**
+
+    ```tsx
+    // components/RequireAuth.tsx
+    import React from 'react';
+    import { useAuth } from '../auth/useAuth';
+    import { Navigate, useLocation } from 'react-router-dom';
+
+    export const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
+      const { currentUser } = useAuth();
+      const location = useLocation();
+      if (!currentUser) {
+        return <Navigate to="/login" replace state={{ from: location }} />;
+      }
+      return children;
+    };
+    ```
+
+    ```tsx
+    // App.tsx
+    <Route
+      path="/protected"
+      element={
+        <RequireAuth>
+          <ProtectedPage />
+        </RequireAuth>
+      }
+    />
+    ```
+
+## 2- 路由配置
+
+> **简述：**  
+> 在 React 应用中配置路由，推荐使用 React Router 提供的 **`createBrowserRouter`** 方法，而不是传统的 `BrowserRouter` 组件。这种方式更现代，且更易于扩展，能更好地利用 React Router 的新特性。
+
+---
+
+**知识树**
+
+1. **安装 React Router**
+
+    - 安装命令：
+        ```bash
+        npm install react-router-dom@6.10.0
+        ```
+        > 注：使用特定版本避免未来不兼容问题。
+
+2. **创建路由对象（Router）**
+
+    - 使用 `createBrowserRouter`（优于 `<BrowserRouter>` 组件，支持更多特性）：
+    - 新建`router.tsx`文件
+
+        ```tsx
+        import { createBrowserRouter } from "react-router-dom";
+
+        const router = createBrowserRouter([
+          { path: "/", element: <HomePage /> },
+          { path: "/users", element: <UserListPage /> },
+        ]);
+
+        export default router;
+        ```
+
+    - 传入**路由对象数组**，每个对象包含
+        - **`path`**：URL 路径
+        - **`element`**：在该路径下渲染的 React 元素（组件实例）
+
+3. **配置应用入口**
+
+    - 使用 `RouterProvider`：
+
+        ```tsx
+        import { RouterProvider } from "react-router-dom";
+        import router from "./router";
+
+        ReactDOM.createRoot(document.getElementById('root')!).render(
+          <RouterProvider router={router} />
+        );
+        ```
+
+    - 不再直接渲染单一的组件（如 `<App />`），而是`<RouterProvider>` 会根据当前 URL 渲染对应路由的 `element`。
+
+**示例代码**
+
+1. `router.tsx`
+
+    ```tsx
+    import { createBrowserRouter } from "react-router-dom";
+    import HomePage from "./HomePage";
+    import UserListPage from "./UserListPage";
+        // 使用 createBrowserRouter 创建 router 实例
+    const router = createBrowserRouter([
+      {
+        path: "/",
+        element: <HomePage />,
+      },
+      {
+        path: "/users",
+        element: <UserListPage />,
+      },
+    ]);
+
+    export default router;
+    ```
+
+2. 应用入口（`main.tsx`）
+
+    ```tsx
+    import React from "react";
+    import ReactDOM from "react-dom/client";
+    import { RouterProvider } from "react-router-dom";
+    import router from "./routing/router";
+
+    ReactDOM.createRoot(document.getElementById('root')!).render(
+      <React.StrictMode>
+        {/* 将 router 实例通过 prop 传递给 RouterProvider */}
+        <RouterProvider router={router} />
+      </React.StrictMode>
+    );
+    ```
+
+    解释：
+
+    - 不再手动管理页面组件的渲染，而是将 URL 路径和组件的映射关系声明式地写入路由配置。
+    - `RouterProvider` 根据用户当前 URL 决定渲染的组件，实现动态路由切换。
+    - 配置路由对象时，支持丰富的功能，如嵌套路由、动态路由、懒加载和错误处理等（稍后学习）。
+
+## 3- 页面导航
+
+> **简述：**  
+> 在单页应用中，使用原生 `<a>` 标签会导致浏览器整体刷新，而我们希望只替换内容区域。React Router 提供了 `<Link>` 组件和 `useNavigate` 钩子，分别用于声明式和编程式导航，让页面无刷新切换，提升用户体验。
+
+**知识树**
+
+1. HTML 的 `<a>` 标签在点击时会触发浏览器向服务器发送新请求，导致\*\*整页刷新
+2. **`导航方式一：<Link>` 组件**
+
+    - **用途**: 替代原生 `<a>`，内部拦截点击事件；
+    - **工作机制**:
+        1. `<Link>` 组件会阻止 `<a>` 标签的默认刷新行为。
+        2. 它通过浏览器 History API 来更新地址栏的 URL，但**不触发网络请求**。
+        3. React Router 自身会监听到这个 URL 的变化，并自动渲染与新路径匹配的组件。
+    - **实现方法**:
+        - 从 `react-router-dom` 导入 `Link` 组件。
+        - 使用 `to` prop 来指定目标路径，而非 `href` 属性。
+    - **核心优势**: 实现无刷新的客户端路由，提供原生应用般的平滑过渡效果。
+
+3. **导航方式二：编程式导航 (Programmatic Navigation) - `useNavigate` Hook**
+
+    - **用途**: 在特定的业务逻辑执行之后，通过代码来主动触发页面跳转。
+    - **典型应用场景**:
+        - 用户成功提交表单后，跳转到“感谢”页面或列表页。
+        - 用户登录或注销操作完成后，重定向到个人主页或登录页。
+        - 在 `useEffect` 中根据某些条件判断是否需要重定向用户。
+    - **实现方法**:
+        1. 从 `react-router-dom` 导入 `useNavigate` Hook。
+        2. 在组件函数体内部调用该 Hook 以获取一个 `Maps` 函数: `const navigate = useNavigate();`。
+        3. 在需要跳转的逻辑点（如事件处理器 `onSubmit`）调用 `Maps` 函数，并传入目标路径作为参数: `Maps('/');`。
+
+4. **区别与注意事项**
+
+    - **`<Link>`**：推荐用于常规链接和菜单导航；
+    - **`useNavigate`**：适合在逻辑中根据条件或异步操作后跳转；
+    - 路由切换保持应用状态，不要依赖页面重载来初始化组件。
+
+---
+
+**代码示例**
+
+1. **声明式导航：使用 `<Link>`**
+
+    ```tsx
+    // routing/HomePage.tsx
+    import React from 'react';
+    import { Link } from 'react-router-dom';
+
+    const HomePage: React.FC = () => (
+      <div>
+        <h1>首页</h1>
+        {/* 原生 <a> 会触发全页刷新，改用 <Link>
+        <a href="#">Users</a>
+        */}
+        <Link to="/users">Users</Link>
+      </div>
+    );
+
+    export default HomePage;
+    ```
+
+2. **编程式导航：使用 `useNavigate`**
+
+    ```tsx
+    // routing/ContactPage.tsx
+    import React from 'react';
+    import { useNavigate } from 'react-router-dom';
+
+    const ContactPage: React.FC = () => {
+      const navigate = useNavigate();
+
+      const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        // 处理表单数据…
+        // 提交后跳转回首页
+        navigate('/');
+      };
+
+      return (
+        <form onSubmit={handleSubmit}>
+          {/* 表单字段 */}
+          <button type="submit">提交并返回首页</button>
+        </form>
+      );
+    };
+
+    export default ContactPage;
+    ```
+
+> **小结：**
+>
+> -   使用 `<Link>` 实现声明式无刷新导航；
+> -   使用 `useNavigate` 在逻辑中编程式跳转；
+> -   二者配合可满足绝大多数页面切换需求，无需靠浏览器重载。
+
+## 4- 路由参数传递
+
+> **简述：**  
+> 在多页面应用中，我们常需要根据 URL 中的动态参数（如用户 ID、文章年月）来渲染不同的数据页面。React Router 通过**路径参数**支持在路由配置和链接中携带变量，并在目标组件中使用 `useParams` 钩子获取这些参数。
+
+**知识树**
+
+1. **定义带参数的路由**
+
+    - 在路由配置中，使用 `:paramName` 占位：
+        ```ts
+        {
+          path: '/users/:id',
+          element: <UserDetailPage />
+        }
+        ```
+    - 可定义多个参数：`'/posts/:year/:month'`。
+
+2. **创建动态链接**
+
+    - 使用 `<Link to={\`/users/${user.id}`}>` 构建包含参数的 URL；
+    - 模板字符串或拼接字符串都可。
+
+3. **获取路由参数：`useParams()`**
+
+    - 在目标页面组件中调用：
+        ```ts
+        const { id } = useParams<{ id: string }>();
+        ```
+    - 返回一个参数对象，属性名与路由定义保持一致；
+    - 参数类型默认为 `string`。
+
+4. **参数类型转换与校验**
+
+    - URL 参数始终为字符串，若需要数字，可使用 `Number(id)` 或 `parseInt`；
+    - 可在组件内对参数进行校验，遇到无效值时渲染 404 或错误提示。
+
+5. **路由优先级**
+
+    - v6 版本无需手动排序路由，库会自动匹配最具体的路径；
+    - 保证定义顺序灵活，可按功能而非字面顺序排列。
+
+6. **实际应用场景**
+
+    - **用户详情**：`/users/123` → `UserDetailPage`，根据 `id` 请求并展示用户信息；
+    - **文章列表**：`/posts/2025/06` → `PostsByMonthPage`，根据 `year` 和 `month` 展示当月文章。
+
+---
+
+**代码示例**
+
+1. **路由配置（`routing/router.tsx`）**
+
+    ```tsx
+    import { createBrowserRouter } from 'react-router-dom';
+    import HomePage from './HomePage';
+    import UserListPage from './UserListPage';
+    import UserDetailPage from './UserDetailPage';
+
+    const router = createBrowserRouter([
+      { path: '/', element: <HomePage /> },
+      { path: '/users', element: <UserListPage /> },
+      { path: '/users/:id', element: <UserDetailPage /> },
+    ]);
+
+    export default router;
+    ```
+
+2. **动态链接（`UserListPage.tsx`）**
+
+    ```tsx
+    import React from 'react';
+    import { Link } from 'react-router-dom';
+
+    interface User { id: number; name: string; }
+
+    const users: User[] = [
+      { id: 1, name: 'Alice' },
+      { id: 2, name: 'Bob' },
+    ];
+
+    const UserListPage: React.FC = () => (
+      <div>
+        <h1>用户列表</h1>
+        <ul>
+          {users.map(user => (
+            <li key={user.id}>
+              {/* 使用模板字符串拼接 URL */}
+              <Link to={`/users/${user.id}`}>{user.name}</Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+
+    export default UserListPage;
+    ```
+
+3. **接收参数并渲染（`UserDetailPage.tsx`）**
+
+    ```tsx
+    import React from 'react';
+    import { useParams } from 'react-router-dom';
+
+    const UserDetailPage: React.FC = () => {
+      // 获取路由参数 id
+      const { id } = useParams<{ id: string }>();
+      const userId = Number(id); // 若需要数字
+
+      return (
+        <div>
+          <h1>用户详情</h1>
+          <p>当前用户 ID：{userId}</p>
+          {/* 可在此根据 userId 发起数据请求 */}
+        </div>
+      );
+    };
+
+    export default UserDetailPage;
+    ```
+
+---
+
+> **小结：**
+>
+> -   在路由中用 `:param` 定义占位符；
+> -   `<Link to={\`/path/${param}`}>` 构建带参数的链接；
+> -   在组件中通过 `useParams()` 读取参数，并根据需要做类型转换或校验。  
+>      动态路由让你的应用更加灵活，能够基于 URL 自然地驱动组件渲染。
+
+## 5- 获取当前路由的数据
+
+> 本节介绍 React Router 中用于获取当前路由信息的三个核心 Hooks：`useParams`、`useSearchParams` 和 `useLocation`。这些 Hooks 分别用于提取 URL 中的动态路径参数、读写查询字符串以及获取完整的当前位置对象，为组件根据不同 URL 状态执行相应逻辑提供了完整的工具集。
+
+**知识树**
+
+1. **Hook 一：`useParams()` - 获取路径参数**
+
+    - **核心用途**: 提取在路由配置中定义的**动态路径参数**（例如，对于路径 `/users/:id`，用于提取 `:id` 的值）。
+    - **使用方法**: `const params = useParams();`
+    - **返回值**: 一个对象，属性名即参数名，值类型均为 `string`；
+    - **注意**: 若需要 `number` 类型，需在组件内部调用 `Number()` 或 `parseInt()` 进行转换；
+
+2. **Hook 二：`useSearchParams()` - 读写查询字符串**
+
+    - **核心用途**: 读取和更新 URL 的查询字符串（`?key=value`）；
+    - **使用方法**: `const [searchParams, setSearchParams] = useSearchParams();`
+        - 其 API 结构与 React 的 `useState` Hook 非常相似。
+    - **返回值**: 一个包含两个元素的数组：
+        1. `searchParams` (一个 `URLSearchParams` 实例): 用于**读取**查询参数。
+            - `searchParams.get('parameterName')`: 获取指定参数的值。
+            - `searchParams.toString()`: 获取完整的查询字符串。
+        2. `setSearchParams` (一个函数): 用于**更新**查询字符串，调用它会改变 URL 并触发组件重新渲染。
+    - **关键注意事项**:
+        - `setSearchParams` 是一个会产生**副作用 (Side Effect)** 的函数。
+        - 为保证组件在渲染期间的纯粹性，此函数**只应该**在事件处理器（如 `onClick`）或 `useEffect` Hook 内部调用，绝不能直接在组件的渲染逻辑中调用。
+
+3. **Hook 三：`useLocation()` - 获取完整位置信息**
+
+    - **核心用途**: 获取一个描述当前 URL 完整信息的**位置对象 (Location Object)**。
+    - **使用方法**: `const location = useLocation();`
+    - **常用属性**：
+        - `location.pathname` → 当前 URL 的路径部分（`"/users/1"`）；
+        - `location.search` → 查询字符串（`"?name=Alice"`）；
+        - `location.hash` → 哈希片段（`"#section"`）；
+        - `location.state` → 编程式导航时通过 `navigate(path, { state })` 传递的自定义状态；
+
+---
+
+**代码示例**
+
+1. **在详情页中综合使用三个 Hooks (`src/routing/UserDetailPage.tsx`)**
+
+    - 假设访问的 URL 是: `/users/10?name=Mosh&active=true`
+
+    ```TypeScript
+    import { useParams, useSearchParams, useLocation } from 'react-outer-dom';
+
+    const UserDetailPage = () => {
+      // 1. 使用 useParams 获取路径参数
+      // params 将是 { id: '10' }
+      const params = useParams();
+      console.log(params.id); // 输出: '10' (字符串)
+
+      // 2. 使用 useSearchParams 获取查询字符串
+      const [searchParams, setSearchParams] = useSearchParams();
+      console.log(searchParams.get('name')); // 输出: 'Mosh'
+
+      // 3. 使用 useLocation 获取完整位置信息
+      const location = useLocation();
+      /* location 对象将是:
+       {
+         pathname: '/users/10',
+         search: '?name=Mosh&active=true',
+         hash: '',
+         state: null,
+         key: 'default'
+       }
+      */
+      console.log(location);
+
+      return <div>User Detail Page: User {params.id}</div>;
+    };
+
+    export default UserDetailPage;
+    ```
+
+## 6-嵌套路由
+
+> 本节讲解如何使用嵌套路由（Nested Routes）来构建包含共享 UI（如持久化的导航栏）的应用布局。其核心是创建一个父路由来渲染共享的布局组件，并在该组件中使用 `<Outlet>` 作为子路由的占位符。然后在路由配置中，通过 `children` 属性将页面路由嵌套在父路由下，从而实现布局共享和内容区的动态切换。
+
+**知识树**
+
+1.  **布局组件（Layout）**
+
+    - 定义页面的整体框架，如导航栏、侧边栏、页脚；
+    - 在内容区域放置 `<Outlet />` 作为子路由渲染的位置。
+
+2.  **`<Outlet>` 占位符**
+
+    - 出现在布局组件中；
+    - React Router 根据当前子路由，将匹配到的元素插入 `<Outlet>` 中。
+
+3.  **嵌套路由配置**
+
+    - 在路由数组中为父路由添加 `children` 属性；
+    - 子路由的 `path` 写相对路径，无需前导斜杠；
+    - 可以定义普通子路由或 `index` 子路由（当用户访问父路径时默认渲染）。
+
+4.  **索引路由（Index Route）**
+
+    - 子路由对象设置 `index: true`，表示在父路径完全匹配时渲染；
+    - 等价于 `path: ''`，二者可任选其一。
+
+5.  **导航链接更新**
+
+    - 在布局组件中用 `<Link to="...">` 替换原生 `<a>`；
+    - 链接目标为父或子路径，支持无刷新切换。
+
+**代码示例**
+
+1.  **创建布局组件 (`src/routing/Layout.tsx`)**
+
+    - 此组件包含共享的导航栏和用于渲染子路由的 `<Outlet />`。
+
+    ```TypeScript
+    import { Outlet } from 'react-router-dom';
+    import NavBar from './NavBar';
+
+    const Layout = () => {
+      return (
+        <>
+          <NavBar />
+          <div id="main">
+            {/* 子路由组件将会在这里被渲染 */}
+            <Outlet />
+          </div>
+        </>
+      );
+    };
+
+    export default Layout;
+    ```
+
+2.  **配置嵌套路由 (`src/routing/routes.tsx`)**
+
+    - 将原有的扁平路由结构调整为嵌套结构。
+
+    ```TypeScript
+    import { createBrowserRouter } from 'react-router-dom';
+    import Layout from './Layout';
+    import HomePage from './HomePage';
+    import UserListPage from './UserListPage';
+    import UserDetailPage from './UserDetailPage';
+
+    const router = createBrowserRouter([
+      // 定义父路由
+      {
+        path: '/',
+        element: <Layout />,
+        // 定义子路由
+        children: [
+          { index: true, element: <HomePage /> }, // 索引路由
+          { path: 'users', element: <UserListPage /> },
+          { path: 'users/:id', element: <UserDetailPage /> },
+        ],
+      },
+    ]);
+
+    export default router;
+    ```
+
+3.  **更新导航栏链接 (`src/routing/NavBar.tsx`)**
+
+    - 确保导航栏中的链接使用 `<Link>` 组件以支持客户端路由。
+
+    ```TypeScript
+    import { Link } from 'react-router-dom';
+
+    const NavBar = () => {
+      return (
+        <nav>
+          <ul>
+            <li>
+              <Link to="/">Home</Link>
+            </li>
+            <li>
+              <Link to="/users">Users</Link>
+            </li>
+          </ul>
+        </nav>
+      );
+    };
+
+    export default NavBar;
+    ```
+
+## 7- 嵌套路由
+
+> **简述：**  
+> 本练习展示如何用嵌套路由实现“主—详情”布局：左侧为用户列表，点击列表项后在右侧渲染对应的用户详情。通过在父路由组件中使用 `<Outlet>` 占位，并在子路由内定义动态路径，实现主视图与详情视图的并列渲染。
+
+```
+src/
+└─ routing/
+   ├─ Layout.tsx
+   ├─ HomePage.tsx
+   ├─ UserList.tsx           # 改名，渲染 <Link to="{id}">
+   ├─ UsersPage.tsx          # 新增：row + Outlet
+   ├─ UserDetailPage.tsx     # 渲染 useParams().id
+   ├─ router.tsx             # 嵌套路由配置
+
+```
+
+**知识树**
+
+1. **“主—详情”布局组件**
+
+    - 使用 Bootstrap 栅格（`row` + `col`）或等效布局将页面分为两列；
+    - 左侧渲染列表组件，右侧放置 `<Outlet>` 作为子路由插槽。
+
+2. **重命名复用组件**
+
+    - 将原来的 `UserListPage` 拆分：
+        - 保留列表逻辑，重命名为 `UserList`；
+        - 在父组件 `UsersPage` 中引用。
+    - 将用户详情组件 `UserDetailPage` 保留，用于子路由。
+
+3. **路由配置中的嵌套**
+
+    - 将 `/users` 路由的 `element` 改为 `UsersPage`；
+    - 在该路由下添加 `children` 数组，将原来的 `/users/:id` 子路由移入其中；
+    - 子路由的 `path` 使用相对路径（无需前导斜杠），如 `':id'`。
+
+4. **相对路径与动态参数**
+
+    - 父路由 `path: 'users'`，子路由 `path: ':id'`；
+    - React Router 会自动拼接成 `/users/123` 并在 `<Outlet>` 中渲染 `UserDetailPage`。
+
+5. **在详情组件中获取参数**
+
+    - 在 `UserDetailPage` 中使用 `useParams()` 获取 `id`；
+    - 根据实际需求将其转换为数字或用于数据请求。
+
+---
+
+**代码示例**
+
+1. **`UsersPage.tsx`：主—详情布局组件**
+
+    ```tsx
+    // routing/UsersPage.tsx
+    import React from 'react';
+    import { Outlet } from 'react-router-dom';
+    import UserList from './UserList';
+
+    const UsersPage: React.FC = () => {
+      return (
+        <div className="row">
+          {/* 左侧：用户列表 */}
+          <div className="col-4">
+            <UserList />
+          </div>
+          {/* 右侧：详情插槽 */}
+          <div className="col-8">
+            <Outlet />
+          </div>
+        </div>
+      );
+    };
+
+    export default UsersPage;
+    ```
+
+2. **路由配置：嵌套路由**
+
+    ```tsx
+    // routing/router.tsx
+    import { createBrowserRouter } from 'react-router-dom';
+    import Layout from './Layout';
+    import HomePage from './HomePage';
+    import UsersPage from './UsersPage';
+    import UserList from './UserList';
+    import UserDetailPage from './UserDetailPage';
+
+    const router = createBrowserRouter([
+      {
+        path: '/',
+        element: <Layout />,
+        children: [
+          { index: true, element: <HomePage /> },
+          {
+            path: 'users',
+            element: <UsersPage />,
+            children: [
+              // index 可渲染默认列表，可选
+              { index: true, element: <UserList /> },
+              // 详情子路由
+              { path: ':id', element: <UserDetailPage /> },
+            ],
+          },
+        ],
+      },
+    ]);
+
+    export default router;
+    ```
+
+3. **`UserDetailPage.tsx`：获取并展示参数**
+
+    ```tsx
+    // routing/UserDetailPage.tsx
+    import React from 'react';
+    import { useParams } from 'react-router-dom';
+
+    const UserDetailPage: React.FC = () => {
+      const { id } = useParams<{ id: string }>();
+      return (
+        <div>
+          <h2>用户详情</h2>
+          <p>当前查看的用户 ID：{id}</p>
+        </div>
+      );
+    };
+
+    export default UserDetailPage;
+    ```
+
+以上即为实现左侧列表、右侧详情的“主—详情”嵌套路由方法：
+
+- 在父组件中通过 `<Outlet>` 渲染子路由；
+- 在路由配置中将详情路径作为 `users` 的子路由；
+- 使用 `useParams` 获取动态参数，驱动详情视图。
+
+## 8- 高亮当前链接
+
+> **简述：**  
+> 在导航栏中，为了让用户明确当前所在页面，需要对对应的链接进行高亮。React Router 提供了 `<NavLink>` 组件，它会在与当前路由匹配时，自动给渲染的元素添加 `active` 类，配合 CSS 或 UI 框架即可实现选中样式。
+
+---
+
+**知识树**
+
+1. **`<NavLink>` vs `<Link>`**
+
+    - **`<Link>`**：基础导航组件，仅渲染无刷新的锚点。
+    - **`<NavLink>`**：在基础功能上，额外会根据路由匹配给元素添加 `active` 类，便于高亮样式。
+
+2. **默认 `active` 类名**
+
+    - `<NavLink>` 自动在匹配时添加 `class="active"`；
+    - 可在 CSS 中定义 `.active` 的样式，或配合框架（如 Bootstrap 的 `.active`）使用。
+
+3. **自定义类名或内联样式**
+
+    - 通过传入 `className` 属性为 `<NavLink>` 指定动态类名：
+        ```tsx
+        <NavLink
+          to="/"
+          className={({ isActive }) => isActive ? 'my-active nav-link' : 'nav-link'}
+        >
+          首页
+        </NavLink>
+        ```
+    - 同理可传 `style={({ isActive }) => ({ color: isActive ? 'red' : 'black' })}` 实现内联样式切换。
+
+4. **示例场景：Bootstrap 导航**
+
+    - 默认 `<NavLink>` 的 `active` 类恰好与 Bootstrap 要求一致；
+    - 只需为所有导航链接添加 `nav-link`，匹配时自动叠加 `active`。
+
+---
+
+**代码示例**
+
+```tsx
+// routing/Layout.tsx
+import React from 'react';
+import { NavLink, Outlet } from 'react-router-dom';
+
+const Layout: React.FC = () => (
+  <div>
+    <nav className="navbar navbar-expand navbar-light bg-light">
+      <ul className="navbar-nav">
+        <li className="nav-item">
+          {/* NavLink 会在路径匹配时自动添加 class="active" */}
+          <NavLink to="/" className="nav-link">
+            首页
+          </NavLink>
+        </li>
+        <li className="nav-item">
+          <NavLink to="users" className="nav-link">
+            用户列表
+          </NavLink>
+        </li>
+      </ul>
+    </nav>
+
+    <div className="container mt-3">
+      <Outlet />
+    </div>
+  </div>
+);
+
+export default Layout;
+```
+
+- **可选：自定义 active 类名**
+
+    ````TS
+    <NavLink
+    to="/"
+    className={({ isActive }) =>
+    isActive ? 'nav-link my-custom-active' : 'nav-link'
+    }
+    >
+          首页
+        </NavLink>
+
+        ```
+         通过函数式 `className`，根据 `isActive` 条件动态返回所需类名。
+    ````
+
+## 9- 错误处理
+
+> **简述：**  
+> 在路由配置中，可以为每个 `Route` 指定 `errorElement`，让 React Router 在路径不匹配或渲染出错时自动切换到自定义错误组件。还可在错误组件内使用 `useRouteError()` 钩子获取异常对象，并用 `isRouteErrorResponse()` 区分“404 未找到”与其他运行时错误，灵活渲染不同提示。
+
+---
+
+**知识树**
+
+1. **定义错误页组件**
+
+    - 创建 `ErrorPage` 组件，渲染通用错误或“页面不存在”提示；
+    - 在组件中使用 `useRouteError()` 获取当前路由错误对象。
+
+2. **在路由上挂载 `errorElement`**
+
+    - 在顶层路由（通常是 `/`）配置：
+        ```ts
+        {
+          path: '/',
+          element: <Layout />,
+          errorElement: <ErrorPage />,
+          children: [ … ],
+        }
+        ```
+    - 所有未匹配子路由或渲染异常均会跳转到 `ErrorPage`。
+
+3. **获取与日志错误对象**
+
+    - 在 `ErrorPage` 中：
+        ```ts
+        const error = useRouteError();
+        console.error(error); // 可上报到 Sentry 等服务
+        ```
+    - 方便集中处理和记录运行时或数据加载错误。
+
+4. **区分路由失配与其他错误**
+
+    - 使用 `isRouteErrorResponse(error)` 判断是否为 404 错误响应；
+    - `true` → 渲染“页面不存在”；
+    - `false` → 渲染“意外错误”或系统提示。
+
+5. **错误处理的好处**
+
+    - **统一入口**：所有页面错配或运行期异常通过同一组件处理；
+    - **用户体验**：展示友好提示而非崩溃白屏；
+    - **可扩展性**：在 `ErrorPage` 中集成错误日志上报、重试按钮等。
+
+---
+
+**代码示例**
+
+```tsx
+// routing/ErrorPage.tsx
+import React from 'react';
+import {
+  useRouteError,
+  isRouteErrorResponse,
+} from 'react-router-dom';
+
+const ErrorPage: React.FC = () => {
+  const error = useRouteError();
+  console.error('路由错误：', error);
+
+  // 404 路由未找到
+  if (isRouteErrorResponse(error)) {
+    return (
+      <div>
+        <h1>页面未找到 (404)</h1>
+        <p>无法找到您访问的页面。</p>
+      </div>
+    );
+  }
+
+  // 其他异常
+  return (
+    <div>
+      <h1>发生意外错误</h1>
+      <p>请稍后重试或联系管理员。</p>
+    </div>
+  );
+};
+
+export default ErrorPage;
+```
+
+```ts
+// routing/router.tsx
+import { createBrowserRouter } from 'react-router-dom';
+import Layout from './Layout';
+import ErrorPage from './ErrorPage';
+import HomePage from './HomePage';
+import UsersPage from './UsersPage';
+import UserList from './UserList';
+import UserDetailPage from './UserDetailPage';
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Layout />,
+    errorElement: <ErrorPage />,  // 挂载自定义错误页
+    children: [
+      { index: true, element: <HomePage /> },
+      {
+        path: 'users',
+        element: <UsersPage />,
+        children: [
+          { index: true, element: <UserList /> },
+          { path: ':id', element: <UserDetailPage /> },
+        ],
+      },
+    ],
+  },
+]);
+
+export default router;
+```
+
+> **小结：**
+>
+> -   使用 `errorElement` 统一捕获路由错误；
+> -   在错误页用 `useRouteError()` 获取错误详情，并用 `isRouteErrorResponse()` 区分 404 与其他错误；
+> -   可选集成错误上报与重试，提升应用健壮性与用户体验。
+
+## 10- 私有路由
+
+> 本节介绍一种实现私有路由（Private Routes）的初步方法。私有路由旨在限制未认证用户访问特定页面。其核心挑战在于如何在组件渲染期间安全地执行重定向。正确的工具是使用 `<Navigate>` 声明式组件，而非具有副作用的 `useNavigate` Hook。本节演示的在每个受保护组件内部单独进行权限检查的方法，因其代码重复和低可扩展性，被认为是一种有待改进的方案。
+
+**知识树**
+
+1. **概念：私有路由 (Private Route)**
+
+    - **定义**: 专为已认证（或已登录）用户保留的路由。未经授权的用户尝试访问时，应被自动重定向到登录页面。
+    - **目的**: 保护应用中的敏感数据或功能区域，如用户个人中心、管理后台等。
+
+2. **核心技术挑战：渲染期间的重定向**
+
+    - **问题场景**: 权限检查发生在组件渲染的开始阶段。如果检查失败，需要立即中止当前渲染并跳转到登录页。
+    - **不恰当的工具 - `useNavigate` Hook**:
+        - `useNavigate` 返回的 `Maps` 函数是一个命令式的、会产生**副作用**的操作。
+        - 根据 React 的设计原则，组件的渲染过程应当是**纯粹的**，不应包含副作用。因此，在组件的顶层逻辑中直接调用 `Maps()` 是不被允许的。
+        - 若将 `Maps()` 放入 `useEffect`，则会导致受保护的组件内容先被渲染一次，然后才执行跳转，造成页面闪烁，用户体验极差。
+    - **正确的工具 - `<Navigate>` 组件**:
+        - `<Navigate>` 是 React Router 提供的一个**声明式组件**。
+        - **工作原理**: 当 `<Navigate>` 组件被**渲染**时，它会向 React Router 发出一个重定向的指令。这是一种在渲染流程中安全、声明式地表达导航意图的方式。
+        - **用法**: 在权限检查失败的逻辑分支中，直接 `return <Navigate to="/login" />`。
+
+3. **初步实现方法：在组件内部进行检查**
+
+    1. **获取认证状态**: 在需要保护的组件（如 `UsersPage`）内部，通过 Hook 或其他方式获取当前用户的认证信息。
+    2. **权限检查**: 在组件渲染逻辑的顶部，使用 `if` 语句判断用户是否存在。
+    3. **执行重定向**: 如果用户不存在，则 `return <Navigate to="/login" />`，这会立即中止当前组件的渲染并触发跳转。
+    4. **渲染内容**: 如果用户存在，则组件继续正常渲染其业务相关的 JSX。
+    5. **添加登录页路由**: 必须在路由配置中为重定向的目标（如 `/login`）添加一个有效的路由条目。
+
+4. **对该方法的批判与分析**
+
+    - **主要缺陷：可扩展性差 (Not Scalable)**
+    - **代码重复**: 如果应用中有多个私有路由，那么上述的“获取认证 -> 检查 -> 重定向”逻辑就必须在**每一个**受保护的组件中重复一遍。
+    - **违反 DRY 原则**: 这种设计违反了“不要重复自己”（Don't Repeat Yourself）的基本编程原则，导致代码冗余，难以维护。
+    - **结论**: 虽然此方法在功能上可行，但它并非一种优雅或推荐的最终解决方案。后续将介绍如何使用布局路由来集中处理认证逻辑。
+
+---
+
+**代码示例**
+
+1. **在受保护组件内实现权限检查 (`src/routing/UsersPage.tsx`)**
+
+    - 这是一个展示了初步但有缺陷的私有路由实现方式的例子。
+
+    ```TypeScript
+    import { Navigate } from 'react-router-dom';
+    import useAuth from './hooks/useAuth'; // 假设这是一个获取认证状态的 Hook
+
+    const UsersPage = () => {
+      // 1. 获取认证状态
+      const { user } = useAuth();
+
+      // 2. 检查权限
+      if (!user) {
+        // 3. 如果未认证，渲染 Navigate 组件以执行重定向
+        return <Navigate to="/login" />;
+      }
+
+      // 4. 如果已认证，渲染页面内容
+      return (
+        <div>
+          <h1>Users Page</h1>
+          <p>This is a protected area.</p>
+        </div>
+      );
+    };
+
+    export default UsersPage;
+    ```
+
+2. **在路由配置中添加登录页路由 (`src/routing/routes.tsx`)**
+
+    - 确保重定向有合法的目标页面。
+
+    ```TypeScript
+    import { createBrowserRouter } from 'react-router-dom';
+    import LoginPage from './LoginPage';
+    // ... 其他组件导入
+
+    const router = createBrowserRouter([
+      {
+        path: '/',
+        element: <Layout />,
+        children: [
+          // ... 其他路由
+          { path: 'login', element: <LoginPage /> },
+        ],
+      },
+    ]);
+
+    export default router;
+    ```
+
+## 11- 布局路由
+
+> **简述：**  
+> 当你需要对一组路由统一应用布局或业务规则（如认证、权限校验）时，可使用“布局路由”将公共逻辑抽象出来，再通过 `<Outlet>` 渲染子路由。这种模式让私有路由、错误处理或其他中间件逻辑集中维护，避免在每个页面组件中重复代码。
+
+**知识树**
+
+1. **布局路由的概念**
+
+    - 不是用于渲染页面视图，而是作为“容器”存在；
+    - 在路由配置中指定 `element` 为布局组件，并通过 `children` 挂载需要共享该布局或规则的路由。
+
+2. **应用场景：集中化私有路由逻辑**
+
+    - **待解决的问题**: 在每个需要保护的组件内部重复编写认证和重定向逻辑，导致代码冗余且难以维护。
+    - **解决方案**: 创建一个专门的布局路由，将所有私有路由置于其下，由该布局路由统一执行权限检查。
+
+3. **第一步：创建“守卫”组件 (Guard Component)**
+
+    - 创建一个新的 React 组件（例如 `PrivateRoutes.tsx`）。
+    - **组件核心逻辑**:
+        1. 在其内部，通过 Hook 或其他方式获取用户的认证状态。
+        2. **认证失败**: 如果用户未登录，则 `return <Navigate to="/login" />`。此操作将立即重定向用户，并中止后续的渲染流程。
+        3. **认证成功**: 如果用户已登录，则 `return <Outlet />`。`<Outlet>` 在此充当一个“通行证”，允许 React Router 继续渲染用户原本想要访问的目标子路由。
+    - **组件角色**: 这个守卫组件扮演了一个“门卫”的角色，它决定是“拒绝访问”（重定向）还是“允许进入”（渲染子路由）。
+
+4. **第二步：在路由配置中应用布局路由**
+
+    - **移除重复逻辑**: 从所有受保护的业务组件（如 `UsersPage`）中删除原有的认证检查代码。
+    - **创建布局路由**: 在路由配置文件中，创建一个新的、**无 `path` 属性**的路由对象。
+    - **指定守卫元素**: 将此路由对象的 `element` 属性设置为新创建的守卫组件 (`element: <PrivateRoutes />`)。
+    - **组织受保护的路由**: 将所有需要被保护的路由对象（例如 `/users` 及其所有嵌套路由）整体移动到这个无路径布局路由的 `children` 数组中。
+
+5. **工作流程与核心优势**
+
+    - **执行流程**: 当用户尝试访问一个受保护的路径（如 `/users`）时，React Router 会首先匹配到其父级——即我们的无路径布局路由。因此，它会先渲染 `<PrivateRoutes />` 组件。该组件执行权限检查，然后根据结果决定是渲染 `<Navigate>`（跳转）还是 `<Outlet>`（放行，并由 React Router 在 Outlet 中渲染 `/users` 对应的组件）。
+    - **优势**:
+        - **集中化**：所有私有路由逻辑只写在一个布局组件中；
+        - **复用性**：可创建多个布局（如 `AdminLayout`、`AuthLayout`），分别处理不同规则；
+        - **可维护性**：新增或移除受保护路由时，只需更新 `children` 数组，无需修改各页面组件。
+
+---
+
+**代码示例**
+
+1. **创建守卫组件 (`src/routing/PrivateRoutes.tsx`)**
+
+    - 此组件封装了集中的认证逻辑。
+
+    ```TypeScript
+    import { Navigate, Outlet } from 'react-router-dom';
+    import useAuth from './useAuth';
+
+    const PrivateRoutes = () => {
+      const { user } = useAuth();
+
+      // 如果未登录，重定向到登录页
+      if (!user) return <Navigate to="/login" />;
+
+      // 如果已登录，渲染子路由
+      return <Outlet />;
+    };
+
+    export default PrivateRoutes;
+    ```
+
+2. **更新路由配置 (`src/routing/routes.tsx`)**
+
+    - 使用无路径的布局路由来包裹所有需要保护的路由。
+
+    ```TypeScript
+    import { createBrowserRouter } from 'react-router-dom';
+    import Layout from './Layout';
+    import PrivateRoutes from './PrivateRoutes'; // 引入守卫组件
+    import HomePage from './HomePage';
+    import UsersPage from './UsersPage';
+    import LoginPage from './LoginPage';
+    // ...
+
+    const router = createBrowserRouter([
+      {
+        path: '/',
+        element: <Layout />,
+        // ...
+        children: [
+          { index: true, element: <HomePage /> },
+          { path: 'login', element: <LoginPage /> },
+          // 创建一个无路径的布局路由
+          {
+            element: <PrivateRoutes />,
+            // 将所有需要保护的路由放在其 children 中
+            children: [
+              {
+                path: 'users',
+                element: <UsersPage />,
+                children: [{ path: ':id', element: <UserDetail /> }],
+              },
+              // ... 未来可以添加其他私有路由，如 /dashboard 等
+            ],
+          },
+        ],
+      },
+    ]);
+
+    export default router;
+    ```
