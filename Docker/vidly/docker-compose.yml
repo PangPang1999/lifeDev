@@ -1,0 +1,37 @@
+services:
+  frontend:
+    depends_on:
+      - backend
+    build: ./frontend
+    ports:
+      - 3000:3000
+    volumes:
+      - ./frontend:/app
+
+  frontend-test:
+    image: vidly-frontend
+    volumes:
+      - ./frontend:/app
+    command: npm test
+
+  backend:
+    depends_on:
+      - db
+    build: ./backend
+    ports:
+      - 3001:3001
+    environment:
+      DB_URL: mongodb://db/vidly
+    volumes:
+      - ./backend:/app
+    command: ./docker-entrypoint.sh
+
+  db:
+    image: mongo:6-jammy
+    ports:
+      - 27017:27017
+    volumes:
+      - vidly:/data/db
+
+volumes:
+  vidly:
