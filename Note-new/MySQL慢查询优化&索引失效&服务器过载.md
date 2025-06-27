@@ -86,3 +86,32 @@
         ```
 
         - 描述：把慢日志里的 SQL 拿出来，放到 MySQL 命令行或可视化工具里用 `EXPLAIN` 分析，查看各表的访问类型、索引使用情况、扫描行数等。
+
+## MySQL 服务器过载排查
+
+1. 找“谁”在消耗 CPU
+    - 登录服务器，查看 mysqld 进程下的线程 CPU 消耗，记下高 CPU 线程的 Thread ID（十进制转十六进制）。
+        - `top -Hp $(pidof mysqld)`
+    - 在 MySQL 内部查找 SQL，对应 thread id，可以看到正在执行的 SQL 语句。
+        - `SHOW PROCESSLIST;`
+2. 慢 SQL 定位
+    - 检查慢查询日志（slow log），分析是否有慢 SQL 在大量执行。
+    - `SHOW VARIABLES LIKE 'slow_query_log%';`
+
+## MySQL 索引失效情况
+
+1. 条件左模糊查询（`%xxx`）
+    - `like '%abc'` 或 `like '%abc%'` 不能用索引（B+树无法定位前缀）。
+    - 使用`like '_abc'`，范围相对较小，可以使用索引
+2. `or` 条件混用，部分字段无索引
+    - `or` 连接的多个条件，只要有一个字段没有索引，全部索引失效，全表扫描。
+3. 隐式类型转换
+    - `where` 条件与字段类型不一致，MySQL 自动转换，导致索引失效。比如 id 为 int，使用了字符串来查询。
+4. 函数操作/表达式操作字段
+    - 在索引列上使用函数或算术表达式，索引失效。比如`where year(create_time) = 2024`、`where age + 1 = 10`
+5. 组合索引未“最左前缀”匹配
+    - 未从最左字段开始连续使用组合索引，索引失效。`where b = 1 and c = 2; -- 无法用上索引`、`select * from t where a = 1 and c = 2; -- 只用到 a`
+6. `not、!=、<>、is null/is not null`
+    - 绝大多数情况下，`not、!=、<>、is not null` 不能用到索引。
+7. 范围查询后续字段失效
+    - 组合索引中，遇到范围查询（如`>`, `<`, `between`）后，后续字段不能用索引。
