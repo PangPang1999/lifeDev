@@ -1,0 +1,35 @@
+services:
+  frontend:
+    depends_on:
+      - backend
+    # 指定 Dockerfile.prod 作为生产环境的 Dockerfile
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    image: vidly-frontend:2.0
+    ports:
+      - 80:80
+    restart: unless-stopped
+
+  backend:
+    depends_on:
+      - db
+    build: ./backend
+    image: vidly-backend:1.0
+    ports:
+      - 3001:3001
+    environment:
+      DB_URL: mongodb://db/vidly
+    command: ./docker-entrypoint.sh
+    restart: unless-stopped
+
+  db:
+    image: mongo:6-jammy
+    ports:
+      - 27017:27017
+    volumes:
+      - vidly:/data/db
+    restart: unless-stopped
+
+volumes:
+  vidly:
