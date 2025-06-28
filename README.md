@@ -5,7 +5,7 @@
 - [Java 笔记 | Java Notes](./Note-new/Java.md)
 - [Spring Boot 笔记 | Spring Boot Notes]：[Part1](./Note-new/SpringBoot.md)、[Part2](./Note-new/SpringBoot2.md)
 - [MySQL 指南](./Note-new/MySQL.md) _to be refactored for better readability_
-- [慢 SQL 调优](./Note-new/MySQL慢查询优化.md)
+- [慢 SQL & 索引 & MySQL 服务器异常](./Note-new/MySQL慢查询优化&索引失效&服务器过载.md)
 - [Docker & Linux](./Note-new/Docker.md) _current focus_
 
 # lifeDev · 技术学习成长项目
