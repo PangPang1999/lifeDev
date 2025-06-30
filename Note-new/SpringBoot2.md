@@ -7567,6 +7567,10 @@ Organizing code
 
 **知识树**
 
+0. 注意
+
+    - 本地无法模拟，需 VPS
+
 1. 元数据绑定与回传
 
     - 创建 Stripe Checkout Session 时，通过 `putMetadata` 将订单主键写入元数据（如 `"order_id"`）。
@@ -8627,7 +8631,7 @@ https://railway 中拷贝/checkout/webhook
             - 异常请求数
                 - `sum(rate(http_server_requests_seconds_count{status="500"}[1m])) by (uri)`
 
-### 常见事务传播机制
+## 常见事务传播机制
 
 > 简述：Spring 事务传播机制是指当一个带事务的方法被另一个带事务的方法调用时，事务如何传播和行为表现。Spring 通过`@Transactional(propagation = ...)`的`propagation`属性设置传播行为，
 
