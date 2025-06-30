@@ -232,6 +232,7 @@ IDEA 插件 CodeWhisperer 测试中，AWS 开发
 3. Mysql
 
     0. 目前使用 Homebrew 安装 Mysql 会安装 `9.x` 版本，不兼容 Flyway 常规版本
+
         1. 官网下载安装兼容性较高的`8.0.42`版本
         2. 官网：https://www.mysql.com/downloads/
         3. 下载地址：https://dev.mysql.com/get/Downloads/MySQL-9.3/mysql-9.3.0-macos15-arm64.dmg
@@ -240,6 +241,13 @@ IDEA 插件 CodeWhisperer 测试中，AWS 开发
             echo 'export PATH="/usr/local/mysql/bin:$PATH"' >> ~/.zprofile
             source ~/.zprofile
             ```
+        5. 常用
+
+        ```sh
+        	sudo /usr/local/mysql/support-files/mysql.server start
+        	sudo /usr/local/mysql/support-files/mysql.server stop
+        ```
+
     1. 使用 Homebrew 安装 Mysql
         ```sh
         brew install mysql
