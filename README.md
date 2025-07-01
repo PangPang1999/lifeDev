@@ -6,11 +6,12 @@
 - [Spring Boot 笔记 | Spring Boot Notes]：[Part1](./Note-new/SpringBoot.md)、[Part2](./Note-new/SpringBoot2.md)
 - [MySQL 指南](./Note-new/MySQL.md) _to be refactored for better readability_
 - [慢 SQL & 索引 & MySQL 服务器异常](./Note-new/MySQL慢查询优化&索引失效&服务器过载.md)
-- [Docker & Linux](./Note-new/Docker.md)
+- [Docker](./Note-new/Docker.md)
+- [TypeScript](./Note-new/TypeScript.md) _current focus_
 
 # lifeDev · 技术学习成长项目
 
-> 自我驱动的学习项目，当前涵盖 HTML/CSS、JavaScript、Java、Spring Boot 、Docker 核心内容。通过费曼学习法，将知识拆解、输出为结构化笔记，逐步构建起完整的知识体系。
+> 自我驱动的学习项目，当前涵盖 HTML/CSS、JavaScript、Java、Spring Boot 、Docker 、 TypeScript 核心内容。通过费曼学习法，将知识拆解、输出为结构化笔记，逐步构建起完整的知识体系。
 >
 > 这是一个长期项目。我不是试图记住所有内容，而是专注于系统地记笔记，这样当我忘记时，我可以轻松地查找并迅速回到正轨。
 
@@ -24,7 +25,7 @@
 
 # lifeDev · Self-Driven Technical Growth Project
 
-> A self-initiated learning project focused on mastering the fundamentals and core concepts of HTML/CSS, JavaScript, Java, and Spring Boot. By applying the Feynman Technique, I break down complex topics into structured, easy-to-review notes, and systematically build a solid and interconnected knowledge base.
+> A self-initiated learning project focused on mastering the fundamentals and core concepts of HTML/CSS, JavaScript, Java, Spring Boot, Docker, and TypeScript. By applying the Feynman Technique, I break down complex topics into structured, easy-to-review notes, and systematically build a solid and interconnected knowledge base.
 >
 > This is a long-term project. Rather than trying to memorize everything, I focus on systematic note-taking—so when I forget, I can easily look things up and quickly get back on track.
 
