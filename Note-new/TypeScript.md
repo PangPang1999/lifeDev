@@ -150,6 +150,8 @@
         - `noUnusedParameters`：检测未使用的函数参数，发出警告。
         - `noUnusedLocals`：检测未使用的局部变量，发出警告。
         - `noImplicitReturns`：如果函数可能返回 `undefined`（没有全路径返回），则发出警告。
+    5. 其他配置
+        - `allowUnreachableCode`：检测抵达不到的代码，发出警告。默认为 true 只变淡不警告，需要手动设置为 false
 
 3. 编译流程
 
