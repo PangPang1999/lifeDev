@@ -259,7 +259,7 @@
 
 ## Any 类型
 
-> 简述：TS 中 any 类型可接受任何类型的值，但存在风险，需要谨慎处理。
+> 简述：TS 中 any 类型可接受任何类型的值，但存在风险，需要谨慎处理。使用 Unknown 更安全，稍后介绍。
 
 **知识树**
 
@@ -646,3 +646,519 @@
     ```
 
     - 描述：可以在类型注解中定义方法签名，明确参数和返回类型
+
+# Advanced Types
+
+## 类型别名
+
+> 简述：通过使用 TypeScript 的类型 别名（type alias），我们能集中定义对象的结构，避免重复编写相同的代码，保证数据一致性并提升代码的可读性。
+
+**知识树**
+
+1. 对象结构问题
+
+    - 重复编写相同结构
+    - 对象属性不统一
+    - 代码维护困难
+
+2. 类型别名（Type Alias）
+
+    - 定义自定义类型的方式
+    - 使用 **`type`** 关键字
+    - 命名采用 PascalCase（如 Employee）
+
+3. 类型别名的优点
+
+    - 集中管理对象结构
+    - 避免代码重复
+    - 保证各对象的一致性
+
+4. 实践应用
+
+    - 定义类型别名
+    - 使用类型注解创建对象
+
+**代码示例**
+
+1. 定义类型别名
+
+    ```typescript
+    type Employee = {
+      name: string;
+      id: number;
+      department?: string; // 可选属性
+    };
+    ```
+
+    - 说明：通过类型别名定义了 Employee 类型，描述了员工对象的标准结构。
+
+2. 使用类型别名创建对象
+
+    ```typescript
+    const employee1: Employee = {
+      name: "Alice",
+      id: 101,
+      department: "Engineering",
+    };
+
+    const employee2: Employee = {
+      name: "Bob",
+      id: 102,
+    };
+    ```
+
+    - 说明：通过 Employee 类型注解，确保所有员工对象结构一致，避免重复定义和结构不统一的问题。
+
+## 联合类型
+
+> 简述：联合类型（Union Types）允许变量或函数参数接受多种类型，通过运行时判断（类型缩小）确定实际类型，从而使用各自特定的方法和属性，对初学者友好。
+
+**知识树**
+
+1. 联合类型
+
+    - 定义：使用 `|` 分隔多个类型，变量可以是其中任一类型
+
+2. 类型缩小
+
+    - 定义：通过条件判断（如 `typeof`）确定联合类型的具体类型
+    - 原理：仅暴露所有类型共有的方法和属性，需缩小后才能访问专有成员
+
+3. 应用场景
+
+    - 函数参数或返回值中使用联合类型，可以灵活地传递多种类型的参数或返回多种类型的值
+    - 灵活处理用户输入与数据格式转换
+
+4. 编译器行为
+
+    - 联合类型用于编译时类型检查，生成的 JavaScript 代码中不体现
+
+**代码示例**
+
+1. 联合类型与类型缩小应用
+
+    ```ts
+    function kgToLbs(weight: number | string): number {
+      if (typeof weight === "number") {
+        return weight * 2.2;
+      } else {
+        return parseInt(weight) * 2.2;
+      }
+    }
+
+    console.log(kgToLbs(10));
+    console.log(kgToLbs("10kg"));
+    ```
+
+    - 说明：该函数接受数字或字符串类型的 weight，通过 `typeof` 判断后分别处理，实现公斤转换为磅的功能。由于`10kg`的前面是数组，将转为 10，如果是`kg10`，将变成`NaN`
+
+## 交叉类型
+
+> 简述：通过交叉类型（Intersection Types），我们将多个独立接口合并成一个新类型，确保对象同时满足所有接口的要求。这种方式避免了重复定义，提升了代码一致性与可读性，对初学者非常友好。
+
+**知识树**
+
+1. 交叉类型基础
+
+    - 定义：使用 `&` 将多个类型合并
+    - 特点：合并后对象需同时具备所有类型的属性和方法
+    - 注意：对于原始类型，交叉类型（如 number & string）通常无实际意义
+
+2. 交叉类型的应用
+
+    - 合成新类型示例：
+        - 将 Draggable 与 Resizable 合并为 UIWidget，创建 UIWidget 时，需要具备前两者内所有的属性与方法
+    - 优点：集中管理对象结构，防止重复代码，提高类型安全
+    - 与联合类型形成对照：联合类型偏“多选一”，交叉类型则偏“多重叠加”。
+
+3. 实践案例
+
+    - 定义 UIWidget 类型，确保对象同时实现拖动和调整大小的功能
+    - 通过类型注解明确对象结构，便于维护和扩展
+
+**代码示例**
+
+1. 定义基础类型别名
+
+    ```typescript
+    type Draggable = {
+      drag: () => void;
+    };
+
+    type Resizable = {
+      resize: () => void;
+    };
+    ```
+
+2. 合成交叉类型并实现对象
+
+    ```typescript
+    type UIWidget = Draggable & Resizable;
+
+    const textBox: UIWidget = {
+      drag: () => {
+        console.log("Dragging the text box...");
+      },
+      resize: () => {
+        console.log("Resizing the text box...");
+      },
+    };
+    ```
+
+    - 说明：textBox 对象实现了 UIWidget 类型的所有要求，即同时具备拖动和调整大小的能力，从而展示了交叉类型的实际应用。
+
+## 字面量类型
+
+> 简述：字面量类型（Intersection Types）通过限定变量取值为具体的常量（如特定数字或字符串），帮助开发者精确定义可接受的值，提升类型安全性和代码可读性。
+
+**知识树**
+
+1. 字面量类型概念
+
+    - 限定变量只能取某个具体值，而非任意数值或字符串
+
+2. 字面量类型 + 联合类型
+
+    - 将多个字面量组合成联合类型，允许变量取多个固定值
+
+3. 使用类型别名简化代码
+
+    - 使用 `type` 定义自定义字面量类型，便于复用与维护
+
+4. 字面量类型的扩展
+
+    - 数字和字符串字面量均可使用，提供灵活的类型定义
+
+**代码示例**
+
+1. 使用字面量类型定义变量
+
+    ```typescript
+    // 限定数量只能是 50 或 100
+    let quantity: 50 | 100 = 50;
+    ```
+
+2. 使用类型别名简化代码
+
+    ```typescript
+    // 定义 Quantity 类型
+    type Quantity = 50 | 100;
+    let quantity: Quantity = 50;
+
+    // 定义 Metric 类型，只允许 'centimeter' 或 'inch'
+    type Metric = "centimeter" | "inch";
+    let unit: Metric = "inch";
+    ```
+
+    - 说明：通过自定义类型别名，将字面量组合为联合类型，保证变量只能接受预定义的具体值。
+
+## 可空类型
+
+> 简述： TypeScript 通过严格空值检查防止 null/undefined 引发错误，通过联合类型（union type）可以显式声明可空类型（Nullable Types）。
+
+**知识树**
+
+1. TypeScript 对 `null`/`undefined` 的默认严格模式
+
+    - 原因：`null` 和 `undefined` 常是导致错误的根源。
+    - 实现：`strictNullChecks` 在 `tsconfig.json` 中默认开启（若 `strict` 为 `true`），从而阻止将 `null`/`undefined` 赋给非空类型。
+
+2. 可空类型声明
+
+    - 利用联合类型（如 `string | null`）允许变量或参数为空，但仍然不可传`undefined`
+
+3. 应用逻辑
+
+    - 依据参数是否存在执行不同逻辑，防止运行时错误
+
+4. `tsconfig` 配置
+
+    - `strictNullChecks` 选项确保类型安全，默认开启
+
+**代码示例**
+
+1. 用联合类型显式允许 `null`/`undefined`
+
+    ```typescript
+    function greet(name: string | null): void {
+      if (name) {
+        console.log(name.toUpperCase());
+      } else {
+        console.log("Hola");
+      }
+    }
+    ```
+
+    - 描述：通过使用联合类型，函数就能安全地同时处理 `string` 和 `null`，当 `name` 是 `string`，执行 `toUpperCase()`，当 `name` 是 `null`，执行其他逻辑。
+
+## 可选链 `?.`
+
+> 简述：TypeScript 的可选链（Optional Chaining）操作符，用于简化空值检查，安全访问对象属性、数组元素及函数调用，防止因 null 或 undefined 导致的运行时错误。
+
+**知识树**
+
+1. 可选属性访问
+
+    - 使用 `?.` 访问对象属性
+    - 若对象为 null/undefined，表达式返回 undefined，避免了 `if` 判断
+
+2. 可选元素访问
+
+    - 使用 `?.[]` 安全获取数组元素
+    - 避免空数组或未定义数组引发错误
+
+3. 可选调用
+
+    - 使用 `?.()` 调用函数
+    - 仅在函数存在时执行调用，否则返回 undefined
+
+**代码示例**
+
+1. 原始判断
+
+    ```ts
+    type Customer = {
+      birthday: Date;
+    };
+
+    // function getCustomer(id: number): Customer | null {
+    function getCustomer(id: number): Customer | null | undefined {
+      return id === 0 ? null : { birthday: new Date() };
+    }
+
+    const customer = getCustomer(0);
+
+    // if (customer !== null) {
+    if (customer !== null && customer !== undefined) {
+      console.log(customer.birthday);
+    }
+    ```
+
+2. 可选属性访问示例
+
+    ```ts
+    type Customer = {
+      birthday: Date;
+    };
+
+    function getCustomer(id: number): Customer | null | undefined {
+      return id === 0 ? null : { birthday: new Date() };
+    }
+
+    const customer = getCustomer(0);
+    console.log(customer?.birthday?.getFullYear());
+    ```
+
+    - 说明：通过 `?.` 链式调用，即使 customer 或 birthday 为 null/undefined，也不会报错。
+
+3. 可选链访问数组元素
+
+    ```typescript
+    const numbers: number[] | null = null;
+    // 安全访问第一个元素，如果 numbers 为 null，结果为 undefined
+    console.log(numbers?.[0]); // 输出：undefined
+    ```
+
+4. 可选链调用类方法
+
+    ```ts
+    class Greeter {
+      greet(name: string) {
+        console.log(`Hello, ${name}!`);
+      }
+    }
+
+    const greeter: Greeter | null = null;
+    // 安全调用方法，如果 greeter 为 null 不会报错
+    greeter?.greet("Alice");
+    ```
+
+## 空值合并操作符`??`
+
+> 简述：空值合并操作符（??），在处理 null 或 undefined 时提供默认值，能确保代码逻辑精确且安全
+
+**知识树**
+
+1. `falsy`
+
+    - 包含：`null`/`undefined`以及`0`、`false`、‘ ’
+    - 问题：`||` 运算符会错误忽略 `0`、空字符串等有效的“假值”
+
+2. 空值合并操作符（`??`）
+
+    - 作用：只将 `null` 和 `undefined` 视为空，其他 `falsy` 值都保留原值。
+    - 语法：`a ?? b`
+        - 如果 `a` 不为 `null` 或 `undefined`，返回 `a`；否则返回 `b`。
+    - 优势：不误判其他 falsy 值
+
+3. 应用场景
+
+    - 用户输入缺失时设定默认值
+    - 对象属性初始化及安全访问
+
+**代码示例**
+
+1. 使用空值合并操作符为变量提供默认值
+
+    ```typescript
+    let speed: number | null = null;
+    // 如果 speed 为 null 或 undefined，则使用默认值 50
+    const actualSpeed = speed ?? 50;
+    console.log(actualSpeed); // 输出 50
+    ```
+
+    - 描述：避免使用 `||`，确保`0`、`''` 等有效数值不被误判为空。
+    - `speed: speed ?? 30`等价于：`speed: speed!==null ? speed: 30`
+
+## 断言类型
+
+> 简述：断言类型让开发者告知编译器变量实际的具体类型，从而使用更精确的属性和方法。它仅在编译时生效，不进行任何运行时转换。
+
+**知识树**
+
+1. 类型断言概念
+
+    - 定义：通过断言告知编译器变量的具体类型，超越自动推断
+    - 目的：获得更精确的类型信息以便访问专有属性
+
+2. 语法形式
+
+    - as 语法：推荐使用，兼容性更好
+    - 尖括号语法：功能相同，但在 JavaScript XML 中不可用
+    - 常见操作
+        - 指定获取到的元素是什么具体类型，(例如将 `getElementById` 的返回值（`HTMLElement | null`）断言为更具体的 `HTMLInputElement`)
+
+3. 注意事项
+
+    - 仅影响编译期，运行时不做类型转换
+    - 错误断言可能导致运行时错误
+        - 如果实际值不是你断言的类型，在运行时访问该类型独有的属性或方法时，就会报错。
+
+**代码示例**
+
+1. 使用 as 语法进行类型断言
+
+    ```typescript
+    // 获取 id 为 "phone" 的元素，并断言为 HTMLInputElement
+    const phone = document.getElementById("phone") as HTMLInputElement;
+    console.log(phone.value);
+    ```
+
+    - 描述：这里的 as `HTMLInputElement` 只是告诉 TypeScript 编译器：请把 `phone` 当作 `HTMLInputElement` 处理，方便你获取 `phone.value` 等属性。
+
+2. 使用尖括号语法进行类型断言
+
+    ```typescript
+    // 使用尖括号语法实现同样效果
+    const phone = <HTMLInputElement>document.getElementById("phone");
+    console.log(phone.value);
+    ```
+
+    - 说明：另一种语法形式实现类型断言，但在包含 JSX 的环境下应避免使用。
+
+## Unknown 类型
+
+> 简述： unknown 与 any 类型有所不同， unknown 强调强制类型缩小以确保类型安全，避免调用不存在的方法导致运行时错误。
+
+**知识树**
+
+1. any 类型
+
+    - 表示任意值，关闭所有类型检查
+    - 风险：可任意调用成员，可能隐藏错误
+
+2. unknown 类型
+
+    - 表示未知值，必须缩小（Narrowing）后才能使用
+    - 优势：强制类型检查，确保安全性
+
+3. 类型缩小
+
+    - 利用类型守卫（如 `typeof`、`instanceof`）将 unknown 缩小为具体类型
+    - 适用于原始类型和自定义对象
+
+4. 编译器行为
+
+    - any 允许任意操作；unknown 阻止直接调用成员，迫使开发者进行类型验证
+
+**代码示例**
+
+1. any 类型示例
+
+    ```typescript
+    function render(doc: any) {
+      // 无类型检查，随意调用方法
+      doc.move();// 如果实际不存在该方法，应用崩溃
+      doc.fly();
+    }
+    ```
+
+    - 说明：使用 any 后，编译器不检查方法是否存在，存在运行时风险。
+
+2. unknown 类型与类型缩小
+
+    ```typescript
+    function render(doc: unknown) {
+      if (typeof doc === "string") {
+        // 缩小为 string，调用字符串方法安全
+        console.log(doc.toUpperCase());
+      } else if (doc instanceof HTMLInputElement) {
+        // 缩小为 HTMLInputElement，访问特定属性
+        console.log(doc.value);
+      } else {
+        console.error("Unsupported type");
+      }
+    }
+    ```
+
+    - 说明：unknown 强制验证类型后才能调用对应方法，确保类型安全。instanceof 将在后续介绍。
+
+## never 类型
+
+> 简述：never 类型表示永远不会产生值的情况，常用于标识永不返回或总抛异常的函数。它帮助编译器检测不可达代码，保证逻辑正确，对初学者友好。
+
+**知识树**
+
+1. never 类型概念
+
+    - 表示函数永远不会有返回，可能是无限循环，可能是直接抛出异常，不太常用。
+    - 与 void 的区别：void 表示没有返回值，但可能正常结束；never 表示函数永不结束
+    - 表达意图：在代码层面说明“这里绝不会返回”，比用 `void` 更严谨，也能帮助编译器进行更精准的静态分析。
+
+2. 编译器严格检查
+
+    - `allowUnreachableCode`：检测抵达不到的代码，发出警告。
+        - 当 `tsconfig` 配置中 `allowUnreachableCode` 关闭时，能在编译时检测到任何写在 `never` 后面的不可能执行的代码。
+
+3. 小结
+
+    - `never` 在普通业务逻辑中使用不多，但在某些底层框架或特殊流程控制（如死循环、异常终止）中有其价值。
+    - 了解 `never` 有助于深入理解 TypeScript 的类型系统和编译器推断过程。
+
+**代码示例**
+
+1. 无限循环示例
+
+    ```typescript
+    function processEvents(): never {
+      while (true) {
+        // 持续处理事件（例如监听消息队列）
+      }
+    }
+    processEvents();
+    console.log("This will never be reached."); // 永远无法抵达，设置配置文件后发出警告
+    ```
+
+    - 解释：函数通过无限循环永不返回，使用 never 类型明确表达这一点，帮助编译器识别后续代码为不可达。
+
+2. 始终抛异常示例
+
+    ```typescript
+    function reject(message: string): never {
+      throw new Error(message);
+    }
+    reject('...);
+    console.log("This will never be reached."); // 永远无法抵达，设置配置文件后发出警告
+    ```
+
+    - 解释：该函数总是抛出错误，因此永不返回，通过 never 类型使得编译器和开发者清晰认识到调用后的代码不会执行。

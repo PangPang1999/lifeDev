@@ -1,11 +1,8 @@
-let employee: {
-  id: number;
-  name: string;
-  retire: (date: Date) => void; // 明确返回类型为 void
-} = {
-  id: 1,
-  name: "John",
-  retire: (date: Date) => {
-    console.log(date);
-  },
-};
+function processEvents(): never {
+  while (true) {
+    // 持续处理事件（例如监听消息队列）
+  }
+}
+
+processEvents();
+console.log("This will never be reached."); // 永远无法抵达，设置配置文件后发出警告

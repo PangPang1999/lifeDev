@@ -1,4 +1,4 @@
-find "/Users/fang/Desktop/React" -type f -name "*.srt" -exec sh -c '
+find "/Users/quartz/Desktop/Video临时/TypeScript/4 Advanced Types (26m)" -type f -name "*.srt" -exec sh -c '
 for file; do
 output="${file%.srt}.txt"
 sed -n "/^[^0-9]*$/p" "$file" > "$output"
