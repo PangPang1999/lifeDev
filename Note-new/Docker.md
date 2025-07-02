@@ -1648,7 +1648,7 @@
     - `latest` 不一定指向“最新”镜像，需手动指定
     - 生产环境建议显式指定版本标签，避免运维混乱
 
-## Sharing Images
+## Sharing Images\*
 
 > 简述：Docker Hub 是镜像托管和分发平台。将本地镜像推送到仓库后，任何人可在任意主机上拉取与运行该镜像，实现跨团队、跨环境的应用交付。
 
@@ -2976,3 +2976,117 @@
     volumes:
       vidly:
     ```
+
+# 分别部署服务而非 compose
+
+> 需求：假如需要部署后端服务 spring-store-api，需要一个 mysql 服务
+
+**步骤**
+
+1. 创建自定义网络
+
+    ```sh
+    docker network create spring-store-net
+    ```
+
+2. 启动 MySQL 容器
+
+    ```sh
+    docker run -d \
+      --name mysql \
+      --network spring-store-net \
+      -e MYSQL_ROOT_PASSWORD=myPassword! \
+      -e MYSQL_DATABASE=spring_store \
+      -v ~/mysql_data:/var/lib/mysql \
+      mysql:8.0
+    ```
+
+3. 构建后端镜像
+
+    ```sh
+    # m系芯片默认构建 arm64 架构镜像
+    docker build -t spring-store-api:1.0 .
+    # 构建 amd64 需要使用 buildx
+    ## 切换并启用 buildx 构建器
+    docker buildx create --use
+    ## 本地构建 amd64 镜像
+    docker buildx build --platform linux/amd64 -t zilu1/spring-store-api:1.0-amd64 --load .
+    ```
+
+4. 启动后端服务容器
+
+    ```sh
+    docker run -d \
+      --name spring-store-api \
+      --network spring-store-net \
+      -e SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/spring_store \
+      -e SPRING_DATASOURCE_USERNAME=root \
+      -e SPRING_DATASOURCE_PASSWORD=myPassword! \
+      -e JWT_SECRET=xxxx\
+      -e STRIPE_SECRET_KEY=xxxx \
+      -e STRIPE_WEBHOOK_SECRET_KEY=xxxx \
+      -p 8080:8080 \
+      spring-store-api:1.0
+    ```
+
+    - `.env`文件中的内容需要使用`-e`指定
+
+5. 参照 Building Images——Sharing Images，进行发布及版本管理
+
+    ```bash
+    # 登录 Docker Hub
+    docker login
+    # 推送镜像到远程仓库示例
+    docker push zilu1/spring-store-api:1.0
+    # 对于ec2默认版本，仅需推送 amd64 架构镜像
+    docker push zilu1/spring-store-api:1.0-amd64
+    ```
+
+6. ec2 部署
+
+    ```bash
+    sudo apt update
+    sudo apt install -y docker.io
+    sudo systemctl enable docker
+    sudo systemctl start docker
+    # 推荐让当前用户支持无 sudo（可选，重连后生效）
+    sudo usermod -aG docker $USER
+
+    # 重启后
+    docker pull zilu1/spring-store-api:1.0-amd64
+
+    # 创建自定义网络
+    docker network create spring-store-net
+
+    # 创建卷
+    docker volume create mysql_data
+
+    # 启动 MySQL 容器
+	docker run -d \
+	  --name mysql \
+	  --network spring-store-net \
+	  -e MYSQL_ROOT_PASSWORD=myPassword! \
+	  -e MYSQL_DATABASE=spring_store \
+	  -v mysql_data:/var/lib/mysql \
+	  mysql:8.0
+
+    # 启动 Spring Boot 服务
+docker run -d \
+  --name spring-store-api \
+  --network spring-store-net \
+  -e SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/spring_store \
+  -e SPRING_DATASOURCE_USERNAME=root \
+  -e SPRING_DATASOURCE_PASSWORD=myPassword! \
+  -e JWT_SECRET=xxx \
+  -e STRIPE_SECRET_KEY=xxx \
+  -e STRIPE_WEBHOOK_SECRET_KEY=xxx \
+  -p 8080:8080 \
+  zilu1/spring-store-api:1.0-amd64
+
+    # 检查容器运行状态
+    docker ps -a
+    docker logs spring-store-api
+    ```
+
+    - 注意：开放 AWS 安全组端口，确保 8080 端口允许外部访问。
+    - 访问服务：`http://你的 EC2 公网 IP:8080/`
