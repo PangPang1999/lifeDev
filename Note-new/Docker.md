@@ -3062,26 +3062,26 @@
     docker volume create mysql_data
 
     # 启动 MySQL 容器
-	docker run -d \
-	  --name mysql \
-	  --network spring-store-net \
-	  -e MYSQL_ROOT_PASSWORD=myPassword! \
-	  -e MYSQL_DATABASE=spring_store \
-	  -v mysql_data:/var/lib/mysql \
-	  mysql:8.0
+    docker run -d \
+      --name mysql \
+      --network spring-store-net \
+      -e MYSQL_ROOT_PASSWORD=myPassword! \
+      -e MYSQL_DATABASE=spring_store \
+      -v mysql_data:/var/lib/mysql \
+      mysql:8.0
 
     # 启动 Spring Boot 服务
-docker run -d \
-  --name spring-store-api \
-  --network spring-store-net \
-  -e SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/spring_store \
-  -e SPRING_DATASOURCE_USERNAME=root \
-  -e SPRING_DATASOURCE_PASSWORD=myPassword! \
-  -e JWT_SECRET=xxx \
-  -e STRIPE_SECRET_KEY=xxx \
-  -e STRIPE_WEBHOOK_SECRET_KEY=xxx \
-  -p 8080:8080 \
-  zilu1/spring-store-api:1.0-amd64
+    docker run -d \
+      --name spring-store-api \
+      --network spring-store-net \
+      -e SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/spring_store \
+      -e SPRING_DATASOURCE_USERNAME=root \
+      -e SPRING_DATASOURCE_PASSWORD=myPassword! \
+      -e JWT_SECRET=xxx\
+      -e STRIPE_SECRET_KEY=xxx \
+      -e STRIPE_WEBHOOK_SECRET_KEY=xxx \
+      -p 8080:8080 \
+      zilu1/spring-store-api:1.0-amd64
 
     # 检查容器运行状态
     docker ps -a
@@ -3090,3 +3090,57 @@ docker run -d \
 
     - 注意：开放 AWS 安全组端口，确保 8080 端口允许外部访问。
     - 访问服务：`http://你的 EC2 公网 IP:8080/`
+
+7. 本地镜像导入（国内云服务器限制 DockerHub）
+
+    ```bash
+    # 下载（当前目录） amd 架构的mysql镜像，若没有skopeo，需要先安装brew install skopeo
+    skopeo copy --override-arch=amd64 --override-os=linux docker://mysql:8.0 docker-archive:mysql-8.0-amd64.tar:mysql:8.0
+    # 本地（当前目录）保存项目镜像为 tar
+    docker save -o spring-store-api.tar zilu1/spring-store-api:1.0-amd64
+
+
+    # 上传mysql镜像至服务器
+    scp mysql-8.0-amd64.tar root@8.130.114.242:/home/admin/
+    # 本地上传镜像文件到服务器（以 scp 为例）
+    scp spring-store-api.tar root@8.130.114.242:/home/admin/
+
+    # 服务器执行，导入镜像
+    docker load -i /home/admin/mysql-8.0-amd64.tar
+    docker load -i /home/admin/spring-store-api.tar
+
+    # 创建自定义网络
+    docker network create spring-store-net
+
+    # 创建卷
+    docker volume create mysql_data
+
+    # 启动 MySQL 容器
+    docker run -d \
+      --name mysql \
+      --network spring-store-net \
+      -e MYSQL_ROOT_PASSWORD=myPassword! \
+      -e MYSQL_DATABASE=spring_store \
+      -v mysql_data:/var/lib/mysql \
+      mysql:8.0
+
+    # 启动 Spring Boot 服务
+    docker run -d \
+      --name spring-store-api \
+      --network spring-store-net \
+      -e SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/spring_store \
+      -e SPRING_DATASOURCE_USERNAME=root \
+      -e SPRING_DATASOURCE_PASSWORD=myPassword! \
+      -e JWT_SECRET=xxx\
+      -e STRIPE_SECRET_KEY=xxx \
+      -e STRIPE_WEBHOOK_SECRET_KEY=xxx \
+      -p 8080:8080 \
+      zilu1/spring-store-api:1.0-amd64
+
+    # 检查容器运行状态
+    docker ps -a
+    docker logs spring-store-api
+    ```
+
+    - 注意：开放 服务器 防火墙 对应端口，确保 8080 端口允许外部访问。
+    - 访问服务：`http://你的公网 IP:8080/`
