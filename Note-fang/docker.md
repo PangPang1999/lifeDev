@@ -962,7 +962,7 @@
     - 创建组（`groupadd`）：
 
         ```bash
-        groupadd developers  # 创建名为developers的组
+        grou,geiwggg    padd developers  # 创建名为developers的组
         ```
 
     - 修改组（`groupmod`）：修改已有组名或组 ID。
@@ -1075,3 +1075,737 @@
         chmod o+x deploy.sh # 执行之后，其他用户比如 pang，也可以执行 deploy.sh 了
 
         ```
+
+# Building Images
+
+## Images and Containers
+
+> 简述：Docker 镜像（image）是应用运行所需文件、库和环境配置的静态快照；容器（container）则是镜像启动后的动态实例，为应用提供独立、隔离的运行环境。
+
+**知识树**
+
+1. 镜像（Image）：
+
+    - 包含运行应用所需的一切资源：
+        - 基础操作系统（如 Ubuntu、Alpine）
+        - 应用程序文件
+        - 第三方依赖库
+        - 环境变量与配置
+    - 不可变（静态），作为模板启动容器。
+    - 查看命令： `docker ps -a`
+
+2. 容器（Container）：
+
+    - 镜像启动后的运行实例，本质为宿主系统的特殊进程。
+    - 提供隔离环境，有独立的文件系统（源自镜像）。
+    - 动态可变，每个容器之间的数据互相隔离（可以通过技术实现相互访问，后续介绍）。
+    - 查看命令： `docker images`
+
+3. 镜像与容器的关系：
+
+    - 一张镜像可启动多个容器。
+    - 每个容器拥有独立的写入层，互不影响。
+
+    ```bash
+    docker run -it ubuntu  # 从ubuntu镜像启动交互式容器
+    ```
+
+4. 容器隔离性示例：
+
+    - 同一镜像启动多个容器，数据不共享。
+
+    ```bash
+    # 容器A：创建文件
+    docker run -it ubuntu bash
+    touch /home/fileA.txt
+
+    # 容器B：看不到容器A创建的文件
+    docker run -it ubuntu bash
+    ls /home  # 输出为空
+    ```
+
+## Sample Web Application
+
+> 简述：引入一个示例 React 项目 `react-app`，稍后使用这个项目进行 Docker 演示
+
+**知识树**
+
+1. app 地址：./Docker/react-app
+
+2. 使用
+
+    - 下载 Node16
+    - 下载依赖：`npm install`或`npm i`
+    - 启动： `npm start`
+    - 访问：前往 http://localhost:3000 查看示例项目效果
+
+## Dockerfile Instructions
+
+> 简述：Dockerfile 是用于定义如何构建 Docker 镜像的指令文件，指定镜像内容、工作目录、文件拷贝、命令执行、环境变量及容器启动行为。
+
+**知识树**
+
+1. 指令基本介绍
+
+    1. FROM：指定基础镜像，构建镜像时以此镜像为起点，包含基础文件和目录
+    2. WORKDIR：设置工作目录，后续指令在此目录执行
+    3. COPY：复制本地文件或目录到镜像内
+    4. ADD：复制本地文件或目录到镜像内，支持自动解压本地 tar 包；也可下载远程文件（仅支持 HTTP/HTTPS）。
+    5. RUN：构建镜像时执行操作系统命令（如 shell 命令）。
+    6. ENV：设置环境变量
+    7. EXPOSE：声明容器对外暴露的端口，供文档和运行时端口映射使用。
+    8. USER：设置执行应用的用户，通常使用权限受限用户
+    9. 容器启动指令
+    10. CMD：指定容器启动时默认执行的命令或参数（可被 docker run 覆盖）。
+    11. ENTRYPOINT：指定容器启动时的主命令（一般不会被 docker run 覆盖，但可以追加参数）。
+
+## Choosing the Right Base Image
+
+> 简述：Dockerfile 必须以 FROM 指令开始，该指令决定了构建镜像时所使用的基础环境（操作系统或运行时）。选择合适的基础镜像可显著影响镜像大小、构建效率和运行性能。
+
+**知识树**
+
+1. 镜像来源地址
+
+    - 官方默认：[https://hub.docker.com](https://hub.docker.com)
+
+2. 镜像选择注意事项
+
+    - 默认使用 Docker Hub 镜像，如选择其他仓库（如微软的 MCR），需明确输入完整镜像地址
+    - 推荐使用明确的版本标签（如 `node:16-alpine`），避免使用`latest`，防止更新带来的兼容性问题
+    - 测试环境优先选择体积小的 `alpine` 版本镜像，通常只有常规镜像的约十分之一大小
+
+3. 查找合适镜像（示例流程）
+
+    - 访问 Docker Hub，搜索目标镜像，例如输入 `node`
+    - 使用过滤器筛选合适版本，如版本号 `16`，再进一步选择体积更小的 `alpine` 版本
+
+4. Dockerfile 示例
+
+    ```Dockerfile
+    FROM node:16.0-alpine3.13
+    ```
+
+    - 构建镜像命令：
+
+    ```bash
+    docker build -t react-app .
+    ```
+
+    - 启动容器并进入交互式 shell：
+
+    ```bash
+    docker run -it react-app sh
+    ```
+
+    - 默认执行 `docker run -it react-app` 时进入 Node 环境，而非 Shell
+    - Alpine 版本不包含 `bash`，需使用内置的简易 `sh` Shell
+    - 后续需使用 Dockerfile 中的 `COPY` 指令将应用文件添加至镜像
+
+## Copying Files and Directories
+
+> 简述：Dockerfile 通过使用 COPY 于 ADD，将文件加入镜像。一般使用 COPY，有特性需求时使用 ADD
+
+**知识树**
+
+1. COPY 与 ADD 指令：
+
+    - COPY
+        - 般用于本地文件、目录的复制，简单、安全，推荐优先用。
+    - ADD
+        - 可以做的事情更多，比如自动解压 tar 文件、支持从 URL 下载文件，但通常不建议滥用。
+    - 备注
+        - 命令大小写敏感
+        - 一个文件可以多次使用 COPY 和 ADD
+
+2. COPY 示例
+
+    ```Dockerfile
+    # 添加单个文件示例：将文件加入/app/目录下
+    COPY package.json /app/
+    # 通配符添加
+    COPY package*.json /app/
+    # 添加多个文件
+    COPY package.json README.md /app/
+    # 处理带空格的文件名
+    COPY ["hello world.txt", "/app/"]
+
+    # 添加所有文件示例：将所有文件加入/app/目录下
+    COPY . /app/
+    ```
+
+3. ADD 示例
+
+    ```Dockerfile
+    # 添加所有文件示例：将所有文件加入/app/目录下
+    ADD . /app/
+    # 从网址下载资源添加进容器/app/目录下
+    ADD http://...//file.json /app/
+    # 将文件解压添加进容器/app/目录下
+    ADD file.zip
+    ```
+
+4. WORKDIR 指令：
+
+    - 功能：
+        - 设置工作目录，后续指令默认基于此目录执行。
+    - 示例
+        ```Dockerfile
+        WORKDIR /app
+        COPY . .  # 将当前目录内容复制到/app目录
+        ```
+
+5. 当前 Dockerfle 示例
+
+    ```Dockerfile
+    FROM node:16.0-alpine3.13
+    WORKDIR /app
+    COPY . .
+    ```
+
+6. 再次测试演示
+
+    ```bash
+    # 重新构建镜像
+    docker build -t react-app .
+    # 打开交互式sh
+    docker run -it react-app sh
+    # 检查文件
+    ls
+    ```
+
+    - 打开交互式 sh 后，将自动处于工作目录`/app`
+
+## Excluding Files and Directories
+
+> 简述：构建镜像时 Docker 客户端默认传输当前目录（构建上下文，build context）下的所有文件给 Docker 引擎。如果构建上下文较大，将导致传输缓慢。为避免此问题，应使用 `.dockerignore` 文件排除无需传输的文件与目录。
+
+**知识树**
+
+1. 构建问题
+
+    - 当使用`COPY . .`，Docker 构建镜像时默认会将 Dockerfile 所在目录全部文件（包括子目录）发送到 Docker 引擎的工作目录，称为 构建上下文。上下文过大会导致网络传输量大，以及镜像构建速度慢
+    - 典型的 Node 项目存在大量依赖，`node_modules` 目录巨大，无需传输，可排除。
+
+2. 排除文件与目录的方式
+
+    - 创建一个 `.dockerignore` 文件，位于构建上下文根目录，与 Dockerfile 同级。
+    - 格式和 `.gitignore` 相同，指定需要排除的文件和目录。
+    - 文件示例
+        ```.dockerignore
+        node_modules/
+        ```
+
+3. 测试演示
+
+    ```bash
+    # 重新构建镜像，速度非常快，大小非常小
+    docker build -t react-app .
+    # 打开交互式sh
+    docker run -it react-app sh
+    # 检查文件，不再存在node_modules
+    ls
+    ```
+
+## Running Commands
+
+> 简述：利用 `RUN` 指令在 Docker 镜像构建过程中执行命令（如安装依赖）。常见用例为在 Node.js 项目中执行 `npm install`，以安装所需依赖包到镜像内。
+
+**知识树**
+
+1. `RUN` 指令作用
+
+    - 在镜像构建阶段执行任意终端命令（如 shell、npm、系统包管理器命令）。
+    - 常用于安装依赖、构建项目、创建目录等。
+
+2. 当前 Dockerfle 示例
+
+    ```Dockerfile
+    FROM node:16.0-alpine3.13
+    WORKDIR /app
+    COPY . .
+    # 安装项目依赖
+    RUN npm install
+    ```
+
+    - 不同 Linux 发行版包管理器不同，需根据基础镜像类型选择正确命令，如 Alpine 不支持 `apt`，支持 `apk`
+
+3. 测试演示
+
+    ```bash
+    # 重新构建镜像，
+    docker build -t react-app .
+    # 打开交互式sh
+    docker run -it react-app sh
+    # 检查文件，存在node_modules
+    ls
+    ```
+
+    - 构建镜像变久了，由于下载依赖，将在后面介绍优化方式
+
+## Setting Environment Variables
+
+> 简述：环境变量用于为容器中的应用配置动态参数（如 API 地址、密钥等），使镜像更加灵活、可配置。通过 `ENV` 指令可在 Dockerfile 中声明环境变量，启动容器后自动生效。
+
+**知识树**
+
+1. 环境变量概念
+
+    - 提供运行时参数，无需硬编码进代码
+    - 适用于配置 API 地址、端口、密钥等
+    - 前端/后端应用常用来动态配置后端接口、数据库等
+    - 不要将敏感信息硬编码于 Dockerfile，可通过运行时覆盖（如 `docker run -e KEY=VALUE`）
+
+2. `ENV` 指令用法
+
+    - 用法一（推荐）：
+
+        ```Dockerfile
+        ENV KEY=VALUE
+        ```
+
+    - 用法二（支持多个变量）：
+
+        ```Dockerfile
+        ENV KEY VALUE
+        ENV KEY1=VALUE1 KEY2=VALUE2
+        ```
+
+    - ENV 指令可以在 Dockerfile 的任意位置定义，从它被定义开始，之后的所有 Dockerfile 指令以及最终容器启动时，环境变量都能读取到。
+
+3. 当前 Dockerfle 示例
+
+    ```Dockerfile
+    FROM node:16.0-alpine3.13
+    WORKDIR /app
+    COPY . .
+    RUN npm install
+    ENV API_URL=http://api.myapp.com
+    ```
+
+4. 测试演示
+
+    ```bash
+    # 重新构建镜像，
+    docker build -t react-app .
+    # 打开交互式sh
+    docker run -it react-app sh
+    # 查看全部环境变量
+    printenv
+    # 查看指定变量
+    echo $API_URL
+    ```
+
+## Exposing Ports
+
+> 简述：容器中运行的应用默认只在容器内部监听端口。`EXPOSE` 指令用于声明容器对外开放的端口，是对镜像使用者的文档提示，并不自动映射到主机端口。
+
+**知识树**
+
+1. 容器端口与主机端口的隔离
+
+    - 容器中的服务仅在容器内监听端口
+    - 主机无法直接访问，需端口映射
+
+2. `EXPOSE` 指令作用
+
+    - 在 Dockerfile 中声明容器将使用的端口，并不会自动把容器的端口映射到宿主机上
+    - 主要作为文档和参考，便于团队协作和自动化工具识别
+
+    ```Dockerfile
+    # 声明容器将监听 3000 端口
+    EXPOSE 3000
+    ```
+
+3. 稍后介绍具体打开端口
+
+## Setting the User
+
+> 简述：Docker 容器默认以 root 用户运行，具有最高权限，存在安全隐患。推荐为应用创建专用低权限用户并切换运行身份，降低安全风险。
+
+**知识树**
+
+1. 容器默认用户
+
+    - 默认使用 root 用户（UID=0），拥有系统全部权限
+    - 不安全，若应用被攻破，攻击者可控制整个容器乃至宿主机
+
+2. 创建并使用普通用户
+
+    - 通过系统命令（如 `addgroup`、`adduser`）创建新组与新用户
+    - 推荐为每个应用创建同名用户和组，且用户类型为系统用户（非交互登录用户）
+    - 示例命令（Alpine Linux）：
+
+3. 当前 Dockerfle 示例
+
+    ```Dockerfile
+    FROM node:16.0-alpine3.13
+    # 创建组和系统用户app，并将其添加到该组
+    RUN addgroup app && adduser -S -G app app
+    # 切换后续命令默认用户为app
+    USER app
+    WORKDIR /app
+    # 建议使用--chown=app:app选项来设置文件的所有者
+    # 这样可以避免在容器中运行时出现权限问题
+    # 如果不使用--chown选项，可能会导致npm install时出现权限错误
+    # 这会导致npm无法正确安装依赖包
+    # 以及在运行时无法访问某些文件或目录
+    RUN chown app:app /app
+    COPY . .
+    RUN npm install
+    RUN chown -R app:app /app
+
+    ENV API_URL=http://api.myapp.com
+    ```
+
+    - 需要设置工作目录之前，否则切换用户之后会有问题
+
+4. 用户切换效果
+
+    - 之后所有 Dockerfile 指令及应用进程都以新建用户运行
+    - 提高安全性：限制对文件系统和系统资源的写权限
+
+5. 测试演示
+
+    ```bash
+    # 重新构建镜像，
+    docker build -t react-app .
+    # 打开交互式sh
+    docker run -it react-app sh
+    # 查看当前用户
+    whoami  # 输出: app
+    # 查看文件属主及权限
+    ls -l # 文件属主通常为 root，app 用户无写权限
+    ```
+
+## Defining Entrypoints
+
+> 简述：容器启动时需指定应用进程命令。`CMD` 与 `ENTRYPOINT` 用于设置默认启动命令，提升容器自动化和易用性。
+
+**知识树**
+
+1. 容器默认命令的必要性
+
+    - 启动容器需指定进程，否则容器立即退出
+    - 不希望每次手动指定命令，需在 Dockerfile 内预设
+
+2. `CMD` 指令
+
+    - 设置容器默认启动命令或参数，可被 `docker run ... <command>` 覆盖
+    - 推荐使用“exec form”写法（数组形式），避免额外 shell 进程、提升可靠性
+    - 对比：
+        - `CMD ["npm","run","dev"]`：实际等价于在容器里执行：`/bin/sh -c "npm run dev"`，会启动一个 shell（sh 或 cmd）作为父进程，npm 是子进程
+        - `CMD npm start`：直接将 npm 作为主进程（PID 1）运行，没有额外的 shell 包裹，更加“原生”和直接
+
+3. `ENTRYPOINT` 指令
+
+    - 固定启动主程序，通常不被 docker run 命令覆盖（需加 `--entrypoint` 才能更换）
+    - 适合无条件始终只执行一个主程序的场景
+    - 同理：推荐使用“exec form”写法，如`ENTRYPOINT ["npm", "start"]`
+
+4. `RUN` 指令与 CMD/ENTRYPOINT 的区别
+
+    - `RUN`：构建镜像时执行（如安装依赖），结果写入镜像
+    - `CMD`/`ENTRYPOINT`：运行容器时执行（作为主进程），不会改变镜像内容
+
+5. 常见误区与最佳实践
+
+    - 多个 `CMD`/`ENTRYPOINT` 只生效最后一个
+    - 推荐用 `CMD` 提供灵活的默认命令，便于覆盖
+    - 推荐使用“exec form”（数组）语法
+
+6. 当前 Dockerfle 示例
+
+    ```Dockerfile
+    FROM node:16.0-alpine3.13
+    RUN addgroup app && adduser -S -G app app
+    USER app
+    WORKDIR /app
+    RUN chown app:app /app
+    COPY . .
+    RUN npm install
+    RUN chown -R app:app /app
+
+    ENV API_URL=http://api.myapp.com
+    CMD ["npm","run","dev"]
+    ```
+
+7. 启动补充
+
+    - 通过`docker run -it react-app sh`启动容器后，即便使用`npm start`启动了项目，提示了地址与端口，本地依旧无法访问，因为其启动的是容器的端口，而非是本地的端口
+
+## Speeding Up Builds
+
+> 简述：Docker 镜像由多层（layer）组成。每条 Dockerfile 指令生成新层，Docker 通过缓存机制加速构建。合理组织指令，可极大提升构建效率，避免重复耗时步骤。可以理解为层级就是只有配置文件的操作系统
+
+**知识树**
+
+1. 镜像层（Layer）与缓存原理
+
+    - 每条 Dockerfile 指令（FROM、RUN、COPY 等）创建一个新层
+    - 层只记录这一层指令导致的变化内容，镜像本质为多层叠加
+    - 构建时 Docker 通过复用旧层（缓存），能加速无变更部分
+
+2. 缓存命中规则
+
+    - 自顶向下逐条指令比较，完全一致且内容无变则命中缓存，复用已存在层
+    - 某一层变更后，该层及其下方所有层均需重建
+
+3. COPY 与缓存失效
+
+    - `COPY . .` 或 `ADD . .` 会监控所有源文件，只要有任何文件变动，此层及其后续层都被重建，导致如依赖安装（npm install）等耗时操作被重复执行
+
+4. 构建优化最佳实践
+
+    - 优先 COPY 变更不频繁的依赖声明文件（如 `package.json`、`package-lock.json`），再安装依赖
+    - 最后 COPY 代码与资源文件，将高频改动内容下置，最大限度利用依赖安装层的缓存
+    - 下面是 mosh 的旧版本
+
+    ```Dockerfile
+    FROM node:14.16.0-alpine3.13
+    RUN addgroup app && adduser -S -G app app
+    USER app WORKDIR /app COPY package*.json
+    RUN npm install
+    COPY ..
+    ENV API_URL=http://api.myapp.com/
+    EXPOSE 3000
+    CMD ["npm","start"]
+    ```
+
+    ```Dockerfile
+    FROM node:16.0-alpine3.13
+    # 1. 新建非 root 用户
+    RUN addgroup app && adduser -S -G app app
+    # 2. 切换到 app，后续目录操作都归它
+    USER app
+    WORKDIR /app
+    # 仅拷贝依赖声明文件，变化少
+    COPY --chown=app:app package*.json .
+    # 安装依赖，缓存命中率高
+    RUN npm install
+    # 拷贝剩余源代码，变化多
+    COPY --chown=app:app . .
+    ENV API_URL=http://api.myapp.com
+    CMD ["npm", "start"]
+    ```
+
+5. 解析`--chown=app:app`
+
+    1. 是 Dockerfile 中 `COPY`（或 `ADD`）指令的一个可选参数，用来在复制文件时 **同时** 设置文件或目录的属主（user）和属组（group）。
+        - **chown** = change owner
+        - `app:app` 分别代表 **属主** 为 `app` 用户、**属组** 为 `app` 组
+    2. 在 `USER app` 之后执行 `WORKDIR /app`，此时 `/app` 会被 `app` 用户创建并自动归 `app` 所有，之后无论是 `COPY --chown=app:app` 还是 `npm install`，`app` 都有权限写入。
+    3. 从 Docker 17.09 起就支持 `COPY --chown=…`
+
+6. 实际效果与验证
+
+    - 首次构建，所有层需重建
+    - 仅改动应用代码/文档时，依赖安装层命中缓存，构建极快
+    - 可用 `docker history <image>` 查看层及各层大小、来源指令
+    - 测试过程
+        - 修改 react-app 部分文件如 readme 后，重新构建
+
+7. 总结原则
+
+    - 频繁变动的内容放在 Dockerfile 末尾，静态内容放在开头
+    - 利用层缓存，极大缩短日常开发构建时间
+
+## npm 依赖安装命令对比
+
+> 简述：在构建镜像或 CI/CD 流水线时，推荐使用 `npm ci --omit=dev --no-audit --no-fund` 取代 `npm install`，以确保依赖安装的一致性、更快的构建速度和更小的镜像体积。
+
+**知识树**
+
+1. 安装命令概览
+
+    - **npm install**：常规安装，会根据 `package.json` 与现有 `node_modules` 决定增量安装或更新锁文件
+    - **npm ci**：专为 CI 设计的“clean install”，严格按照 `package-lock.json` 安装
+
+2. npm install
+
+    - **执行流程**
+        - 如果已有 `node_modules`，只安装缺失模块
+        - 如果 `package.json` 与锁文件冲突，可能会更新 `package-lock.json`
+    - **优点**
+        - 灵活：本地开发新增依赖时，自动更新锁文件
+        - 适合日常开发环境
+    - **缺点**
+        - 不可重复：不同环境可能安装到不同版本
+        - 速度较慢：需比对、下载并可能更新锁文件
+        - 会安装 `devDependencies`，增加镜像体积
+
+3. npm ci
+
+    - **执行流程**
+        - 删除现有 `node_modules` 目录
+        - 严格按 `package-lock.json` 精确安装所有依赖
+    - **核心优势**
+        - **一致性**：每次构建依赖版本完全相同
+        - **速度更快**：跳过锁文件解析与更新步骤
+        - **可重复**：非常适合 CI/CD 与镜像构建场景
+
+4. 常用选项
+
+    - `--omit=dev`：跳过安装 `devDependencies`，只留生产依赖
+        - 节省空间：镜像里不带打包、测试、文档生成等工具
+        - 减少攻击面：运行期没有那些只在开发/测试时用的包如
+        - tips:如果你在本地需要跑测试、生成文档，或者在构建阶段需要 Babel/TypeScript 编译，就可以在本地或多阶段构建的“builder”阶段里不加 `--omit=dev`，在“runtime”阶段才省掉它们。
+    - `--no-audit`：跳过安全审计，减少网络请求
+    - `--no-fund`：跳过资助提示，日志更简洁
+
+5. 适用场景
+
+    - Docker 镜像构建
+    - 自动化 CI/CD 流水线
+    - 生产环境依赖安装
+
+6. 直接 `npm install` 的缺点
+
+    - 可能更新锁文件，破坏一致性
+    - 安装速度较慢，影响镜像构建时间
+    - 会安装开发依赖，导致镜像臃肿
+
+7. 当前命令示例
+
+    ```dockerfile
+    # 不推荐（可能带来版本不一致和体积增大）
+    RUN npm install
+
+    # 推荐（快速、一致、精简）
+    RUN npm ci --omit=dev --no-audit --no-fund
+    ```
+
+## Removing Images
+
+> 简述：随着镜像反复构建与测试，系统中会积累无用的悬空镜像（dangling images）与停止容器，需定期清理以释放磁盘空间。
+
+**知识树**
+
+1. 悬空镜像（Dangling Images）&停止容器
+
+    - 悬空镜像
+        - 无标签（无 name/tag）的镜像层，源自旧构建，已与任何有效镜像无关
+        - 常见于反复构建、变更 Dockerfile 过程中
+    - 停止容器
+        - 一个镜像可以创建多个容器，在测试的过程中，积累了许多停止的容器，通过`docker ps -a`查看
+
+2. 清理悬空镜像&状态的容器
+
+    - 使用 `docker image prune` 自动删除所有悬空镜像，需要进行确认
+    - 使用 `docker container prune` 一键清理全部已停止容器
+
+3. 删除指定镜像
+
+    - 查看本地镜像`docker images`
+    - 通过名称或 ID 删除`docker image rm <镜像名或ID>`
+        - rm 默认删除为 `latest`，即`docker image rm <镜像名或ID>:latest`，也可以手动指定版本号
+    - 支持一次删除多个镜像，用空格分隔
+
+## Tagging Images
+
+> 简述：镜像标签用于标识镜像的不同版本，有助于环境隔离、回滚和运维可追溯。默认标签为`latest`，但实际生产应使用显式版本号。
+
+**知识树**
+
+1. 标签（Tag）基本概念
+
+    - 同一个 tag（比如 latest），任何时刻只能指向一个镜像 ID。但你可以有多个不同的 tag，指向同一个镜像 ID。
+    - 标签是镜像的标识，形式为 `<镜像名>:<标签>`，如 `myapp:1.0`
+    - `latest` 仅为默认标签，无特殊含义，不等价于“最新版本”
+
+2. 设置标签
+
+    - 构建时设置：
+        - 通过 `-t` 参数指定镜像名与标签，如`docker build -t react-app:1.0 .`
+    - 删除单个标签（不影响镜像本体）：
+        - `docker image rm react-app:1.0`
+    - 后期打标签与更新标签
+        - 镜像构建后可随时追加，使用`tag`，如`docker image tag react-app:1.0 react-app:latest`（给`react-app:1.0`额外加上`latest`标签）
+
+3. 最新标签（latest）误区
+
+    - `latest` 不一定指向“最新”镜像，需手动指定
+    - 生产环境建议显式指定版本标签，避免运维混乱
+
+## Sharing Images
+
+> 简述：Docker Hub 是镜像托管和分发平台。将本地镜像推送到仓库后，任何人可在任意主机上拉取与运行该镜像，实现跨团队、跨环境的应用交付。
+
+**知识树**
+
+1. Docker Hub 账户与仓库
+
+    - 地址：https://app.docker.com
+    - 免费注册账户，支持公开/私有仓库
+    - 每个仓库可保存多版本标签（tags）
+
+2. 镜像重命名与标记
+
+    - 镜像推送需包含用户名前缀（如 `username/image:tag`）
+    - 本地重命名示例（打 tag）：
+        ```bash
+        docker image tag react-app:1.0 username/react-app:1.0
+        ```
+
+3. 登录与推送镜像
+
+    - 登录 Docker Hub
+        ```bash
+        docker login
+        ```
+    - 推送镜像到远程仓库示例
+        ```bash
+        docker push username/react-app:1.0
+        ```
+
+4. 镜像层与增量推送
+
+    - 首次推送会上传全部镜像层
+    - 后续如未变动底层依赖，仅上传新变更部分，推送更快
+
+5. 镜像分发与拉取
+
+    - 镜像一经推送，全球任何 Docker 主机均可拉取
+        ```bash
+        docker pull username/react-app:v2
+        ```
+
+6. 测试
+
+    - 修改项目部分文件，以新标签重新构建`docker build -t username/react-app:2.0 .`，推送`docker push username/react-app:2.0`
+
+## Saving and Loading Images
+
+> 简述：可将本地镜像导出为压缩文件，实现离线迁移、备份或跨主机传输，无需依赖 Docker Hub。
+
+**知识树**
+
+1. 镜像保存（导出为文件）
+
+    - 使用 `docker image save` 将镜像打包为 `.tar` 文件（包含全部层和元数据），使用`docker image save --help`可查看帮助
+    - 适合在局域网、无公网环境下迁移镜像
+    - 示例：
+        ```bash
+        # 导出镜像到本地文件
+        docker image save -o react-app.tar react-app:1.0
+        ```
+
+2. 镜像结构
+
+    - `.tar` 文件内含多层，每层为一目录，含 layer tar 包和 metadata
+    - 可解压查看具体层内容
+
+3. 镜像加载（从文件导入）
+
+    - 使用 `docker image load` 从 `.tar` 文件导入镜像到本地 Docker，导入后镜像 ID 和先前一致
+    - 示例：
+        ```bash
+        # 加载本地镜像文件
+        docker image load -i react-app.tar
+        ```
+
+4. 典型用例
+
+    - 跨主机物理拷贝镜像（如 U 盘/内网）
+    - 镜像冷备份与归档
+    - 离线分发环境
