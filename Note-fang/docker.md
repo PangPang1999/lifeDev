@@ -2180,3 +2180,555 @@
         ```
 
     - **原理**：**原理**：Docker 在处理 `-v` 或 `--volume` 参数时，更具体的路径会覆盖掉不那么具体的路径。第二个 `-v /app/node_modules` 命令的优先级更高，它创建了一个卷并将容器内 `/app/node_modules` 的控制权交还给容器本身，从而让容器能够使用镜像中自带的、平台正确的依赖包。
+
+# Running Multi-container Applications
+
+## Installing Docker Compose
+
+> 简述：Docker Compose 是基于 Docker Engine 的多容器编排工具。可一条命令同时启动多个服务，是实际开发、测试和部署多服务项目的标准工具。**大多数平台已默认集成**。
+
+**知识树**
+
+1. Docker Compose 基本概念
+
+    - Docker Compose 让你用一份配置文件（`docker-compose.yml`）描述多容器应用，极简一键启动、停止、管理所有服务。
+    - 属于 Docker 官方维护，兼容所有主流平台。
+
+2. 安装与集成情况
+
+    - Mac / Windows（桌面版）：
+        - Docker Desktop 已自带 Compose，无需手动安装。
+    - Linux / Windows Server：
+        - 需单独安装 Compose，官方文档有各自安装指令。
+        - 推荐直接参考 [官方安装文档](https://docs.docker.com/compose/install/)。
+    - 版本要求：
+        - 推荐使用最新版 Docker Engine，自带最新 Compose。
+    - 检查 Docker Compose 是否可用
+        - 在终端执行，检查版本号：`docker-compose --version`
+
+3. 补充说明
+
+    - 帮助信息：
+        - 使用`docker compose`查看
+    - 旧版
+        - 使用`docker-compose 命名`
+    - 新版
+        - 使用`docker compose 命令`
+
+## Cleaning Up our Workspace
+
+> 简述：开发或实验环境中，频繁操作容器与镜像会产生大量遗留数据。彻底清理所有容器与镜像，能保持环境整洁，避免资源浪费和操作干扰。
+
+**知识树**
+
+1. 批量删除所有容器
+
+    - 查看所有容器 ID（包含已停止）：
+        ```bash
+        docker container ls -aq
+        # -a 显示所有（含已停止），-q 仅输出 ID
+        ```
+    - 强制删除全部容器（包括运行中）：
+        ```bash
+        docker container rm -f $(docker container ls -aq)
+        # -f 强制，防止因运行中容器导致失败
+        ```
+
+2. 批量删除所有镜像
+
+    - 查看所有镜像 ID：
+        ```bash
+        docker image ls -q
+        ```
+    - 删除全部镜像：
+        ```bash
+        docker image rm -f $(docker image ls -q)
+        # -f 强制，跳过依赖/运行中的报错（前提：容器已清空）
+        ```
+
+3. Docker Desktop 图形化清理（仅限桌面版）
+
+    - Mac：状态栏 Docker 图标 → Preferences → Troubleshoot（故障排查）→ Clean / Purge data
+    - Windows：通知区 Docker 图标 → Settings → Troubleshoot → Clean / Purge data
+    - 作用：一键清理全部镜像、容器、卷、网络等，会重启 Docker 引擎
+    - 注意：清理后短时间内 Docker 命令不可用，需等待引擎重启完成
+
+## The Sample Web Application
+
+> 简述：引入一个示例项目 `vidly`，包含 `react` 前端项目，`node` 后端项目，以及，稍后使用这个项目进行 Docker 演示
+
+**知识树**
+
+1. 标准流程描述（无需操作）
+
+    - 分布在前后端中 `npm i` 下载依赖，此外还需要下载安装 mongodb
+
+2. 使用 Docker
+
+    - 使用 Docker，仅需输入`docker compose up`（设置好配置文件的情况下），即可让项目内的各个部分挨个创建镜像，并启动，并自动下载需要的镜像，非常方便。
+    - 可能会由于网络原因，导致下载速度极慢
+
+3. `docker compose up`命令（其他命令后续说明）
+
+    - 功能：
+        - 用于一键启动并编排项目中的所有服务（容器），按照 `docker-compose.yml` 文件中的定义完成以下操作：
+    - 过程
+        1. 拉取镜像
+            - 自动下载所有未本地存在的镜像。
+        2. 构建镜像
+            - 对带有 `build` 配置的服务自动 build。
+        3. 创建网络和卷
+            - 按需自动创建服务间通信网络和挂载卷。
+        4. 按依赖顺序启动所有服务容器
+            - 参考 `depends_on`，按顺序启动所有服务。
+        5. 输出日志流
+            - 实时输出所有容器日志，便于调试和观察服务状态。
+        6. 持续保持前台（默认）
+            - 容器正常运行，终端会持续显示日志，直到 Ctrl+C 停止（或加 `-d` 参数后台运行）。
+
+## JSON and YAML Formats
+
+> 简述：JSON 和 YAML 都是常用的结构化数据描述语言，广泛用于配置、数据交换等场景。两者语法各有特点，适合不同应用场景。
+
+**知识树**
+
+1. JSON 基本语法与特性
+
+    - 以对象（`{}`）或数组（`[]`）为顶层结构
+    - key 必须使用双引号包裹；值支持字符串、数值、布尔、数组、对象
+    - 逗号分隔多个键值对
+    - 严格、易于机器解析，广泛用于前后端数据交换
+
+    **示例**
+
+    ```json
+    {
+    	"name": "The Ultimate Docker Course",
+    	"price": 99,
+    	"isPublished": true,
+    	"tags": ["software", "devops"],
+    	"author": {
+    		"firstName": "Mosh",
+    		"lastName": "Hamadani"
+    	}
+    }
+    ```
+
+2. YAML 基本语法与特性
+
+    - 以缩进表示层级关系（类似 Python，无需花括号/方括号）
+    - key 不需引号（除特殊字符），值直接跟在冒号后
+    - 列表用 `-` 标识，元素同级缩进
+    - 通常以 `---` 开头（表示文档开始，可选）
+    - 可读性高、书写简洁，常用于配置文件
+
+    **示例**
+
+    ```yaml
+    name: The Ultimate Docker Course
+    price: 99
+    isPublished: true
+    tags:
+      - software
+      - devops
+    author:
+      firstName: Mosh
+      lastName: Hamadani
+    ```
+
+3. 主要对比与适用场景
+
+    - JSON：
+        - 优点：结构严格、解析快、跨语言兼容性极强
+        - 主要用于服务间数据交换（如 API、前后端通信）
+    - YAML：
+
+        - 优点：可读性强、便于手写和维护
+        - 常用于配置文件（如 Kubernetes、Docker Compose 等）
+
+    - 缺点对比：YAML 解析速度慢于 JSON，因其类型推断依赖上下文
+
+4. 语法易错点与建议
+
+    - YAML 缩进务必统一（建议 2 空格），否则解析失败
+    - JSON 键必须用双引号，YAML 可省略
+    - JSON 需用逗号分隔每组 key-value，YAML 不需逗号
+    - YAML 不推荐用于大规模数据传输，仅适合配置描述
+    - YAML 列表使用 `-`，对象用缩进表示归属关系
+
+## Creating a Compose File
+
+> 简述：Docker Compose 通过 `docker-compose.yml` 文件，用声明式语法统一管理多服务应用。支持自定义服务、网络、卷，实现一条命令启动、停止、配置整个应用环境。
+
+**知识树**
+
+1. 顶级结构与基本字段
+
+    - `version`：指定 Compose 文件格式版本（省略）
+        - 以前（Compose 2.x、3.x 时代），docker-compose.yml 文件必须声明 version 字段，如`version: "3"`
+        - 现在（Compose Specification/V2），大多数情况下可以省略 version 字段
+    - `services`：定义全部服务（如前端、后端、数据库），每个服务对应一个子对象，名称自定义
+    - `volumes`：声明全局可复用卷，便于持久化或多服务共享
+
+2. Service（服务）常用配置
+
+    - `depends_on`
+        - 用于声明服务间的“启动顺序依赖关系”。但是！它 不保证 B 已经真正“可用”（比如端口已开放、数据库可接受连接等），只保证容器启动流程的顺序。
+    - `build`：指定构建上下文目录，自动查找其中的 Dockerfile 构建镜像
+    - `ports`：端口映射，数组格式，`"主机端口:容器端口"`
+    - `environment`：环境变量，可用数组或字典（推荐后者，结构更清晰）
+    - `volumes`：卷挂载，数组格式，`"卷名:容器路径"`
+    - `image`：指定直接拉取使用的镜像（如官方数据库镜像）
+
+3. 典型 Compose 文件示例（多服务协作）
+
+    ```yaml
+    services:               # 前端服务（可自定义命名）
+      frontend:
+        depends_on:
+          - backend
+        build: ./frontend   # 指定 Dockerfile 路径（前端目录）
+        ports:
+          - 3000:3000
+
+      backend:              # 后端服务
+        depends_on:
+          - db
+        build: ./backend
+        ports:
+          - 3001:3001
+        environment:        # 环境变量推荐用对象格式
+          DB_URL: mongodb://db/vidly
+        command: ./docker-entrypoint.sh
+
+      db:                   # 数据库服务
+        image: mongo:6-jammy
+        ports:
+          - 27017:27017     # 数据库端口
+        volumes:
+          - vidly:/data/db  # 将数据目录持久化到名为vitli的卷
+
+    volumes:
+      vidly:                # 声明全局卷，供db服务使用
+    ```
+
+    - 说明：
+        - 各服务可用 `build`（本地代码）或 `image`（公共镜像）
+        - 卷需先声明再使用，可跨服务挂载
+        - 端口、环境变量、依赖关系均可灵活配置
+
+## Building Images
+
+> 简述：`docker-compose build` 只负责构建本地镜像，不启动容器。用于提前打包镜像，优化启动速度和控制构建流程。
+
+**知识树**
+
+1. `docker-copose build`命令
+
+    - 只会针对 `build`: 字段定义的服务执行构建（等同于 `docker build` 命令，但可一次性对多个服务操作）。
+    - 会读取对应 Dockerfile，将源码和依赖打包生成本地镜像。
+    - 镜像构建完成后，后续执行 docker compose up 时会直接用已构建好的本地镜像（如果没有代码或 Dockerfile 变化，不会重新构建）。
+
+2. 缓存问题
+
+    - 使用 `docker-copose build`，如果存在缓存，会直接使用缓存
+    - 使用 `docker-copose build --no-cache`，为不使用缓存构建镜像
+
+3. 常用场景
+
+    - 只想提前构建镜像，不启动服务。
+    - `CI/CD` 场景下，先 `build`，后 `up`。
+    - 代码/Dockerfile 更新后，需重新 `build`。
+
+## Starting and Stopping the Application
+
+> 简述：Docker Compose 允许一条命令自动编排并启动多个服务容器，极大简化开发、测试和部署多容器应用的运维流程。
+
+**知识树**
+
+1. 启动全部服务
+
+    - 命令：`docker compose up`
+    - 核心流程：
+        1. 拉取所需镜像（自动下载缺失镜像）
+        2. 构建本地镜像（针对 `build` 配置服务自动 build）
+        3. 创建网络与数据卷（自动配置服务间通信与数据持久化）
+        4. 按依赖顺序启动所有服务容器（参考 `depends_on`，保证启动顺序）
+        5. 输出实时日志流（默认前台持续输出全部容器日志，便于调试观察）
+    - 常用参数：
+        - `-d`：后台运行，释放终端（如 `docker compose up -d`）
+        - `--build`：强制每次启动前重建镜像（如 `docker compose up --build`）
+        - 参数可组合使用（如 `docker compose up --build -d`）
+
+2. 停止与移除服务
+
+    - 命令：`docker compose down`
+    - 作用：
+        - 一键停止并移除所有 Compose 管理的容器和网络
+        - 默认保留镜像与卷，便于下次快速启动
+        - 持久化数据（如数据库卷）不会丢失
+        - 如需连同数据卷彻底清理，加 `-v` 参数（如 `docker compose down -v`）
+
+3. 查看服务状态
+
+    - 仅显示当前 Compose 应用的容器状态：`docker compose ps`
+    - 查看全局所有容器：`docker ps`
+    - 输出包含容器名、启动命令、端口映射、运行状态等，便于监控和故障排查
+
+4. 多实例与高可用
+
+    - 支持同一服务启动多个副本，提高可用性与扩展性
+    - 命令示例：`docker compose up -d --scale web=3`
+        - 启动 web 服务的 3 个副本，适用于负载均衡与弹性扩容
+
+## Docker Networking
+
+> 简述：Docker Compose 自动为每组服务创建独立网络，使同组容器可通过“服务名直连”安全通信。理解网络隔离与端口映射，有助于正确设计微服务间调用与外部访问。
+
+**知识树**
+
+1. 网络自动创建与结构
+
+    - 自动创建
+        - `docker compose up` 时，自动生成独立网络（默认名：`<项目名>_default`）
+    - 查看当前所有网络
+        - 命令：`docker network ls`
+        - 查看某网络下的容器与连接详情，使用`docker network inspect <网络名>`
+
+2. 查看网络含义
+
+    - `NETWORK ID`：网络的唯一标识符（内部 ID）
+    - `NAME`：网络的名称。Docker 内置的有 `bridge`、`host`、`none`。
+        - `bridge`：容器默认的虚拟局域网，即“桥接网络”。
+        - `host`：容器直接用宿主机的网络协议栈，无网络隔离。
+        - `none`：容器没有任何网络功能，完全隔离。
+        - 自定义的（如 `vidly_default`）一般由 compose 项目名+“`_default`”组成。Compose 管理的所有服务容器均加入同一网络，隔离于全局 bridge。通过`docker network inspect <网络名/ID>`可以查看自定义下的 container。
+    - `DRIVER`：网络驱动类型
+        - `bridge`：最常用的桥接网络，容器间虚拟交换机（默认自带）
+        - `host`：使用主机网络，没有隔离
+        - `null`：无网络，完全隔离
+        - 还有 overlay、macvlan 等高级用法
+    - `SCOPE`：作用范围，通常单机下都是 local
+        - `local`：只在本地 Docker 主机有效
+        - `swarm`：Docker Swarm 集群网络
+    - 网络类型补充
+        - Linux 默认 driver：`bridge`
+        - Windows 默认 driver：`nat`
+
+3. 容器间通信机制
+
+    - 容器之间通信
+        - 同个 compose 内， 互相可用服务名直接访问，无需硬编码 IP。容器之间通信可以通过 `ping 服务名`进行测试，一般情况是否 root 用户不影响网络互通，容器里普通用户执行 ping 提示 permission denied，是因为 ping 需要 root 权限或 SUID 权限。在 Alpine 这类系统默认没加 SUID，需用 root 或手动授权。
+    - DNS
+        - Docker 内置 DNS SERVER 实现容器名到 IP 的动态解析
+        - 每个容器启动时注册主机名到 Docker 内嵌 DNS
+        - 容器内的 DNS RESOLVER 会询问 DNS SERVER，服务器代表的 IP 是什么，然后 DNS SERVER 将 IP 传递给对应容器的 DNS RESOLVER。
+    - 端口映射与访问范围
+        - 容器互联：容器间通过服务名直连，无需端口暴露
+        - 主机/外部访问：必须在 Compose 文件用 `ports` 显式映射，如`- "27017:27017"`（主机端口:容器端口）
+        - 主机访问容器服务需通过端口映射后的主机地址（如 `localhost:27017`）
+            - 多 Compose 项目默认各自独立网络，容器跨项目间不可见
+    - 应用举例
+        - 由于 mongodb 将端口映射到了主机，可以通过连接工具（MongoDB Compass）进行访问
+
+4. 容器互 ping 实验
+
+    ```bash
+    # 进入容器（默认普通用户）
+    docker exec -it <容器名> sh
+    # 容器内 ping 另一个服务名
+    ping api
+    # ping提示permission denied，退出
+    exit
+
+    # root身份进入容器
+    docker exec -it -u root <容器名> sh
+    # 容器内 ping 另一个服务名，查看后control+C退出
+    ping backend
+
+    # 查看容器内 IP 地址，可见 eth0/eth1 为网络接口
+    ifconfig
+    ```
+
+## Viewing Logs
+
+> 简述：Docker Compose 支持统一查看多容器日志，也能单独跟踪某个服务输出，方便快速定位和监控多服务应用运行状态。
+
+**知识树**
+
+1. 查看所有日志
+
+    - 命令：`docker compose logs`
+    - 功能：
+        - 查看所有服务日志
+        - 集中输出当前 Compose 项目下全部服务日志，自动按容器区分并着色
+    - 常用参数：
+        - `--help`：帮助命令，查看可选项
+        - `-f` / `--follow`：实时追踪新增日志（持续输出，类似 `tail -f`）
+        - `-t` / `--timestamps`：显示日志时间戳
+        - `--tail N`：仅显示最近 N 行日志（如 `--tail 100`）
+
+2. 查看指定服务日志
+
+    - 命令：`docker compose logs <服务名>`，服务名为 compose 文件中的 service 名（如 `frontend`, `backend`, `db`）
+    - 功能：
+        - 输出指定服务的日志，便于聚焦问题服务
+
+3. 单独查看某容器日志
+
+    - 命令：`docker logs <容器ID或名称>`
+
+## Publishing Changes
+
+> 简述：开发时可将主机源码目录映射进容器，实现代码修改实时生效（热更新），无需频繁重建镜像，极大提升开发效率。此前已经介绍过，这一节介绍 compose 环境如何实现。
+
+**知识树**
+
+0. 备注
+
+    - 为复现情景，本地需要使用 node14（14.16.0）
+
+1. 源码挂载原理
+
+    - 通过 volumes（卷）将主机项目目录直接映射到容器内工作目录
+    - 主机的代码变动，容器内应用实时感知，适合本地开发调试
+    - Compose 支持直接写相对路径，无需手动拼接绝对路径
+
+2. Compose 文件写法
+
+    ```Dockerfile
+    services:
+      frontend:
+        depends_on:
+          - backend
+        build: ./frontend
+        ports:
+          - 3000:3000
+        volumes:
+          - ./frontend:/app # 相对路径：主机目录:容器目录
+
+      backend:
+        depends_on:
+          - db
+        build: ./backend
+        ports:
+          - 3001:3001
+        environment:
+          DB_URL: mongodb://db/vidly
+        volumes:
+          - ./backend:/app # 相对路径：主机目录:容器目录
+        command: ./docker-entrypoint.sh
+
+      db:
+        image: mongo:6-jammy
+        ports:
+          - 27017:27017
+        volumes:
+          - vidly:/data/db
+
+    volumes:
+      vidly:
+    ```
+
+3. 挂载常见问题与解决
+
+    - 依赖丢失/命令报错（如 nodemon not found）
+
+        - 挂载后，容器 `/app` 目录与主机内容保持一致，主机若无 `node_modules`，容器也看不到，会导致依赖丢失
+        - 解决：在主机对于目录先执行依赖安装`npm install`，再次启动后，容器可访问到完整依赖
+
+4. 热更新流程与验证
+
+    - 启动开发环境`docker compose up`
+    - 修改主机代码后保存
+        - 后端：如 `backend/routes/index.js`
+        - 前端：如`frontend/public/index.html`
+    - 容器中监听工具（如 nodemon）自动检测到变动，自动重启服务
+    - 刷新页面即可看到最新效果，无需重建镜像
+        - 后端：`http://localhost:3001/api`
+        - 前端：`http://localhost:3000`
+
+## Migrating the Database
+
+> 简述：生产级部署需确保数据库结构、基础数据一致。迁移工具+容器启动顺序管理，实现应用自动化初始化和并发启动问题。
+
+**知识树**
+
+1. 数据库迁移工具原理
+
+    - 迁移工具（如 migrate-mongo、Flyway、Liquibase 等）用于管理数据库结构/数据演变
+    - 支持“脚本不可重复执行”：每次 up 只执行未运行的脚本
+    - 典型脚本结构：`up`（升级）/`down`（回滚）；自动生成 changelog 追踪历史
+    - 示例 migrate-mongo 脚本：`vidly/backend/migrations/20210208213312-populate-movies.js`
+
+2. 在容器启动时自动迁移
+
+    - 具体服务内部启动命令往往是`CMD ["npm", "start"]`，可以在 Compose 文件中用 `command` 字段重写默认启动命令，用于启动数据迁移文件。
+    - 问题于解决方式：
+
+        - 可能出现执行迁移脚本时，数据库还未启动的状态，这时需要用到 `wait` ，有多种实现 `wait` 的方式，本节使用 `wait for it`依赖
+        - 传统的 command 命令过于繁琐，如 `./wait-for db:27017 && migrate-mongo up && npm start`，使用额外的 sh 文件，将这些命令写入，然后将文件地址写在 `command :` 后，可以解决这个问题
+
+    - 文件见：`vidly/backend/docker-entrypoint.sh`
+
+3. 卷与数据持久化
+
+    - Docker Compose 默认**不会自动删除卷**，重启/重建容器不会清空数据
+    - 如需完全重置数据库，需手动删除对应卷
+
+        ```bash
+        docker volume ls                   # 查看卷
+        docker volume rm <卷名>            # 删除卷，清空数据库
+        ```
+
+## Running Tests
+
+> 简述：自动化测试保障代码质量，可在主机本地快速运行，也可通过 Docker Compose 编排在容器中批量执行，适配不同开发与 CI/CD 流程。
+
+**知识树**
+
+1. `npm test`
+
+    - `npm test` = `npm run test`
+    - 功能
+        - 当你在项目目录下运行 `npm test`，`npm` 会自动尝试运行你在 `package.json` 里的 `"scripts"` 部分定义的 `test` 命令。
+    - 如果 `package.json` 里没有写 `scripts.test`
+        - `npm` 会使用默认命令：`node test.js`
+        - npm test 会尝试执行 `node test.js`（即执行项目根目录下的 `test.js` 文件，如果存在）。
+        - 如果没有 `test.js` 文件，`npm` 会提示`“missing script: test”`。
+
+2. 本地运行测试（推荐开发模式）
+
+    - 在已经准备好了测试命令后，直接在主机项目目录下运行测试命令，速度快、反馈及时
+    - 优势：无容器开销，热重载开发体验最佳，便于本地调试
+
+3. 在容器中运行测试（适合集成/自动化场景）
+
+    - 通过 Compose 定义专用测试服务，自动拉取/复用构建产物镜像，运行测试命令
+    - 示例：
+
+        ```yaml
+        services:
+        frontend:
+          depends_on:
+            - backend
+          build: ./frontend
+          ports:
+            - 3000:3000
+          volumes:
+            - ./frontend:/app
+
+        frontend-test:
+          image: vidly-frontend
+          volumes:
+            - ./frontend:/app
+          command: npm test
+
+        # 省略其他
+        ```
+
+    - 优点：
+        - 一条命令可统一启动服务和测试，适合 CI/CD 全流程、跨平台一致性
+        - 可为每个服务（如 web、api）都定义专用测试服务
+    - 缺点：
+        - 测试启动和反馈相对较慢
