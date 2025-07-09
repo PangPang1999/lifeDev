@@ -2732,3 +2732,343 @@
         - 可为每个服务（如 web、api）都定义专用测试服务
     - 缺点：
         - 测试启动和反馈相对较慢
+
+# Deploying Applications
+
+## Deployment Options
+
+> 简述：Docker 支持将应用部署到单台主机或集群（多台服务器）。单机部署简单高效，适合个人和中小项目。集群部署实现高可用与弹性扩展，但需引入专门编排工具（如 Kubernetes）。
+
+**知识树**
+
+1. 单主机部署（Single Host Deployment）
+
+    - 简单易用，适合开发、测试、小型生产环境
+    - 通过 `docker compose` 或单独命令即可完成全部服务编排
+    - 局限：
+        - 单点故障：主机宕机应用不可用
+        - 资源有限：难以承载大规模高并发
+    - 适用场景：原型、个人项目、中小团队内部工具
+
+2. 集群部署（Cluster Deployment）
+
+    - 优势
+        - 多主机协作，自动分配容器，实现高可用与横向扩展
+        - 可应对主机故障、流量激增
+    - 主流容器编排工具
+        - Docker Swarm（Docker 官方自带）
+            - 内置于 Docker Engine，命令简单。年社区热度较低，实际生产较少采用
+        - Kubernetes（业界主流，Google 主推）
+            - 强大生态，支持弹性伸缩、故障自愈、滚动升级等高级能力，学习曲线陡峭
+        - 其他方案：如 AWS ECS、Nomad、OpenShift 等
+
+3. 选型与扩展建议
+
+    - 小型项目优先采用单主机部署，便于快速上线与维护（本节选择）
+    - 随应用成长，可平滑迁移到 Kubernetes 等编排平台
+    - 切勿一开始“过度设计”，以业务需求驱动技术选型
+
+## Getting a Virtual Private Server
+
+> 简述：部署 Docker 应用需先准备一台云服务器（VPS），主流平台众多，推荐从易用性高的平台入手。
+
+**知识树**
+
+1. 常见 VPS 提供商
+
+    - 国内：腾讯云、阿里云？
+    - Amazon Web Services（AWS）
+        - EC2：一年免费，累计仅 100G 免费流量
+    - Digital Ocean（了解到 60 天免费，200$额度）
+    - Google Cloud Platform
+    - Microsoft Azure
+
+2. 开通 VPS 的准备
+
+    - 所有平台都需绑定信用卡或借记卡用于注册
+    - 仅需一台 VPS 即可完成后续全部部署演示
+
+## Installing Docker Machine
+
+> 简述：Docker Machine 用于在本地远程管理云服务器上的 Docker 引擎，让本地 Docker 命令可以直接控制云端主机。当前已经不再流行，稍后介绍 Docker Context
+
+**知识树**
+
+1. Docker Machine 作用
+
+    - 远程操作 VPS 上的 Docker（本地发命令，云端执行）
+
+2. 安装步骤（安装在本机）
+
+    - 访问 [github.com/docker/machine/releases](https://github.com/docker/machine/releases)
+    - 按操作系统选择安装命令，复制粘贴到终端即可完成安装
+    - Mac（M 芯片，默认使用 Rosetta2 兼容）
+        ```bash
+        curl -L https://github.com/docker/machine/releases/download/v0.16.2/docker-machine-Darwin-x86_64 | sudo tee /usr/local/bin/docker-machine > /dev/null
+        sudo chmod +x /usr/local/bin/docker-machine
+        ```
+
+3. 验证安装
+
+    - 运行 `docker-machine --version` 检查是否安装成功
+
+## Provisioning a Host（EC2）
+
+> 简述：Docker Machine 可一条命令自动创建云端服务器（Droplet）、远程安装 Docker，并便于后续直接本地远程管理。
+
+**知识树**
+
+1. 驱动选择与 Access Token
+
+    - Docker Machine 支持多平台，需指定 `--driver`，如 AWS、Digital Ocean、Azure 等
+    - 使用云平台需提前生成 API Access Token
+    - AWS
+        - 控制台 > 右上角“账户名” → “安全凭证” > 创建 Access Key（包含 Access Key ID 和 Secret Access Key），注意保存 Secret Access Key
+    - Digital Ocean （补充）
+        - 控制台 > Account > API > Generate Token
+    - 文档（目前只找到日文文档）：
+        - https://docs.docker.jp/machine/drivers/aws.html
+
+2. 创建服务器完整命令（以 EC2 为例）
+
+    ```bash
+    docker-machine create \
+      --driver amazonec2 \
+      --amazonec2-access-key <AWS_ACCESS_KEY_ID> \
+      --amazonec2-secret-key <AWS_SECRET_ACCESS_KEY> \
+      --amazonec2-region <区域名, 如 us-east-1> \
+      --amazonec2-instance-type <实例类型, 如 t3.micro> \
+      --amazonec2-ami <AMI ID, 可选，默认使用 Ubuntu> \
+      <server-name>
+
+    # 如
+    docker-machine create \
+      --driver amazonec2 \
+      --amazonec2-access-key xxx \
+      --amazonec2-secret-key xxx \
+      --amazonec2-region ap-southeast-1 \
+      --amazonec2-instance-type t2.micro \
+      --amazonec2-ami ami-01bc5d00223e71e41 \
+      --engine-install-url "https://releases.rancher.com/install-docker/20.10.sh" \
+      docker-vidly
+    ```
+
+    - `driver`：
+        - 指定不同的驱动，比如 amazonec2、 digital-ocean 等，不同 driver 的后续配置不同
+    - `access-key`/`secret-key`：
+        - 创建密匙时生成这一对，需要及时保存到安全的地方，否则关闭之后无法再次查看
+        - 示例中两个 key 均为演示，无法使用
+    - `region`：
+        - 区域，如`ap-southeast-1`，请勿带上 `a`，`ap-southeast-1a`的`a1 为可选的意思
+    - `instance-type`：
+        - 默认选择 `t2.micro` 免费，否则可能产生额外费用
+    - `amazonec2-ami`：非常重要
+        - 需要使用新版本的 ubuntu 系统，系统默认使用的是老版本 AMI（Amazon Machine Image），需要前往地址查询新版或者较新的 LTS 版本，另外由于 ec2 默认使用 x86，需要选择 amd 版本的 ubuntu。示例中为可用类型
+        - 查询网址：
+            - https://cloud-images.ubuntu.com/locator/ec2/
+    - `engine-install-url`：
+        - `docker-machine`仅支持到了 docker20，当前最新已经 28
+    - `<server-name>`：自定义服务器名称（如 `docker-vidly`）
+
+3. 后续操作
+
+    - 新服务器上线但未部署应用，浏览器访问公网 IP 暂无内容
+    - 可直接通过 Docker Machine 或 SSH 管理和部署应用
+
+## Connecting to the Host
+
+- 使用`docker-machine ls`查看管理的 docker 服务器
+- 使用`docker-machine ssh <name>`通过 ssh 连接服务器
+    - 测试 `ls`、`cd /`等命令
+
+## Defining the Production Configuration
+
+> 简述：生产环境与开发环境需求不同，应单独维护专用 Compose 配置，去除开发特有配置并加强服务健壮性。
+
+**知识树**
+
+1. 生产环境 Compose 文件
+
+    - 开发与生产环境配置需求不同，通常命名为 `docker-compose.prod.yml`（或其它约定名）
+
+2. 修改生产 Compose 文件
+
+    1. 将测试文件拷贝一份，重命名为`docker-compose.prod.yml`
+    2. 去除开发特有配置
+        - 不再需要源代码挂载卷（volumes）
+            - 仅开发时挂载本地代码便于热更新，生产环境无需此功能，应移除 `volumes` 配置
+        - 移除测试服务容器
+            - 生产环境不运行单元/集成测试服务，避免浪费资源
+    3. 修改端口（可选）
+        - 将前端映射修改为`80:80`，前一个 80 为 http 的默认端口，后一个 80 为 nginx 默认监听端点
+    4. 设置 restart 策略（可选）
+
+        - 默认为 no，崩溃后不会有其他行为
+        - 其他选择
+            - `always`（总是自动重启）
+            - `on-failure`（只有容器异常退出时才自动重启，正常退出不会重启）
+            - `unless-stopped`（容器异常退出时自动重启，除非被手动停止）
+        - 推荐策略： `restart: unless-stopped`
+
+3. `docker-compose.prod.yml`示例
+
+    ```yml
+    services:
+      frontend:
+    	depends_on:
+    	  - backend
+    	build: ./frontend
+    	ports:
+    	  - 80:80
+    	restart: unless-stopped
+
+      backend:
+    	depends_on:
+    	  - db
+    	build: ./backend
+    	ports:
+    	  - 3001:3001
+    	environment:
+    	  DB_URL: mongodb://db/vidly
+    	command: ./docker-entrypoint.sh
+    	restart: unless-stopped
+
+      db:
+    	image: mongo:6-jammy
+    	ports:
+    	  - 27017:27017
+    	volumes:
+    	  - vidly:/data/db
+    	restart: unless-stopped
+
+    volumes:
+      vidly:
+    ```
+
+4. 多环境文件扩展
+
+    - 可为测试、预发布等环境分别维护不同 Compose 文件（如 `docker-compose.test.yml`, `docker-compose.staging.yml`）
+
+## Reducing the Image Size
+
+> 简述：生产部署镜像应只包含最终可运行产物及其最小运行时环境，无需开发依赖、构建工具和源码。通过多阶段构建，可极大压缩镜像体积、提升安全性和启动性能，适用于前后端及各种主流开发栈。本节以前端做一个演示。
+
+**知识树**
+
+1.  生产环境 Dockerfile 文件
+
+    - 开发与生产环境构建需求不同，通常命名为 `Dockerfile.prod`（或其它约定名），并在`docker-compose.prod.yml`指定服务执行该脚本，而非默认的 Dockerfile 文件。
+
+2.  前端生产构建原理
+
+    - 大多数现代前端框架（如 React、Vue、Angular）都支持“构建”生成优化静态资源（`npm run build`）
+    - 产物通常位于 build 或 dist 目录，仅需部署此目录
+
+3.  修改生产 Dockerfile 文件
+
+    1. 将测试文件拷贝一份，重命名为`Dockerfile.prod`
+    2. `Dockerfile.prod`示例
+
+        ```yml
+        FROM node:14.16.0-alpine3.13 AS build-stage
+        WORKDIR /app
+        COPY package*.json ./
+        RUN npm install
+        COPY . .
+        RUN npm run build
+
+        FROM nginx:1.24-alpine
+        RUN addgroup app && adduser -S -G app app
+        USER app
+        COPY --from=build-stage /app/build /usr/share/nginx/html
+        EXPOSE 80
+        ENTRYPOINT [ "nginx","-g", "daemon off;" ]
+        ```
+
+    3. `docker-compose.prod.yml`对应配置
+
+        ```yaml
+        services:
+          frontend:
+            depends_on:
+              - backend
+            # 指定 Dockerfile.prod 作为生产环境的 Dockerfile
+            build:
+              context: ./frontend
+              dockerfile: Dockerfile.prod
+            ports:
+              - 80:3000
+            restart: unless-stopped
+
+        # 后续省略
+        ```
+
+4.  测试执行
+
+    - 使用生产 compose 文件构建
+        - `docker compose -f docker-compose.prod.yml build`
+    - 查看镜像大小，前端镜像大幅度缩小了
+        - `docker images`
+
+## Deploying the Application
+
+1. 使用`docker-machine ls`查看管理的机器
+2. 使用`docker-machine env <name>`，提示 Run this command to configure your shell
+3. 本地 shell 打开，运行`eval $(docker-machine env <name>)`
+    - 设置完成后，每个本地命令，将发送至远程 Docker
+4. 使用`docker compose -f docker-compose.prod.yml up -d`
+    - 通过这个操作，本地会将当前目录及 Dockerfile 所需内容打包，然后通过 Docker API 传输到远程服务器，在远程服务器上执行镜像构建（运行 Dockerfile），容器也会在远程服务器上启动。
+    - 通过访问`http://<购买服务器到地址>:3001/api`，可以访问到后端
+    - 可能需要设置开放安全组入站端口 3001
+5. 使用 `docker ps` ，可以看到远程服务器中，前端正在重启，这时因为重启策略，下一节介绍解决
+
+## Troubleshooting Deployment Issues
+
+1. 使用 `docker logs <ID/名称>` 查看前端问题，提示 nginx 权限问题
+2. 比较简单的解决方案（仅供演示）
+    1. 删掉 nginx 的用户设置，使用 root 运行
+    2. 使用`docker compose -f docker-compose.prod.yml up --build -d` 重新构建
+    3. 使用 `docker ps` ，可以看到远程服务器中，各个服务运行良好
+3. 其他方式需要学习 nginx 相关内容
+
+## Publishing Changes
+
+1. 生产中，镜像应明确标注版本号，通过 `image` 标签实现，如下
+
+    ```docker-compose.prod
+    services:
+      frontend:
+        depends_on:
+          - backend
+        # 指定 Dockerfile.prod 作为生产环境的 Dockerfile
+        build:
+          context: ./frontend
+          dockerfile: Dockerfile.prod
+        image: vidly-frontend:2.0
+        ports:
+          - 80:80
+        restart: unless-stopped
+
+      backend:
+        depends_on:
+          - db
+        build: ./backend
+        image: vidly-backend:1.0
+        ports:
+          - 3001:3001
+        environment:
+          DB_URL: mongodb://db/vidly
+        command: ./docker-entrypoint.sh
+        restart: unless-stopped
+
+      db:
+        image: mongo:6-jammy
+        ports:
+          - 27017:27017
+        volumes:
+          - vidly:/data/db
+        restart: unless-stopped
+
+    volumes:
+      vidly:
+    ```
