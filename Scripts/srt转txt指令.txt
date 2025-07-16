@@ -1,6 +1,7 @@
-find "/Users/quartz/Desktop/Video临时/TypeScript/4 Advanced Types (26m)" -type f -name "*.srt" -exec sh -c '
+find "此处输入文件夹路径" -type f -name "*.srt" -exec sh -c '
 for file; do
 output="${file%.srt}.txt"
 sed -n "/^[^0-9]*$/p" "$file" > "$output"
 done
 ' sh {} +
+# 子文件夹自动遍历寻找所有srt文件
