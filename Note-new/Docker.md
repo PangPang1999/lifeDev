@@ -3010,6 +3010,7 @@
     ## 切换并启用 buildx 构建器
     docker buildx create --use
     ## 本地构建 amd64 镜像
+    docker buildx build --platform linux/amd64 -t spring-store-api:1.0-amd --load .
     ```
 
 4.  启动后端服务容器
@@ -3147,3 +3148,199 @@ docker logs spring-store-api
 
 - 注意：开放 服务器 防火墙 对应端口，确保 8080 端口允许外部访问。
 - 访问服务：`http://你的公网 IP:8080/`
+
+# 阿里云容器化部署后端
+
+## 计划
+
+目前已经在三台服务器上搭建了 Mysql 主从复制，RedisCluster，MQ 集群
+并在本地进行了同配置集群搭建（方案见集群搭建文档）
+
+项目目前本地运行正常，先将其本地打包，通过命令行配置必要参数，进行模拟
+
+## 本地打镜像并运行
+
+> 问题以及解决：本计划在启动脚本`docker-entrypoint.sh`设置环境变了，但是这里设置环境变了只能在本地 shell 中生效，无法在容器内生效，若希望在容器内生效，需要使用`-e`指定，或者使用运行时指定`.env`
+> 问题 2：本地容器化能启动，但是涉及 Redis 相关的服务时，确实能连到 redis，但是 redis 本地集群配置的是 127.0.0.1，转发过去，但是容器内的 127.0.0.1 找不到东西，那么就挂了。服务器不会有这个问题。
+
+1.  构建后端镜像
+
+```sh
+docker build -t zilu1/spring-store-api:2.0 .
+```
+
+2.  启动后端服务容器（启动、测试没有问题）
+
+```SH
+docker run -d \
+  --name spring-store-api \
+  --add-host=host.docker.internal:host-gateway \
+  -e HOST_DOCKER_INTERNAL=host.docker.internal \
+  -e JWT_SECRET=xxx= \
+  -e STRIPE_SECRET_KEY=xxx \
+  -e STRIPE_WEBHOOK_SECRET_KEY=xxx \
+  -p 8080:8080 \
+  zilu1/spring-store-api:2.0
+```
+
+3. 本地使用 dockerfile.test 构建镜像
+
+```sh
+docker build -f Dockerfile.test -t zilu1/spring-store-api-test:2.0 .
+```
+
+4.  本地启动 test 后端带上对应参数
+
+```sh
+docker run -d \
+  --name spring-store-api-test \
+  -e JWT_SECRET=xxx \
+  -e STRIPE_SECRET_KEY=xxx \
+  -e STRIPE_WEBHOOK_SECRET_KEY=xxx \
+  -e TEST_MYSQL_HOST_MASTER1=47.111.2.191 \
+  -e TEST_MYSQL_HOST_SLAVE1=114.215.192.250 \
+  -e TEST_MYSQL_HOST_SLAVE2=47.97.225.83 \
+  -e TEST_MYSQL_PORT=3306 \
+  -e TEST_MYSQL_DATABASE=store_api \
+  -e TEST_MYSQL_USERNAME=root \
+  -e TEST_MYSQL_PASSWORD=myPassword! \
+  -e TEST_REDIS_NODE1=47.111.2.191:6379 \
+  -e TEST_REDIS_NODE2=114.215.192.250:6379 \
+  -e TEST_REDIS_NODE3=47.97.225.83:6379 \
+  -e TEST_REDIS_NODE4=47.111.2.191:6380 \
+  -e TEST_REDIS_NODE5=114.215.192.250:6380 \
+  -e TEST_REDIS_NODE6=47.97.225.83:6380 \
+  -e TEST_REDIS_PASSWORD=MyVeryStrongPassword123 \
+  -e TEST_REDIS_TIMEOUT=3000 \
+  -e TEST_REDIS_MAX_ACTIVE=8 \
+  -e TEST_REDIS_MAX_IDLE=8 \
+  -e TEST_REDIS_MIN_IDLE=0 \
+  -e TEST_REDIS_MAX_WAIT=10000 \
+  -e TEST_RABBITMQ_USERNAME=guest \
+  -e TEST_RABBITMQ_PASSWORD=guest \
+  -e TEST_RABBITMQ_ADDRESS1=47.111.2.191:5672 \
+  -e TEST_RABBITMQ_ADDRESS2=114.215.192.250:5672 \
+  -e TEST_RABBITMQ_ADDRESS3=47.97.225.83:5672 \
+  -e TEST_RABBITMQ_VIRTUAL_HOST=/ \
+  -e TEST_RABBITMQ_PORT=5672 \
+  -e TEST_RABBITMQ_CONNECTION_TIMEOUT=30000 \
+  -e TEST_RABBITMQ_REQUESTED_HEARTBEAT=60 \
+  -e TEST_RABBITMQ_ERLANG_COOKIE=SuperSecretCookie \
+  -p 8080:8080 \
+  zilu1/spring-store-api-test:2.0 \
+  --spring.profiles.active=test
+```
+
+## 云 Docker 部署
+
+### 正常流程
+
+```sh
+## 切换并启用 buildx 构建器
+docker buildx create --use
+## 本地构建 amd64 镜像，这里的zilu1是我hub的仓库前缀
+docker buildx build --platform linux/amd64 -f Dockerfile.test -t zilu1/spring-store-api:2.0-amd64 --load .
+
+# 登录 Docker Hub
+docker login
+# 对于ec2等默认版本，需推送 amd64 架构镜像
+docker push zilu1/spring-store-api:2.0-amd64
+
+# 登陆云平台
+docker pull zilu1/spring-store-api:2.0-amd64
+
+# 运行容器
+docker run -d \
+  --name spring-store-api-test \
+  -e JWT_SECRET=xxx \
+  -e STRIPE_SECRET_KEY=xxx \
+  -e STRIPE_WEBHOOK_SECRET_KEY=xxx \
+  -e TEST_MYSQL_HOST_MASTER1=47.111.2.191 \
+  -e TEST_MYSQL_HOST_SLAVE1=114.215.192.250 \
+  -e TEST_MYSQL_HOST_SLAVE2=47.97.225.83 \
+  -e TEST_MYSQL_PORT=3306 \
+  -e TEST_MYSQL_DATABASE=store_api \
+  -e TEST_MYSQL_USERNAME=root \
+  -e TEST_MYSQL_PASSWORD=myPassword! \
+  -e TEST_REDIS_NODE1=47.111.2.191:6379 \
+  -e TEST_REDIS_NODE2=114.215.192.250:6379 \
+  -e TEST_REDIS_NODE3=47.97.225.83:6379 \
+  -e TEST_REDIS_NODE4=47.111.2.191:6380 \
+  -e TEST_REDIS_NODE5=114.215.192.250:6380 \
+  -e TEST_REDIS_NODE6=47.97.225.83:6380 \
+  -e TEST_REDIS_PASSWORD=MyVeryStrongPassword123 \
+  -e TEST_REDIS_TIMEOUT=3000 \
+  -e TEST_REDIS_MAX_ACTIVE=8 \
+  -e TEST_REDIS_MAX_IDLE=8 \
+  -e TEST_REDIS_MIN_IDLE=0 \
+  -e TEST_REDIS_MAX_WAIT=10000 \
+  -e TEST_RABBITMQ_USERNAME=guest \
+  -e TEST_RABBITMQ_PASSWORD=guest \
+  -e TEST_RABBITMQ_ADDRESS1=47.111.2.191:5672 \
+  -e TEST_RABBITMQ_ADDRESS2=114.215.192.250:5672 \
+  -e TEST_RABBITMQ_ADDRESS3=47.97.225.83:5672 \
+  -e TEST_RABBITMQ_VIRTUAL_HOST=/ \
+  -e TEST_RABBITMQ_PORT=5672 \
+  -e TEST_RABBITMQ_CONNECTION_TIMEOUT=30000 \
+  -e TEST_RABBITMQ_REQUESTED_HEARTBEAT=60 \
+  -e TEST_RABBITMQ_ERLANG_COOKIE=SuperSecretCookie \
+  -p 8080:8080 \
+  zilu1/spring-store-api-test:2.0 \
+  --spring.profiles.active=test
+```
+
+### 连不上 hub
+
+```sh
+## 切换并启用 buildx 构建器
+docker buildx create --use
+## 本地构建 amd64 镜像，这里的zilu1是我hub的仓库前缀
+docker buildx build --platform linux/amd64 -f Dockerfile.test -t zilu1/spring-store-api:2.0-amd64 --load .
+
+# 本地（当前目录）保存项目镜像为 tar
+docker save -o spring-store-api.tar zilu1/spring-store-api:2.0-amd64
+
+# 本地上传镜像文件到服务器（以 scp 为例），自己建一个data，命令mkdir -p /data
+scp spring-store-api.tar root@47.111.2.191:/data/
+
+# 服务器执行，导入镜像
+docker load -i /data/spring-store-api.tar
+
+# 运行容器
+docker run -d \
+  --name spring-store-api \
+  -e JWT_SECRET=xxx= \
+  -e STRIPE_SECRET_KEY=xxx \
+  -e STRIPE_WEBHOOK_SECRET_KEY=xxx \
+  -e TEST_MYSQL_HOST_MASTER1=47.111.2.191 \
+  -e TEST_MYSQL_HOST_SLAVE1=114.215.192.250 \
+  -e TEST_MYSQL_HOST_SLAVE2=47.97.225.83 \
+  -e TEST_MYSQL_PORT=3306 \
+  -e TEST_MYSQL_DATABASE=store_api \
+  -e TEST_MYSQL_USERNAME=root \
+  -e TEST_MYSQL_PASSWORD=myPassword! \
+  -e TEST_REDIS_NODE1=47.111.2.191:6379 \
+  -e TEST_REDIS_NODE2=114.215.192.250:6379 \
+  -e TEST_REDIS_NODE3=47.97.225.83:6379 \
+  -e TEST_REDIS_NODE4=47.111.2.191:6380 \
+  -e TEST_REDIS_NODE5=114.215.192.250:6380 \
+  -e TEST_REDIS_NODE6=47.97.225.83:6380 \
+  -e TEST_REDIS_PASSWORD=MyVeryStrongPassword123 \
+  -e TEST_REDIS_TIMEOUT=3000 \
+  -e TEST_REDIS_MAX_ACTIVE=8 \
+  -e TEST_REDIS_MAX_IDLE=8 \
+  -e TEST_REDIS_MIN_IDLE=0 \
+  -e TEST_REDIS_MAX_WAIT=10000 \
+  -e TEST_RABBITMQ_USERNAME=guest \
+  -e TEST_RABBITMQ_PASSWORD=guest \
+  -e TEST_RABBITMQ_ADDRESS1=47.111.2.191:5672 \
+  -e TEST_RABBITMQ_ADDRESS2=114.215.192.250:5672 \
+  -e TEST_RABBITMQ_ADDRESS3=47.97.225.83:5672 \
+  -e TEST_RABBITMQ_VIRTUAL_HOST=/ \
+  -e TEST_RABBITMQ_PORT=5672 \
+  -e TEST_RABBITMQ_CONNECTION_TIMEOUT=30000 \
+  -e TEST_RABBITMQ_REQUESTED_HEARTBEAT=60 \
+  -e TEST_RABBITMQ_ERLANG_COOKIE=SuperSecretCookie \
+  -p 8080:8080 \
+  zilu1/spring-store-api:2.0-amd64
+```
