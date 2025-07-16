@@ -152,6 +152,8 @@
         - `noImplicitReturns`：如果函数可能返回 `undefined`（没有全路径返回），则发出警告。
     5. 其他配置
         - `allowUnreachableCode`：检测抵达不到的代码，发出警告。默认为 true 只变淡不警告，需要手动设置为 false
+    6. 继承配置
+        - `noImplicitOverride`： 手动设置为 true，避免无意间的重写
 
 3. 编译流程
 
@@ -167,6 +169,8 @@
 
     1. `tsc` 转译
     2. `node dist/index.js`，运行转译后的 js 代码
+    3. 此外，可以使用`&&`合并两个指令（Mac）
+        - `tsc && node dist/index.js`
 
 ## 调试
 
@@ -533,7 +537,7 @@
         - 应明确规定每个参数的数据类型
     - 返回：
         - 未设置返回值
-            - 若没有设置返回值时，没有语法错误，根据 `return xxx` 的类型来判断返回值的类型，若没有 `return`，则默认未 `void`，但这样子不规范，应避免这种方式。
+            - 若没有设置返回值时，没有语法错误，根据 `return xxx` 的类型来判断返回值的类型，若没有 `return`，则默认为 `void`，但这样子不规范，应避免这种方式。
         - 未返回：
             - 若显式设置了返回类型，但没有返回任何内容，则默认返回 `undefined`
 
@@ -1164,3 +1168,894 @@
     ```
 
     - 解释：该函数总是抛出错误，因此永不返回，通过 never 类型使得编译器和开发者清晰认识到调用后的代码不会执行。
+
+# Classes, Interfaces and Object-oriented Programming
+
+## 面向对象编程
+
+> 简述：和其他面向对象的语言一样，Ts 可以通过类与对象、封装、继承、多态及接口抽象现实世界，清晰表达数据和行为，提升代码复用性、可维护性和扩展性。OOP 通常于 FP 对比。
+
+**知识树**
+
+1. 编程范式
+
+    - 定义：编程范式是编写代码的风格或方式。
+    - 示例：
+        - 面向对象编程（OOP）
+        - 函数式编程（FP）
+        - 过程式编程
+        - 事件驱动编程
+        - 面向切面编程
+
+2. 面向对象编程（OOP）
+
+    - 定义：一种以对象为基本单元的编程范式，对象包含数据和操作。
+    - 核心概念：
+        - 对象：包含数据（状态）和操作（行为）的单元。
+        - 类：对象的蓝图或模板，定义了对象的属性和方法。
+    - 特点：
+        - 封装：将数据和操作封装在对象内部。
+        - 继承：类之间可以继承属性和方法。
+        - 多态：对象可以以多种形式存在。
+
+3. OOP 与函数式编程（FP）的比较
+
+    - 函数式编程（FP）：
+        - 以函数为构建块。
+        - 强调不可变性和无副作用。
+    - 区别：
+        - OOP 侧重于对象和类的组织。
+        - FP 侧重于函数的组合和数据的转换。
+    - 优缺点：
+        - 每种范式在不同场景下有其优势。
+        - OOP 适用于模拟现实世界中的实体和交互。
+        - FP 适用于数据处理和并发编程。
+
+## 创建类
+
+> 简述：类（Class）定义了事物的抽象特征，是对象的蓝图（Blueprint）或模板 （Template）。用于批量创建具有相同结构和行为的对象。下一节介绍如何创建对象。
+
+**知识树**
+
+1.  类
+
+    - 属性 (Properties):
+        - 对象的状态或数据 (e.g., 银行账户的 `id`, `owner`, `balance`)。
+    - 方法 (Methods):
+        - 对象的行为或操作 (e.g., `deposit`, `withdraw`)。
+
+2.  定义方式
+
+    - 使用 `class` 关键字。
+    - 类名遵循帕斯卡命名法 (PascalCase) (e.g., `Account`)。
+    - 类体包含在 `{}` 中，包括属性和方法
+
+3.  属性
+
+    - 在类体中直接声明，并指定类型注解。
+    - 初始化要求:
+        - TypeScript 编译器**默认配置要求**属性在使用前必须被明确赋值（通常在声明时或构造函数中完成），否则报错。技术上可以声明类，new 对象后赋值，但不推荐。
+
+4.  构造函数
+
+    - 目的:
+        - 初始化对象。当使用 `new` 创建类实例时自动调用。
+    - 定义:
+        - 使用 `constructor` 关键字定义的特殊方法。接收参数，用于设置对象的初始状态。
+    - 返回类型:
+        - 无需也不能显式声明返回类型，它总是隐式返回当前类的一个新实例。
+    - `this` 关键字:
+        - 在构造函数和方法内部，`this` 指向当前正在创建或操作的对象实例。用于访问或修改实例的属性 (`this.propertyName = value;`)。
+
+5.  方法
+
+    - 定义:
+        - 在类内部定义的函数，用于描述对象的行为。可以包含任意业务逻辑，如条件判断、计算、抛出错误等。
+    - 语法:
+        - `methodName(parameters): returnType { ... }`
+    - 访问属性:
+        - 方法内部可以使用 `this` 关键字访问和修改当前对象的属性。
+
+**代码示例**
+
+1.  定义类、属性和构造函数
+
+    ```typescript
+    // 定义一个银行账户类 (Account)
+    class Account {
+      // 属性声明 (Properties) - 定义对象状态
+      id: number;
+      owner: string;
+      balance: number;
+
+      // 构造函数 (Constructor) - 初始化对象
+      // 参数用于接收初始值
+      constructor(id: number, owner: string, balance: number) {
+        // 使用 'this' 关键字引用当前实例，并为属性赋值
+        this.id = id;
+        this.owner = owner;
+        this.balance = balance;
+      }
+    }
+    ```
+
+2.  添加方法
+
+    ```typescript
+    class Account {
+      id: number;
+      owner: string;
+      balance: number;
+
+      constructor(id: number, owner: string, balance: number) {
+        this.id = id;
+        this.owner = owner;
+        this.balance = balance;
+      }
+
+      // 方法 (Method) - 定义对象行为
+      deposit(amount: number): void {
+        // void 表示该方法不返回值
+        // 方法内部可以包含逻辑
+        if (amount <= 0) {
+          throw new Error("Invalid amount"); // 抛出错误处理无效输入
+        }
+        // 使用 'this' 访问和修改实例属性
+        this.balance += amount;
+      }
+    }
+    ```
+
+## 创建对象
+
+> 简述：通过 `new` 操作符基于类，实例化一个对象，可以使用其属性与方法。利用 `instanceof` 能检测对象类型。
+
+**知识树**
+
+1. 对象实例化
+
+    - 使用 `new` 关键字，传入必须参数，创建对象
+    - 构造函数调用:
+        - `new` 操作符会自动调用类的构造函数 (`constructor`)，并传递参数给构造函数以初始化属性
+
+2. 访问对象成员
+
+    - 对象的属性与方法通过 `对象.成员` 进行访问
+    - 类的属性与方法在对象中对应实际数据和行为
+
+3. 运行时对象类型检查 (Runtime Object Type Checking)
+
+    - `typeof` 操作符:
+        - 行为:
+            - 对原始类型（`string`, `number`, `boolean`, `symbol`, `bigint`, `undefined`）返回类型字符串；
+            - 对对象（包括由类创建的实例、数组、`null`）返回 `"object"`，对函数返回 `"function"`。
+        - 局限性:
+            - 不能区分不同类的实例、数组和普通对象，`typeof null` 返回 `"object"`（历史遗留问题）。
+        - 适用场景:
+            - 区分原始类型和 `"object"`/`"function"`，不适合判断自定义类型。
+    - `instanceof` 操作符:
+        - 行为:
+            - 检查对象原型链上是否有指定构造函数的 `prototype`，返回布尔值。
+        - 语法:
+            - `object instanceof Constructor`
+        - 局限性:
+            - 只能判断对象与构造函数的关系，对原始类型无效。
+        - 适用场景:
+            - 判断对象是否为特定类或其父类的实例，适用于类型守卫。
+    - 最佳实践:
+        - 判断对象具体类型，用 `instanceof`。
+        - 判断原始类型，用 `typeof`。
+
+**代码示例**
+
+1.  创建对象实例与成员访问
+
+    ```typescript
+    class Account {
+      id: number;
+      owner: string;
+      balance: number;
+
+      constructor(id: number, owner: string, balance: number) {
+        this.id = id;
+        this.owner = owner;
+        this.balance = balance;
+      }
+
+      deposit(amount: number): void {
+        if (amount <= 0) {
+          throw new Error("Invalid amount"); // 抛出错误处理无效输入
+        }
+        this.balance += amount;
+      }
+    }
+
+    // 1. 创建对象实例 (Instantiation)
+    // 使用 'new' 调用 Account 类的构造函数，并传入初始值
+    let account = new Account(1, "Pang", 0);
+
+    // 2. 访问属性 (Accessing Property)
+    console.log("Initial Balance:", account.balance);
+
+    // 3. 调用方法 (Calling Method)
+    account.deposit(100);
+
+    // 4. 直接打印对象
+    console.log(account);
+    ```
+
+2.  `typeof` 与 `instanceof` 对比
+
+    ```typescript
+    // (续上例)
+    console.log(typeof account); // 输出对象的类型，仅返回 object
+    console.log(account instanceof Account); // 输出 true，表示 account 是 Account 类的实例
+    ```
+
+    - 描述： `typeof account` 返回 `"object"`，而 `account instanceof Account` 返回 `true`。
+
+## 属性修饰符`readonly` &`?`
+
+> 简述：通过 `readonly` 和 可选属性（`?`）修饰符，可以限制属性赋值时机与必需性性，避免意外修改或未初始化访问。
+
+**知识树**
+
+1. 只读属性（Readonly）
+
+    - 使用 `readonly` 前缀声明，属性只能在构造函数内赋值
+    - 在类外或其他方法中再次赋值会导致编译错误
+
+2. 可选属性（Optional）
+
+    - 在属性名后添加 `?` 标记，表示属性可以为 `undefined`
+    - 可选属性无需在构造函数中初始化
+
+3. 应用场景
+
+    - `readonly`：适用于标识唯一且不可变的数据，如账户 ID
+    - 可选属性：适用于非必需字段，如用户自定义昵称
+
+4. readonly  和可选属性 (?) 的使用
+
+    ```typescript
+    class Account {
+      // readonly 属性：id 在初始化后不可更改
+      readonly id: number;
+      owner: string;
+      balance: number;
+      // 可选属性：nickname 可能存在，也可能不存在
+      nickname?: string;
+
+      constructor(id: number, owner: string, balance: number) {
+        this.id = id; // readonly 属性可以在构造函数中赋值
+        this.owner = owner;
+        this.balance = balance;
+        // nickname 是可选的，无需在此处初始化
+      }
+
+      deposit(amount: number): void {
+        if (amount <= 0) {
+          throw new Error("Invalid amount");
+        }
+        this.balance += amount;
+        // this.id = 0; // 编译错误！无法分配到 "id" ，因为它是只读属性。
+      }
+
+      setNickname(name: string) {
+        this.nickname = name; // 可选属性可以在之后赋值
+      }
+    }
+    ```
+
+## 访问修饰符
+
+> 简述： TypeScript 中的访问修饰符用于控制类成员（属性和方法）的可访问性。通过限制访问，可以增强封装性，防止外部代码直接篡改内部状态。
+
+**知识树**
+
+1.  访问修饰符 (Access Modifiers)
+
+    - TypeScript 提供的关键字，用于设定类成员的可见范围。
+    - 主要修饰符：
+        - public：默认修饰符，成员可在任何地方被访问
+        - private：成员只能在类内被访问
+        - protected：在类内及子类中可被访问（稍后介绍）
+
+2.  `public` (公有)
+
+    - 默认修饰符：
+        - 如果不显式指定，类成员默认为 `public`。
+    - 可访问性：
+        - 可以在任何地方访问（类内部、类的实例外部、子类中）。
+
+3.  `private` (私有)
+
+    - 访问：
+        - 仅能在定义该成员的类内部访问。不能在类的实例外部或子类中访问。如果需要从外部读取或（受控地）修改私有属性，应提供公共方法（如 Getter/Setter 或其他业务方法）。
+    - 主要目的:
+        - 封装与信息隐藏
+            - 隐藏内部实现细节，强制通过公共接口（方法）交互。
+        - 代码健壮性
+            - 防止外部代码意外修改内部状态，确保对象状态的一致性（例如，确保余额修改总伴随着交易记录）。
+    - 注意:
+        - `private` 主要用于代码结构和健壮性，不应用于存储敏感信息（如密码），因为它只在编译时强制执行，运行时可能被绕过。
+    - 命名约定:
+        - 私有属性通常以下划线 `_` 开头 (e.g., `_balance`)，作为一种编码风格提示。
+
+4.  私有方法
+
+    - 访问修饰符同样可以应用于类的方法。`private` 方法通常是类内部使用的辅助方法，不希望暴露给外部调用者。
+
+**代码示例**
+
+1.  `private` 属性和受控访问
+
+    ```typescript
+    class Account {
+      readonly id: number;
+      owner: string;
+      // 使用 private 修饰符，并遵循下划线约定
+      private _balance: number;
+
+      constructor(id: number, owner: string, balance: number) {
+        this.id = id;
+        this.owner = owner;
+        // 私有属性可以在类内部访问和赋值
+        this._balance = balance;
+      }
+
+      deposit(amount: number): void {
+        if (amount <= 0) {
+          throw new Error("Invalid amount");
+        }
+        this._balance += amount;
+      }
+
+      // 公共方法，用于安全地获取私有属性的值 (Getter)
+      getBalance(): number {
+        // 可以在此添加权限检查等逻辑
+        return this._balance;
+      }
+
+      // 私有方法，仅供类内部使用
+      private calculate(amount: number): void {
+    	...
+      }
+    }
+
+    let account = new Account(1, "Alice", 1000);
+
+    // account._balance = 2000; // 编译错误！属性“_balance”为私有属性，只能在类“Account”中访问。
+
+    account.deposit(500); // 正确：通过公共方法间接修改私有属性
+
+    // 通过公共 Getter 方法访问余额
+    let currentBalance = account.getBalance();
+    console.log("Balance retrieved:", currentBalance); // 输出: Balance retrieved: 1500
+    ```
+
+## 参数属性
+
+> 简述：TypeScript 的参数属性(Parameter Properties)，允许在构造函数参数上直接使用访问修饰符（`public`, `private`, `protected`）或 `readonly`，从而自动完成类属性的声明和初始化，显著减少样板代码，这是一种简洁的语法糖，。
+
+**知识树**
+
+1.  参数属性 (Parameter Properties)
+
+    - 形式：
+        - 在构造函数的参数名前直接添加访问修饰符 (`public`, `private`, `protected`) 或 `readonly` 修饰符。
+    - 工作原理
+        - 当编译器遇到带有修饰符的构造函数参数时，它会自动在类中创建一个同名的属性。该属性具有参数上指定的修饰符。并自动将传入构造函数的参数值赋给这个新创建的同名属性。
+
+2.  优势
+
+    - 代码简洁: 大幅减少了声明属性和在构造函数中手动赋值所需的代码量。
+    - 提高效率: 使类的定义更加紧凑和易读。
+
+3.  组合修饰符
+
+    - 可以在同一个参数上同时使用访问修饰符和 `readonly`。
+    - 顺序: 访问修饰符在前，`readonly` 在后 (e.g., `public readonly id: number`)。
+
+4.  代码格式化
+
+    - 当构造函数参数较多时，为了保持代码可读性，建议将每个参数属性放在单独一行。
+
+**代码示例**
+
+1.  **使用参数属性简化类定义**
+
+    ```typescript
+    // 传统方式 (冗余)
+    /*
+    class Account {
+      id: number;
+      owner: string;
+      balance: number;
+
+      constructor(id: number, owner: string, balance: number) {
+        this.id = id;
+        this.owner = owner;
+        this.balance = balance;
+      }
+
+      // 省略
+    }
+    */
+
+
+    // 使用参数属性 (简洁)
+    class Account {
+      constructor(
+        public readonly id: number, // 创建 public readonly id 属性并初始化
+        public owner: string, // 创建 public owner 属性并初始化
+        private _balance: number // 创建 private _balance 属性并初始化
+      ) {}
+
+      // 省略
+    }
+    ```
+
+## Getter 与 Setter
+
+> 简述：Getter (`get`) 和 Setter (`set`) 以属性访问的语法来执行方法逻辑。Getter 用于获取属性值（通常是私有属性），Setter 用于设置属性值，常包含验证逻辑，共同增强了类的封装性和数据控制能力。
+
+**知识树**
+
+1.  动机 (Motivation)
+
+    - 直接使用普通方法（如 `getBalance()`）语法上不够直观
+    - 期望像访问公共属性一样访问，但同时保留内部控制（如验证）。
+
+2.  Getter 和 Setter
+
+    - 概念：
+        - 统称为访问器 (Accessors)，是类中特殊的成员。提供类似属性访问的语法 (`object.property`)，但背后执行的是方法调用。
+    - 功能：
+        - 为私有属性提供受控的公共访问接口，实现封装和数据验证。
+
+3.  Getter (`get`)
+
+    - 定义: 使用  get  关键字修饰的方法。
+    - 目的: 以属性访问的语法 (object.property) 获取值，背后执行方法逻辑。
+    - 特性: 无参数，必须有返回值。提供只读访问（若无对应 Setter）。
+
+4.  Setter (`set`)
+
+    - 定义: 使用 `set` 关键字定义的方法，方法名通常与要设置的（逻辑）属性同名。
+    - 作用:
+        - 当给该“属性”赋值时 (`object.propertyName = newValue`)，Setter 方法会被调用，传入的值作为参数 `value`。
+    - 特性:
+        - 必须接收一个参数（类型应与“属性”类型一致）。
+        - 不能有返回类型注解（隐式返回 `void`）。
+    - 最佳实践：
+        - 在赋值操作发生时，执行自定义逻辑，最常见的是数据验证。
+
+**代码示例**
+
+1.  使用 Getter 和 Setter 封装私有属性
+
+    ```typescript
+    class Account {
+      constructor(
+        public readonly id: number, // 创建 public readonly id 属性并初始化
+        public owner: string, // 创建 public owner 属性并初始化
+        private _balance: number // 创建 private _balance 属性并初始化
+      ) {}
+
+      // 省略
+
+      get balance(): number {
+        return this._balance;
+      }
+
+      // 仅作示例，这里的 setter 可能不太合适，因为 balance 通常不应该被直接设置
+      set balance(value: number) {
+        if (value < 0) {
+          throw new Error("Balance cannot be negative.");
+        }
+        this._balance = value;
+      }
+    }
+
+    let account = new Account(1, "Alice", 1000);
+    console.log(account.balance); // 实际调用 getter 获取余额
+    account.balance = 2000; // 使用 setter 设置余额，但这通常不推荐
+    ```
+
+## 索引签名
+
+> 简述：在 TypeScript 中，通过(Index Signature)索引签名 `[key: KeyType]: ValueType` 为对象添加 动态 属性，同时保留编译期的类型检查，兼顾 JavaScript 的灵活性与 TypeScript 的严谨性。
+
+**知识树**
+
+1. 动态属性需求
+
+    - JavaScript 允许动态地向对象添加属性。TypeScript 默认强制严格的对象结构（预定义所有属性）。针对某些场景需要动态添加属性，Ts 提供了类型安全的索引签名方式。
+
+2. 索引签名
+
+    - 目的: 为具有动态属性名称的对象提供类型定义。
+    - 语法：`[key: KeyType]: ValueType`，`KeyType` 指定键类型，`ValueType` 指定值类型
+
+3. 访问方式
+
+    - 点记法：`obj.prop`（仅在键名是有效的 JavaScript 标识符且在编译时已知时可用，对于动态或非标识符键名不适用。）
+    - 方括号记法：`obj["prop"]` / `obj[idx]`来访问或设置属性，因为键通常是动态的或包含特殊字符
+
+4. 类型安全
+    - TypeScript 会检查用于索引的键是否符合  KeyType。赋给属性的值是否符合  ValueType。
+
+**代码示例**
+
+1. 动态座位示例
+
+    ```typescript
+    class SeatAssignment {
+      [seatNumber: string]: string;
+    }
+
+    const seats = new SeatAssignment();
+
+    seats.A1 = "Alice";
+    seats["A2"] = "Bob";
+    seats[`B${3}`] = "Charlie";
+    ```
+
+    - 描述：`SeatAssignment` 通过索引签名实现可扩展的「座位 → 姓名」映射，且保持字符串值的类型约束。
+
+## 静态成员
+
+> 简述：静态成员属于类本身，而非类的任何特定实例。 它们用于表示或操作与类整体相关、而非与单个对象实例相关的状态或行为，通常配合 `private` 与 `static get` 使用。
+
+**知识树**
+
+1.  实例成员 vs. 静态成员
+
+    - 实例成员 (Instance Members)
+        - 属于类的每个对象实例。每个对象有自己的一份拷贝（属性），方法通过 `this` 访问当前对象的属性。在对象创建 (new) 时初始化。
+    - 静态成员 (Static Members)
+        - 属于类本身。所有实例共享同一份静态成员。内存中只有一份拷贝。在类定义被加载时初始化，早于任何实例创建。
+
+2.  静态属性/方法 (Static Properties/Methods)
+
+    - 定义
+        - 使用 `static` 关键字修饰的属性/方法。
+    - 声明方式
+        - `static propertyName: type = initialValue;`
+        - `static methodName(parameters): returnType { ... }`
+    - 目的
+        - 存储与类相关、而非与特定实例相关的状态（如全局计数器、配置常量）。
+        - 提供与类相关的工具函数或工厂方法，其操作不依赖于任何特定实例的状态。
+    - 访问
+        - 必须通过类名访问/调用。实例不能直接访问
+            - `ClassName.staticPropertyName`
+            - `ClassName.staticMethodName(arguments)`
+
+3.  访问控制与静态成员
+
+    - 静态成员同样可以使用访问修饰符 (`public`, `private`, `protected`)。
+    - `private static` 成员仅能在类内部通过类名或 `this` (在静态方法内) 访问。
+    - 常用于封装类级别的内部状态，并通过公共静态方法（如静态 Getter）提供受控访问。
+
+4.  静态 Getter/Setter
+
+    - 可以使用 `static get` 和 `static set` 定义静态访问器，提供对（通常是私有）静态属性的受控访问。
+
+5.  继承 (Inheritance)补充
+
+    - 静态成员可以被子类继承。
+    - 子类可以通过自己的类名访问继承的静态成员 (SubClass.staticMember)。
+    - 无多态覆盖：如果子类定义了与父类同名的静态成员（属性或方法），它会隐藏 (shadow)  父类的成员，而非像实例方法那样覆盖。访问时取决于使用哪个类名
+
+**代码示例**
+
+1. 使用静态属性跟踪共享状态
+
+    ```typescript
+    class Ride {
+      private static _activeRides: number = 0;
+
+      start() {
+        Ride._activeRides++;
+      }
+      stop() {
+        Ride._activeRides--;
+      }
+      static get activeRides() {
+        return Ride._activeRides;
+      }
+    }
+    let ride1 = new Ride();
+    let ride2 = new Ride();
+    ride1.start();
+    ride2.start();
+    console.log(Ride.activeRides); // Output: 2
+    ```
+
+## 继承
+
+> 简述：继承（Inheritance）通过 `extends` 关键字，能让子类（派生类）复用父类（基类）的属性与方法，避免重复代码；子类可添加自身特有成员并借助 `super` 调用父类构造函数。
+
+**知识树**
+
+1. 继承 (Inheritance)
+
+    - 继承是面向对象编程中的一种机制，允许一个类（子类）获取另一个类（父类）的所有（`public`/`protected`）属性和方法，同时可以添加自己特有的功能，减少重复代码。
+    - **补充：`protected` 修饰符允许父类成员被子类访问，但不允许外部访问，在继承结构中很有用，但需要按团队需求谨慎使用，一般建议只使用 public 和 private。**
+
+2. 构造函数与参数属性
+
+    - 在构造函数参数前加 `public | private | readonly` 可自动生成并初始化同名属性
+    - 若属性已在父类定义，子类构造函数应传参而非再次声明
+    - 若只使用父类熟悉，可省略构造函数（也不必写 super）
+
+3. `extends`& `super`关键字
+
+    - `extends`声明继承关系
+    - `super` 用于在子类中引用父类，子类通过在构造函数中使用它，来调用父类的构造函数和方法，确保父类的初始化逻辑得到执行。不管父类是否存在属性，只要子类写了构造函数，就必须调用 super，否则报错。
+
+4. 最佳实践
+
+    - 将每个类放在单独的文件中，通过 ES 模块系统进行导入导出，以提高代码的可维护性。
+
+5. 下一节介绍方法重写
+
+**代码示例**
+
+1. Person 与 Student
+
+    ```typescript
+    class Person {
+      constructor(public firstName: string, public lastName: string) {}
+
+      get fullName(): string {
+        return `${this.firstName} ${this.lastName}`;
+      }
+
+      walk(): void {
+        console.log(`${this.fullName} is walking.`);
+      }
+    }
+
+    class Student extends Person {
+      constructor(public studentId: number, firstName: string, lastName: string) {
+        super(firstName, lastName);
+      }
+
+      // 子类特有的方法
+      takeTest(): void {
+        console.log(`${this.fullName} (ID: ${this.studentId}) is taking a test.`);
+      }
+    }
+
+    let student = new Student(1, "John", "Smith");
+    // student可以访问Person类的方法和属性，也可以调用Student类特有的方法
+    ```
+
+    - 描述：`Student` 继承 `Person`；通过 `super()` 复用父类初始化逻辑，并添加学号与考试方法。
+
+## 方法重写
+
+> 简述：方法重写 (Method Overriding)允许子类提供一个与其父类中已定义的方法（或访问器属性 getter/setter）具有相同名称和签名的特定实现。这使得子类能够改变或扩展继承自父类的行为，以适应自身的特定需求。
+
+**知识树**
+
+1.  方法重写 (Method Overriding)
+
+    - 定义：在子类中重新定义父类中已存在的方法（或访问器），以定制化子类的特定行为。
+
+2.  `override` 关键字：
+
+    - 作用：显式地标记一个方法（或访问器）是对父类成员的重写。
+    - 好处：
+        - 提高代码清晰度：明确表示该成员意图覆盖父类成员。
+        - 编译时检查：如果父类中不存在同名、同签名（或兼容签名）的成员，或者该成员不可重写（例如 `private`），编译器会报错，防止意外错误。
+
+3.  `super` 关键字：
+
+    - 作用：在子类的方法（或访问器）内部，用于调用父类的同名方法（或访问器）的实现。
+    - 用途：常用于在重写方法中，基于父类行为进行扩展，而不是完全替换。
+
+4.  `noImplicitOverride` 编译选项：
+
+    - 作用：设置为 `true` 时，强制要求所有重写父类成员的方法或访问器都必须使用 `override` 关键字进行标记，否则编译器会报错。避免无意间的重写（例如，子类偶然定义了与父类同名的方法），增强代码的健壮性和可维护性。
+
+**代码示例**
+
+1.  Teacher 重写 Person 中 `get fullName` 方法
+
+    ```typescript
+    class Person {
+      constructor(public firstName: string, public lastName: string) {}
+
+      get fullName(): string {
+        return `${this.firstName} ${this.lastName}`;
+      }
+
+      walk(): void {
+        console.log(`${this.fullName} is walking.`);
+      }
+    }
+
+    class Teacher extends Person {
+      override get fullName() {
+        return "Professor " + super.fullName;
+      }
+    }
+
+    let teacher = new Teacher("John", "Doe");
+    console.log(teacher.fullName); // Output: Professor John Doe
+    ```
+
+## 多态
+
+> 简述：多态（Polymorphism）使得同一接口在不同对象上具有不同实现。通过继承和方法重写，程序可以在运行时动态决定调用哪个具体方法，从而简化条件判断，增强系统的灵活性和可扩展性。
+
+**知识树**
+
+1. 多态的定义
+
+    - 来源：希腊语“poly”（多）与“morph”（形态）
+    - 定义：允许同一方法在不同对象中有不同表现；父类引用调用子类重写的方法。
+
+2. 多态的优势
+
+    - 统一接口管理不同子类对象
+    - 运行时动态绑定，减少冗长条件判断
+
+3. `TypeScript` vs. `Java`
+
+    - 在 Java 中，多态分为重载（Overloading）与重写（Overriding）
+        - 重载：同一类中定义多个同名但参数不同的方法，编译时根据参数类型和数量进行方法选择（静态多态）
+        - 重写：子类重新实现父类中已定义的方法，运行时根据对象的实际类型决定调用哪个版本（动态多态）
+    - TS 的“重载”只在编译阶段检查类型，最终只有一个实现；不像 Java，运行时会有多个真正的方法体。
+
+4. 开放-封闭原则（Open-Closed Principle）
+
+    - 定义：开闭原则是面向对象设计的一个原则，针对软件实体（类、模块、函数等）
+        - 类应对扩展开放（新增子类）
+        - 类应对修改封闭（避免修改已有代码，减少错误）
+    - 目的/用途：鼓励通过扩展现有代码而非修改现有代码来实现新功能
+
+**代码示例**
+
+1.  演示多态的
+
+    ```typescript
+    class Person {
+      constructor(public firstName: string, public lastName: string) {}
+
+      get fullName(): string {
+        return `${this.firstName} ${this.lastName}`;
+      }
+
+      walk(): void {
+        console.log(`${this.fullName} is walking.`);
+      }
+    }
+
+    class Student extends Person {
+      constructor(public studentId: number, firstName: string, lastName: string) {
+        super(firstName, lastName);
+      }
+
+      // 子类特有的方法
+      takeTest(): void {
+        console.log(`${this.fullName} (ID: ${this.studentId}) is taking a test.`);
+      }
+    }
+
+    class Teacher extends Person {
+      override get fullName() {
+        return "Professor " + super.fullName;
+      }
+    }
+
+    printNames([
+      new Person("John", "Doe"),
+      new Student(1, "Alice", "Smith"),
+      new Teacher("Bob", "Johnson"),
+    ]);
+
+    function printNames(people: Person[]): void {
+      for (const person of people) {
+        console.log(person.fullName);
+      }
+    }
+    ```
+
+## 抽象类与抽象方法
+
+> 简述：抽象类（Abstract Classes & Methods）提供统一接口与公共实现但禁止直接实例化；抽象方法仅声明不实现，强制子类给出具体实现，常用于定义模板结构。
+
+**知识树**
+
+1. 抽象类（Abstract Class）
+
+    - 定义：使用  abstract  关键字标记的类
+    - 特性：不能被实例化，只能被继承
+    - 组成：可以包含普通属性、普通方法、抽象方法的混合
+
+2. 抽象方法（Abstract Method）
+
+    - 定义：使用  abstract  关键字标记的方法
+    - 特性：没有实现体，只有方法签名，**必须显式声明返回值为 void**
+    - 约束：只能存在于抽象类中，必须由子类实现
+
+3. 抽象类继承关系：
+
+    - 子类必须实现所有抽象方法，否则子类也必须标记为抽象类
+    - 子类构造函数必须调用  super()  初始化父类
+    - 子类实现抽象方法时应使用  override  关键字
+
+**代码示例**
+
+1. 定义抽象类、抽象方法与实现类
+
+    ```typescript
+    abstract class Shape {
+      constructor(public color: string) {}
+      abstract render(): void; // 抽象方法，无实现
+    }
+
+    class Circle extends Shape {
+      constructor(public radius: number, color: string) {
+        super(color);
+      }
+
+      override render(): void {
+        console.log("Rendering a circle");
+      }
+    }
+    ```
+
+## 接口
+
+> 简述：接口（Interface）是一种面向对象的设计机制，它定义了一组行为契约，规定了实现者必须提供哪些方法，而不涉及具体的实现细节。接口关注的是“做什么”，而非“怎么做”，通过这种抽象层次的隔离，实现了解耦、多态和灵活扩展
+
+**知识树**
+
+1. 接口定义
+
+    - 接口通过关键字 interface 定义，实现类通过 implements 接口，实现其声明的方法。
+
+2. 接口特点
+
+    - 组成：抽象方法和字段，一般只有抽象方法，不建议写字段，此外字段只能声明类型，不能有实际值
+    - 方法：不需要主动修饰，默认抽象
+    - 继承：一个接口可以继承另一个接口，默认接收父接口所有属性和方法
+
+3. 快速实现
+
+    - 快捷键：command+P（缺点是仍然需要手写构造函数）
+
+**代码示例**
+
+1. 接口定义重写与实现
+
+    ```ts
+    interface Calendar {
+      name: string;
+      addEvent(event: any): void;
+      removeEvent(event: any): void;
+    }
+
+    // 接口继承，CloudCalendar包含Calendar的所有属性和方法
+    interface CloudCalendar extends Calendar {
+      sync(): void;
+    }
+
+    // 实现接口
+    class GoogleCalendar implements Calendar {
+      constructor(public name: string) {}
+
+      addEvent(): void {
+        console.log(`Adding event to Google Calendar`);
+      }
+
+      removeEvent(): void {
+        console.log(`Removing event from Google Calendar`);
+      }
+    }
+    ```

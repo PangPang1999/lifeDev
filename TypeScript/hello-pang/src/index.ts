@@ -1,8 +1,23 @@
-function processEvents(): never {
-  while (true) {
-    // 持续处理事件（例如监听消息队列）
-  }
+interface Calendar {
+  name: string;
+  addEvent(event: any): void;
+  removeEvent(event: any): void;
 }
 
-processEvents();
-console.log("This will never be reached."); // 永远无法抵达，设置配置文件后发出警告
+// 接口继承，CloudCalendar包含Calendar的所有属性和方法
+interface CloudCalendar extends Calendar {
+  sync(): void;
+}
+
+// 实现接口
+class GoogleCalendar implements Calendar {
+  constructor(public name: string) {}
+
+  addEvent(): void {
+    console.log(`Adding event to Google Calendar`);
+  }
+
+  removeEvent(): void {
+    console.log(`Removing event from Google Calendar`);
+  }
+}
