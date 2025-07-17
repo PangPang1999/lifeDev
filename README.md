@@ -7,7 +7,7 @@
 - [MySQL 指南](./Note-new/MySQL.md) _to be refactored for better readability_
 - [慢 SQL & 索引 & MySQL 服务器异常](./Note-new/MySQL慢查询优化&索引失效&服务器过载.md)
 - [Docker](./Note-new/Docker.md)
-- [TypeScript](./Note-new/TypeScript.md) _current focus_
+- [TypeScript](./Note-new/TypeScript.md)
 
 # lifeDev · 技术学习成长项目
 
