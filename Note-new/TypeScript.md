@@ -154,6 +154,8 @@
         - `allowUnreachableCode`：检测抵达不到的代码，发出警告。默认为 true 只变淡不警告，需要手动设置为 false
     6. 继承配置
         - `noImplicitOverride`： 手动设置为 true，避免无意间的重写
+    7. 装饰器配置
+        - `experimentalDecorators`：手动设置为 true，启用装饰器
 
 3. 编译流程
 
@@ -2496,3 +2498,427 @@
     ```
 
     - 描述：官方工具类型等价于自定义映射写法，但更简洁。
+
+# Decorators
+
+## 什么是装饰器
+
+> 简述：装饰器是一种特殊语法，允许为类、属性、方法、参数动态添加元数据或改变其行为。常用于框架（如 Angular、Vue）中，将普通类转化为组件、服务等功能实体。
+
+**知识树**
+
+1. 装饰器本质
+
+    - 本质：函数，用于拦截、扩展或修改类及其成员。
+    - 语法：在类、方法、属性、参数前加`@装饰器名`。
+    - 作用：注入元数据，动态增强或改变类和成员的行为。
+
+2. 典型用途
+
+    - 自动注册组件、依赖注入、方法拦截、数据校验、自动日志等。
+    - 框架：Angular、Vue 等前端框架提供丰富的内建装饰器，非框架项目需手写装饰器。
+
+3. 执行机制
+
+    - TypeScript 编译时将装饰器语法转为 JS 的函数调用，运行时自动执行装饰器函数。
+    - 装饰器函数接收被装饰对象（如构造函数、属性名等），可添加、修改、替换属性或方法。
+
+4. 启用条件
+
+    - TypeScript 默认未启用，需在 `tsconfig.json` 中配置 `"experimentalDecorators": true`。
+
+**代码示例**
+
+1. 装饰器基本用法
+
+    ```typescript
+    @Component
+    class ProfileComponent {}
+
+    // 其中 @Component 是一个函数，接收 ProfileComponent 类进行处理（需手写实现）。
+    ```
+
+## 类装饰器
+
+> 简述：类装饰器本质是一个接收构造函数为参数的函数，用于动态增强类的属性和方法。装饰器只在类声明时运行一次，可批量注入功能或元数据，常用于框架式开发。
+
+**知识树**
+
+1. 装饰器函数定义
+
+    - 装饰器本质是函数，**首字母大写**，单参数为类构造函数（类型为`Function`）。
+    - 只要参数类型（类装饰器一般命名参数为 constructor）为函数，TypeScript 就能识别为类装饰器。
+
+2. 增强与扩展
+
+    - 装饰器函数内可操作构造函数和其原型，批量添加/修改属性和方法。
+    - 所有实例均能访问通过原型添加的成员。
+
+3. 运行时机与机制
+
+    - 类装饰器在类定义阶段自动调用一次（不需实例化）。
+    - 编译产物中，TypeScript 自动插入装饰器调用逻辑（如 `__decorate` 工具函数）。
+
+4. 与继承的关系
+
+    - 装饰器增强行为类似继承，但更解耦、更灵活。
+    - 可动态为任意类增加横切能力，无需继承层级。
+
+**代码示例**
+
+1. 自定义类装饰器
+
+    ```typescript
+    function Component(constructor: Function) {
+      console.log("Component decorator called");
+      constructor.prototype.uniqueId = Date.now();
+      constructor.prototype.insertInDOM = () => {
+        console.log("Inserting the component in the DOM");
+      };
+    }
+
+    @Component
+    class ProfileComponent {}
+    ```
+
+2. 生成代码说明
+
+    ```js
+    // 编译后自动插入类似 __decorate([Component], ProfileComponent) 的调用
+    // 由此触发装饰器函数
+    ```
+
+## 参数化装饰器
+
+> 简述：装饰器工厂允许为装饰器传递参数。本质是返回装饰器函数的高阶函数，实现装饰器灵活配置。常用于框架中批量注入元数据或定制行为。
+
+**知识树**
+
+1. 装饰器工厂定义
+
+    - 工厂函数接受参数，返回一个标准装饰器函数。
+    - 典型语法：`@Decorator(args)`。
+
+2. 应用场景
+
+    - 注入元数据（如 selector、路由配置、校验规则等）。
+    - 使装饰器通用，可按需传递自定义参数。
+
+3. 工厂与标准装饰器的关系
+
+    - 工厂函数只负责参数收集，不直接操作目标。
+    - 返回的内部装饰器函数才实际增强目标（如类、方法等）。
+
+4. 实现步骤
+
+    - 定义工厂类型与参数类型（如 `ComponentOptions`）。
+    - 工厂返回标准装饰器函数，内部可访问参数并操作目标对象。
+
+**代码示例**
+
+1. 参数化类装饰器
+
+    ```typescript
+    type ComponentOptions = { selector: string };
+
+    function Component(options: ComponentOptions) {
+      return (constructor: Function) => {
+        constructor.prototype.options = options;
+        // 可利用 options 做更多操作
+      };
+    }
+
+    @Component({ selector: "my-profile" })
+    class ProfileComponent {}
+    ```
+
+    - 描述：工厂模式支持灵活注入不同配置。
+
+## 多个装饰器的应用与调用顺序
+
+> 简述：可在同一类（或成员）上应用多个装饰器，装饰器按\*\*从下到上（自下而上）\*\*的顺序依次执行，每个装饰器依次包裹目标对象，行为类似函数组合（f(g(x))）。
+
+**知识树**
+
+1. 多装饰器语法
+
+    - 多个装饰器可叠加在同一目标上，逐行书写，先写在下方。
+    - 语法：
+
+        ```typescript
+        @First
+        @Second
+        class MyClass {}
+        ```
+
+2. 调用顺序
+
+    - 装饰器的执行顺序为自下而上（从最近一行为先）。
+    - 数学类比：`@A @B target`，先执行 B，再执行 A，相当于 A(B(target))。
+
+3. 增强与叠加效果
+
+    - 每个装饰器都可增强、修改或替换目标对象。
+    - 后执行的装饰器可以基于前一个装饰器的结果继续增强。
+
+**代码示例**
+
+1. 多装饰器定义与应用
+
+    ```typescript
+    function Pipe(constructor: Function) {
+      console.log("Pipe decorator called");
+      constructor.prototype.pipe = true;
+    }
+
+    function Component(constructor: Function) {
+      console.log("Component decorator called");
+      constructor.prototype.component = true;
+    }
+
+    @Component
+    @Pipe
+    class ProfileComponent {}
+
+    // 输出顺序：
+    // Pipe decorator called
+    // Component decorator called
+    ```
+
+    - 描述：先 Pipe，再 Component，装饰器作用依次叠加。
+
+## 方法装饰器
+
+> 简述：方法装饰器用于拦截和增强类中方法，可在调用前后插入逻辑、修改或替换方法实现。其本质是一个带三个参数的函数，操作目标方法的属性描述符。
+
+**知识树**
+
+1. 方法装饰器定义
+
+    - 签名：`(target: any, propertyKey: string, descriptor: PropertyDescriptor) => void`
+    - 参数说明：
+        - `target`：方法所属对象（原型）。
+        - `propertyKey`：方法名。
+        - `descriptor`：属性描述符，包含方法本体等元信息。
+
+2. 增强与重写
+
+    - 可直接用`descriptor.value`替换原方法，实现完全重写。
+    - 典型增强模式：缓存原方法，执行前后插入逻辑（如日志、校验、权限等），中间调用缓存的原方法
+    - 注意：用 `function` 关键字定义新方法，不可用箭头函数，确保 this 正确绑定。
+
+3. 兼容性与灵活性
+
+    - 可支持任意参数类型与数量：用`...args: any[]`收参，`original.apply(this, args)`转发。
+    - 通用增强一切方法。
+
+4. 编译配置
+
+    - 如有未使用参数，须关闭 `noUnusedParameters`。
+
+**代码示例**
+
+1. 方法装饰器实现与应用
+
+    ```typescript
+    function Log(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+      const original = descriptor.value;
+      descriptor.value = function (...args: any) {
+        console.log("Before");
+        original.call(this, ...args); // 也可以使用 apply，需要手动return
+        console.log("After");
+      };
+    }
+
+    class Person {
+      @Log
+      say(message: string) {
+        console.log("Person says", message);
+      }
+    }
+
+    const p = new Person();
+    p.say("hello");
+    // 输出顺序：Before -> Person says hello -> After
+    ```
+
+    - 说明：可拦截并增强任何方法，且参数类型灵活。
+
+## 访问器装饰器
+
+> 简述：访问器装饰器用于拦截和增强类的 getter 或 setter，能动态改变访问器的行为，如自动转换、格式化等。本质是接管属性描述符的 `get` 或 `set` 方法。
+
+**知识树**
+
+1. 装饰器函数签名
+
+    - 三参数：`(target: any, propertyKey: string, descriptor: PropertyDescriptor) => void`
+    - 与方法装饰器参数完全相同。
+
+2. 核心机制
+
+    - `descriptor.get`（getter）/ `descriptor.set`（setter）是对应的原始函数。
+    - 可保存原始 getter/setter，重定义为新函数，实现增强。
+    - 新 getter 内可调用原始 getter (`original.call(this)`)，对返回值处理后返回。
+
+3. 类型安全与健壮性
+
+    - `original` 可能为 undefined（编译器角度），可以在 get 处用 `!` 断言消除警告，也可以在调用处使用`?`
+    - 应判断返回值类型，防止类型不符导致报错。
+
+4. 常见应用
+
+    - 自动格式化输出（如大写、日期格式化）
+    - 自动数据校验、转换
+    - 透明增强 getter/setter，无需修改原有逻辑
+
+**代码示例**
+
+1. 大写化 getter 输出的装饰器
+
+    ```typescript
+    function Capitalize(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+      const original = descriptor.get!;
+      descriptor.get = function() {
+        const result = original.call(this);
+        return typeof result === "string" ? result.toUpperCase() : result;
+      };
+    }
+
+    class Person {
+      constructor(public firstName: string, public lastName: string) {}
+
+      @Capitalize
+      get fullName() {
+        return `${this.firstName} ${this.lastName}`;
+      }
+    }
+
+    const p = new Person("tom", "lee");
+    console.log(p.fullName); // 输出: TOM LEE
+    ```
+
+    - 描述：自动将 getter 返回值转大写，非字符串类型不处理。
+
+## 属性装饰器
+
+> 简述：属性装饰器用于拦截和增强类属性行为，可实现如数据校验、自动格式化等逻辑。其本质是在类定义阶段用元编程手段替换属性的默认存取方式。
+
+**知识树**
+
+1. 属性装饰器定义
+
+    - 语法：
+        - 可为参数化装饰器（装饰器工厂）。
+    - 装饰器函数签名：
+        - `(target: any, propertyKey: string) => void`
+    - 区别于方法/访问器装饰器：
+        - 没有属性描述符参数，只有两个参数 。
+    - 作用
+        - 支持接收参数，实现如最小长度校验、格式限制等功能。
+
+2. 通过 `Object.defineProperty` 增强
+
+    - 方式：
+        - 在属性装饰器函数内部，使用 `Object.defineProperty` 来重新定义该属性，为其添加自定义的 `get` 和 `set` 访问器。
+    - 实现：
+        - 定义一个内部变量来存储实际的属性值。
+        - 在 `set` 访问器中：执行验证逻辑，如果有效，则更新内部变量。
+        - 在 `get` 访问器中：返回内部变量的值。
+    - 注意：属性装饰器用 `Object.defineProperty` 拦截属性赋值时，不能像普通类成员那样直接保存和访问属性的值，所以必须在装饰器作用域内声明一个变量，用来存放这个属性的实际数据。
+
+**代码示例**
+
+1. 带最小长度校验的属性装饰器
+
+    ```typescript
+    function MinLength(length: number) {
+      return function (target: any, propertyKey: string) {
+        let value: string;
+
+        const descriptor = {
+          get() {
+            return value;
+          },
+          set(newValue: string) {
+            if (newValue.length < length)
+              throw new Error(
+                `${propertyKey} should be at least ${length} characters long.`
+              );
+            value = newValue;
+          },
+        };
+
+        Object.defineProperty(target, propertyKey, descriptor);
+      };
+    }
+
+    class User {
+      @MinLength(4)
+      password: string;
+
+      constructor(password: string) {
+        this.password = password;
+      }
+    }
+
+    const u = new User("abcd"); // OK
+    // u.password = "a";        // 抛出异常
+    ```
+
+    - 描述：每次设置 password 都会先执行装饰器校验。
+
+## 参数装饰器
+
+> 简述：参数装饰器用于标记和收集方法参数的元数据，常见于框架内部做依赖注入、参数校验等。应用场景罕见，但为元编程和自动化框架设计提供强大能力。
+
+**知识树**
+
+1. 参数装饰器定义
+
+    - 装饰器函数签名：`(target: any, methodName: string, parameterIndex: number) => void`
+    - 三个参数：
+        - `target`：方法所属对象（类的原型）。
+        - `methodName`：方法名。
+        - `parameterIndex`：被装饰参数的位置索引。
+
+2. 功能
+
+    - 局限：
+        - 属性装饰器本身不能直接修改属性的初始化方式或值，因为它在属性描述符应用之前执行。
+    - 主要用途：
+        - 记录元数据（反射元数据 API 常与此结合）。
+
+**代码示例**
+
+1. 元数据收集型参数装饰器
+
+    ```typescript
+    type WatchParameter = {
+      methodName: string;
+      parameterIndex: number;
+    };
+
+    // 用于存储元数据的数组 (通常更复杂的元数据反射系统会用到)
+    const watchedParameters: WatchParameter[] = [];
+
+    // 1. 定义参数装饰器
+    function Watch(target: any, methodName: string, parameterIndex: number) {
+      // 2. 记录元数据
+      watchedParameters.push({
+        methodName,
+        parameterIndex,
+      });
+    }
+
+    class Vehicle {
+      move(@Watch speed: number) {}
+    }
+
+    // 验证 (装饰器在类定义时执行)
+    console.log("Watched Parameters Metadata:", watchedParameters);
+    // 输出类似:
+    // Watched Parameters Metadata: [ { methodName: 'move', parameterIndex: 0 } ]
+    ```
+
+    - 描述：此例标记并收集需“关注”的参数，供后续框架逻辑处理。
