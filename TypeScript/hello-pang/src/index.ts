@@ -1,5 +1,5 @@
-import { Circle, Square } from "./shapes";
+import * as _ from "lodash";
 
-const c = new Circle(1);
-const s = new Square(2);
-console.log(c, s);
+const arr = [1, 2, 3];
+const copy = _.clone(arr); // 类型自动推断为 number[]
+console.log(copy); // 输出: [1, 2, 3]

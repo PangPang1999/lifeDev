@@ -158,6 +158,8 @@
         - `experimentalDecorators`：手动设置为 true，启用装饰器
     8. 重导入自动解析
         - `moduleResolution`：手动设置为 node，启用自动解析地址，配置完成后可能需要重启 VScode
+    9. JavaScript 混用开启
+        - `allowJs`：若需要混用 js，手动设置为 true，同时确保 `module` 为 `commonJS`
 
 3. 编译流程
 
@@ -3154,3 +3156,246 @@
     ```typescript
     import { Circle, Square } from "./shapes";
     ```
+
+# Integration with JavaScript
+
+## JavaScript 混用
+
+> 简述：TypeScript 可与现有 JavaScript 文件共存、互相导入，但需适当配置。可渐进式迁移老项目，或与第三方 JS 库集成开发。
+
+**知识树**
+
+1. 支持 JS 文件的配置
+
+    - `tsconfig.json` 中开启 `allowJs: true`，TypeScript 才会编译/检测 `.js` 文件。
+    - `.js` 文件不能用 TS 语法（如类型注解）。
+
+2. 模块格式兼容性
+
+    - 若导入 JS 文件遇到 `cannot use import statement outside a module` 错误，多因 `module` 设为 `es` 导致。改为 `commonjs` 解决兼容问题。
+
+3. 导入写法与行为
+
+    - 直接 `import` JS 导出的函数、类、变量等（与 TS 文件一样）。
+
+**代码示例**
+
+1. `tax.js`
+
+    ```javascript
+    export function calculateTax(income) {
+    	return income * 0.3;
+    }
+    ```
+
+2. `index.ts`
+
+    ```typescript
+    import { calculateTax } from "./tax";
+
+    const t = calculateTax(10000);
+    console.log(t);
+    ```
+
+3. `tsconfig.json` 关键配置
+
+    ```json
+    {
+    	"allowJs": true,
+    	"module": "commonjs"
+    }
+    ```
+
+## JavaScript 文件类型检查
+
+> 简述：通过 `checkJs` 配置，TypeScript 可以对 JS 文件进行基本类型检查，帮助早期发现潜在运行时错误。可用特殊注释关闭检查，实现渐进式迁移与局部豁免。
+
+**知识树**
+
+1. 启用类型检查
+
+    - 启用方式：
+        - 在 `tsconfig.json` 配置 `"checkJs": true`，TypeScript 对 `.js` 文件做静态分析和基础类型检查。
+    - 效果：
+        - 报错粒度不如 `.ts` 文件细致，但能发现明显错误（如未传参数、参数类型不符等）。
+    - 额外影响
+        - 参数未注解时，类型为 `any`，严格模式（如 `noImplicitAny`）下会报错。而 JS 中没有这种方式。有几种方法解决。
+            - 取消 `noImplicitAny`（不推荐）
+            - 在 JS 文件顶部加注释：`// @ts-nocheck`，本文件跳过所有 TS 检查。
+
+2. 下节介绍 JSDoc 解决方式
+
+**代码示例**
+
+1. `tsconfig.json`
+
+    ```json
+    {
+    	"allowJs": true,
+    	"checkJs": true
+    }
+    ```
+
+2. `tax.js` 报错/豁免用法
+
+    ```javascript
+    // @ts-nocheck
+
+    export function calculateTax(income) {
+    	return income * 0.3;
+    }
+    ```
+
+    - 描述：移除 `@ts-nocheck` 后，如果参数没类型，会因 `noImplicitAny` 报错。
+
+## JSDoc 类型注释
+
+> 简述：JSDoc 是一种特殊注释语法，可为 JavaScript 代码补充类型信息和文档说明，让 TypeScript 实现类型推断与类型检查，提升 JS 代码的安全性与可维护性。
+
+**知识树**
+
+1. JSDoc 基本语法
+
+    - 用 `/** ... */` 注释块，配合 `@param`、`@returns` 等标签标注类型与描述。
+    - 类型写在大括号内，如 `{number}`、`{string}`。
+    - 例：`@param {number} income`、`@returns {number}`。
+
+2. TypeScript 集成
+
+    - TS 会读取 JSDoc 注释，**在编译期间**实现参数类型检查与代码提示。
+    - 没有注解时，参数默认为 `any`，有注解即参与类型推断和检查。
+
+3. 文档与提示增强
+
+    - 功能：JSDoc 可写函数描述、参数说明，IDE 悬浮可见，增强协作与自解释性。
+    - 定义：在参数后通过 `@Param parameter - description` 的形式添加描述
+
+**代码示例**
+
+1. `tax.js`
+
+    ```javascript
+    /**
+     *
+     - @param {number} income
+     - @returns {number}
+     */
+    export function calculateTax(income) {
+    	return income * 0.3;
+    }
+    ```
+
+    - 移除 `@ts-nocheck` 后，TS 可识别类型，调用时参数缺失会报错。
+    - 悬浮可见参数与函数说明。
+
+## 声明文件
+
+> 简述：声明文件（`.d.ts`）为 JS 文件提供类型信息，不需改动源代码。它描述模块导出内容，让 TypeScript 能类型检查并智能提示，适合渐进迁移、第三方库集成。缺点是必须声明所有模块，缺一不可。
+
+**知识树**
+
+1. 作用与原理
+
+    - 功能：
+        - `.d.ts` 文件仅声明类型、不含实现，TS 用于类型推断和校验，**不参与实际代码运行**。
+    - 命名：
+        - 文件名需与目标 JS 文件一致，如 `tax.js` 配 `tax.d.ts`。
+    - 方式：
+        - 类似 C/C++ 的头文件，接口与实现分离。
+
+2. 基本语法
+
+    - `declare function`/`declare const`/`declare class` 描述导出内容和类型签名。
+    - 需用 `export` 导出声明，匹配实际 JS 模块导出。
+
+3. 缺点
+
+    - **所有要暴露给 TS 的功能都要在 `.d.ts` 文件中声明，否则 TS 视为不存在**。
+    - 编译器中的隐式 any 报错依然保持显式，但没有实际影响
+
+4. 使用场景
+
+    - 不想/不能直接修改 JS 源码（如第三方、已有大型 JS 项目）
+    - 为第三方/已有 JS 库补充类型信息（可手写、或用工具自动生成）
+
+**代码示例**
+
+1. 配合使用正常编译
+
+    ```javascript
+    // `tax.js`
+    export function calculateTax(income) {
+    	return income * 0.3;
+    }
+
+    // `tax.d.ts`
+    export declare function calculateTax(income: number): number;
+    ```
+
+2. 必须声明所有模块
+
+    ```typescript
+    // 如果`tax.js`多加了一个模块
+    export function calculateTax(income) {
+    	return income * 0.3;
+    }
+    export function sayHello() {
+    	return "Hello!";
+    }
+
+    // `tax.d.ts`
+    export declare function calculateTax(income: number): number;
+    // 若未声明 sayHello，TS 视为 tax 模块无此导出
+
+
+    // index.ts
+    import { calculateTax, sayHello } from "./tax";
+    // sayHello 将会报错，TS 视为 tax 模块未导出该成员
+    calculateTax(); // 报错，需传 income 参数
+    ```
+
+## 第三方 JavaScript 库的类型声明
+
+> 简述：TypeScript 项目引入第三方 JS 库时，需类型声明文件（`.d.ts`），才能获得类型检查与智能提示。可以使用“Definitely Typed”社区维护的 `@types/xxx` 包，获直接使用自带声明的库。
+
+**知识树**
+
+1. 声明文件需求
+
+    - 绝大多数 JS 库本身没有类型声明文件（`.d.ts`），TS 无法类型检查也无智能提示，导入时报错。
+    - 注意：类型声明文件只参与开发和编译，不会被打包或部署。
+
+2. 社区声明仓库：Definitely Typed
+
+    - 说明：
+        - 大部分主流 JS 库的类型声明由社区统一维护在 [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) 仓库。
+    - 使用方式
+        - 通过 npm 安装 `@types/库名`（如 `@types/lodash`），通常作为开发依赖（`-D`即`--save-dev`）。
+
+3. 一体化类型声明
+
+    - 现代 JS/TS 库越来越多自带 `.d.ts`，无需额外安装 `@types/` 包（如 chalk）。
+
+**代码/命令示例**
+
+1. 使用 Lodash（需社区声明）
+
+    ```bash
+    npm install lodash
+    npm install -D @types/lodash
+    # npm install --save-dev @types/lodash
+    ```
+
+    ```typescript
+    import * as _ from "lodash";
+    const arr = [1, 2, 3];
+    const copy = _.clone(arr); // 类型自动推断为 number[]
+    ```
+
+2. 使用自带声明的库（如 chalk）
+
+    ```bash
+    npm install chalk
+    ```
+
+    - 描述：无需装 `@types/chalk`，库本身自带 `.d.ts`，位置`node_modules/chalk/index.d.ts`
