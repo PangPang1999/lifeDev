@@ -156,6 +156,8 @@
         - `noImplicitOverride`： 手动设置为 true，避免无意间的重写
     7. 装饰器配置
         - `experimentalDecorators`：手动设置为 true，启用装饰器
+    8. 重导入自动解析
+        - `moduleResolution`：手动设置为 node，启用自动解析地址，配置完成后可能需要重启 VScode
 
 3. 编译流程
 
@@ -2922,3 +2924,233 @@
     ```
 
     - 描述：此例标记并收集需“关注”的参数，供后续框架逻辑处理。
+
+# Modules
+
+## 模块化与导入导出
+
+> 简述：模块化通过将代码拆分到多个文件，每个文件作为独立模块，实现高内聚、低耦合，提升可维护性与团队协作效率。TypeScript 用 `export`/`import` 实现模块成员共享。
+
+**知识树**
+
+1. 导出（export）
+
+    - 方式：用 `export` 关键字声明模块外可见的类、接口、函数等。一个文件可导出多个对象。
+
+2. 导入（import）
+
+    - 方式
+        - 用 `import { 名称 } from "路径"` 引用其它模块导出内容。路径为相对路径（`./` 当前目录，`../` 上级目录），不写文件扩展名。
+    - 命名
+        - 可重命名导入防止命名冲突：`import { Circle as MyCircle } from "./shapes"`，默认使用原始名称
+
+3. 快捷键
+
+    - VS Code 支持使用`command+.`实现自动导入、清理未用导入等快捷操作。
+
+**代码示例**
+
+1. `shapes.ts`
+
+    ```typescript
+    export class Circle { constructor(public radius: number) {} }
+    export class Square { constructor(public size: number) {} }
+    ```
+
+2. `index.ts`
+
+    ```typescript
+    import { Circle, Square } from "./shapes";
+
+    const c = new Circle(1);
+    console.log(c.radius);
+    ```
+
+## 模块格式
+
+> 简述：模块格式（Module Formats）是指 JS/TS 项目编译后采用的代码组织和加载方式。现代项目主流为 ES 模块（ESM）和 CommonJS，历史上还有 AMD、UMD 等。TypeScript 支持多种格式，**自动**将 `import`/`export` 语法转换为目标格式。
+
+**知识树**
+
+1. 主流模块格式
+
+    - ESM（ES Modules）：原生支持 `import`/`export`，适用于现代浏览器和新版本 Node.js。
+    - CommonJS：Node.js 早期标准，使用 `require()` 和 `module.exports`/`exports`。
+    - AMD/UMD：早期浏览器/混合场景方案，已基本被淘汰。
+
+2. TypeScript 配置
+
+    - 在 `tsconfig.json` 的 `module` 字段选择输出格式：`"commonjs"`、`"es2020"`、`"amd"`、`"umd"` 等。
+    - 编译器会根据设置自动转换 import/export 语法为对应格式，无需手写。
+
+3. 代码产物差异
+
+    - CommonJS：
+        - 导出：`exports.Circle = Circle`
+        - 导入：`const shapes = require("./shapes")`
+    - ESM：
+        - 导出：`export class Circle {}`
+        - 导入：`import { Circle } from "./shapes.js"`
+
+4. 场景选择
+
+    - 浏览器/现代 Node.js：推荐使用 ESM
+    - 旧 Node.js 项目/某些构建工具：使用 CommonJS
+    - 特殊需求才考虑 AMD/UMD
+
+## 默认导出与命名导出
+
+> 简述：**默认导出**用于模块只暴露一个主要对象时，简化导入语法，隐藏内部细节；**命名导出**用于暴露多个对象。两者可共存，用于精细控制模块接口，降低模块间耦合。
+
+**知识树**
+
+1. 默认导出（default export）
+
+    - 语法：`export default 对象`
+    - 每个模块只能有一个默认导出
+    - 导入时不需花括号，可自定义导入名
+
+2. 命名导出（named export）
+
+    - 语法：`export { 对象 }` 或 `export class/enum/const`
+    - 同一模块可导出多个对象
+    - 导入时需用花括号，名称需对应
+
+3. 默认导出与命名导出的组合
+
+    - 同一模块可同时存在一个默认导出和多个命名导出
+    - 导入时可一行同时引入
+
+**代码示例**
+
+1. storage.ts
+
+    ```typescript
+    export default class Store {} // 默认导出
+    export enum Format {
+      Raw,
+      Compressed,
+    } // 命名导出
+    class Compressor {}
+    class Encryptor {}
+    ```
+
+2. index.ts
+
+    ```typescript
+    import Store, { Format } from "./storage";
+
+    const s = new Store();
+    const f = Format.Raw;
+    ```
+
+    - 描述：默认导出（无花括号），命名导出（花括号）。
+
+## 通配符导入
+
+> 简述：通配符（Wildcard Import）导入将模块所有导出对象整体引入为一个命名空间，便于批量访问和模块归类，减少冗长的 `import` 语句。
+
+**知识树**
+
+1. 语法与用法
+
+    - 语法：`import * as 命名空间 from "模块路径"`
+    - 所有导出成员都成为命名空间对象的属性，通过 `命名空间.成员名` 访问
+
+2. 适用场景
+
+    - 批量使用模块多个成员时，避免多行 import
+    - 便于代码归类、命名空间管理
+
+3. 命名空间对象
+
+    - 命名空间对象为只读，不可整体赋值
+    - 不含 `default` 成员（如有默认导出不会被包含）
+    - 不适合需要频繁重命名成员的场景
+
+**代码示例**
+
+1. `shapes.ts`
+
+    ```typescript
+    export class Circle { /* ... */ }
+    export class Square { /* ... */ }
+    ```
+
+2. `index.ts`
+
+    ```typescript
+    import * as Shapes from "./shapes";
+
+    const c = new Shapes.Circle(1);
+    const s = new Shapes.Square(2);
+    ```
+
+## 重导出
+
+> 简述：重导出（Re-exporting）让一个模块可组合、聚合并统一导出多个子模块内容。实现“包裹式”API 管理，让外部只需从一个入口导入所需成员，提升结构清晰度和可维护性。
+
+**知识树**
+
+1. 概念与动机
+
+    - 将多个子模块成员集中出口，隐藏具体文件结构。
+    - 便于模块分层、项目解耦、接口聚合，外部只需“单入口”导入。
+
+2. 结构与实践
+
+    - 子模块（如 `circle.ts`、`square.ts`）分别单独导出类/函数。
+    - 目录下设立 `index.ts`，统一导入并重导出子模块内容。
+
+3. 重导出语法
+
+    - 标准方式：
+        ```typescript
+        import { Circle } from "./circle";
+        import { Square } from "./square";
+        export { Circle, Square };
+        ```
+    - 简写（推荐）：
+        ```typescript
+        export * from "./circle";
+        export * from "./square";
+        ```
+
+4. 模块/包索引文件
+
+    - 目录下的 `index.ts` 自动被识别为该文件夹的主入口。
+    - 导入时只需 `import { Circle } from "./shapes"`，无需写 `/index`（需配置模块解析）。
+
+5. 模块解析配置
+
+    - 在 `tsconfig.json` 中设置 `"moduleResolution": "node"`，保证索引文件自动识别，防止导入错误。
+    - 配置完成后可能需要重启 VScode
+
+**代码示例**
+
+1. 目录结构
+    ```
+    src/
+      shapes/
+        circle.ts
+        square.ts
+        index.ts
+      index.ts
+    ```
+2. shapes/circle.ts
+    ```typescript
+    export class Circle { /* ... */ }
+    ```
+3. shapes/square.ts
+    ```typescript
+    export class Square { /* ... */ }
+    ```
+4. shapes/index.ts
+    ```typescript
+    export * from "./circle";
+    export * from "./square";
+    ```
+5. 使用方式（index.ts）
+    ```typescript
+    import { Circle, Square } from "./shapes";
+    ```
