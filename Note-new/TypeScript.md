@@ -2028,7 +2028,7 @@
 
 3. 快速实现
 
-    - 快捷键：command+P（缺点是仍然需要手写构造函数）
+    - 快捷键：`command`+`.`（缺点是仍然需要手写构造函数）
 
 **代码示例**
 
@@ -2059,3 +2059,440 @@
       }
     }
     ```
+
+# Generics
+
+## 需求引入
+
+> 简述：用一个基础 `Key-Value` 类存储整型时，若想存储其他类型（如数字、字符串），会产生代码重复或类型不安全等问题。为了解决这类问题，需要引入泛型。
+
+**知识树**
+
+1. 普通列表的局限
+
+    - 只能固定存储某种类型，无法复用。
+    - 若要存储其他类型，需创建新类，代码冗余。
+
+2. 使用 `any` 的问题
+
+    - 存储多类型时，代码冗余且不安全，**无法在编译期发现错误**。
+    - 下一节将使用泛型解决这些问题
+
+**代码示例**
+
+1. 非泛型实现导致的问题
+
+    ```typescript
+    // 只支持number键和string值的键值对
+    class KeyValuePair {
+      constructor(public key: number, public value: string) {}
+    }
+
+    // 使用时遇到的限制
+    const pair = new KeyValuePair(1, "Apple");
+
+    // 错误：key必须是number
+    const stringKeyPair = new KeyValuePair("id", "Apple");
+    ```
+
+## 泛型类
+
+> 简述：泛型类允许类在定义时不指定具体类型，而在使用时再指定类型参数，从而实现类型安全的复用。
+
+**知识树**
+
+1. 泛型类
+
+    - 语法：
+        - 在类名后使用尖括号声明类型参数 `<T>`，类型参数可多个，命名无强制规范（T、U、K、V 常用）
+    - 作用：
+        - 实例化时指定类型参数
+
+2. 泛型类实例化
+
+    - 显式指定类型参数：`new ClassName<T>()`
+    - 多类型参数指定：`new ClassName<T1, T2>()`
+    - 类型推断：让编译器自动推断类型
+
+3. 命名约定
+
+    - T (Template)：通用类型参数
+    - K (Key)：通常表示键类型
+    - V (Value)：通常表示值类型
+    - 其他命名：根据语义选择适当的标识符
+
+**代码示例**
+
+1. 多类型参数泛型类
+
+    ```typescript
+    // 使用两个类型参数的键值对泛型类
+    class KeyValuePair<K, V> {
+      constructor(public key: K, public value: V) {}
+    }
+
+    // 不同类型组合的键值对
+    const pair1 = new KeyValuePair<number, string>(1, "Apple");
+    const pair2 = new KeyValuePair<string, boolean>("isActive", true);
+
+    // 使用类型推断
+    const pair3 = new KeyValuePair(5, "Banana"); // K推断为number，V推断为string
+    ```
+
+    - 多类型参数使泛型类更加灵活，能够适应各种类型组合的需求，无需创建多个专用类
+
+## 泛型函数与泛型方法
+
+> 简述：泛型函数允许函数在定义时不指定具体类型，而在调用时由参数决定类型，实现类型安全与高度复用。泛型方法是类中的泛型函数，语法相同，可结合静态/实例用法，提升通用性与类型推断能力。
+
+**知识树**
+
+1. 函数泛型参数
+
+    - 在函数名后用`<T>`声明类型参数，T 可任意命名（如 U、K、V 等）。
+    - 参数和返回值可用 T，函数体内 T 由调用时自动推断。
+
+2. 类型安全的复用
+
+    - 泛型函数无需重复定义多个类型版本，避免类型不安全的 any。
+    - 同一逻辑可适配任意类型，且类型始终准确贯穿输入与输出。
+
+3. 应用场景
+
+    - 工具函数、转换函数、集合操作等常见于泛型函数。
+    - 泛型可扩展为多个类型参数（如`<T, U>`），支持更复杂约束。
+
+4. 类中的泛型方法
+
+    - 类方法可直接加泛型参数，实现类级别的灵活工具（如静态/实例工具方法）。
+    - 静态方法更适合“全局工具”，无需创建对象即可用。
+
+**代码示例**
+
+1. 基本泛型函数
+
+    ```typescript
+    // 将任意类型值包裹进数组
+    function wrapInArray<T>(value: T): T[] {
+      return [value];
+    }
+
+    const numArray = wrapInArray(123);      // 类型：number[]
+    const strArray = wrapInArray("abc");    // 类型：string[]
+    ```
+
+    - 描述：`T`自动随传入类型变化，始终保证类型安全和准确。
+
+2. 类中的泛型方法（静态/实例）
+
+    ```typescript
+    class ArrayUtils {
+      static wrapInArray<T>(value: T): T[] {
+        return [value];
+      }
+    }
+
+    // 无需实例化，直接用
+    const arr = ArrayUtils.wrapInArray(true); // boolean[]
+    ```
+
+    - 描述：静态方法无需对象，适合工具性质。泛型用法完全一致，类型推断自动进行。
+
+## 泛型接口
+
+> 简述：泛型接口是指接口本身支持类型参数，不限定数据结构具体类型，调用时可指定，适配多种场景，既保证复用性，又保持类型安全。
+
+**知识树**
+
+1. 泛型接口定义
+
+    - 接口名后用`<T>`声明类型参数。
+    - 属性、方法可用 T，接口结构通用化。
+
+2. 泛型接口的实际应用
+
+    - 常用于 API 响应结构、通用容器、异步结果包装等。
+    - 与泛型函数/类配合，最大化类型推断和安全。
+
+**代码示例**
+
+1. 定义和使用泛型接口
+
+    ```typescript
+    interface Result<T> {
+      data: T | null;
+      error: string | null;
+    }
+
+    // 泛型函数返回泛型接口类型
+    function fetch<T>(url: string): Result<T> {
+      return { data: null, error: null };
+    }
+
+    interface User {
+      username: string;
+    }
+
+    interface Product {
+      title: string;
+    }
+
+    const userResult = fetch<User>('/api/user');        // Result<User>
+    const productResult = fetch<Product>('/api/product'); // Result<Product>
+    ```
+
+    - 描述：指定不同 T，接口自动适配不同数据类型，类型推断贯穿始终。
+
+## 泛型约束
+
+> 简述：泛型约束通过 `extends` 限定泛型类型参数的范围，仅允许满足特定类型或结构的类型参与泛型，提高类型安全与表达力。
+
+**知识树**
+
+1. 基本约束
+
+    - 在泛型参数后加 `extends`，限制可用类型。
+    - 如：`<T extends number | string>`，T 只能为 number 或 string。
+
+2. 结构约束（形状约束）
+
+    - `extends { name: string }` 只允许带 name 属性的对象。
+    - 编译时强制对象具备特定属性结构。
+
+3. 接口约束
+
+    - 通过 `extends SomeInterface`，限定类型必须实现该接口。
+    - 强制类型遵循接口契约。
+
+4. 类约束
+
+    - 泛型参数可 extends 某个类。
+    - 只接受该类或其子类的实例。
+
+**代码示例**
+
+1. 基本类型约束
+
+    ```typescript
+    function echo<T extends number | string>(value: T): T {
+      return value;
+    }
+    // echo(true); // 编译错误
+    ```
+
+2. 结构约束
+
+    ```typescript
+    function printName<T extends { name: string }>(obj: T): void {
+      console.log(obj.name);
+    }
+    // printName({ name: 'Tom' }); // OK
+    // printName({ age: 1 });      // 编译错误
+    ```
+
+3. 接口/类约束
+
+    ```typescript
+    interface Person { name: string; }
+    function greet<T extends Person>(p: T) { console.log(p.name); }
+
+    class Person { constructor(public name: string) {} }
+    class Customer extends Person {}
+
+    function showName<T extends Person>(p: T) { console.log(p.name); }
+
+    showName(new Person('Tom'));       // OK
+    showName(new Customer('Jerry'));   // OK
+    ```
+
+    - 说明：只接受 Person 或其派生类的实例。
+
+## 泛型类与继承
+
+> 简述：泛型类通过类型参数实现通用数据结构，继承时可选择“传递、收紧或固定”类型参数，灵活适应多样场景，既保持扩展性又不丧失类型安全。
+
+**知识树**
+
+1. 泛型类定义
+
+    - 类名后加`<T>`声明类型参数。
+    - 内部成员、方法可用 T，数据结构与类型解耦。
+
+2. 泛型成员修饰符
+
+    - `private`成员仅限自身访问，子类无法继承。
+    - `protected`成员自身和子类可用，适合受控继承。
+
+3. 泛型类的继承方式
+
+    - 传递类型参数：子类也声明`<T>`，继承父类泛型并继续泛型化。
+    - 约束类型参数：子类声明`<T extends ...>`，对子类泛型参数加以限制。
+    - 固定类型参数：子类不声明泛型，直接指定具体类型，父类泛型“终结”。
+
+4. 类型约束与成员可访问性
+
+    - 子类需访问父类成员时，需将父类成员设为`protected`。
+    - 如需依赖泛型属性（如`name`），需加类型约束（如`T extends { name: string }`）。
+
+**代码示例**
+
+1. 泛型类和辅助接口定义
+
+    ```typescript
+    class Store<T> {
+      protected _objects: T[] = [];
+      add(obj: T) {
+        this._objects.push(obj);
+      }
+    }
+
+    interface Product {
+      name: string;
+      price: number;
+    }
+    ```
+
+2. 传递类型参数
+
+    ```typescript
+    class CompressibleStore<T> extends Store<T> {
+      compress() {
+        /* ... */
+      }
+    }
+    const c = new CompressibleStore<Product>();
+    ```
+
+    - 说明：子类继续泛型，灵活适配任意类型。
+
+3. 约束类型参数
+
+    ```typescript
+    class SearchableStore<T extends { name: string }> extends Store<T> {
+      find(name: string): T | undefined {
+        return this._objects.find((obj) => obj.name === name);
+      }
+    }
+    ```
+
+    - 说明：限制 T 必须有`name`属性，确保 find 方法类型安全。
+
+4. 固定类型参数
+
+    ```typescript
+    class ProductStore extends Store<Product> {
+      filterByCategory(category: string): Product[] {
+        return []; // 仅适用于Product
+      }
+    }
+    ```
+
+    - 说明：泛型参数已终结，子类专用于某具体类型。
+
+## keyof 操作符
+
+> 简述：`keyof` 是 TypeScript 的类型操作符，用于生成某个类型所有属性名的联合类型。它让泛型方法或数据结构只允许操作实际存在的属性，实现类型安全的动态访问。
+
+**知识树**
+
+1. keyof 的定义
+
+    - 语法：`keyof T`，返回类型 T 所有属性名的联合字面量类型。
+
+2. 泛型与 keyof 配合
+
+    - 常用于泛型方法参数，让参数只能是目标类型已有属性名，防止拼写错误或非法访问。
+
+3. 动态属性安全访问
+
+    - 结合索引访问（如 `obj[key]`），保证 property 一定是对象已声明属性，编译期校验。
+    - 规避 any/unknown 访问导致的运行时错误。
+
+4. 错误捕获与类型推断
+
+    - 非法属性编译时报错，提升 API 可靠性。
+    - 支持类型推断，参数智能提示。
+
+**代码示例**
+
+1. 基本用法与类型保护
+
+    ```typescript
+    interface Product {
+      name: string;
+      price: number;
+    }
+
+    class Store<T> {
+      protected objects: T[] = [];
+      add(obj: T) { this.objects.push(obj); }
+
+      find<K extends keyof T>(property: K, value: T[K]): T | undefined {
+        return this.objects.find(obj => obj[property] === value);
+      }
+    }
+
+    const store = new Store<Product>();
+    store.add({ name: "A", price: 1 });
+
+    // 正确：只允许 name 或 price
+    store.find("name", "A");
+    store.find("price", 1);
+
+    // 错误：非 Product 属性，编译报错
+    // store.find("category", "x");
+    ```
+
+    - 描述：`property` 只能为 `name` 或 `price`，`value` 类型自动推断。
+
+## 映射类型与工具类型
+
+> 简述：映射类型让我们基于现有类型批量动态生成新类型（如只读、可选、可空等），避免重复定义，极大提升类型系统的灵活性与表达力。TypeScript 内置了常用的映射工具类型。
+
+**知识树**
+
+1. 映射类型的写法
+
+    - 结构：`{ [K in keyof T]: ... }`，K 遍历 T 所有属性名。
+    - 属性类型可为 `T[K]`（取原始类型）。
+
+2. 典型用法
+
+    - 只读类型：加 `readonly` 前缀，属性不可修改。
+    - 可选类型：加 `?` 后缀，属性变为可选。
+    - 可空类型：类型加 `| null`，属性可为 null。
+    - 泛型参数支持任意对象类型。
+
+3. 内置工具类型
+
+    - `Readonly<T>`：全部属性只读。
+    - `Partial<T>`：全部属性可选。
+    - `Required<T>`：全部属性必填。
+    - `Nullable<T>`（需自定义或用 `T | null`）。
+    - 更多见 TypeScript [官方文档](https://www.typescriptlang.org/docs/handbook/utility-types.html)：
+
+**代码示例**
+
+1. 自定义映射类型
+
+    ```typescript
+    interface Product {
+      name: string;
+      price: number;
+    }
+    type ReadonlyType<T> = { readonly [K in keyof T]: T[K] };
+    type OptionalType<T> = { [K in keyof T]?: T[K] };
+    type NullableType<T> = { [K in keyof T]: T[K] | null };
+
+    const p: ReadonlyType<Product> = { name: "A", price: 1 };
+    p.name = "B"; // 编译错误，属性只读
+    ```
+
+2. 使用内置工具类型
+
+    ```typescript
+    type ReadonlyProduct = Readonly<Product>;
+    type PartialProduct = Partial<Product>;
+    ```
+
+    - 描述：官方工具类型等价于自定义映射写法，但更简洁。
