@@ -54,7 +54,7 @@
 
 ## 开发环境
 
-> 简述：搭建 TypeScript 开发环境需安装 Node.js、TypeScript 编译器和代码编辑器（推荐 VS Code），编写的 TypeScript 文件经编译生成 JavaScript 文件后运行。
+> 简述：搭建 TypeScript 开发环境需安装 Node.js 和代码编辑器（推荐 VS Code），编写的 TypeScript 文件经编译生成 JavaScript 文件后运行。
 
 **知识树**
 
