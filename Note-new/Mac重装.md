@@ -179,6 +179,10 @@
         - https://creativecloud.adobe.com
     2. Parallels DeskTop（mac 流程运行 windows，正版昂贵）
         - https://www.parallels.cn/products/desktop/trial/
+3. 小工具
+    1. HTTPie
+        - 安装：`brew install httpie`
+        - 使用：`http :8080/`、或者`http -v :8080/`
 
 ## 开发工具
 
