@@ -6,7 +6,8 @@
 # 技巧
 
 1. 查看错误信息：view——problem
-2. 快速生成组件：`rafce`（配合插件 `ES7+ React/Redux/React-Native snippets`）
+2. 快速生成组件：`rafce`（配合 VS code 插件 `ES7+ React/Redux/React-Native snippets`）
+3. 浏览器查看组件信息：（配合 Chrome 插件 React Developer Tools
 
 # Start
 
@@ -1116,7 +1117,8 @@
 
 2. 类型标注（TS）
 
-    - 方式：`children: ReactNode`（而非 `string`）
+    - 方式：`children: ReactNode`（若为纯文本内容，也可以使用 string）
+    - children 是 约定俗成 的一个属性名。
 
 **代码示例**
 
@@ -1177,6 +1179,130 @@
             <div>Hello World!</div>{" "}
             <span>This is a primary alert—check it out!</span>
           </Alert>
+        </>
+      );
+    }
+
+    export default App;
+    ```
+
+## Ex 构建 button 组件
+
+> 简述：构建组件时，有许多技巧和注意点，通过该练习了解。
+
+**知识树**
+
+1. 流程梳理
+
+    1. 初步
+        - 创建 `tsx` 组件文件
+        - `rafce` 创建组件模版
+        - 使用处初步引用
+    2. 改造
+        - 组件文件中定义接口，并使用解构接口中定义的参数
+        - 使用处传参
+
+2. 技巧
+
+    - 接口的参数，可以在解构时声明默认值---ts 语法
+    - 接口参数，可在声明时设置为可选(`?`方式)---ts 语法
+    - 接口参数，可以通过`"x1" | "x2" | "x3"`这种方式声明可设置的值，若不符合将会提示---ts 特性
+
+**代码示例**
+
+1. 构建 button 组件
+
+    ```tsx
+    // Button.tsx
+    interface ButtonProps {
+      children: string;
+      color?: "primary" | "secondary" | "danger";
+      onClick: () => void;
+    }
+
+    const Button = ({ children, color = "primary", onClick }: ButtonProps) => {
+      return (
+        <button className={"btn btn-" + color} onClick={onClick}>
+          {children}
+        </button>
+      );
+    };
+
+    export default Button;
+
+    // App.tsx
+    import Button from "./components/Button";
+
+    function App() {
+      return (
+        <>
+          <Button color="secondary" onClick={() => console.log("Clicked")}>
+            Click Me
+          </Button>
+        </>
+      );
+    }
+
+    export default App;
+    ```
+
+## Ex 设置 Button 事件
+
+> 简述：设置组件事件（点击事件）时，有许多技巧和注意点，通过该练习了解。
+
+**知识树**
+
+1. 流程梳理
+
+    1. 初步
+        - 在使用处， Button 上加上 Alert 提醒组件
+        - 创建 useState 与 点击事件，设置点击时展示 Alert
+    2. 改造（本节）
+        - 添加 Alert 关闭按钮（bootstrap）并设置点击事件由外部传入
+        - 在使用处设置点击关闭按钮的事件（useState 方法）传入
+
+2. 特点
+
+    - 通过传递 useState 方法，在将组件内的事件与外部属性关联
+
+**代码示例**
+
+1. 设置 Button 事件
+
+    ```tsx
+    // Alert.tsx
+    import { ReactNode } from "react";
+
+    interface AlertProps {
+      children: ReactNode;
+      onClose: () => void;
+    }
+
+    const Alert = ({ children, onClose }: AlertProps) => {
+      return (
+        <div className="alert alert-primary alert-dismissible">
+          {children}
+          <button type="button" className="btn-close" onClick={onClose}></button>
+        </div>
+      );
+    };
+
+    export default Alert;
+
+    // App.tsx
+    import { useState } from "react";
+    import Alert from "./components/Alert";
+    import Button from "./components/Button";
+
+    function App() {
+      const [alertVisible, setAlertVisibility] = useState(false);
+
+      return (
+        <>
+          {alertVisible && (
+            <Alert onClose={() => setAlertVisibility(false)}>My Alert</Alert>
+          )}
+          <Button onClick={() => setAlertVisibility(true)}>Click Me</Button>
         </>
       );
     }
