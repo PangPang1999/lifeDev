@@ -333,7 +333,7 @@
 
     - 在 `src` 目录下，创建 `components` 文件夹
 
-## 构建可复用列表组件
+## 构建列表组件
 
 > 简述：本节用函数式组件封装一个最小可用的“列表视图”，借助 Bootstrap 的现成样式，形成可复用 UI 单元。
 
@@ -372,7 +372,7 @@
     - 在 `main.tsx` 或其他页面中引入并使用该组件
     - 样式引用自 Bootstrap 官方文档：[List group](https://getbootstrap.com/docs/5.3/components/list-group/)
 
-## 单一根节点与 Fragment
+## Fragment
 
 > 简述：JSX 会被编译成函数调用（元素树）。一个组件的 return 必须有单一根节点。当需要并列兄弟节点时，用 Fragment 聚合，避免引入无意义的 DOM。
 
@@ -469,7 +469,7 @@
 
     - 必要时用全名 `<React.Fragment>` 以携带 `key`。
 
-## 动态列表渲染与 `key`
+## 动态列表渲染
 
 > 简述：用 `Array.map` 把数据映射为 JSX 节点，并用 `{}` 把表达式插入 JSX。每个同层列表子节点要有稳定且唯一的 `key`，以便 React 正确对比与更新。
 
@@ -644,3 +644,104 @@
     ```
 
     - 提取既可以使用常量，也可以使用方法，默认使用常量，需要附带参数时选择方法
+
+## 事件处理与类型标注
+
+> 简述：在 React 中，onClick 等事件 prop 一般绑定的是函数引用，回调函数会接收到一个 event 对象（即 React 的合成事件）。如果我们将事件处理逻辑单独定义在组件外部或方法中，并且需要使用 event 参数，在 TypeScript 中就必须为其显式添加类型标注（如 MouseEvent），才能正常使用。
+
+**知识树**
+
+1. 绑定&调用方式
+
+    - 绑定外部方法：`onClick={fn}` 传函数引用，不要写 `fn()`。
+    - 直接使用箭头函数：`onClick={() => fn(arg)}`。
+
+2. 合成事件 event
+
+    - 作用：
+        - 统一浏览器差异如`type / target / clientX/Y` 等。
+    - TS 注解：
+        - 需要声明对象类型，才能使用对象
+        - 鼠标悬浮在对象上，可以看到对象类型
+
+3. 列表场景
+
+    - 参数：`map((item, index) => ...)` 中可用 item 与 index。
+    - 注意：仅展示 index 可以，但 key 不要用 index（与增删/排序冲突）。
+
+**代码示例**
+
+1. 内联与基础事件对象
+
+    ```tsx
+    function ListGroup() {
+      let items = ["New York", "San Francisco", "Tokyo", "London"];
+
+      return (
+        <>
+          <h1>List</h1>
+          <ul className="list-group">
+            {items.map((item, index) => (
+              <li
+                className="list-group-item"
+                key={item}
+                onClick={(e) => {
+                  console.log("item:", item);
+                  console.log("index:", index);
+                  console.log("event:", e);
+                }}
+          >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </>
+      );
+    }
+    export default ListGroup;
+    ```
+
+    - 仅需简单行为时，内联最直接。
+
+2. 提取函数 + TS 类型注解
+
+    ```tsx
+    import type { MouseEvent } from "react";
+
+    function ListGroup() {
+      const items = ["New York", "San Francisco", "Tokyo", "London"];
+
+      // A) 仅依赖事件对象：可直接“函数引用”
+      const handleClick = (e: MouseEvent<HTMLLIElement>) => {
+        console.log("clicked at:", e.clientX, e.clientY);
+        console.log("target:", (e.target as HTMLLIElement).className);
+      };
+
+      // B) 需要额外数据（item）：用闭包/柯里化
+      const handleSelect = (item: string) => (e: MouseEvent<HTMLLIElement>) => {
+        console.log("selected:", item);
+      };
+
+      return (
+        <>
+          <h1>List</h1>
+          <ul className="list-group">
+            {items.map((item) => (
+              <li
+                className="list-group-item"
+                key={item}
+                onClick={handleSelect(item)} // 需要携带 item ⇒ 闭包
+                // 若只用事件对象，可写：onClick={handleClick}
+                // 切记：不要写 onClick={handleClick()} —— 那是“立即调用”
+          >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </>
+      );
+    }
+    export default ListGroup;
+    ```
+
+    - **规则**：无外部参数 ⇒ `onClick={handleClick}`；需外部参数 ⇒ `onClick={() => ...}` 或柯里化。
