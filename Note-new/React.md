@@ -837,3 +837,133 @@
     }
     export default ListGroup;
     ```
+
+## 通过 Props 传递数据
+
+> 简述：Props 是组件的输入。用 TypeScript 接口定义可以输入形状，并通过父组件传入，子组件解构使用，从而去除硬编码、提升复用与类型安全。
+
+**知识树**
+
+1. Props 意义
+
+    - 复用同一渲染逻辑（数据驱动 UI）
+    - 移除组件内硬编码数据
+
+2. 定义输入形状（TS）
+
+    - 示例：`interface ListGroupProps { items: readonly string[]; heading: string }`
+    - 可用 `type`/`Readonly<>` 增强不变性
+
+3. 传递与接收
+
+    - 父 → 子：`<ListGroup items={arr} heading="Cities" />`
+    - 子参数：`function ListGroup(props: ListGroupProps)` → `props.xxx`
+    - 常用解构：`function ListGroup({ items, heading }: ListGroupProps)`（更直观）
+
+4. 类型检查与约束
+
+    - 缺少必填：编译期报错
+    - Props 只读：子组件不可修改父传入的值
+
+**代码示例**
+
+1. 定义接口 + 子组件使用
+
+    ```tsx
+    // ListGroup.tsx
+    import { useState } from "react";
+
+    interface ListGroupProps {
+      items: string[];
+      heading: string;
+    }
+
+    function ListGroup(props: ListGroupProps) {
+      const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+      return (
+        <>
+          <h1>{props.heading}</h1>
+          <ul className="list-group">
+            {props.items.map((item, index) => (
+              <li
+                className={
+                  selectedIndex === index
+                    ? "list-group-item active"
+                    : "list-group-item"
+                }
+                key={item}
+                onClick={() => setSelectedIndex(index)}
+          >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </>
+      );
+    }
+    export default ListGroup;
+    ```
+
+2. 解构使用
+
+    ```tsx
+    import { useState } from "react";
+
+    interface ListGroupProps {
+      items: string[];
+      heading: string;
+    }
+
+    function ListGroup({ items, heading }: ListGroupProps) {
+      const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+      return (
+        <>
+          <h1>{heading}</h1>
+          <ul className="list-group">
+            {items.map((item, index) => (
+              <li
+                className={
+                  selectedIndex === index
+                    ? "list-group-item active"
+                    : "list-group-item"
+                }
+                key={item}
+                onClick={() => setSelectedIndex(index)}
+          >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </>
+      );
+    }
+    export default ListGroup;
+    ```
+
+3. 父组件传入不同数据，多次复用
+
+    ```tsx
+    // App.tsx
+    import ListGroup from "./components/ListGroup";
+
+    const cities = ["New York", "San Francisco", "Tokyo", "London"];
+    const names = ["Alice", "Bob", "Carol"];
+    const colors = ["Red", "Green", "Blue"];
+
+    function App() {
+      return (
+        <>
+          <ListGroup items={cities} heading="Cities" />
+          <ListGroup items={names} heading="Names" />
+          <ListGroup items={colors} heading="Colors" />
+          {/* 若漏传必填 props，TS 会报错，防止运行期问题 */}
+        </>
+      );
+    }
+
+    export default App;
+    ```
+
+    - 同一组件，不同输入 → 不同展示；类型系统确保传参与使用一致、可靠。
