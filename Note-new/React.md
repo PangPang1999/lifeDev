@@ -651,23 +651,25 @@
 
 **知识树**
 
-1. 绑定&调用方式
+1. 绑定与调用模式
 
-    - 绑定外部方法：`onClick={fn}` 传函数引用，不要写 `fn()`。
-    - 直接使用箭头函数：`onClick={() => fn(arg)}`。
+    - 传函数引用：`<button onClick={fn}></button>` 传函数引用，不要写 `fn()`
+    - 使用箭头函数：`<button onClick={() => console.log("Clicked")}></button>`
 
 2. 合成事件 event
 
     - 作用：
-        - 统一浏览器差异如`type / target / clientX/Y` 等。
-    - TS 注解：
-        - 需要声明对象类型，才能使用对象
-        - 鼠标悬浮在对象上，可以看到对象类型
+        - React 对原生事件做了封装，屏蔽浏览器差异（如 `type` / `target` / `clientX` / `clientY` 等）
+    - TS 类型提示：
+        - 事件对象需要显式声明类型才能使用
+        - 在编辑器中悬停到参数上，可以看到事件对象的具体类型
 
 3. 列表场景
 
-    - 参数：`map((item, index) => ...)` 中可用 item 与 index。
-    - 注意：仅展示 index 可以，但 key 不要用 index（与增删/排序冲突）。
+    - 参数：`map((item, index) => ...)` 中 `item` 表示当前项，`index` 表示索引。
+    - key 的注意事项：
+        - 展示时可以用 `index`，但 `key` 属性不要使用 index，否则在增删或排序时会导致渲染异常。
+        - 推荐使用业务唯一标识符作为 `key`，例如 `id`。
 
 **代码示例**
 
@@ -675,7 +677,7 @@
 
     ```tsx
     function ListGroup() {
-      let items = ["New York", "San Francisco", "Tokyo", "London"];
+      const items = ["New York", "San Francisco", "Tokyo", "London"];
 
       return (
         <>
@@ -744,4 +746,94 @@
     export default ListGroup;
     ```
 
-    - **规则**：无外部参数 ⇒ `onClick={handleClick}`；需外部参数 ⇒ `onClick={() => ...}` 或柯里化。
+## 管理组件状态
+
+> 简述：函数组件里的局部变量不是 React 可观察数据；修改它不会触发渲染。用 useState 声明状态，用其更新器修改，React 才会重渲染并同步 DOM。
+
+**知识树**
+
+1. 传统方式 ❌
+
+    - 直接改局部变量（如 `selectedIndex = index`）
+    - 问题：不可观察、不触发渲染
+
+2. `useState` 方式 ✅
+
+    - 语法：`const [state, setState] = useState(initial)`
+    - 约定：`state` + `setState` 命名（如 `selectedIndex` / `setSelectedIndex`）
+    - 初始值：无选中时用 `Number | null`（比哨兵值 `-1` 更语义化）
+        - 如 `useState<number | null>(null);`
+
+3. 条件样式
+
+    - 用三元/模板拼接 `className` 动态加 `active`（Bootstrap）
+
+4. 实例隔离
+
+    - 每个组件实例有独立 state，互不影响
+
+**代码示例**
+
+1. 传统方式 ❌（点击无反应）
+
+    ```tsx
+    function ListGroup() {
+      const items = ["New York", "San Francisco", "Tokyo", "London"];
+      let selectedIndex = 0;
+
+      return (
+        <>
+          <h1>List</h1>
+          <ul className="list-group">
+            {items.map((item, index) => (
+              <li
+                className={
+                  selectedIndex === index
+                    ? "list-group-item active"
+                    : "list-group-item"
+                }
+                key={item}
+                onClick={() => (selectedIndex = index)}
+          >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </>
+      );
+    }
+    export default ListGroup;
+    ```
+
+2. `useState` 方式 ✅（驱动渲染）
+
+    ```tsx
+    import { useState } from "react";
+
+    function ListGroup() {
+      const items = ["New York", "San Francisco", "Tokyo", "London"];
+      const [selectedIndex, setSelectedIndex] = useState(-1);
+
+      return (
+        <>
+          <h1>List</h1>
+          <ul className="list-group">
+            {items.map((item, index) => (
+              <li
+                className={
+                  selectedIndex === index
+                    ? "list-group-item active"
+                    : "list-group-item"
+                }
+                key={item}
+                onClick={() => setSelectedIndex(index)}
+          >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </>
+      );
+    }
+    export default ListGroup;
+    ```
