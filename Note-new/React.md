@@ -3,6 +3,10 @@
 - JavaScript
 - HTML&CSS
 
+# 技巧
+
+1. 查看错误信息：view——problem
+
 # Start
 
 ## 什么是 React？
@@ -967,3 +971,103 @@
     ```
 
     - 同一组件，不同输入 → 不同展示；类型系统确保传参与使用一致、可靠。
+
+## 通过 Props 传递函数
+
+> 简述：列表项被选中后，可以通过回调型 Prop 通知父组件。父组件决定“选中后做什么”，并借助 TypeScript 显式声明回调签名，获得类型安全与可复用性。
+
+**知识树**
+
+1. 需求与原则
+
+    - 行为因应用而异：过滤、跳转、弹窗……
+    - 复用优先：子组件只负责“选中事实”，不耦合后续动作
+    - 方案：反转控制（IoC） → 父传入回调
+
+2. 回调命名与签名（TS）
+
+    - 命名约定：事件名以 `on` 开头（如`onSelectItem`）
+    - 父级处理器命名：`handleSelectItem`
+    - 典型签名：`(item: string) => void`（可扩展为泛型）
+
+3. 使用步骤
+
+    - 子：在 Props 中声明 `onSelectItem`，在点击时调用并传入所选项
+    - 父：实现 `handleSelectItem` 并通过 Prop 传给子
+    - 优点：缺失必填回调会导致编译期报错，提前发现问题
+
+4. 可选回调
+
+    - 可将回调设为可选，但会失去“强制接入”的静态保障，谨慎使用
+
+**代码示例**
+
+1. 子组件：声明回调 Prop，并在点击时上报
+
+    ```tsx
+    // ListGroup.tsx
+    import { useState } from "react";
+
+    interface ListGroupProps {
+      items: string[];
+      heading: string;
+      onSelectItem: (item: string) => void;
+    }
+
+    function ListGroup({ items, heading, onSelectItem }: ListGroupProps) {
+      const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+      return (
+        <>
+          <h1>{heading}</h1>
+          <ul className="list-group">
+            {items.map((item, index) => (
+              <li
+                className={
+                  selectedIndex === index
+                    ? "list-group-item active"
+                    : "list-group-item"
+                }
+                key={item}
+                onClick={() => {
+                  setSelectedIndex(index);
+                  onSelectItem(item);
+                }}
+          >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </>
+      );
+    }
+    export default ListGroup;
+    ```
+
+    - 子组件保持纯粹，提供 渲染 + 选择态管理 + 通知，不做业务决策。
+
+2. 父组件：实现处理器并传入
+
+    ```tsx
+    // App.tsx
+    import ListGroup from "./components/ListGroup";
+
+    const cities = ["New York", "San Francisco", "Tokyo", "London"];
+    const handleSelectItem = (item: string) => {
+      console.log(item);
+    };
+
+    function App() {
+      return (
+        <>
+          <ListGroup
+            items={cities}
+            heading="Cities"
+            onSelectItem={handleSelectItem}
+          />
+        </>
+      );
+    }
+
+    export default App;
+    ```
