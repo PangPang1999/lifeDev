@@ -6,6 +6,7 @@
 # 技巧
 
 1. 查看错误信息：view——problem
+2. 快速生成组件：`rafce`（配合插件 `ES7+ React/Redux/React-Native snippets`）
 
 # Start
 
@@ -1101,3 +1102,84 @@
     - 准则：
         - 纯展示用 Props；需要交互/记忆时用 State。
         - 行为上行：通过回调型 Prop 把“发生了什么”通知父组件；由父决定业务动作。
+
+## 通过 `children` 传递内容
+
+> 简述：`children` 是所有组件通用的输入，用于把任意可渲染内容（文本/JSX）作为子元素传入；在 TS 中用 `ReactNode` 标注，获得灵活与类型安全。
+
+**知识树**
+
+1. 动机
+
+    - 避免 `text` 这类“内容型 prop”的局限（不便长文/富文本）
+    - 用法直观：`<Alert>…内容…</Alert>`
+
+2. 类型标注（TS）
+
+    - 方式：`children: ReactNode`（而非 `string`）
+
+**代码示例**
+
+1. 原始传递方式
+
+    ```tsx
+    // Alert.tsx
+    interface AlertProps {
+      text: string;
+    }
+
+    const Alert = ({ text }: AlertProps) => {
+      return <div className="alert alert-primary">{text}</div>;
+    };
+
+    export default Alert;
+
+    // App.tsx
+    import Alert from "./components/Alert";
+
+    function App() {
+      return (
+        <>
+          <Alert text="Hello World" />
+        </>
+      );
+    }
+
+    export default App;
+    ```
+
+    - 缺点：无法传递其他类型信息，而且稍长
+
+2. `children` 传递内容
+
+    ```tsx
+    // Alert.tsx
+    import { ReactNode } from "react";
+
+    interface AlertProps {
+      children: ReactNode;
+    }
+
+    const Alert = ({ children }: AlertProps) => {
+      return <div className="alert alert-primary">{children}</div>;
+    };
+
+    export default Alert;
+
+
+    // App.tsx
+    import Alert from "./components/Alert";
+
+    function App() {
+      return (
+        <>
+          <Alert>
+            <div>Hello World!</div>{" "}
+            <span>This is a primary alert—check it out!</span>
+          </Alert>
+        </>
+      );
+    }
+
+    export default App;
+    ```
