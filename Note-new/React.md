@@ -1695,3 +1695,64 @@
 4. CSS-in-JS 与 SoC 的关系辨析
 
     - SoC 关注“逻辑职责的划分”，而非“代码物理位置”。CSS-in-JS 是物理共址，逻辑分离的一种实现。
+
+## 内联样式
+
+> 简述：在 JSX 中给元素的 `style` 传入一个对象即可内联设置样式（JS 对象而非字符串）。可用，但因可读性与可维护性差，仅限特例的兜底方案
+
+**知识树**
+
+1. 定义与语法
+
+    - 定义：组件中存`style`属性， 接受可内联设置样式实现样式。
+    - 示例：`<ul style={{ backgroundColor: "yellow" }}>`
+    - 驼峰命名：与传统 JS 不同，TS 中命名将`-`分隔改为了驼峰
+
+2. 权重误解
+
+    - 权重误解：内联样式通常比类样式优先，但仍败给 `!important`；且无法表达伪类/媒体查询。
+
+**代码示例**
+
+1. 内联示例
+
+    ```tsx
+    // components/ListGroup/ListGroup.tsx
+    import { useState } from "react";
+    import "./ListGroup.css";
+
+    interface ListGroupProps {
+      items: string[];
+      heading: string;
+      onSelectItem: (item: string) => void;
+    }
+
+    function ListGroup({ items, heading, onSelectItem }: ListGroupProps) {
+      const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+      return (
+        <>
+          <h1>{heading}</h1>
+          <ul className="list-group" style={{ backgroundColor: "yellow" }}>
+            {items.map((item, index) => (
+              <li
+                className={
+                  selectedIndex === index
+                    ? "list-group-item active"
+                    : "list-group-item"
+                }
+                key={item}
+                onClick={() => {
+                  setSelectedIndex(index);
+                  onSelectItem(item);
+                }}
+          >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </>
+      );
+    }
+    export default ListGroup;
+    ```
