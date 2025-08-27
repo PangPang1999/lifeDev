@@ -179,8 +179,8 @@
 1. 创建一个简单的组件 (`Message.tsx`)
 
     ```TypeScript
-    // 函数名 Message 遵循 PascalCase 规范
-    function Message() {
+    // Message.tsx
+    function Message() {// 函数名 Message 遵循 PascalCase 规范
       // 函数返回 JSX，描述 UI
       return <h1>Hello World</h1>;
     }
@@ -192,8 +192,8 @@
 2. 在另一个组件中使用它 (`App.tsx`，删除之前所有内容)
 
     ```TypeScript
-    // 从 './Message' 文件导入 Message 组件
-    import Message from "./Message";
+    // App.tsx
+    import Message from "./Message";// 从 './Message' 文件导入 Message 组件
 
     function App() {
       return (
@@ -210,6 +210,7 @@
 3. 使用动态内容(`Message.tsx`)
 
     ```TypeScript
+    // Message.tsx
     function Message() {
       const name = "Pang";
       if (name) {
@@ -225,7 +226,8 @@
 4. 不能直接返回多个同级元素
 
     ```ts
-    // 错误示例（会报错）：
+    // Message.tsx
+    // 错误示例（会报错）
     function App() {
       // ❌ 直接返回两个 h1，会报错
       return (
@@ -234,6 +236,7 @@
       );
     }
 
+    // Message.tsx
     // 正确写法一：用一个父 <div> 包裹：
     function App() {
       return (
@@ -244,6 +247,7 @@
       );
     }
 
+    // Message.tsx
     // 正确写法二：用 Fragment 包裹（推荐、不会多生成 DOM 节点）：
     function App() {
       return (
@@ -357,9 +361,10 @@
 
 **代码示例**
 
-1.  `components/ListGroup.tsx`
+1.  构建列表组件
 
     ```tsx
+    // components/ListGroup.tsx
     function ListGroup() {
       return (
         <ul className="list-group">
@@ -403,25 +408,41 @@
 1. 错误示例：返回多个顶层节点（编译失败）
 
     ```tsx
-    function List() {
+    // components/ListGroup.tsx
+    function ListGroup() {
       return (
-        <h1>Heading</h1>
-        <ul><li>A</li></ul>  // ❌ 同级两个根
+        <h1>List</h1>
+        <ul className="list-group">
+          <li className="list-group-item">An item</li>
+          <li className="list-group-item">A second item</li>
+          <li className="list-group-item">A third item</li>
+          <li className="list-group-item">A fourth item</li>
+          <li className="list-group-item">And a fifth one</li>
+        </ul>
       );
     }
+    export default ListGroup;
     ```
 
 2. 用真实元素包裹（有额外 DOM）
 
     ```tsx
-    function List() {
+    // components/ListGroup.tsx
+    function ListGroup() {
       return (
         <div>
-          <h1>Heading</h1>
-          <ul><li>A</li></ul>
+          <h1>List</h1>
+          <ul className="list-group">
+            <li className="list-group-item">An item</li>
+            <li className="list-group-item">A second item</li>
+            <li className="list-group-item">A third item</li>
+            <li className="list-group-item">A fourth item</li>
+            <li className="list-group-item">And a fifth one</li>
+          </ul>
         </div>
       );
     }
+    export default ListGroup;
     ```
 
     - 适合需要容器语义/样式/事件时。
@@ -429,16 +450,24 @@
 3. 用 Fragment（无额外 DOM）
 
     ```tsx
+    // components/ListGroup.tsx
     import { Fragment } from 'react';
 
-    function List() {
+    function ListGroup() {
       return (
         <Fragment>
-          <h1>Heading</h1>
-          <ul><li>A</li></ul>
+          <h1>List</h1>
+          <ul className="list-group">
+            <li className="list-group-item">An item</li>
+            <li className="list-group-item">A second item</li>
+            <li className="list-group-item">A third item</li>
+            <li className="list-group-item">A fourth item</li>
+            <li className="list-group-item">And a fifth one</li>
+          </ul>
         </Fragment>
       );
     }
+    export default ListGroup;
     ```
 
     - 渲染结果不多出 `div`；结构更“干净”。
@@ -446,17 +475,25 @@
 4. 短语法 Fragment（最简洁）
 
     ```tsx
-    function List() {
+    // components/ListGroup.tsx
+    function ListGroup() {
       return (
         <>
-          <h1>Heading</h1>
-          <ul><li>A</li></ul>
+          <h1>List</h1>
+          <ul className="list-group">
+            <li className="list-group-item">An item</li>
+            <li className="list-group-item">A second item</li>
+            <li className="list-group-item">A third item</li>
+            <li className="list-group-item">A fourth item</li>
+            <li className="list-group-item">And a fifth one</li>
+          </ul>
         </>
       );
     }
+    export default ListGroup;
     ```
 
-    - **限制**：不能写属性或 `key`。
+    - 限制：不能写属性或 `key`。
 
 5. 列表场景需要 `key` 的 Fragment
 
@@ -509,6 +546,7 @@
 1. 基础：用 `map` 渲染 + 正确的 `key`（唯一字符串）
 
     ```tsx
+    // components/ListGroup.tsx
     function ListGroup() {
       const items = ["New York", "San Francisco", "Tokyo", "London"];
 
@@ -559,6 +597,7 @@
 1. 卫语句示例
 
     ```tsx
+    // components/ListGroup.tsx
     function ListGroup() {
       let items = ["New York", "San Francisco", "Tokyo", "London"];
       items = [];
@@ -591,6 +630,7 @@
 2. 三元示例和逻辑与 `&&`
 
     ```tsx
+    // components/ListGroup.tsx
     function ListGroup() {
       let items = ["New York", "San Francisco", "Tokyo", "London"];
       items = [];
@@ -620,6 +660,7 @@
 3. 提取示例
 
     ```tsx
+    // components/ListGroup.tsx
     function ListGroup() {
       let items = ["New York", "San Francisco", "Tokyo", "London"];
       items = [];
@@ -682,6 +723,7 @@
 1. 内联与基础事件对象
 
     ```tsx
+    // components/ListGroup.tsx
     function ListGroup() {
       const items = ["New York", "San Francisco", "Tokyo", "London"];
 
@@ -714,6 +756,7 @@
 2. 提取函数 + TS 类型注解
 
     ```tsx
+    // components/ListGroup.tsx
     import type { MouseEvent } from "react";
 
     function ListGroup() {
@@ -783,6 +826,7 @@
 1. 传统方式 ❌（点击无反应）
 
     ```tsx
+    // components/ListGroup.tsx
     function ListGroup() {
       const items = ["New York", "San Francisco", "Tokyo", "London"];
       let selectedIndex = 0;
@@ -814,6 +858,7 @@
 2. `useState` 方式 ✅（驱动渲染）
 
     ```tsx
+    // components/ListGroup.tsx
     import { useState } from "react";
 
     function ListGroup() {
@@ -876,7 +921,7 @@
 1. 定义接口 + 子组件使用
 
     ```tsx
-    // ListGroup.tsx
+    // components/ListGroup.tsx
     import { useState } from "react";
 
     interface ListGroupProps {
@@ -914,6 +959,7 @@
 2. 解构使用
 
     ```tsx
+    // components/ListGroup.tsx
     import { useState } from "react";
 
     interface ListGroupProps {
@@ -1007,7 +1053,7 @@
 1. 子组件：声明回调 Prop，并在点击时上报
 
     ```tsx
-    // ListGroup.tsx
+    // components/ListGroup.tsx
     import { useState } from "react";
 
     interface ListGroupProps {
@@ -1125,7 +1171,7 @@
 1. 原始传递方式
 
     ```tsx
-    // Alert.tsx
+    // components/Alert.tsx
     interface AlertProps {
       text: string;
     }
@@ -1155,7 +1201,7 @@
 2. `children` 传递内容
 
     ```tsx
-    // Alert.tsx
+    // components/Alert.tsx
     import { ReactNode } from "react";
 
     interface AlertProps {
@@ -1213,7 +1259,7 @@
 1. 构建 button 组件
 
     ```tsx
-    // Button.tsx
+    // components/Button.tsx
     interface ButtonProps {
       children: string;
       color?: "primary" | "secondary" | "danger";
@@ -1270,7 +1316,7 @@
 1. 设置 Button 事件
 
     ```tsx
-    // Alert.tsx
+    // components/Alert.tsx
     import { ReactNode } from "react";
 
     interface AlertProps {
@@ -1309,3 +1355,107 @@
 
     export default App;
     ```
+
+# Styling Components
+
+## 原生 CSS 样式化组件
+
+> 简述：可以选择不依赖框架，使用原生（vanilla，平凡的）CSS 来修饰组件
+
+**知识树**
+
+1.  原生 CSS 应用流程：
+
+    - 创建 CSS 文件：例如，为`ListGroup`组件创建`ListGroup.css`。
+    - 导入 CSS 文件：在对应的组件文件（如`ListGroup.tsx`）顶部导入 CSS 文件：`import './ListGroup.css';`。
+    - 定义样式规则：在 CSS 文件中编写标准的 CSS 类和样式。
+
+2.  CSS 文件组织与内聚性
+
+    - 内聚性原则 (Cohesion)
+        - 相关联的事物应彼此靠近，不相关的事物应分离。组件的 TSX 文件和其样式 CSS 文件高度相关。
+    - 推荐方案一 (组件旁)：
+        - 将`ListGroup.css`与`ListGroup.tsx`置于同一目录下。
+        - 优点：复用组件时，只需复制包含 TSX 和 CSS 的单个组件相关文件集。
+    - 推荐方案二 (组件文件夹，更佳)
+        - 为每个组件创建一个独立文件夹，如`components/ListGroup/`，内部包含`ListGroup.tsx`和`ListGroup.css`。
+        - 可以进一步创建一个`index.ts`文件引入组件并暴露，由于`index.ts`是文件夹未指定文件时的默认访问文件，因此在组件导入处，导入文件夹即可找到对应的组件
+            - 优点：进一步封装组件所有相关资源。
+
+**代码示例**
+
+1. 原生 CSS 样式化组件（注释掉 `main.tsx` 中的 bootstrap 引用）
+
+```tsx
+// components/ListGroup/ListGroup.tsx
+import { useState } from "react";
+import "./ListGroup.css";
+
+interface ListGroupProps {
+  items: string[];
+  heading: string;
+  onSelectItem: (item: string) => void;
+}
+
+function ListGroup({ items, heading, onSelectItem }: ListGroupProps) {
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+  return (
+    <>
+      <h1>{heading}</h1>
+      <ul className="list-group">
+        {items.map((item, index) => (
+          <li
+            className={
+              selectedIndex === index
+                ? "list-group-item active"
+                : "list-group-item"
+            }
+            key={item}
+            onClick={() => {
+              setSelectedIndex(index);
+              onSelectItem(item);
+            }}
+          >
+            {item}
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+export default ListGroup;
+
+// components/ListGroup/ListGroup.css
+.list-group {
+  list-style: none;
+  padding: 0;
+}
+
+// components/ListGroup/index.ts
+import ListGroup from "./ListGroup";
+
+export default ListGroup;
+
+// App.tsx
+import ListGroup from "./components/ListGroup/ListGroup";
+
+const cities = ["New York", "San Francisco", "Tokyo", "London"];
+const handleSelectItem = (item: string) => {
+  console.log(item);
+};
+
+function App() {
+  return (
+    <>
+      <ListGroup
+        items={cities}
+        heading="Cities"
+        onSelectItem={handleSelectItem}
+      />
+    </>
+  );
+}
+
+export default App;
+```
