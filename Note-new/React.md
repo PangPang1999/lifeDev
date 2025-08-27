@@ -1756,3 +1756,22 @@
     }
     export default ListGroup;
     ```
+
+## UI 组件与样式库选型
+
+> 简述：UI 库的目标是更快、更一致地交付界面。选型取决于设计语言、可定制性、可访问性与团队习惯。
+
+**知识树**
+
+1. 代表库速览（特点与取舍）
+
+    - Bootstrap
+        - 成熟稳定、类名语义固定，学习成本低，风格同质化，深度定制需覆盖变量/样式。
+    - MUI (Material UI)
+        - 完整实现 Material Design，组件丰富，主题能力强，默认风格显著
+    - Tailwind CSS
+        - 零 JS、原子化、按需产物，性能与一致性易控
+    - DaisyUI
+        - Tailwind 插件，提供语义化组件类（如 `alert`/`avatar`），受 Tailwind 约束。
+    - Chakra UI（推荐）
+        - React 组件库，基于 Tailwind 开发，API 简洁、可访问性良好、定制直观，容易上手。
