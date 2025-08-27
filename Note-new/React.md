@@ -1863,3 +1863,39 @@
     export default App;
     ```
 
+## Ex 构建一个可复用 Like 组件
+
+> 简述：通过构建一个可复用 Like 组件（通常数据其实是有后台传入，这里仅作演示），增加对 useState 的理解
+
+**代码示例**
+
+1. 示例
+
+    ```tsx
+    // Like.tsx
+    import { useState } from "react";
+    import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
+
+    interface Props {
+      onClick: () => void;
+    }
+
+    const Like = ({ onClick }: Props) => {
+      const [status, setStatus] = useState(false);
+
+      const toggle = () => {
+        setStatus(!status);
+        onClick();
+      };
+
+      if (status) return <AiFillHeart color="#ff6b81" size={25} onClick={toggle} />;
+      return <AiOutlineHeart color="#ff6b81" size={25} onClick={toggle} />;
+    };
+
+    export default Like;
+
+    // App.tsx
+    .list-group {
+      background: red;
+    }
+    ```

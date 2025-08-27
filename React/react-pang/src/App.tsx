@@ -1,7 +1,13 @@
-import Button from "./components/Button";
+import Like from "./components/Like";
 
 function App() {
-  return <Button onClick={() => {}}>Click Me</Button>;
+  return (
+    <Like
+      onClick={() => {
+        console.log("clicked");
+      }}
+    />
+  );
 }
 
 export default App;
