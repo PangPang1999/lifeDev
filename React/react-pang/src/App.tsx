@@ -1,20 +1,17 @@
-import ListGroup from "./components/ListGroup/ListGroup";
-import "./App.css";
-
-const cities = ["New York", "San Francisco", "Tokyo", "London"];
-const handleSelectItem = (item: string) => {
-  console.log(item);
-};
+import { BsFillCalendarFill } from "react-icons/bs";
 
 function App() {
   return (
-    <>
-      <ListGroup
-        items={cities}
-        heading="Cities"
-        onSelectItem={handleSelectItem}
-      />
-    </>
+    <div>
+      {/* 默认 */}
+      <BsFillCalendarFill />
+
+      {/* 定制大小与颜色 */}
+      <BsFillCalendarFill size={24} color="red" />
+
+      {/* 使用 className / style */}
+      <BsFillCalendarFill className="icon" style={{ marginLeft: 8 }} />
+    </div>
   );
 }
 

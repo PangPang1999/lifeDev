@@ -1775,3 +1775,47 @@
         - Tailwind 插件，提供语义化组件类（如 `alert`/`avatar`），受 Tailwind 约束。
     - Chakra UI（推荐）
         - React 组件库，基于 Tailwind 开发，API 简洁、可访问性良好、定制直观，容易上手。
+
+## 在 React 中使用图标
+
+> 简述：`react-icons` 将多家图标库聚合为可复用的 React 组件。按需导入、像普通组件一样使用，并通过 props 快速定制大小与颜色。
+
+**知识树**
+
+1. 安装与检索
+    - 命令：`npm i react-icons@5.5.0`
+    - 官网：
+        - https://react-icons.github.io/react-icons/
+        - 在官网搜索图标并确认前缀（如 `ai`、`bs` 等）。
+2. 按需导入：
+
+    - 基于前缀从子包导入（如 `react-icons/bs`），避免从根包导入以减小体积。
+
+3. 使用与定制：
+
+    - 组件化使用：`<BsFillCalendarFill />`
+    - 常用 props：`size`、`color`、`className`、`style`
+
+**代码示例**
+
+1. 基本使用与定制
+
+    ```tsx
+    // App.tsx
+    import { BsFillCalendarFill } from "react-icons/bs";
+
+    export default function App() {
+      return (
+        <div>
+          {/* 默认 */}
+          <BsFillCalendarFill />
+
+          {/* 定制大小与颜色 */}
+          <BsFillCalendarFill size={24} color="red" />
+
+          {/* 使用 className / style */}
+          <BsFillCalendarFill className="icon" style={{ marginLeft: 8 }} />
+        </div>
+      );
+    }
+    ```
