@@ -1819,3 +1819,47 @@
       );
     }
     ```
+
+## Ex 用 CSS Modules 美化 Button
+
+> 简述：通过使用 CSS Modules 来练习美化 Button，增加对 CSS Modules 的熟练度
+
+**代码示例**
+
+1. 示例
+
+    ```tsx
+    // components/Button/Button.module.css
+    .btn {
+      padding: 10px 20px;
+      border-radius: 5px;
+      border: 0;
+    }
+
+    .btn-primary {
+      background-color: #0d6efd;
+      color: white;
+    }
+
+
+    // components/Button/Button.tsx
+    .list-group {
+      list-style: none;
+      padding: 0;
+    }
+
+    // components/Button/index.ts
+    import Button from "./Button";
+
+    export default Button;
+
+    // App.tsx
+    import Button from "./components/Button";
+
+    function App() {
+      return <Button onClick={() => {}}>Click Me</Button>;
+    }
+
+    export default App;
+    ```
+
