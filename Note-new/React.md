@@ -1386,79 +1386,79 @@
 
 1. 原生 CSS 样式化组件（注释掉 `main.tsx` 中的 bootstrap 引用）
 
-```tsx
-// components/ListGroup/ListGroup.tsx
-import { useState } from "react";
-import "./ListGroup.css";
+    ```tsx
+    // components/ListGroup/ListGroup.tsx
+    import { useState } from "react";
+    import "./ListGroup.css";
 
-interface ListGroupProps {
-  items: string[];
-  heading: string;
-  onSelectItem: (item: string) => void;
-}
+    interface ListGroupProps {
+      items: string[];
+      heading: string;
+      onSelectItem: (item: string) => void;
+    }
 
-function ListGroup({ items, heading, onSelectItem }: ListGroupProps) {
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+    function ListGroup({ items, heading, onSelectItem }: ListGroupProps) {
+      const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  return (
-    <>
-      <h1>{heading}</h1>
-      <ul className="list-group">
-        {items.map((item, index) => (
-          <li
-            className={
-              selectedIndex === index
-                ? "list-group-item active"
-                : "list-group-item"
-            }
-            key={item}
-            onClick={() => {
-              setSelectedIndex(index);
-              onSelectItem(item);
-            }}
+      return (
+        <>
+          <h1>{heading}</h1>
+          <ul className="list-group">
+            {items.map((item, index) => (
+              <li
+                className={
+                  selectedIndex === index
+                    ? "list-group-item active"
+                    : "list-group-item"
+                }
+                key={item}
+                onClick={() => {
+                  setSelectedIndex(index);
+                  onSelectItem(item);
+                }}
           >
-            {item}
-          </li>
-        ))}
-      </ul>
-    </>
-  );
-}
-export default ListGroup;
+                {item}
+              </li>
+            ))}
+          </ul>
+        </>
+      );
+    }
+    export default ListGroup;
 
-// components/ListGroup/ListGroup.css
-.list-group {
-  list-style: none;
-  padding: 0;
-}
+    // components/ListGroup/ListGroup.css
+    .list-group {
+      list-style: none;
+      padding: 0;
+    }
 
-// components/ListGroup/index.ts
-import ListGroup from "./ListGroup";
+    // components/ListGroup/index.ts
+    import ListGroup from "./ListGroup";
 
-export default ListGroup;
+    export default ListGroup;
 
-// App.tsx
-import ListGroup from "./components/ListGroup/ListGroup";
+    // App.tsx
+    import ListGroup from "./components/ListGroup/ListGroup";
 
-const cities = ["New York", "San Francisco", "Tokyo", "London"];
-const handleSelectItem = (item: string) => {
-  console.log(item);
-};
+    const cities = ["New York", "San Francisco", "Tokyo", "London"];
+    const handleSelectItem = (item: string) => {
+      console.log(item);
+    };
 
-function App() {
-  return (
-    <>
-      <ListGroup
-        items={cities}
-        heading="Cities"
-        onSelectItem={handleSelectItem}
-      />
-    </>
-  );
-}
+    function App() {
+      return (
+        <>
+          <ListGroup
+            items={cities}
+            heading="Cities"
+            onSelectItem={handleSelectItem}
+          />
+        </>
+      );
+    }
 
-export default App;
-```
+    export default App;
+    ```
 
 ## CSS Modules
 
@@ -1495,58 +1495,170 @@ export default App;
 
 **代码示例**
 
-```tsx
-// components/ListGroup/ListGroup.tsx
-import { useState } from "react";
-import styles from "./ListGroup.module.css";
+1. 使用 CSS Modules 示例
 
-interface ListGroupProps {
-  items: string[];
-  heading: string;
-  onSelectItem: (item: string) => void;
-}
+    ```tsx
+    // components/ListGroup/ListGroup.tsx
+    import { useState } from "react";
+    import styles from "./ListGroup.module.css";
 
-function ListGroup({ items, heading, onSelectItem }: ListGroupProps) {
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+    interface ListGroupProps {
+      items: string[];
+      heading: string;
+      onSelectItem: (item: string) => void;
+    }
 
-  return (
-    <>
-      <h1>{heading}</h1>
-      <ul className={[styles.listGroup, styles.container].join(" ")}>
-        {items.map((item, index) => (
-          <li
-            className={
-              selectedIndex === index
-                ? "list-group-item active"
-                : "list-group-item"
-            }
-            key={item}
-            onClick={() => {
-              setSelectedIndex(index);
-              onSelectItem(item);
-            }}
+    function ListGroup({ items, heading, onSelectItem }: ListGroupProps) {
+      const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+      return (
+        <>
+          <h1>{heading}</h1>
+          <ul className={[styles.listGroup, styles.container].join(" ")}>
+            {items.map((item, index) => (
+              <li
+                className={
+                  selectedIndex === index
+                    ? "list-group-item active"
+                    : "list-group-item"
+                }
+                key={item}
+                onClick={() => {
+                  setSelectedIndex(index);
+                  onSelectItem(item);
+                }}
           >
-            {item}
-          </li>
-        ))}
-      </ul>
-    </>
-  );
-}
-export default ListGroup;
+                {item}
+              </li>
+            ))}
+          </ul>
+        </>
+      );
+    }
+    export default ListGroup;
 
-// ListGroup.module.css
-.listGroup {
-  list-style: none;
-  padding: 0;
-}
+    // ListGroup.module.css
+    .listGroup {
+      list-style: none;
+      padding: 0;
+    }
 
-.container {
-  background: yellow;
-}
+    .container {
+      background: yellow;
+    }
 
-// App.css
-.list-group {
-  background: red;
-}
-```
+    // App.css
+    .list-group {
+      background: red;
+    }
+    ```
+
+## CSS-in-JS
+
+> 简述： 在 TS/JS 中可以直接定义“带样式的组件”。样式与逻辑同文件、作用域天然隔离，并可随 props/state 动态变化。
+
+**知识树**
+
+1. 特点
+
+    - 共址：样式与组件同文件，删除即清理
+    - 作用域：不与全局 CSS 冲突
+    - 动态化：根据 props/state 计算样式
+    - 缺陷：无法像 CSS Modules 那样做到解决冲突
+
+2. 流行库：
+
+    - `styled-components` (本节演示)
+    - `Emotion`
+    - `Polished` (通常作为辅助库)
+
+3. `styled-components` 使用入门
+
+    - 安装
+        - `npm install styled-components`
+        - 若导入后提示`Could not find...`，安装`npm install @types/styled-components`
+    - 导入
+        - `import styled from 'styled-components';`
+    - 创建样式化组件示例
+
+        ```tsx
+        const StyledHtmlElement = styled.htmlElementTag`
+        	CSS rules
+        `;
+
+        // example
+        const List = styled.ul`
+        list-style: none;
+        padding: 0;
+        `;
+        ```
+
+        - 返回值：一个新的 React 组件，该组件渲染指定的 HTML 标签并自动应用定义的样式。
+
+    - 使用
+        - 在 JSX 中用创建的样式化组件替换原生 HTML 标签。
+        - 例如，用`<List>`替换`<ul>`，用`<ListItem>`替换`<li>`。
+        - 不再需要`className` 来应用这些核心样式。
+
+4. 基于 Props 的动态样式
+
+    - 样式化组件可以接受接口，主要由两种配合接口的方式
+    - 方式一：
+        - 创建时使用模板字面量插值 `${}` 和箭头函数，对属性进行处理
+    - 方式二
+        - 在组件使用处，使用接口中的属性（具备代码提示补全）
+
+**代码示例**
+
+1. 演示使用（将上一节的代码回退之后，即复原`ListGroup.css`以及`ListGroup.tsx`内相关代码，在此基础进行修改）
+
+    ```tsx
+    // components/ListGroup/ListGroup.tsx
+    import { useState } from "react";
+    import "./ListGroup.css";
+    import styled from "styled-components";
+
+    const List = styled.ul`
+      list-style: none;
+      padding: 0;
+    `;
+
+    interface ListItemProps {
+      active: boolean;
+    }
+    const ListItem = styled.li<ListItemProps>`
+      padding: 5px 0;
+      background: ${(props) => (props.active ? "blue" : "none")};
+    `;
+
+    interface ListGroupProps {
+      items: string[];
+      heading: string;
+      onSelectItem: (item: string) => void;
+    }
+
+    function ListGroup({ items, heading, onSelectItem }: ListGroupProps) {
+      const [selectedIndex, setSelectedIndex] = useState<number | null>(0);
+
+      return (
+        <>
+          <h1>{heading}</h1>
+          <List className="list-group">
+            {items.map((item, index) => (
+              <ListItem
+                active={index === selectedIndex}
+                key={item}
+                onClick={() => {
+                  setSelectedIndex(index);
+                  onSelectItem(item);
+                }}
+          >
+                {item}
+              </ListItem>
+            ))}
+          </List>
+        </>
+      );
+    }
+    export default ListGroup;
+    ```
