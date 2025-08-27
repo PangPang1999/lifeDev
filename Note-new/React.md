@@ -1459,3 +1459,94 @@ function App() {
 
 export default App;
 ```
+
+## CSS Modules
+
+> 简述：当同个组件中，同一个 class 被重复定义不同的样式，会导致冲突问题，使用 CSS Modules，能避免该问题的发生
+
+**知识树**
+
+1.  原生 CSS 的局限性
+
+    - 全局作用域：所有 CSS 类名共享同一命名空间，容易在不同组件或样式表中产生命名冲突。
+    - 问题示例：
+        - 以上一节为基础，当在 `App.css` 中定义了`.list-group` 相关内容，并在 `App.tsx` 中引入后，原样式出现变化
+
+2.  CSS Modules 定义与优势
+
+    - 定义：一种 CSS 文件规范，其中所有类名和动画名默认都是局部作用域的。
+    - 工作原理：构建工具（如 Vite, Webpack）在编译时会将 CSS Modules 中的类名转换为唯一的哈希字符串。
+    - 优势：从根本上避免了 CSS 类名冲突，允许在不同文件中使用相同的类名而互不影响，增强了样式的模块化和可维护性。
+
+3.  使用 CSS Modules 步骤
+
+    - 文件命名：将 CSS 文件名修改为`[name].module.css`格式，例如`ListGroup.module.css`。
+    - 导入：在组件文件中，以对象形式导入 CSS Modules：`import styles from './ListGroup.module.css';`。
+    - 在 JSX 中应用类名：
+        - 点符号访问：如果类名符合 CSS Modules 命名规范（驼峰式`listGroup`），使用`className={styles.listGroup}`。
+        - 方括号访问：如果类名包含特殊字符（如连字符`list-group`），使用`className={styles['list-group']}`。
+
+4.  应用多个 CSS Modules 类名
+
+    - 方法
+        - 将多个来自`styles`对象的类名（即编译后的唯一字符串）放入一个数组中，然后使用数组的`join(' ')`方法将它们合并为一个空格分隔的字符串。
+    - 示例
+        - `className={[styles.listGroup, styles.container].join(" ")}`。
+
+**代码示例**
+
+```tsx
+// components/ListGroup/ListGroup.tsx
+import { useState } from "react";
+import styles from "./ListGroup.module.css";
+
+interface ListGroupProps {
+  items: string[];
+  heading: string;
+  onSelectItem: (item: string) => void;
+}
+
+function ListGroup({ items, heading, onSelectItem }: ListGroupProps) {
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+  return (
+    <>
+      <h1>{heading}</h1>
+      <ul className={[styles.listGroup, styles.container].join(" ")}>
+        {items.map((item, index) => (
+          <li
+            className={
+              selectedIndex === index
+                ? "list-group-item active"
+                : "list-group-item"
+            }
+            key={item}
+            onClick={() => {
+              setSelectedIndex(index);
+              onSelectItem(item);
+            }}
+          >
+            {item}
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+export default ListGroup;
+
+// ListGroup.module.css
+.listGroup {
+  list-style: none;
+  padding: 0;
+}
+
+.container {
+  background: yellow;
+}
+
+// App.css
+.list-group {
+  background: red;
+}
+```

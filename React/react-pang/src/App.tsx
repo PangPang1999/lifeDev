@@ -1,4 +1,5 @@
 import ListGroup from "./components/ListGroup/ListGroup";
+import "./App.css";
 
 const cities = ["New York", "San Francisco", "Tokyo", "London"];
 const handleSelectItem = (item: string) => {
