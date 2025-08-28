@@ -1698,19 +1698,19 @@
 
 ## 内联样式
 
-> 简述：在 JSX 中给元素的 `style` 传入一个对象即可内联设置样式（JS 对象而非字符串）。可用，但因可读性与可维护性差，仅限特例的兜底方案
+> 简述：在 JSX 中给元素的 style 传入对象即可设置样式（JS 对象而非字符串）。能用，但因可读性/复用性差，只作为特例兜底。
 
 **知识树**
 
 1. 定义与语法
 
-    - 定义：组件中存`style`属性， 接受可内联设置样式实现样式。
+    - 定义：组件中存`style`属性， 可设置样式。
     - 示例：`<ul style={{ backgroundColor: "yellow" }}>`
     - 驼峰命名：与传统 JS 不同，TS 中命名将`-`分隔改为了驼峰
 
-2. 权重误解
+2. 权重与限制
 
-    - 权重误解：内联样式通常比类样式优先，但仍败给 `!important`；且无法表达伪类/媒体查询。
+    - 一般优先于类选择器，但不如 `!important`；且无法表达伪类/媒体查询。
 
 **代码示例**
 
@@ -1899,3 +1899,58 @@
       background: red;
     }
     ```
+
+# Managing Component State
+
+## 理解 State Hook
+
+> 简述：`useState` 为函数组件提供状态。更新异步批处理（事件后统一生效），状态存于 React 内部而非函数局部，Hook 必须在组件顶层按固定顺序调用。
+
+**知识树**
+
+1.  `useState` Hook 基础
+
+    - 功能：允许函数组件拥有并管理自身的状态。
+    - 返回：一个包含当前状态值和状态更新函数的数组 `[state, setState]`。
+
+2.  状态更新的异步性
+
+    - 机制：调用`setState`函数（如`setIsVisible(true)`）不会立即改变状态值并同步触发重渲染。
+    - 原因：性能优化。React 会将短时间内发生的多个状态更新进行批处理（batching），然后在事件处理函数执行完毕后，一次性应用所有更新并执行一次重渲染，以减少不必要的渲染次数。
+    - 表现：在`setState`调用之后立即访问状态变量，获取到的仍是旧值。
+
+3.  状态的存储位置
+
+    - 外部存储：通过`useState`声明的状态实际上存储在 组件之外，而非组件函数的作用域内。
+    - 原因：组件函数每次渲染时都会重新执行，其内部的局部变量会在函数执行完毕后销毁。为了在多次渲染间保持状态，React 必须将状态存储在组件实例之外。
+
+4.  Hooks 的调用规则：
+
+    - 规则一：只能在函数组件的顶层调用 Hooks。
+    - 规则二：不能在循环、条件语句或嵌套函数中调用 Hooks。
+    - 原因：React 依赖于 Hooks 在每次渲染时的固定调用顺序来正确地将内部存储的状态与对应的`useState`调用关联起来。状态变量名（如`isVisible`）是组件内部的标识符，React 本身不通过名称识别状态，而是通过调用顺序。
+    - 硬性规则：违反它们不会立刻触发语法错误，但会导致 Hook 顺序/数量在不同渲染间不一致，从而引发状态错位、难以复现的 bug，在开发模式下 React 还会直接报错
+
+**代码示例**
+
+1.  异步状态更新演示
+
+    ```ts
+    import { useState } from "react";
+    import Like from "./components/Like";
+
+    function App() {
+      const [isVisible, setIsVisible] = useState(false);
+
+      const handleClick = () => {
+        setIsVisible(true);
+        console.log(isVisible);
+      };
+
+      return <Like onClick={handleClick} />;
+    }
+
+    export default App;
+    ```
+
+    - 点击按钮后，控制台输出的`isVisible`是更新前的值。
