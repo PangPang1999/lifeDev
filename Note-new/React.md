@@ -2497,3 +2497,96 @@
     ```
 
     - 说明：`produce` 返回一个新数组，只有修改过的元素是新对象，其余保持原引用。React 识别新数组引用 → 触发渲染。
+
+## 组件间共享状态
+
+简述：当多个组件需要共享同一份数据时，应把状态提升到它们最近的共同父组件，再通过 props 下发数据和回调，确保它们始终保持同步。
+
+**知识树**
+
+1. 场景
+
+    - 例如电商应用：导航栏显示购物车内商品数量，购物车组件显示购物车明细。
+    - 两者都依赖同一份购物车数据 → 状态应放在它们的共同父组件（App）。
+
+2. 状态提升的步骤
+
+    - 在父组件中用 `useState` 声明共享状态。
+    - 子组件需要数据：通过 props 接收（如 `cartItems` 或 `cartItemsCount`）。
+    - 子组件需要修改数据：通过 props 接收回调（如 `onClear`）。
+
+3. 状态更新的责任原则
+
+    - 谁持有 state，谁负责更新。
+    - 子组件不能直接改 props，只能调用父组件传来的函数通知父组件。
+
+**代码示例**
+
+1. 父组件管理共享状态
+
+    ```tsx
+    // App.tsx
+    import { useState } from "react";
+    import NavBar from "./components/NavBar";
+    import Cart from "./components/Cart";
+
+    function App() {
+      const [cartItems, setCartItems] = useState(["Product 1", "Product 2"]);
+
+      return (
+        <div>
+          <NavBar cartItemsCount={cartItems.length} />
+          <Cart cartItems={cartItems} onClearCart={() => setCartItems([])} />
+        </div>
+      );
+    }
+
+    export default App;
+    ```
+
+2. 导航栏组件只关心数量
+
+    ```tsx
+    // NavBar.tsx
+    interface Props {
+      cartItemsCount: number;
+    }
+
+    const NavBar = ({ cartItemsCount }: Props) => {
+      return (
+        <>
+          <div>NavBar: {cartItemsCount} items</div>
+        </>
+      );
+    };
+
+    export default NavBar;
+    ```
+
+3. 购物车组件关心明细和清空操作
+
+    ```tsx
+    // Cart.tsx
+    interface Props {
+      cartItems: string[];
+      onClearCart: () => void;
+    }
+
+    const Cart = ({ cartItems, onClearCart }: Props) => {
+      return (
+        <>
+          <div>Cart</div>
+          <ul>
+            {cartItems.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+          <button onClick={onClearCart}>UPDATE</button>
+        </>
+      );
+    };
+
+    export default Cart;
+    ```
+
+    - 点击 Clear → 父组件更新 state → 导航栏和购物车组件同时更新，始终保持同步。
