@@ -1,14 +1,36 @@
 import { useState } from "react";
-import NavBar from "./components/NavBar";
-import Cart from "./components/Cart";
 
 function App() {
-  const [cartItems, setCartItems] = useState(["Product 1", "Product 2"]);
+  const [cart, setCart] = useState({
+    discount: 10,
+    items: [
+      { id: 1, title: "Apple", quantity: 2 },
+      { id: 2, title: "Banana", quantity: 3 },
+    ],
+  });
+
+  const updateQuantity = (id: number, newQuantity: number) => {
+    setCart((prevCart) => ({
+      ...prevCart,
+      items: prevCart.items.map((item) =>
+        item.id === id ? { ...item, quantity: newQuantity } : item
+      ),
+    }));
+  };
 
   return (
     <div>
-      <NavBar cartItemsCount={cartItems.length} />
-      <Cart cartItems={cartItems} onClearCart={() => setCartItems([])} />
+      <h1>Shopping Cart</h1>
+      {cart.items.map((item) => (
+        <div key={item.id}>
+          <p>
+            {item.title}: {item.quantity}
+          </p>
+          <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>
+            Increase Quantity
+          </button>
+        </div>
+      ))}
     </div>
   );
 }

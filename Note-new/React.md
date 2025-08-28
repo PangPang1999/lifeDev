@@ -2590,3 +2590,135 @@
     ```
 
     - 点击 Clear → 父组件更新 state → 导航栏和购物车组件同时更新，始终保持同步。
+
+## Ex 更新状态
+
+> 简述：本节通过三个具体练习，巩固在 React 中对嵌套对象、对象内数组以及对象数组中特定对象属性进行不可变更新的操作技巧。
+
+**练习**
+
+1.  练习 1：更新嵌套对象的属性
+
+    - 场景：`game = { id: number, player: { name: string } }`，更新`player.name`。
+    - 核心：同时创建新的`game`对象和新的`player`对象。
+
+2.  练习 2：更新对象内数组的属性 (添加元素)
+
+    - 场景：`pizza = { name: string, toppings: string[] }`，向`toppings`数组添加新元素。
+    - 核心：创建新的`pizza`对象和新的`toppings`数组。
+
+3.  练习 3：更新对象数组中特定对象的属性
+    - 场景：`cart = { discount: number, items: Array<{id: number, title: string, quantity: number}> }`，更新`items`数组中特定`id`的对象的`quantity`。
+    - 核心：创建新的`cart`对象，并使用`map`方法生成新的`items`数组，其中目标对象被替换为新的、已更新的副本。
+
+**代码示例**
+
+1. 练习 1
+
+    ```tsx
+    // App.tsx
+    import { useState } from "react";
+
+    function App() {
+      const [game, setGame] = useState({
+        id: 1,
+        player: { name: "Alice" },
+      });
+
+      const updatePlayerName = () => {
+        setGame((prevGame) => ({
+          ...prevGame,
+          player: { ...prevGame.player, name: "Bob" },
+        }));
+      };
+
+      return (
+        <div>
+          <h1>Game ID: {game.id}</h1>
+          <h2>Player: {game.player.name}</h2>
+          <button onClick={updatePlayerName}>Change Player Name</button>
+        </div>
+      );
+    }
+
+    export default App;
+    ```
+
+2. 练习 2
+
+    ```tsx
+    // App.tsx
+    import { useState } from "react";
+
+    function App() {
+      const [pizza, setPizza] = useState({
+        name: "Margherita",
+        toppings: ["Mushroom"],
+      });
+
+      const addTopping = () => {
+        setPizza((prevPizza) => ({
+          ...prevPizza,
+          toppings: [...prevPizza.toppings, "Cheese"],
+        }));
+      };
+
+      return (
+        <div>
+          <h1>{pizza.name} Pizza</h1>
+          <ul>
+            {pizza.toppings.map((topping, index) => (
+              <li key={index}>{topping}</li>
+            ))}
+          </ul>
+          <button onClick={addTopping}>Add Olives</button>
+        </div>
+      );
+    }
+
+    export default App;
+    ```
+
+3. 练习 3
+	
+	```tsx
+    // App.tsx
+	import { useState } from "react";
+	
+	function App() {
+	  const [cart, setCart] = useState({
+	    discount: 10,
+	    items: [
+	      { id: 1, title: "Apple", quantity: 2 },
+	      { id: 2, title: "Banana", quantity: 3 },
+	    ],
+	  });
+	
+	  const updateQuantity = (id: number, newQuantity: number) => {
+	    setCart((prevCart) => ({
+	      ...prevCart,
+	      items: prevCart.items.map((item) =>
+	        item.id === id ? { ...item, quantity: newQuantity } : item
+	      ),
+	    }));
+	  };
+	
+	  return (
+	    <div>
+	      <h1>Shopping Cart</h1>
+	      {cart.items.map((item) => (
+	        <div key={item.id}>
+	          <p>
+	            {item.title}: {item.quantity}
+	          </p>
+	          <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>
+	            Increase Quantity
+	          </button>
+	        </div>
+	      ))}
+	    </div>
+	  );
+	}
+	
+	export default App;
+	```
