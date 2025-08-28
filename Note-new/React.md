@@ -2271,3 +2271,60 @@
 
     export default App;
     ```
+
+## 更新数组
+
+> 简述：在 React 中管理数组类型的状态时，需要遵循不可变性原则。对数组的增、删、改操作都应通过创建并返回一个全新的数组实例来完成，而非直接修改原数组。
+
+**知识树**
+
+1.  数组状态的不可变性
+
+    - 禁止直接修改：不应使用会改变原数组的内置方法（如 `push`, `pop`, `splice`, `sort` 直接作用于状态数组）。
+    - 原因：与对象类似，React 依赖数组引用的变化来检测状态更新。
+
+2.  不可变更新数组的常用方法
+
+    - 添加元素：
+        - 使用展开运算符 (`...`) 创建新数组，并在末尾（或开头）添加新元素。
+        - `setTags(prevTags => [...prevTags, 'newTag']);` (添加到末尾)
+        - `setTags(prevTags => ['newTag', ...prevTags]);` (添加到开头)
+    - 删除元素：
+        - 使用数组的 `filter()` 方法。它会返回一个包含所有满足条件元素的新数组，原数组不变。
+        - `setTags(prevTags => prevTags.filter(tag => tag !== 'tagToRemove'));`
+    - 更新元素：
+        - 使用数组的 `map()` 方法。它会遍历原数组，对每个元素应用一个函数，并返回一个包含函数返回值的新数组。
+        - 在回调函数中，如果当前元素是需要更新的元素，则返回更新后的值（或新对象）；否则，返回原元素。
+        - `setTags(prevTags => prevTags.map(tag => (tag === 'oldTag' ? 'updatedTag' : tag)));`
+
+**代码示例**
+
+1.  添加、删除和更新元素
+
+    ```tsx
+    // App.tsx
+    import { useState } from "react";
+
+    function App() {
+      const [tags, setTags] = useState(["happy", "sad", "angry"]);
+
+      const handleClick = () => {
+        // Add
+        setTags([...tags, "excited"]);
+
+        // Remove
+        setTags(tags.filter((tag) => tag !== "sad"));
+
+        // Update
+        setTags(tags.map((tag) => (tag === "happy" ? "happiness" : tag)));
+      };
+
+      return (
+        <div>
+          <button onClick={handleClick}>Click Me</button>
+        </div>
+      );
+    }
+
+    export default App;
+    ```
