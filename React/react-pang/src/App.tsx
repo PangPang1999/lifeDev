@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { produce } from "immer";
 
 function App() {
   const [bugs, setBugs] = useState([
@@ -8,7 +9,14 @@ function App() {
 
   const handleClick = () => {
     setBugs(
-      bugs.map((bug) => (bug.id === 1 ? { ...bug, isClosed: true } : bug))
+      // bugs.map((bug) => (bug.id === 1 ? { ...bug, isClosed: true } : bug))
+      produce((draft) => {
+        // 使用produce，传入一个操作draft的函数
+        const bug = draft.find((bug) => bug.id === 1);
+        if (bug) {
+          bug.isClosed = true;
+        }
+      })
     );
   };
 

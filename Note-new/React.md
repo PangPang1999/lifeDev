@@ -5,9 +5,16 @@
 
 # 技巧
 
+## 工具类
+
 1. 查看错误信息：view——problem
 2. 快速生成组件：`rafce`（配合 VS code 插件 `ES7+ React/Redux/React-Native snippets`）
 3. 浏览器查看组件信息：（配合 Chrome 插件 React Developer Tools
+4. Immer 简化更新
+
+## 使用
+
+1. CSS Modules，隔离样式作用域
 
 # Start
 
@@ -1135,7 +1142,7 @@
 2. 不变性与更新方式
 
     - Props 不可变：在子组件里“改写 props”既不能更新父组件，也不会触发重渲；下一次渲染还会被父传入的值覆盖。
-    - State 可变但需规范更新：必须用 `setXxx(...)`，不可直接赋值或原地修改对象/数组（保持不可变更新）。
+    - State 可变但需规范更新：必须用 `setXxx(...)`，不可直接赋值或原地修改对象/数组（用新副本更新）。
 
 3. 所有权与数据流
 
@@ -1976,7 +1983,7 @@
 
 3.  避免深度嵌套的状态结构
 
-    - 问题：深度嵌套的对象在进行不可变更新时，逻辑会变得非常复杂和冗长。
+    - 问题：深度嵌套的对象在进行用新副本更新时，逻辑会变得非常复杂和冗长。
     - 建议：尽可能保持状态结构的扁平化。如果必须嵌套，层级不宜过深。
     - 影响：更新深层嵌套属性需要逐层创建新对象副本，增加了代码量和出错风险。
 
@@ -2228,7 +2235,7 @@
 
 4.  深度嵌套的复杂性
 
-    - 结构越深，不可变更新的逻辑越复杂，代码越冗长，越容易出错。
+    - 结构越深，用新副本更新的逻辑越复杂，代码越冗长，越容易出错。
     - 再次强调了尽可能保持状态结构扁平化的重要性。
 
 **代码示例**
@@ -2283,7 +2290,7 @@
     - 禁止直接修改：不应使用会改变原数组的内置方法（如 `push`, `pop`, `splice`, `sort` 直接作用于状态数组）。
     - 原因：与对象类似，React 依赖数组引用的变化来检测状态更新。
 
-2.  不可变更新数组的常用方法
+2.  用新副本更新数组的常用方法
 
     - 添加元素：
         - 使用展开运算符 (`...`) 创建新数组，并在末尾（或开头）添加新元素。
@@ -2368,6 +2375,7 @@
 1.  更新对象数组中的特定对象
 
     ```tsx
+    // App.tsx
     import { useState } from "react";
 
     function App() {
@@ -2398,3 +2406,94 @@
 
     export default App;
     ```
+
+## 使用 Immer 简化更新
+
+> 简述：在更新对象或数组时手动使用 `map`、`filter`、展开运算符会显得冗长。Immer 提供 `produce`，让我们像直接修改对象那样写代码，库会在底层生成不可变的副本。
+
+**知识树**
+
+1. 背景问题
+
+    - React 的 state 必须视为不可变。
+    - 手动更新对象/数组 → 代码重复，层级深时尤其繁琐。
+
+2. Immer 库：
+
+    - 目的：简化不可变状态管理。
+    - 核心函数：`produce`。
+    - 安装：`npm install immer@10.1.1`。
+
+3. `produce`函数用法
+
+    - 导入：`import { produce } from 'immer';`
+    - 基本签名：`produce(currentState, recipeFunction)` 或在 React `setState`中 `setState(produce(recipeFunction))`。
+    - `recipeFunction` (配方函数)：一个回调函数，接收一个`draft`（草稿）版本的当前状态作为参数。
+
+4. `draft`（草稿状态）
+
+    - 特性：`draft`是一个特殊代理对象，允许在`recipeFunction`内部对其进行直接“修改”（如属性赋值、数组`push`等），就好像它是一个可变对象一样。
+    - 底层机制：
+        - Immer 会追踪在`draft`上进行的所有操作。
+        - Immer 根据这些操作，在函数执行完毕后，自动生成一个符合不可变性原则的、全新的下一状态。
+        - 如果`recipeFunction`没有对`draft`做任何修改，`produce`会返回原始状态，避免不必要的更新。
+
+5. 特点与注意
+
+    - 优点：写法简洁、可读性好，避免层层展开。
+    - 注意：只在 `produce` 回调里“修改” draft，其他地方仍要遵守不可变规则。
+    - Immer 内部会创建新引用，旧 state 仍可被垃圾回收，不会内存泄漏。
+
+**代码示例**
+
+1. 使用 `map` 的传统写法（繁琐）
+
+    ```tsx
+    // ❌ 繁琐：需要手动展开
+    setBugs(bugs.map(b => (b.id === 1 ? { ...b, isClosed: true } : b)));
+    ```
+
+2. 使用 Immer 简化写法
+
+    ```tsx
+    // App.tsx
+    import { useState } from "react";
+    import { produce } from "immer";
+
+    function App() {
+      const [bugs, setBugs] = useState([
+        { id: 1, title: "Bug 1", isClosed: false },
+        { id: 2, title: "Bug 2", isClosed: false },
+      ]);
+
+      const handleClick = () => {
+        setBugs(
+          // bugs.map((bug) => (bug.id === 1 ? { ...bug, isClosed: true } : bug))
+          produce((draft) => {
+            // 使用produce，传入一个操作draft的函数
+            const bug = draft.find((bug) => bug.id === 1);
+            if (bug) {
+              bug.isClosed = true;
+            }
+          })
+        );
+      };
+
+      return (
+        <div>
+          <ul>
+            {bugs.map((bug) => (
+              <li key={bug.id}>
+                {bug.title} {bug.isClosed ? "(Closed)" : "(Open)"}
+              </li>
+            ))}
+          </ul>
+          <button onClick={handleClick}>UPDATE</button>
+        </div>
+      );
+    }
+
+    export default App;
+    ```
+
+    - 说明：`produce` 返回一个新数组，只有修改过的元素是新对象，其余保持原引用。React 识别新数组引用 → 触发渲染。
