@@ -1,4 +1,4 @@
-¬**Prerequisites**
+**Prerequisites**
 
 - JavaScript
 - HTML&CSS
@@ -2680,45 +2680,142 @@
     ```
 
 3. 练习 3
-	
-	```tsx
+
+    ```tsx
     // App.tsx
-	import { useState } from "react";
-	
-	function App() {
-	  const [cart, setCart] = useState({
-	    discount: 10,
-	    items: [
-	      { id: 1, title: "Apple", quantity: 2 },
-	      { id: 2, title: "Banana", quantity: 3 },
-	    ],
-	  });
-	
-	  const updateQuantity = (id: number, newQuantity: number) => {
-	    setCart((prevCart) => ({
-	      ...prevCart,
-	      items: prevCart.items.map((item) =>
-	        item.id === id ? { ...item, quantity: newQuantity } : item
-	      ),
-	    }));
-	  };
-	
-	  return (
-	    <div>
-	      <h1>Shopping Cart</h1>
-	      {cart.items.map((item) => (
-	        <div key={item.id}>
-	          <p>
-	            {item.title}: {item.quantity}
-	          </p>
-	          <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>
-	            Increase Quantity
-	          </button>
-	        </div>
-	      ))}
-	    </div>
-	  );
-	}
-	
-	export default App;
-	```
+    import { useState } from "react";
+
+    function App() {
+      const [cart, setCart] = useState({
+        discount: 10,
+        items: [
+          { id: 1, title: "Apple", quantity: 2 },
+          { id: 2, title: "Banana", quantity: 3 },
+        ],
+      });
+
+      const updateQuantity = (id: number, newQuantity: number) => {
+        setCart((prevCart) => ({
+          ...prevCart,
+          items: prevCart.items.map((item) =>
+            item.id === id ? { ...item, quantity: newQuantity } : item
+          ),
+        }));
+      };
+
+      return (
+        <div>
+          <h1>Shopping Cart</h1>
+          {cart.items.map((item) => (
+            <div key={item.id}>
+              <p>
+                {item.title}: {item.quantity}
+              </p>
+              <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>
+                Increase Quantity
+              </button>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    export default App;
+    ```
+
+## Ex 构建 ExpandableText 组件
+
+> 简述：此练习旨在综合运用 React 的状态管理、props、条件渲染和事件处理知识，构建一个可展开/收起的文本组件，该组件能根据设定的最大字符数自动截断长文本，并提供“更多”/“更少”按钮进行切换。
+
+**练习**
+
+1. 题干
+
+    - 编写一个 ExpandableText 组件，用于展示可能过长的文本。组件接收一个 children（字符串）和一个可选的 maxChars（最大显示字符数，默认 100）。
+
+2. 功能要求
+
+    - 当文本长度小于等于 maxChars 时，直接完整显示；
+    - 当文本超出 maxChars 时，默认截断并在末尾显示 ..；
+    - 提供一个按钮，可在 展开完整文本 和 收起部分文本 之间切换，按钮文字随状态显示 more/less。
+
+**代码示例**
+
+1. 构建 ExpandableText 组件
+
+    ```tsx
+    // ExpandableText.tsx
+    import { useState } from "react";
+
+    interface Props {
+      children: string;
+      maxChars?: number;
+    }
+
+    const ExpandableText = ({ children, maxChars = 100 }: Props) => {
+      const [isExpanded, setIsExpanded] = useState(false);
+
+      if (children.length <= maxChars) return <p>{children}</p>;
+
+      const text = isExpanded ? children : children.substring(0, maxChars) + "..";
+
+      return (
+        <p>
+          {text}
+          <button
+            onClick={() => {
+              setIsExpanded(!isExpanded);
+            }}
+      >
+            {isExpanded ? "less" : "more"}
+          </button>
+        </p>
+      );
+    };
+
+    export default ExpandableText;
+
+    // App.tsx
+    import { useState } from "react";
+    import ExpandableText from "./components/ExpandableText";
+
+    function App() {
+      const [cart, setCart] = useState({
+        discount: 10,
+        items: [
+          { id: 1, title: "Apple", quantity: 2 },
+          { id: 2, title: "Banana", quantity: 3 },
+        ],
+      });
+
+      const updateQuantity = (id: number, newQuantity: number) => {
+        setCart((prevCart) => ({
+          ...prevCart,
+          items: prevCart.items.map((item) =>
+            item.id === id ? { ...item, quantity: newQuantity } : item
+          ),
+        }));
+      };
+
+      return (
+        <div>
+          <ExpandableText>
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusantium
+            delectus in sit inventore, eaque eos suscipit exercitationem qui
+            expedita architecto magnam ratione asperiores unde enim! Accusantium
+            consequatur ab obcaecati asperiores. Nemo, fuga! Sequi, quasi blanditiis
+            repellat natus dolorum eveniet ratione necessitatibus doloremque vel
+            labore debitis et iste consequatur neque provident facilis distinctio
+            culpa quibusdam odio ad voluptas pariatur architecto? Unde ea hic
+            corporis expedita eius, quia vero quo dignissimos voluptatibus, corrupti
+            natus qui voluptas similique magni provident debitis quaerat nulla,
+            maiores repellat iure inventore. Ut, fugit? Vero repellat dolore
+            accusantium quae odit magni illum numquam, natus non soluta, illo
+            voluptatem!
+          </ExpandableText>
+        </div>
+      );
+    }
+
+    export default App;
+    ```

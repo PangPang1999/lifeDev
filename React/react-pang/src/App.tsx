@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ExpandableText from "./components/ExpandableText";
 
 function App() {
   const [cart, setCart] = useState({
@@ -20,17 +21,20 @@ function App() {
 
   return (
     <div>
-      <h1>Shopping Cart</h1>
-      {cart.items.map((item) => (
-        <div key={item.id}>
-          <p>
-            {item.title}: {item.quantity}
-          </p>
-          <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>
-            Increase Quantity
-          </button>
-        </div>
-      ))}
+      <ExpandableText>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusantium
+        delectus in sit inventore, eaque eos suscipit exercitationem qui
+        expedita architecto magnam ratione asperiores unde enim! Accusantium
+        consequatur ab obcaecati asperiores. Nemo, fuga! Sequi, quasi blanditiis
+        repellat natus dolorum eveniet ratione necessitatibus doloremque vel
+        labore debitis et iste consequatur neque provident facilis distinctio
+        culpa quibusdam odio ad voluptas pariatur architecto? Unde ea hic
+        corporis expedita eius, quia vero quo dignissimos voluptatibus, corrupti
+        natus qui voluptas similique magni provident debitis quaerat nulla,
+        maiores repellat iure inventore. Ut, fugit? Vero repellat dolore
+        accusantium quae odit magni illum numquam, natus non soluta, illo
+        voluptatem!
+      </ExpandableText>
     </div>
   );
 }
