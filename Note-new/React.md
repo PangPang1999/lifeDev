@@ -2168,7 +2168,6 @@
     ```tsx
     // App.tsx
     import { useState } from "react";
-    import Button from "./components/Button";
 
     function App() {
       const [drink, setDrink] = useState({
@@ -2194,8 +2193,8 @@
           <div>
             {drink.title} : ${drink.price}
           </div>
-          <Button onClick={bad}>BAD UPDATE</Button>
-          <Button onClick={good}>GOOD UPDATE</Button>
+          <button onClick={bad}>BAD UPDATE</button>
+          <button onClick={good}>GOOD UPDATE</button>
         </div>
       );
     }
@@ -2204,3 +2203,71 @@
     ```
 
     - 说明：`bad` 不更新；`good` 正常更新。
+
+## 更新嵌套对象
+
+> 简述：更新嵌套对象状态时，不可变性原则要求从根对象到被修改属性路径上的每一个对象都必须是新的实例。展开运算符的浅拷贝特性在此场景下需要特别注意。
+
+1.  展开运算符浅拷贝特性
+
+    - 行为
+        - 当使用展开运算符 (`...`) 复制一个对象时，如果该对象的属性值本身也是对象或数组，则新对象中对应属性将持有对原始嵌套对象或数组的引用，而非其内容的深拷贝。
+    - 影响
+        - 直接修改通过浅拷贝获得的嵌套对象引用，仍然会修改原始状态树中的该部分，违背不可变性。
+
+2.  更新嵌套对象规则
+
+    - 要更新一个深层嵌套的属性，必须确保从状态的根对象到该属性所在的最内层对象的路径上，每一个层级的对象都是新创建的副本。
+
+3.  更新嵌套对象的步骤
+
+    - 创建新的顶层对象副本，使用展开运算符复制原顶层对象属性。
+    - 对于包含待更新属性的那个嵌套对象属性，赋值为一个新的对象。
+    - 在这个新的嵌套对象内部，再次使用展开运算符复制原嵌套对象的属性。
+    - 最后，修改目标属性的值。
+
+4.  深度嵌套的复杂性
+
+    - 结构越深，不可变更新的逻辑越复杂，代码越冗长，越容易出错。
+    - 再次强调了尽可能保持状态结构扁平化的重要性。
+
+**代码示例**
+
+1.  更新嵌套对象状态
+
+    ```tsx
+    // App.tsx
+    import { useState } from "react";
+
+    function App() {
+      const [customer, setCustomer] = useState({
+        name: "John",
+        address: {
+          city: "New York",
+          zipCode: "10001",
+        },
+      });
+
+      const handleUpdateZipCode = () => {
+        setCustomer({
+          ...customer,
+          address: {
+            ...customer.address,
+            zipCode: "10002",
+          },
+        });
+      };
+
+      return (
+        <div>
+          <p>{customer.name}</p>
+          <p>
+            {customer.address.city}, {customer.address.zipCode}
+          </p>
+          <button onClick={handleUpdateZipCode}>Update Zip Code</button>
+        </div>
+      );
+    }
+
+    export default App;
+    ```
