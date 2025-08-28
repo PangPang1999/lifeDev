@@ -2313,15 +2313,85 @@
         setTags([...tags, "excited"]);
 
         // Remove
-        setTags(tags.filter((tag) => tag !== "sad"));
+        // setTags(tags.filter((tag) => tag !== "sad"));
 
         // Update
-        setTags(tags.map((tag) => (tag === "happy" ? "happiness" : tag)));
+        // setTags(tags.map((tag) => (tag === "happy" ? "happiness" : tag)));
       };
 
       return (
         <div>
+
           <button onClick={handleClick}>Click Me</button>
+        </div>
+      );
+    }
+
+    export default App;
+    ```
+
+## 更新对象数组
+
+> 简述：当状态是一个包含对象的数组，并且需要更新数组中某个对象的属性时，应结合使用数组的`map`方法和对象的展开运算符，以确保整个更新过程的不可变性。
+
+**知识树**
+
+1.  场景
+
+    - 状态为一个对象数组，例如 `bugs = [{ id: 1, title: 'Bug A', fixed: false }, ...]`。需要修改其中一个对象的属性（如将某个 bug 的`fixed`状态设为`true`）。
+
+2.  `map()` 回调函数逻辑：
+
+    - 参数：回调函数接收数组中的当前对象（如 `bug`）作为参数。
+    - 条件判断：
+        - 检查当前对象是否是需要更新的目标对象（通常通过 `id` 或其他唯一标识符判断）。
+        - 如果是目标对象：
+            - 创建一个新的对象副本。
+            - 使用展开运算符 (`...`) 复制原目标对象的所有属性到新副本中。
+            - 在新副本上修改需要更新的属性值。
+            - 返回这个新的、已修改的对象副本。
+        - 如果不是目标对象：
+            - 直接返回原始对象（保持其引用不变）。
+
+3.  结果
+
+    - `map()` 方法返回一个全新的数组。
+    - 这个新数组中，未被修改的对象仍然是原数组中对应对象的引用。
+    - 被修改的对象则是一个全新的对象实例，其属性已更新。
+
+4.  关于内存泄露的考虑
+
+    - `map` 产生了新数组；旧数组只要不再被引用（比如不在变量里、不被闭包/全局持有），JS 引擎就会把它垃圾回收。保留下来的只是“被新数组继续引用的那些对象”。
+
+**代码示例**
+
+1.  更新对象数组中的特定对象
+
+    ```tsx
+    import { useState } from "react";
+
+    function App() {
+      const [bugs, setBugs] = useState([
+        { id: 1, title: "Bug 1", isClosed: false },
+        { id: 2, title: "Bug 2", isClosed: false },
+      ]);
+
+      const handleClick = () => {
+        setBugs(
+          bugs.map((bug) => (bug.id === 1 ? { ...bug, isClosed: true } : bug))
+        );
+      };
+
+      return (
+        <div>
+          <ul>
+            {bugs.map((bug) => (
+              <li key={bug.id}>
+                {bug.title} {bug.isClosed ? "(Closed)" : "(Open)"}
+              </li>
+            ))}
+          </ul>
+          <button onClick={handleClick}>UPDATE</button>
         </div>
       );
     }
