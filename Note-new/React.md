@@ -2022,3 +2022,54 @@
 
     export default App;
     ```
+
+## 保持组件纯粹
+
+> 简述：React 组件应设计为纯函数 (Pure Function) ，即对于相同的输入（props），总是返回相同的输出（JSX），并且在渲染过程中不产生副作用。
+
+**知识树**
+
+1.  纯函数定义：
+
+    - 给定相同的输入参数，总是返回相同的结果。
+
+2.  维持组件纯粹性的关键：
+
+    - 渲染阶段禁止副作用
+        - 在组件函数执行并返回 JSX 的过程里，不要改写本次渲染开始前已存在的任何可变引用或外部资源
+    - 只允许改动本次渲染内“新建”的值
+        - 渲染过程中新创建的对象/数组/Map/Set 等属于当前渲染的局部产物，可以在返回 JSX 前自由读写；它们尚未被外部共享，不会破坏纯粹性。
+
+**代码示例**
+
+1.  不纯组件示例 (修改外部变量)
+
+    ```ts
+    // Message.tsx
+    let count = 0;
+
+    function Message() {
+      count++;
+      return <h1>Message {count}</h1>;
+    }
+
+    export default Message;
+
+    // App.tsx
+    import { useState } from "react";
+    import Message from "./Message";
+
+    function App() {
+      return (
+        <div>
+          <Message />
+          <Message />
+          <Message />
+        </div>
+      );
+    }
+
+    export default App;
+    ```
+
+    - 每次渲染`Message`都会改变`count`，导致相同复用产生不同输出。
