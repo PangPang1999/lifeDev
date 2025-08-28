@@ -2124,3 +2124,83 @@
 
     export default App;
     ```
+
+## 更新对象
+
+> 简述：当 state 是对象或数组时，不要原地改；必须创建新对象/新数组传给 `setState`，React 才能识别变化并重新渲染。
+
+**知识树**
+
+1. 核心规则
+
+    - 不可变性 (Immutability) 原则：
+        - state 视为只读，直接修改无法触发渲染，不应直接修改其内容。
+    - 原因：
+        - React 通过比较对象（或数组）的引用来判断状态是否发生变化。如果直接修改原对象，其引用保持不变，React 可能无法检测到变化，从而不触发组件的重新渲染。
+
+2. 更新对象流程：
+
+    - 创建新对象：生成一个全新的 JavaScript 对象。
+    - 复制属性：将原状态对象的所有属性复制到新对象中。
+    - 修改属性：在新对象上修改需要更新的属性值。
+    - 更新状态：调用状态更新函数（如`setDrink`），并将这个新创建和修改后的对象作为参数传入。
+
+3. 展开运算符 (`...`) 简化更新
+
+    - 功能：展开运算符可以方便地将一个对象的所有可枚举自有属性复制到另一个新对象中。
+    - 语法：`const newObject = { ...oldObject, propertyToUpdate: newValue };`
+        - `...oldObject`：将`oldObject`的属性浅拷贝到新对象。
+        - `propertyToUpdate: newValue`：在新对象上设置或覆盖指定的属性。属性的顺序很重要，后写的会覆盖先写的同名属性。
+
+4. 避免直接修改：
+
+    - 错误做法：`drink.price = 6; setDrink(drink);`
+    - 后果：即使`drink`对象的内容变了，但`drink`变量的引用未变，React 不会识别为状态更新。
+
+5. 深层数据注意
+
+    - 展开运算符是浅拷贝；嵌套对象也要逐层复制：`{ ...p, nested: { ...p.nested, x: 1 } }`。
+
+**代码示例**
+
+1. 对象：错误 vs 正确
+
+    ```tsx
+    // App.tsx
+    import { useState } from "react";
+    import Button from "./components/Button";
+
+    function App() {
+      const [drink, setDrink] = useState({
+        title: "Americano",
+        price: 5,
+      });
+
+      // ❌ 错误：原地修改 + 引用不变
+      const bad = () => {
+        drink.price = drink.price + 1;
+        setDrink(drink);
+        console.log(drink);
+      };
+
+      // ✅ 正确：创建新对象（引用变了）
+      const good = () => {
+        setDrink((d) => ({ ...d, price: d.price + 1 }));
+        console.log(drink);
+      };
+
+      return (
+        <div>
+          <div>
+            {drink.title} : ${drink.price}
+          </div>
+          <Button onClick={bad}>BAD UPDATE</Button>
+          <Button onClick={good}>GOOD UPDATE</Button>
+        </div>
+      );
+    }
+
+    export default App;
+    ```
+
+    - 说明：`bad` 不更新；`good` 正常更新。
