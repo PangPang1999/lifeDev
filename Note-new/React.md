@@ -2061,11 +2061,11 @@
 
     function App() {
       return (
-        <div>
-          <Message />
-          <Message />
-          <Message />
-        </div>
+    	<div>
+    	  <Message />
+    	  <Message />
+    	  <Message />
+    	</div>
       );
     }
 
@@ -2073,3 +2073,54 @@
     ```
 
     - 每次渲染`Message`都会改变`count`，导致相同复用产生不同输出。
+
+## 理解 Strict Mode
+
+> 简述：React 的`StrictMode`是一个开发模式下的辅助工具，它通过在开发环境中对组件进行额外检查（如双重渲染）来帮助开发者识别和修复潜在问题，特别是与副作用和不纯组件相关的问题。
+
+**知识树**
+
+1.  `React.StrictMode` 组件
+
+    - 用途：一个不显示任何 UI 的包装组件；只在开发模式开启额外检查。
+    - 激活位置：通常在应用的根组件（如`App`）外层包裹，位于`main.tsx`或`index.js`中。
+
+2.  核心行为
+
+    - 双调用（开发态）：函数组件体、`useState` 初始器等会被调用两次，首轮结果丢弃，仅采用第二次。
+    - Effect 复挂：`useEffect` 会经历“挂载 → 清理 → 再挂载”，用于校验清理逻辑。
+    - 日志现象：控制台常见一深一浅（灰）两条日志，对应两次执行。
+
+3.  影响范围
+
+    - 开发环境下默认启动，打包到生产后只渲染一次。
+
+**代码示例**
+
+1. Strict Mode 演示（通过不纯示例）
+
+    ```ts
+    // Message.tsx
+    let count = 0;
+
+    function Message() {
+      console.log("Message rendered: " + count);
+      count++;
+      return <h1>Message {count}</h1>;
+    }
+
+    export default Message;
+
+    // App.tsx
+    import Message from "./Message";
+
+    function App() {
+      return (
+        <div>
+          <Message />
+        </div>
+      );
+    }
+
+    export default App;
+    ```
