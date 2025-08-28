@@ -1,15 +1,18 @@
 import { useState } from "react";
-import Like from "./components/Like";
 
 function App() {
-  const [isVisible, setIsVisible] = useState(false);
+  // const [firstName, setFirstName] = useState("John");
+  // const [lastName, setLastName] = useState("Doe");
+  const [person, setPerson] = useState({ firstName: "John", lastName: "Doe" });
+  const [isLoading, setIsLoading] = useState(false);
+  const fullName = person.firstName + " " + person.lastName;
 
-  const handleClick = () => {
-    setIsVisible(true);
-    console.log(isVisible);
-  };
-
-  return <Like onClick={handleClick} />;
+  return (
+    <div>
+      {fullName}
+      {isLoading && <p>Loading...</p>}
+    </div>
+  );
 }
 
 export default App;

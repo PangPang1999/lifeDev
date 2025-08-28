@@ -1954,3 +1954,71 @@
     ```
 
     - 点击按钮后，控制台输出的`isVisible`是更新前的值。
+
+## 选择 State 结构
+
+> 简述：合理设计组件的状态结构是提升代码可维护性和性能的关键。核心原则包括避免冗余、组织关联数据及保持结构扁平。
+
+**知识树**
+
+1.  避免冗余状态：
+
+    - 定义：如果一个状态值可以由其他现有状态或 props 计算得出，则该状态是冗余的。
+    - 示例：`fullName`可以由`firstName`和`lastName`计算得到，无需单独存储为状态。
+    - 实践：在渲染期间（JSX 中或组件函数体内的局部变量）派生值通过计算获取，而不是将其设为独立状态。
+
+2.  组织关联状态变量
+
+    - 场景：当多个状态变量在逻辑上属于同一个实体或概念时。
+    - 方法：将这些关联变量组合成一个对象，作为单一状态进行管理。
+    - 示例：将`firstName`和`lastName`合并为`person: { firstName: string, lastName: string }`状态对象。
+    - 对比：将`person`对象与独立的`isLoading`状态分开管理，因为它们代表不同关注点（用户数据 vs 页面加载状态）。
+
+3.  避免深度嵌套的状态结构
+
+    - 问题：深度嵌套的对象在进行不可变更新时，逻辑会变得非常复杂和冗长。
+    - 建议：尽可能保持状态结构的扁平化。如果必须嵌套，层级不宜过深。
+    - 影响：更新深层嵌套属性需要逐层创建新对象副本，增加了代码量和出错风险。
+
+**代码示例**
+
+1.  避免冗余状态
+
+    ```ts
+    // App.tsx
+    import { useState } from "react";
+
+    function App() {
+      const [firstName, setFirstName] = useState("John");
+      const [lastName, setLastName] = useState("Doe");
+      const fullName = firstName + " " + lastName;
+
+      return <div>{fullName}</div>;
+    }
+
+    export default App;
+    ```
+
+2.  组织关联状态
+
+    ```ts
+    // App.tsx
+    import { useState } from "react";
+
+    function App() {
+      // const [firstName, setFirstName] = useState("John");
+      // const [lastName, setLastName] = useState("Doe");
+      const [person, setPerson] = useState({ firstName: "John", lastName: "Doe" });
+      const [isLoading, setIsLoading] = useState(false);
+      const fullName = person.firstName + " " + person.lastName;
+
+      return (
+        <div>
+          {fullName}
+          {isLoading && <p>Loading...</p>}
+        </div>
+      );
+    }
+
+    export default App;
+    ```
