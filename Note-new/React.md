@@ -3126,23 +3126,20 @@
 1. 与非受控组件的区别
 
     - 非受控：用 `useRef` 直接读 DOM 的 `.value`。
-    - 受控：用 `useState` 保存输入值，输入的显示由 React state 决定。
+    - 受控：用 `useState` 保存输入值，每个输入都必须同时绑定 `value` 和 `onChange`，由 React state 完全控制。
 
-2. 状态与事件绑定
+2. 状态与事件绑定（必做两步）
 
-    - 使用 `useState` 定义 `person` 对象：如 `{ name: "", age: "" }`。
-    - 输入框的 `onChange` 事件触发时更新 `person`。
-    - TS 中 `e.target.value` 永远是字符串，数字需要 `parseInt` 或 `Number()` 转换。
+    - 定义状态：`const [person, setPerson] = useState({ name: "", age: "" });`
+    - 每个输入字段：
+        - `value={person.name}`（显示由 state 决定）
+        - `onChange={e => setPerson({ ...person, name: e.target.value })}`（输入时更新 state）
+    - TS 注意：`e.target.value` 始终是字符串，数字需要 `parseInt` 或 `Number()` 转换。
 
-3. 单一数据源（Single Source of Truth）
+3. 性能与选择
 
-    - 必须把 `<input>` 的 `value` 设置为 state 中的对应值，如 `value={person.name}`。
-    - 避免 DOM 和 React 各自维护数据造成不同步。
-
-4. 性能与选择
-
-    - 每次输入都会触发组件重渲染，但在绝大多数场景下性能无碍。
-    - 若表单极其复杂且性能确实受限，可以考虑用 `useRef` 实现非受控组件。
+    - 缺点：每次输入都会触发组件重渲染。
+    - 大部分场景性能足够；如果表单特别复杂且性能成问题，可以考虑用 `useRef`（非受控）。
 
 **代码示例**
 
@@ -3201,3 +3198,96 @@
     ```
 
     - 输入框的值完全由 state 控制，保证数据和 UI 始终同步。
+
+## React Hook Form 简化表单管理
+
+> 简述：在复杂表单中，给每个输入手动绑定 `value` 和 `onChange` 很繁琐。**React Hook Form** 提供 `useForm` Hook，通过 `register` 自动管理输入值，避免重复代码，并在提交时直接拿到表单数据。
+
+**知识树**
+
+1. 为什么需要 React Hook Form
+
+    - 用 `useState` 管理多个输入：每个字段都要写 `value` 和 `onChange`。
+    - 输入一多 → 代码重复、容易出错。
+    - React Hook Form 自动收集输入值，减少样板代码。
+
+2. 基本用法
+
+    - 安装：`npm i react-hook-form`
+    - 导入：`import { useForm } from "react-hook-form";`
+    - 调用：`const { register, handleSubmit } = useForm();`
+        - 常用属性：
+            - `register`：绑定输入字段
+                - `register("字段名")` 会返回 `onChange`、`onBlur`、`ref` 等属性
+            - `handleSubmit`：处理表单提交
+    - 绑定：通过 `{...register("字段名")}` 展开绑定到 `<input>`。
+
+3. 表单提交流程
+
+    - 绑定提交事件：在 `<form>` 上使用 `onSubmit={handleSubmit(函数)}`，其中的 `handleSubmit` 来自 `useForm()`。
+    - 接收数据：传入的函数会得到一个对象，包含表单中所有字段的值，一般命名为 `data`。
+    - 函数位置：建议将提交函数单独定义，而不是直接写在 JSX 内联，提高可读性和可维护性。
+    - TypeScript 类型：提交函数的参数类型默认为 `FieldValues`，可根据实际字段定义更精确的类型。
+
+4. 特点与优势
+
+    - 使用 ref 获取值 → 输入时不会强制触发 re-render，性能更好。
+    - 代码更简洁：不用再写 `useState`、不用管理每个输入的 `value` 和 `onChange`。
+    - 可扩展：支持验证、错误处理、默认值、重置等功能。
+
+**代码示例**
+
+1. 使用 React Hook Form 管理表单
+
+    ```tsx
+    // components/Form.tsx
+    import { useForm, FieldValues } from "react-hook-form";
+
+    const Form = () => {
+      // 查看有哪些方法
+      // const form = useForm();
+      // console.log(form);
+
+      // 查看 register 注册之后的属性
+      // const { register } = useForm();
+      // console.log(register("name"));
+
+      const { register, handleSubmit } = useForm();
+
+      const onSubmit = (data: FieldValues) => {
+        console.log(data);
+      };
+
+      return (
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="mb-3">
+            <label htmlFor="name" className="form-label">
+              Name
+            </label>
+            <input
+              id="name"
+              type="text"
+              className="form-control"
+              {...register("name")}
+            />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="age" className="form-label">
+              Age
+            </label>
+            <input
+              id="age"
+              type="number"
+              className="form-control"
+              {...register("age")}
+            />
+          </div>
+          <button className="btn btn-primary">Submit</button>
+        </form>
+      );
+    };
+
+    export default Form;
+    ```
+
+    - 相比用 `useState`，这里无需管理 `value` 和 `onChange`，代码更简洁。

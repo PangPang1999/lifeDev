@@ -1,29 +1,32 @@
 import { FormEvent, useState } from "react";
+import { useForm, FieldValues } from "react-hook-form";
 
 const Form = () => {
-  const [person, setPerson] = useState({
-    name: "",
-    age: 0,
-  });
+  // 查看有哪些方法
+  // const form = useForm();
+  // console.log(form);
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
+  // 查看 register 注册之后的属性
+  // const { register } = useForm();
+  // console.log(register("name"));
+
+  const { register, handleSubmit } = useForm();
+
+  const onSubmit = (data: FieldValues) => {
+    console.log(data);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <div className="mb-3">
         <label htmlFor="name" className="form-label">
           Name
         </label>
         <input
-          onChange={(event) =>
-            setPerson({ ...person, name: event.target.value })
-          }
-          value={person.name}
           id="name"
           type="text"
           className="form-control"
+          {...register("name")}
         />
       </div>
       <div className="mb-3">
@@ -31,13 +34,10 @@ const Form = () => {
           Age
         </label>
         <input
-          onChange={(event) =>
-            setPerson({ ...person, age: parseInt(event.target.value) })
-          }
-          value={person.age || ""}
           id="age"
           type="number"
           className="form-control"
+          {...register("age")}
         />
       </div>
       <button className="btn btn-primary">Submit</button>
