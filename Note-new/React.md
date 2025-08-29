@@ -15,6 +15,8 @@
 ## 使用
 
 1. CSS Modules，隔离样式作用域
+2. Emmet，加速模版编写
+3. `.?`写法替代`if`，`?.` 只在判断“是否为 `null` 或 `undefined`，不会过滤掉 `0`、`false`、`""` 这些 `falsy` 值。通常配合`??`空值合并运算符，即如果前面结果是 `null` 或 `undefined`，就用右边的值（常保持原值不变）。
 
 # Start
 
@@ -2819,3 +2821,298 @@
 
     export default App;
     ```
+
+# Building Forms
+
+## 构建基础表单
+
+> 简述：构建 HTML 表单结构是实现用户输入功能的第一步。利用 CSS 框架（如 Bootstrap）可以快速美化表单，Emmet 等工具可加速标记编写。全局 CSS 可用于调整整体布局。
+
+**知识树**
+
+1. 表单基本结构
+
+    - `<form>`：表单容器，包含所有输入与提交按钮。
+    - `<div>`：字段组容器，常用 `mb-3` 添加下边距。
+    - `<label>`：描述输入字段，`htmlFor` 绑定到对应输入的 `id`。
+    - `<input>`：输入控件，常见类型：`text`、`number`，配合 `form-control` 类。
+    - `<button type="submit">`：提交按钮，配合 `btn btn-primary` 类。
+
+2. Bootstrap 样式辅助
+
+    - `.form-label`：美化标签。
+    - `.form-control`：统一输入框样式。
+    - `.btn.btn-primary`：主要按钮风格。
+    - `.mb-3`：字段组之间增加下边距。
+
+3. Emmet 快捷生成
+
+    - 例：`div.mb-3>label.form-label+input.form-control` → 快速生成一个字段组。
+    - 例：`button.btn.btn-primary[type=submit]{Submit}` → 快速生成提交按钮。
+
+4. 全局样式调整
+
+    - 取消 main.tsx 中对 bootstap 引用的注释，或者重新引用 bootstrap
+    - 在 `index.css` 中对 `body` 设置 `padding`，避免表单紧贴屏幕边缘。
+    - 在 `main.tsx` 中导入 `bootstrap/dist/css/bootstrap.css` 与全局样式文件。
+
+**代码示例**
+
+1.  表单组件结构 (`Form.tsx`)
+
+    ```tsx
+    // components/Form.tsx
+    const Form = () => {
+      return (
+        <form>
+          <div className="mb-3">
+            <label htmlFor="name" className="form-label">
+              Name
+            </label>
+            <input id="name" type="text" className="form-control" />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="age" className="form-label">
+              Age
+            </label>
+            <input id="age" type="number" className="form-control" />
+          </div>
+          <button className="btn btn-primary">Submit</button>
+        </form>
+      );
+    };
+
+    export default Form;
+
+
+    // App.tsx
+    import Form from "./components/Form";
+
+    function App() {
+      return (
+        <div>
+          <Form></Form>
+        </div>
+      );
+    }
+
+    export default App;
+    ```
+
+2.  全局 CSS (`index.css`) 与导入 (`main.tsx`)
+
+    ```tsx
+    // index.css
+    body {
+      padding: 20px;
+    }
+
+    // main.tsx
+    import React from 'react';
+    import ReactDOM from 'react-dom/client';
+    import App from './App';
+    import 'bootstrap/dist/css/bootstrap.css'; // 导入Bootstrap
+    import './index.css'; // 导入全局CSS
+
+    ReactDOM.createRoot(document.getElementById('root')!).render(
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>
+    );
+    ```
+
+## 处理表单提交
+
+> 简述：HTML 表单在提交时会默认刷新页面并向服务器发送请求。在 React 中需要通过 `event.preventDefault()` 阻止默认行为，再执行自定义逻辑（如打印日志或发送请求）。事件对象需标注为 `React.FormEvent`。
+
+**知识树**
+
+1. 表单的默认行为
+
+    - 提交 `<form>` 会触发 页面刷新 + 表单数据提交到服务器。
+    - 在 React SPA（Single Page Application） 中不需要这种行为，否则会导致页面重载。
+
+2. 阻止默认提交
+
+    - 使用事件对象 `event.preventDefault()`。
+    - 这样表单提交不会刷新页面，可以在前端处理逻辑。
+    - 表单默认刷新导致的问题：
+        - 状态丢失：比如你购物车、登录状态、用户输入的其它内容，全都会因为刷新而清空。
+        - 体验变差：页面白屏 → 重新加载所有 JS/CSS → 再渲染，明显卡顿。
+        - 失去 SPA 的优势：如果每次提交都要全页刷新，那就和传统页面没区别了。
+
+3. 提交事件绑定
+
+    - 方式
+        - 在`<form>`的 `onSubmit` 参数中接收一个函数或者写一个内联函数，作为提交之后的动作，函数默认会接收 `event` 参数，类型为 `React.FormEvent<HTMLFormElement>`。
+    - 示例
+        - 表单元素 `<form onSubmit={handleSubmit}>`。
+        - `handleSubmit` 接收 `event` 参数，类型为 `React.FormEvent<HTMLFormElement>`，需要标注（Ts 语法），否则无法使用。
+    - 注意：
+        - 事件函数要引用，不要调用，即 `onSubmit={handleSubmit}` 而不是 `onSubmit={handleSubmit()}`。
+
+4. 最佳实践
+
+    - 简单场景可用内联函数，复杂逻辑应提取成独立函数。
+    - 表单数据获取与提交逻辑可写在 `handleSubmit` 内，后续可扩展为调用后端 API。
+
+**代码示例**
+
+1. 内联写法（初学示例）
+
+    ```tsx
+    // components/Form.tsx
+    const Form = () => {
+      return (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            console.log("Form submitted");
+          }}
+    >
+          <div className="mb-3">
+            <label htmlFor="name" className="form-label">
+              Name
+            </label>
+            <input id="name" type="text" className="form-control" />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="age" className="form-label">
+              Age
+            </label>
+            <input id="age" type="number" className="form-control" />
+          </div>
+          <button className="btn btn-primary">Submit</button>
+        </form>
+      );
+    };
+
+    export default Form;
+
+
+    // App.t
+    import Form from "./components/Form";
+
+    function App() {
+      return (
+        <div>
+          <Form></Form>
+        </div>
+      );
+    }
+
+    export default App;
+    ```
+
+2. 独立函数写法（推荐）
+
+    ```tsx
+    // components/Form.tsx
+    import { FormEvent } from "react";
+
+    const Form = () => {
+      const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        console.log("Form submitted");
+      };
+
+      return (
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label htmlFor="name" className="form-label">
+              Name
+            </label>
+            <input id="name" type="text" className="form-control" />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="age" className="form-label">
+              Age
+            </label>
+            <input id="age" type="number" className="form-control" />
+          </div>
+          <button className="btn btn-primary">Submit</button>
+        </form>
+      );
+    };
+
+    export default Form;
+    ```
+
+## 访问输入字段值
+
+> 简述：`useRef` Hook 提供了一种直接访问 DOM 元素（如输入字段）的方式，从而可以在表单提交时读取其当前值。这是一种非受控组件的实现方式。
+
+**知识树**
+
+1.  `useRef` 的作用与初始化
+
+    - 作用：
+        - `useRef(initialValue)` 返回一个包含 `.current` 属性的对象。将其绑定到 JSX 元素的 `ref` 上后，`.current` 就会指向该 DOM 节点。组件挂载后，你可以在任何时机通过 `nameRef.current?.value` 读取输入值。
+    - 初始化
+        - `useRef<T>(null)`，初始为 `null`，渲染完成后 React 会把 `.current` 指向对应的 DOM 节点。`T`为泛形写法，常用`HTMLInputElement`、`HTMLTextAreaElement`、`HTMLButtonElement`等，泛型指定的是`useRef`的`current`属性的类型，必须指定类型后，才能使用该属性。
+    - 示例
+        - `ref`：`const nameRef = useRef<HTMLInputElement>(null);`
+    - 绑定到 DOM 元素
+        - 在 JSX 中通过 `ref={nameRef}` 绑定到 `<input>`。
+    - 为什么初始值是 `null`
+        - 初次渲染时 DOM 还不存在，所以 `.current` 只能设为 `null`。渲染完成后 React 会赋上对应的 DOM 节点，卸载时再重置为 `null`。这只是 React 的设计选择，无需纠结。
+
+2.  空值检查
+
+    - 在使用使用`useRef.current` 的 value 属性之前，需要先进行空值检查，可以使用 `if` 或者`.?`语法实现
+
+3.  封装输入值对象
+
+    - 提交时将多个输入值组织成对象，方便后续发送到后端。
+    - 数字类输入值需 `parseInt` 或 `Number()` 转换，如`ageRef.current.value` 的类型是 `string | undefined`
+
+**代码示例**
+
+1. 使用 useRef 获取输入值
+
+    ```tsx
+    // components/Form.tsx
+	import { FormEvent, useRef } from "react";
+	
+	const Form = () => {
+	  const nameRef = useRef<HTMLInputElement>(null);
+	  const ageRef = useRef<HTMLInputElement>(null);
+	  const person = {
+	    name: "",
+	    age: 0,
+	  };
+	
+	  const handleSubmit = (e: FormEvent) => {
+	    e.preventDefault();
+	    // 传统 if
+	    // if (nameRef.current !== null) person.name = nameRef.current.value;
+	    // if (ageRef.current !== null) person.age = parseInt(ageRef.current.value);
+	
+	    person.name = nameRef.current?.value ?? person.name;
+	    person.age = parseInt(ageRef.current?.value ?? person.age.toString());
+	    console.log(person);
+	  };
+	
+	  return (
+	    <form onSubmit={handleSubmit}>
+	      <div className="mb-3">
+	        <label htmlFor="name" className="form-label">
+	          Name
+	        </label>
+	        <input ref={nameRef} id="name" type="text" className="form-control" />
+	      </div>
+	      <div className="mb-3">
+	        <label htmlFor="age" className="form-label">
+	          Age
+	        </label>
+	        <input ref={ageRef} id="age" type="number" className="form-control" />
+	      </div>
+	      <button className="btn btn-primary">Submit</button>
+	    </form>
+	  );
+	};
+	
+	export default Form;
+    ```
+
+    - 点击提交时，`person` 对象会在控制台输出，如 `{ name: "John", age: 20 }`。
