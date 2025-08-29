@@ -2921,7 +2921,7 @@
     );
     ```
 
-## 处理表单提交
+## `onSubmit` 处理表单提交
 
 > 简述：HTML 表单在提交时会默认刷新页面并向服务器发送请求。在 React 中需要通过 `event.preventDefault()` 阻止默认行为，再执行自定义逻辑（如打印日志或发送请求）。事件对象需标注为 `React.FormEvent`。
 
@@ -3038,7 +3038,7 @@
     export default Form;
     ```
 
-## 访问输入字段值
+## `useRef` 访问输入字段值
 
 > 简述：`useRef` Hook 提供了一种直接访问 DOM 元素（如输入字段）的方式，从而可以在表单提交时读取其当前值。这是一种非受控组件的实现方式。
 
@@ -3072,47 +3072,132 @@
 
     ```tsx
     // components/Form.tsx
-	import { FormEvent, useRef } from "react";
-	
-	const Form = () => {
-	  const nameRef = useRef<HTMLInputElement>(null);
-	  const ageRef = useRef<HTMLInputElement>(null);
-	  const person = {
-	    name: "",
-	    age: 0,
-	  };
-	
-	  const handleSubmit = (e: FormEvent) => {
-	    e.preventDefault();
-	    // 传统 if
-	    // if (nameRef.current !== null) person.name = nameRef.current.value;
-	    // if (ageRef.current !== null) person.age = parseInt(ageRef.current.value);
-	
-	    person.name = nameRef.current?.value ?? person.name;
-	    person.age = parseInt(ageRef.current?.value ?? person.age.toString());
-	    console.log(person);
-	  };
-	
-	  return (
-	    <form onSubmit={handleSubmit}>
-	      <div className="mb-3">
-	        <label htmlFor="name" className="form-label">
-	          Name
-	        </label>
-	        <input ref={nameRef} id="name" type="text" className="form-control" />
-	      </div>
-	      <div className="mb-3">
-	        <label htmlFor="age" className="form-label">
-	          Age
-	        </label>
-	        <input ref={ageRef} id="age" type="number" className="form-control" />
-	      </div>
-	      <button className="btn btn-primary">Submit</button>
-	    </form>
-	  );
-	};
-	
-	export default Form;
+    import { FormEvent, useRef } from "react";
+
+    const Form = () => {
+      const nameRef = useRef<HTMLInputElement>(null);
+      const ageRef = useRef<HTMLInputElement>(null);
+      const person = {
+        name: "",
+        age: 0,
+      };
+
+      const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        // 传统 if
+        // if (nameRef.current !== null) person.name = nameRef.current.value;
+        // if (ageRef.current !== null) person.age = parseInt(ageRef.current.value);
+
+        person.name = nameRef.current?.value ?? person.name;
+        person.age = parseInt(ageRef.current?.value ?? person.age.toString());
+        console.log(person);
+      };
+
+      return (
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label htmlFor="name" className="form-label">
+              Name
+            </label>
+            <input ref={nameRef} id="name" type="text" className="form-control" />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="age" className="form-label">
+              Age
+            </label>
+            <input ref={ageRef} id="age" type="number" className="form-control" />
+          </div>
+          <button className="btn btn-primary">Submit</button>
+        </form>
+      );
+    };
+
+    export default Form;
     ```
 
     - 点击提交时，`person` 对象会在控制台输出，如 `{ name: "John", age: 20 }`。
+
+## `state` 受控组件
+
+> 简述：通过 `useState` 将输入字段的值存储到 React 状态中，并在输入变化时更新状态。再把输入的 `value` 属性绑定到 state，实现 React 作为唯一数据源。这种方式称为受控组件。
+
+**知识树**
+
+1. 与非受控组件的区别
+
+    - 非受控：用 `useRef` 直接读 DOM 的 `.value`。
+    - 受控：用 `useState` 保存输入值，输入的显示由 React state 决定。
+
+2. 状态与事件绑定
+
+    - 使用 `useState` 定义 `person` 对象：如 `{ name: "", age: "" }`。
+    - 输入框的 `onChange` 事件触发时更新 `person`。
+    - TS 中 `e.target.value` 永远是字符串，数字需要 `parseInt` 或 `Number()` 转换。
+
+3. 单一数据源（Single Source of Truth）
+
+    - 必须把 `<input>` 的 `value` 设置为 state 中的对应值，如 `value={person.name}`。
+    - 避免 DOM 和 React 各自维护数据造成不同步。
+
+4. 性能与选择
+
+    - 每次输入都会触发组件重渲染，但在绝大多数场景下性能无碍。
+    - 若表单极其复杂且性能确实受限，可以考虑用 `useRef` 实现非受控组件。
+
+**代码示例**
+
+1. 使用 state 管理表单输入
+
+    ```tsx
+    // components/Form.tsx
+    import { FormEvent, useState } from "react";
+
+    const Form = () => {
+      const [person, setPerson] = useState({
+        name: "",
+        age: 0,
+      });
+
+      const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+      };
+
+      return (
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label htmlFor="name" className="form-label">
+              Name
+            </label>
+            <input
+              onChange={(event) =>
+                setPerson({ ...person, name: event.target.value })
+              }
+              value={person.name}
+              id="name"
+              type="text"
+              className="form-control"
+            />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="age" className="form-label">
+              Age
+            </label>
+            <input
+              onChange={(event) =>
+                setPerson({ ...person, age: parseInt(event.target.value) })
+              }
+              value={person.age || ""}
+              id="age"
+              type="number"
+              className="form-control"
+            />
+          </div>
+          <button className="btn btn-primary">Submit</button>
+        </form>
+      );
+    };
+
+    export default Form;
+    ```
+
+    - 输入框的值完全由 state 控制，保证数据和 UI 始终同步。
