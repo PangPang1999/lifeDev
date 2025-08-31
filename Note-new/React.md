@@ -3344,6 +3344,11 @@
     // components/Form.tsx
     import { useForm, FieldValues } from "react-hook-form";
 
+    interface FormData {
+      name: string;
+      age: number;
+    }
+
     const Form = () => {
       // const { formState } = useForm();
       // 查看错误信息
@@ -3353,7 +3358,7 @@
         register,
         handleSubmit,
         formState: { errors },
-      } = useForm();
+      } = useForm<FormData>();
 
       const onSubmit = (data: FieldValues) => {
         console.log(data);
@@ -3386,10 +3391,7 @@
               id="age"
               type="number"
               className="form-control"
-              {...register("age", {
-                required: true,
-                min: 18,
-              })}
+              {...register("age", { required: true, min: 18 })}
             />
             {errors.age?.type === "required" && (
               <p className="text-danger">Age is required.</p>
@@ -3408,3 +3410,125 @@
 
     - 点击提交后，当输入为空或不符合规则时，会在输入下方显示错误提示，并阻止提交。
     - `errors` 根据表单结构自动补全，提高开发效率和安全性。
+
+## 基于 Schema 的表单验证（Zod + React Hook Form）
+
+> 简述：当表单字段和规则增多时，把验证规则分散在 JSX 中会很乱。可以用 Zod（其他如 Joi、yup ）依赖， 定义统一的 schema，再通过 `zodResolver` 与 React Hook Form 结合，把所有规则集中管理。
+
+**知识树**
+
+1. 为什么用 Schema 验证
+
+    - 避免验证规则分散在各个 `register` 调用中。
+    - 所有规则集中在一个 schema 对象里，代码更清晰。
+    - Zod 支持链式规则、默认错误提示和自定义消息。
+
+2. 定义 Schema
+
+    - 安装：`npm i zod`
+    - 导入：`import { z } from "zod";`
+    - 示例：
+        ```ts
+        const schema = z.object({
+          name: z.string().min(3, { message: "Name must be at least 3 characters." }),
+          age: z.number().min(18, { message: "Age must be at least 18." }),
+        });
+        ```
+    - 替换掉接口
+        ```ts
+        // 从 schema 推导类型
+        type FormData = z.infer<typeof schema>;
+        ```
+
+3. 集成 React Hook Form
+
+    - 安装解析器：`npm i @hookform/resolvers`
+    - 导入：`import { zodResolver } from "@hookform/resolvers/zod";`
+    - 在 `useForm` 配置中加入 `resolver: zodResolver(schema)`。示例：
+        ```tsx
+          const {
+            register,
+            handleSubmit,
+            formState: { errors },
+          } = useForm<FormData>({ resolver: zodResolver(schema) });
+        ```
+    - 删除 `register` 中的手写规则，所有验证交给 schema。
+
+4. 错误处理与提示
+
+    - UI 直接渲染
+        - `{errors.name?.message}`，不用再写多个分支。
+    - 数值转换
+        - `valueAsNumber: true` 让输入值转为数字，避免字符串类型错误（React Hook Form）
+    - 可定制提示
+        - 通过 `message` 修改默认提示，如`.min(18, { message: "Age must be at least 18." }),`。
+    - `schema.refine(checkFn, { message })`（新版本）
+        - `checkFn` → 一个函数，接收当前字段的值，返回 `true` / `false`。
+        - `{ message }` → 当校验失败时，要返回的错误提示。
+
+**代码示例**
+
+1. 使用 Zod + React Hook Form 统一验证
+
+    ```tsx
+    // components/Form.tsx
+    import { useForm, FieldValues } from "react-hook-form";
+    import { z } from "zod";
+    import { zodResolver } from "@hookform/resolvers/zod";
+
+    const schema = z.object({
+      name: z.string().min(3, { message: "Name must be at least 3 characters." }),
+      age: z
+        .number()
+        .refine((val) => typeof val === "number", {
+          message: "Age must be a number",
+        })
+        .min(18, { message: "Age must be at least 18." }),
+    });
+
+    type FormData = z.infer<typeof schema>;
+
+    const Form = () => {
+      const {
+        register,
+        handleSubmit,
+        formState: { errors },
+      } = useForm<FormData>({ resolver: zodResolver(schema) });
+
+      const onSubmit = (data: FieldValues) => {
+        console.log(data);
+      };
+
+      return (
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="mb-3">
+            <label htmlFor="name" className="form-label">
+              Name
+            </label>
+            <input
+              id="name"
+              type="text"
+              className="form-control"
+              {...register("name")}
+            />
+            {errors.name && <p className="text-danger">{errors.name.message}</p>}
+          </div>
+          <div className="mb-3">
+            <label htmlFor="age" className="form-label">
+              Age
+            </label>
+            <input
+              id="age"
+              type="number"
+              className="form-control"
+              {...register("age", { valueAsNumber: true })}
+            />
+            {errors.age && <p className="text-danger">{errors.age.message}</p>}
+          </div>
+          <button className="btn btn-primary">Submit</button>
+        </form>
+      );
+    };
+
+    export default Form;
+    ```
