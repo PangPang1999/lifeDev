@@ -3635,3 +3635,121 @@
     ```
 
 - 初始状态下按钮禁用，只有当 `name` 和 `age` 都满足规则后才启用。
+
+## Project 费用追踪器
+
+> 简述：迷你的费用追踪应用，旨在综合运用 React 基础知识、表单处理、状态管理和组件化思想，实现添加、展示、筛选和删除费用的功能。
+
+**知识树**
+
+1.  核心功能模块：
+    - 费用添加表单 (Expense Form)：
+        - 字段：描述、金额、类别。
+        - 校验：所有字段必填，金额有效性等。
+        - 提交：添加新费用到列表，并清空表单。
+    - 费用列表 (Expense List)：
+        - 展示：以表格形式显示所有费用条目（描述、金额、类别）。
+        - 操作：提供删除单条费用的按钮。
+        - 汇总：显示当前列表的总金额。
+    - 费用筛选器 (Expense Filter)：
+        - 功能：按类别筛选费用列表。
+        - UI：一个下拉选择框，包含所有可用类别及“所有类别”选项。
+        - 联动：筛选结果实时更新费用列表和总金额。
+
+### 费用列表
+
+**代码示例**
+
+1. `ExpenseList.tsx`
+
+    ```tsx
+    // expense-tracker/components/ExpenseList.tsx
+    interface Expense {
+      id: number;
+      description: string;
+      amount: number;
+      category: string;
+    }
+
+    interface ExpenseListProps {
+      expenses: Expense[];
+      onDelete: (id: number) => void;
+    }
+
+    function ExpenseList({ expenses, onDelete }: ExpenseListProps) {
+      if (expenses.length === 0) return null;
+
+      const totalAmount = expenses.reduce(
+        (acc, expense) => acc + expense.amount,
+        0
+      );
+
+      return (
+        <table className="table table-bordered">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Category</th>
+              <th>{/* For delete button */}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {expenses.map((expense) => (
+              <tr key={expense.id}>
+                <td>{expense.description}</td>
+                <td>${expense.amount.toFixed(2)}</td>
+                <td>{expense.category}</td>
+                <td>
+                  <button
+                    className="btn btn-outline-danger"
+                    onClick={() => onDelete(expense.id)}
+              >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td>Total</td>
+              <td>${totalAmount.toFixed(2)}</td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      );
+    }
+
+    export default ExpenseList;
+    ```
+
+2. `App.tsx`
+
+    ```tsx
+    // App.tsx
+    import { useState } from "react";
+    import ExpenseList from "./expense-tracker/components/ExpenseList";
+
+    function App() {
+      const [expenses, setExpenses] = useState([
+        { id: 1, description: "aaa", amount: 10, category: "Utilities" },
+        { id: 2, description: "bbb", amount: 20, category: "Groceries" },
+        { id: 3, description: "ccc", amount: 30, category: "Entertainment" },
+        { id: 4, description: "ddd", amount: 40, category: "Transportation" },
+      ]);
+
+      return (
+        <div>
+          <ExpenseList
+            expenses={expenses}
+            onDelete={(id) => setExpenses(expenses.filter((e) => e.id !== id))}
+          />
+        </div>
+      );
+    }
+
+    export default App;
+    ```
