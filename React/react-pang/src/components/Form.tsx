@@ -1,16 +1,15 @@
-import { FormEvent, useState } from "react";
 import { useForm, FieldValues } from "react-hook-form";
 
 const Form = () => {
-  // 查看有哪些方法
-  // const form = useForm();
-  // console.log(form);
+  // const { formState } = useForm();
+  // 查看错误信息
+  // console.log(formState.errors);
 
-  // 查看 register 注册之后的属性
-  // const { register } = useForm();
-  // console.log(register("name"));
-
-  const { register, handleSubmit } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
 
   const onSubmit = (data: FieldValues) => {
     console.log(data);
@@ -26,8 +25,14 @@ const Form = () => {
           id="name"
           type="text"
           className="form-control"
-          {...register("name")}
+          {...register("name", { required: true, minLength: 3 })}
         />
+        {errors.name?.type === "required" && (
+          <p className="text-danger">Name is required.</p>
+        )}
+        {errors.name?.type === "minLength" && (
+          <p className="text-danger">Name must be at least 3 characters.</p>
+        )}
       </div>
       <div className="mb-3">
         <label htmlFor="age" className="form-label">
@@ -37,8 +42,17 @@ const Form = () => {
           id="age"
           type="number"
           className="form-control"
-          {...register("age")}
+          {...register("age", {
+            required: true,
+            min: 18,
+          })}
         />
+        {errors.age?.type === "required" && (
+          <p className="text-danger">Age is required.</p>
+        )}
+        {errors.age?.type === "min" && (
+          <p className="text-danger">Age must be at least 18.</p>
+        )}
       </div>
       <button className="btn btn-primary">Submit</button>
     </form>

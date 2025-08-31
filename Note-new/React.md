@@ -3291,3 +3291,120 @@
     ```
 
     - 相比用 `useState`，这里无需管理 `value` 和 `onChange`，代码更简洁。
+
+## 表单验证（React Hook Form）
+
+> 简述：React Hook Form 内置表单验证机制。通过在 `register` 时传入校验规则，结合 `formState.errors`，即可实现必填、最小长度等校验，并在表单无效时阻止提交。
+
+**知识树**
+
+1. 验证规则定义
+
+    - 在 `register("字段名", { ...规则 })` 中传入验证条件。
+    - 常见规则：
+        - `required: true` → 必填
+        - `minLength: n` → 字符长度下限
+        - `maxLength: n` → 字符长度上限
+        - 还可定义 `pattern` 或 `validate` 自定义规则。
+    - 效果：仅提交无效，提示需要手写判断
+
+2. 错误状态捕获
+
+    - `useForm` 返回 `formState` 对象，包含 `errors`。
+    - `errors` 以字段名为键，值包含 `{ type, message, ... }`。
+    - 提交时若不满足规则，`handleSubmit` 不会执行回调，而是填充 `errors`。
+
+3. 错误消息展示
+
+    - 使用条件渲染判断 `errors.字段名?.type`。
+    - 可通过可选链 `?.` 避免 `errors` 为空时报错。
+    - 在 UI 上配合 `text-danger` 类显示红色提示。
+
+4. TypeScript 类型安全
+
+    - 定义接口表示表单结构，例如：
+        ```ts
+        interface FormData {
+          name: string;
+          age: number;
+        }
+        ```
+    - 在 `useForm<FormData>()` 中传入泛型。
+    - 好处：`errors.name` / `errors.age` 在编辑器里有智能提示。
+
+5. 原生校验补充
+
+    - 可以在 input 中直接添加`required`、`minLength={3}`等字段实现原生校验，缺点是原生样式不太美观
+
+**代码示例**
+
+1. 带验证的表单
+
+    ```tsx
+    // components/Form.tsx
+    import { useForm, FieldValues } from "react-hook-form";
+
+    const Form = () => {
+      // const { formState } = useForm();
+      // 查看错误信息
+      // console.log(formState.errors);
+
+      const {
+        register,
+        handleSubmit,
+        formState: { errors },
+      } = useForm();
+
+      const onSubmit = (data: FieldValues) => {
+        console.log(data);
+      };
+
+      return (
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="mb-3">
+            <label htmlFor="name" className="form-label">
+              Name
+            </label>
+            <input
+              id="name"
+              type="text"
+              className="form-control"
+              {...register("name", { required: true, minLength: 3 })}
+            />
+            {errors.name?.type === "required" && (
+              <p className="text-danger">Name is required.</p>
+            )}
+            {errors.name?.type === "minLength" && (
+              <p className="text-danger">Name must be at least 3 characters.</p>
+            )}
+          </div>
+          <div className="mb-3">
+            <label htmlFor="age" className="form-label">
+              Age
+            </label>
+            <input
+              id="age"
+              type="number"
+              className="form-control"
+              {...register("age", {
+                required: true,
+                min: 18,
+              })}
+            />
+            {errors.age?.type === "required" && (
+              <p className="text-danger">Age is required.</p>
+            )}
+            {errors.age?.type === "min" && (
+              <p className="text-danger">Age must be at least 18.</p>
+            )}
+          </div>
+          <button className="btn btn-primary">Submit</button>
+        </form>
+      );
+    };
+
+    export default Form;
+    ```
+
+    - 点击提交后，当输入为空或不符合规则时，会在输入下方显示错误提示，并阻止提交。
+    - `errors` 根据表单结构自动补全，提高开发效率和安全性。
