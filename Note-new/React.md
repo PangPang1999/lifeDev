@@ -3425,6 +3425,7 @@
 
 2. 定义 Schema
 
+    - 官网：http://zod.dev/
     - 安装：`npm i zod`
     - 导入：`import { z } from "zod";`
     - 示例：
@@ -3532,3 +3533,105 @@
 
     export default Form;
     ```
+
+## 禁用无效表单的提交按钮
+
+> 简述：React Hook Form 提供 `formState.isValid` 判断表单整体是否有效。可将其绑定到按钮的 `disabled` 属性，确保用户只有在表单通过所有验证时才能点击提交。
+
+**知识树**
+
+1. 表单有效性状态
+
+    - `useForm` 返回 `formState` 对象，其中包含：
+        - `errors`：字段错误信息。
+        - `isValid`：布尔值，表示当前表单是否有效。
+
+2. 默认行为
+
+    - `isValid` 的值依赖于表单验证模式。
+    - 常用配置：
+        - `mode: "onChange"` → 每次输入变化时实时更新 `isValid`。
+        - `mode: "onBlur"` → 输入失焦时更新。
+        - 默认 `mode: "onSubmit"` → 提交时才计算。
+
+3. 按钮禁用逻辑
+
+    - 在 `<button>` 上写 `disabled={!isValid}`。
+    - 表单未通过验证 → 按钮禁用。
+    - 通过验证 → 按钮启用。
+
+4. 使用场景
+
+    - 注册/登录表单：确保必填字段合格才允许提交。
+    - 避免无效数据请求，提高用户体验。
+
+**代码示例**
+
+1. 禁用无效提交按钮
+
+    ```tsx
+    // components/Form.tsx
+    import { useForm, FieldValues } from "react-hook-form";
+    import { z } from "zod";
+    import { zodResolver } from "@hookform/resolvers/zod";
+
+    const schema = z.object({
+      name: z.string().min(3, { message: "Name must be at least 3 characters." }),
+      age: z
+        .number()
+        .refine((val) => typeof val === "number", {
+          message: "Age must be a number",
+        })
+        .min(18, { message: "Age must be at least 18." }),
+    });
+
+    type FormData = z.infer<typeof schema>;
+
+    const Form = () => {
+      const {
+        register,
+        handleSubmit,
+        formState: { errors, isValid },
+      } = useForm<FormData>({ resolver: zodResolver(schema) });
+
+      const onSubmit = (data: FieldValues) => {
+        console.log(data);
+      };
+
+      return (
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="mb-3">
+            <label htmlFor="name" className="form-label">
+              Name
+            </label>
+            <input
+              id="name"
+              type="text"
+              className="form-control"
+              {...register("name")}
+            />
+            {errors.name && <p className="text-danger">{errors.name.message}</p>}
+          </div>
+          <div className="mb-3">
+            <label htmlFor="age" className="form-label">
+              Age
+            </label>
+            <input
+              id="age"
+              type="number"
+              className="form-control"
+              {...register("age", { valueAsNumber: true })}
+            />
+            {errors.age && <p className="text-danger">{errors.age.message}</p>}
+          </div>
+          <button disabled={!isValid} className="btn btn-primary">
+            Submit
+          </button>
+        </form>
+      );
+    };
+
+    export default Form;
+    ```
+
+- 初始状态下按钮禁用，只有当 `name` 和 `age` 都满足规则后才启用。
