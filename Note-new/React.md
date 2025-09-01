@@ -17,6 +17,7 @@
 1. CSS Modules，隔离样式作用域
 2. Emmet，加速模版编写
 3. `.?`写法替代`if`，`?.` 只在判断“是否为 `null` 或 `undefined`，不会过滤掉 `0`、`false`、`""` 这些 `falsy` 值。通常配合`??`空值合并运算符，即如果前面结果是 `null` 或 `undefined`，就用右边的值（常保持原值不变）。
+4. const 仍允许 push 等对引用的操作，const 之后再加 as const 可设置为不可变引用
 
 # Start
 
@@ -3809,6 +3810,259 @@
 
       return (
         <div>
+          <ExpenseFilter
+            onSelectCategory={(category) => setSelectedCategory(category)}
+          />
+          <ExpenseList
+            expenses={visibleExpenses}
+            onDelete={(id) => setExpenses(expenses.filter((e) => e.id !== id))}
+          />
+        </div>
+      );
+    }
+
+    export default App;
+    ```
+
+### 费用添加表单
+
+**代码示例**
+
+1. `ExpenseForm.tsx`
+
+    ```tsx
+    // expense-tracker/components/ExpenseForm.tsx
+    import { categories } from "../../App";
+
+    function ExpenseForm() {
+      return (
+        <form className="mb-3">
+          {" "}
+          {/* Added margin to the form itself */}
+          <div className="mb-3">
+            <label htmlFor="description" className="form-label">
+              Description
+            </label>
+            <input id="description" type="text" className="form-control" />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="amount" className="form-label">
+              Amount
+            </label>
+            <input id="amount" type="number" className="form-control" />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="category" className="form-label">
+              Category
+            </label>
+            <select id="category" className="form-select">
+              <option value=""></option> {/* Empty default option */}
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button type="submit" className="btn btn-primary">
+            Submit
+          </button>
+        </form>
+      );
+    }
+    export default ExpenseForm;
+    ```
+
+2. `App.tsx`
+
+    ```tsx
+    // App.tsx
+    import { useState } from "react";
+    import ExpenseList from "./expense-tracker/components/ExpenseList";
+    import ExpenseFilter from "./expense-tracker/components/ExpenseFilter";
+    import ExpenseForm from "./expense-tracker/components/ExpenseForm";
+
+    export const categories = [
+      "Groceries",
+      "Utilities",
+      "Entertainment",
+      "Transportation",
+    ];
+
+    function App() {
+      const [selectedCategory, setSelectedCategory] = useState("");
+      const [expenses, setExpenses] = useState([
+        { id: 1, description: "aaa", amount: 10, category: "Utilities" },
+        { id: 2, description: "bbb", amount: 20, category: "Groceries" },
+        { id: 3, description: "ccc", amount: 30, category: "Entertainment" },
+        { id: 4, description: "ddd", amount: 40, category: "Transportation" },
+      ]);
+
+      const visibleExpenses = selectedCategory
+        ? expenses.filter((e) => e.category === selectedCategory)
+        : expenses;
+
+      return (
+        <div>
+          <div className="mb-5">
+            <ExpenseForm />
+          </div>
+          <ExpenseFilter
+            onSelectCategory={(category) => setSelectedCategory(category)}
+          />
+          <ExpenseList
+            expenses={visibleExpenses}
+            onDelete={(id) => setExpenses(expenses.filter((e) => e.id !== id))}
+          />
+        </div>
+      );
+    }
+
+    export default App;
+    ```
+
+### 集成 React Hook Form 与 Zod
+
+**代码示例**
+
+1. `categories.ts`
+
+    ```tsx
+    // expense-tracker/categories.ts
+    const categories = [
+      "Groceries",
+      "Utilities",
+      "Entertainment",
+      "Transportation",
+    ] as const;
+
+    export default categories;
+    ```
+
+2. `ExpenseForm.tsx`
+
+    ```tsx
+    // expense-tracker/components/ExpenseForm.tsx
+    import { z } from "zod";
+    import { zodResolver } from "@hookform/resolvers/zod";
+    import { useForm } from "react-hook-form";
+    import categories from "../categories";
+
+    const schema = z.object({
+      description: z
+        .string()
+        .min(3, { message: "Description should be at least 3 characters." }),
+      amount: z
+        .number({
+          error: (issue) =>
+            issue.input === undefined ||
+            issue.input === null ||
+            Number.isNaN(issue.input)
+              ? "Amount is required."
+              : "Amount must be a number.",
+        })
+        .min(0.01, { error: "Amount must be at least 0.01." })
+        .max(100_000, { error: "Amount cannot exceed 100,000." }),
+      category: z.enum(categories, {
+        error: (issue) =>
+          issue.input == null || issue.input === ""
+            ? "Category is required."
+            : "Invalid category.",
+      }),
+    });
+
+    type ExpenseFormData = z.infer<typeof schema>;
+
+    function ExpenseForm() {
+      const {
+        register,
+        handleSubmit,
+        formState: { errors },
+      } = useForm<ExpenseFormData>({ resolver: zodResolver(schema) });
+
+      return (
+        <form onSubmit={handleSubmit((data) => console.log(data))}>
+          <div className="mb-3">
+            <label htmlFor="description" className="form-label">
+              Description
+            </label>
+            <input
+              {...register("description")}
+              id="description"
+              type="text"
+              className="form-control"
+            />
+            {errors.description && (
+              <p className="text-danger">{errors.description.message}</p>
+            )}
+          </div>
+          <div className="mb-3">
+            <label htmlFor="amount" className="form-label">
+              Amount
+            </label>
+            <input
+              {...register("amount", { valueAsNumber: true })}
+              id="amount"
+              type="number"
+              className="form-control"
+            />
+            {errors.amount && (
+              <p className="text-danger">{errors.amount.message}</p>
+            )}
+          </div>
+          <div className="mb-3">
+            <label htmlFor="category" className="form-label">
+              Category
+            </label>
+            <select {...register("category")} id="category" className="form-select">
+              <option value=""></option> {/* Empty default option */}
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+            {errors.category && (
+              <p className="text-danger">{errors.category.message}</p>
+            )}
+          </div>
+          <button type="submit" className="btn btn-primary">
+            Submit
+          </button>
+        </form>
+      );
+    }
+    export default ExpenseForm;
+    ```
+
+3. `App.tsx`
+
+    ```tsx
+    // App.tsx
+    import { useState } from "react";
+    import ExpenseList from "./expense-tracker/components/ExpenseList";
+    import ExpenseFilter from "./expense-tracker/components/ExpenseFilter";
+    import ExpenseForm from "./expense-tracker/components/ExpenseForm";
+    import categories from "./expense-tracker/categories";
+
+    function App() {
+      const [selectedCategory, setSelectedCategory] = useState("");
+      const [expenses, setExpenses] = useState([
+        { id: 1, description: "aaa", amount: 10, category: "Utilities" },
+        { id: 2, description: "bbb", amount: 20, category: "Groceries" },
+        { id: 3, description: "ccc", amount: 30, category: "Entertainment" },
+        { id: 4, description: "ddd", amount: 40, category: "Transportation" },
+      ]);
+
+      const visibleExpenses = selectedCategory
+        ? expenses.filter((e) => e.category === selectedCategory)
+        : expenses;
+
+      return (
+        <div>
+          <div className="mb-5">
+            <ExpenseForm />
+          </div>
           <ExpenseFilter
             onSelectCategory={(category) => setSelectedCategory(category)}
           />
