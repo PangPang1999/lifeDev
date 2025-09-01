@@ -4233,3 +4233,61 @@
 
     export default App;
     ```
+
+# Connecting to the Backend
+
+## Effect Hook
+
+> 简述：React 组件必须是纯函数，不能在渲染时修改外部环境。凡是操作 DOM、调用接口、读写 localStorage 等副作用代码，都应该放在 `useEffect` 中执行，它会在组件渲染完成后运行。
+
+**知识树**
+
+1. 为什么需要 useEffect
+
+    - 组件渲染必须纯粹：同样输入 → 同样 JSX。
+    - 副作用（DOM 操作、网络请求、存储操作）会改变外部世界，不应放在渲染函数里。
+    - `useEffect` 让副作用在渲染后执行，保持组件纯净。
+
+2. 基本用法
+
+    - 语法：`useEffect(() => { 副作用代码 })`。
+    - 默认：在每次渲染后执行。
+    - 示例：设置焦点、修改页面标题、调用 API。
+
+3. 规则
+
+    - 只能在组件顶层调用，不能放在 if/for 里。
+    - 可以在同一组件中多次使用，按顺序依次执行。
+    - 每个 `useEffect` 负责一类逻辑，职责分清。
+
+**代码示例**
+
+1. 输入框自动聚焦/修改页面标题
+
+    ```tsx
+    import { useEffect, useRef } from "react";
+
+    function App() {
+      const ref = useRef<HTMLInputElement>(null);
+
+      useEffect(() => {
+        if (ref.current) ref.current.focus();
+      });
+
+      useEffect(() => {
+        document.title = "My App";
+      });
+
+      return (
+        <div>
+          <input ref={ref} type="text" className="form-control" />
+        </div>
+      );
+    }
+
+    export default App;
+    }
+    ```
+
+    - 两个 `useEffect` 各管一件事：一个聚焦输入框，一个改标题，互不干扰。
+    - 每次渲染完成后 React 会顺序执行这些副作用。
