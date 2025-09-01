@@ -926,6 +926,15 @@
     - 缺少必填：编译期报错
     - Props 只读：子组件不可修改父传入的值
 
+5. TypeScript 与 Props 简化
+
+    - Props 简单时，可以直接在函数参数里写内联类型，而不必单独声明接口。
+    - 例如：
+
+        ```tsx
+        function ProductList({ category }: { category: string }) { ... }
+        ```
+
 **代码示例**
 
 1. 定义接口 + 子组件使用
@@ -4291,3 +4300,90 @@
 
     - 两个 `useEffect` 各管一件事：一个聚焦输入框，一个改标题，互不干扰。
     - 每次渲染完成后 React 会顺序执行这些副作用。
+
+## useEffect 的依赖数组
+
+> 简述：`useEffect` 默认在每次渲染后运行。通过传入第二个参数——依赖数组，可以精确控制副作用的执行时机：只在特定值变化时才运行，避免无限循环或无效请求。
+
+**知识树**
+
+1. 默认行为
+
+    - `useEffect(fn)` → 每次渲染后都会执行 `fn`。
+    - 若 `fn` 内部更新了 state，就会触发再次渲染，从而可能导致**无限循环**。
+
+2. 依赖数组的三种情况
+
+    - 无依赖（省略第二参）：每次渲染都执行。
+    - 空数组 `[]`：只在组件首次渲染后执行一次。
+    - 有依赖 `[a, b]`：仅当依赖的 state/props 变化时执行。
+
+3. 实际应用场景
+
+    - 空数组 `[]` → 初次加载时执行一次副作用（如初始数据请求）。
+    - 有依赖 `[category]` → 当分类、搜索词等变化时重新请求。
+    - 避免错误：如果写成 `[]`，依赖值变化不会触发更新；如果省略数组，则可能过度执行。
+
+4. TypeScript 与 Props 简化
+
+    - Props 简单时，可以直接在函数参数里写内联类型，而不必单独声明接口。
+    - 例如：
+
+        ```tsx
+        function ProductList({ category }: { category: string }) { ... }
+        ```
+
+5. Strict Mode
+
+    - 由于测试环境默认开始严格模式，输出会重复两遍，正式环境无影响
+
+**代码示例**
+
+1. 根据依赖变化重新运行
+
+    ```tsx
+    // components/ProductList.tsx
+    import { useEffect, useState } from "react";
+
+    const ProductList = ({ category }: { category: string }) => {
+      const [products, setProducts] = useState<string[]>([]);
+
+      useEffect(() => {
+        console.log("Fetching products in ", category);
+        setProducts(["Clothing", "Household"]);
+      }, [category]);
+
+      return <div>ProductList</div>;
+    };
+    export default ProductList;
+
+
+    // App.tsx
+    import { useEffect, useRef, useState } from "react";
+    import ProductList from "./components/ProductList";
+
+    function App() {
+      const [category, setCategory] = useState("");
+
+      return (
+        <div>
+          <select
+            className="form-select"
+            onChange={(e) => setCategory(e.target.value)}
+      >
+            <option value="">Select</option>
+            <option value="clothing">Clothing</option>
+            <option value="household">Household</option>
+          </select>
+
+          <ProductList category={category} />
+        </div>
+      );
+    }
+
+    export default App;
+    ```
+
+    - 初次加载 → 不选分类 → 打印 “Fetching products in”。
+    - 选择 "Clothing" → 再次执行 effect → 打印 “Fetching products in Clothing”。
+    - 改成 "Household" → 打印 “Fetching products in Household”。
