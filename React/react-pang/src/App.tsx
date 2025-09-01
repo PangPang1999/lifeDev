@@ -1,21 +1,16 @@
-import { useEffect, useRef, useState } from "react";
-import ProductList from "./components/ProductList";
+import { useState } from "react";
+import Timer from "./components/Timer";
+import BadTimer from "./components/BadTimer";
 
 function App() {
-  const [category, setCategory] = useState("");
+  const [show, setShow] = useState(true);
 
   return (
     <div>
-      <select
-        className="form-select"
-        onChange={(e) => setCategory(e.target.value)}
-      >
-        <option value="">Select</option>
-        <option value="clothing">Clothing</option>
-        <option value="household">Household</option>
-      </select>
-
-      <ProductList category={category} />
+      <button onClick={() => setShow((s) => !s)}>
+        {show ? "Unmount Timer" : "Mount Timer"}
+      </button>
+      {show && <Timer />}
     </div>
   );
 }

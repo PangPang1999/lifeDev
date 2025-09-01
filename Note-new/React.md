@@ -4387,3 +4387,112 @@
     - 初次加载 → 不选分类 → 打印 “Fetching products in”。
     - 选择 "Clothing" → 再次执行 effect → 打印 “Fetching products in Clothing”。
     - 改成 "Household" → 打印 “Fetching products in Household”。
+
+## useEffect 的清理函数
+
+> 简述：某些副作用需要在组件卸载或依赖变化时撤销或清理。在 `useEffect` 中返回一个函数即可实现清理逻辑，常见于断开连接、取消订阅、关闭定时器、销毁 UI 等场景。
+
+**知识树**
+
+1. 为什么需要清理
+
+    - 有些副作用是“持续性的”，比如订阅、连接、定时器。
+    - 如果不清理，会导致资源浪费或逻辑错误（如重复连接、多次订阅）。
+
+2. 用法
+
+    - `useEffect(() => { 执行副作用; return () => { 清理副作用 }; }, [依赖]);`
+    - 副作用函数可选择返回清理函数；如果没必要，可不返回。
+
+3. 触发时机
+
+    - 组件卸载：React 会自动调用清理函数。
+    - 依赖更新：在 effect 重新执行前，会先调用上一次的清理函数。
+
+4. 常见场景
+
+    - 连接/订阅类：WebSocket、聊天、事件监听。
+    - 定时器：`setInterval`、`setTimeout`，需要在卸载时清除。
+    - UI 资源：关闭弹窗、移除监听。
+    - 数据请求：中止未完成的 fetch。
+
+**代码示例**
+
+1. 模拟聊天连接与断开
+
+    ```tsx
+    // App.tsx
+    import { useEffect } from "react";
+
+    const connect = () => console.log("connecting");
+    const disconnect = () => console.log("disconnecting");
+
+    function App() {
+      useEffect(() => {
+        connect();
+        return () => disconnect();
+      });
+
+      return <div></div>;
+    }
+
+    export default App;
+    ```
+
+    - 挂载时：打印 "Connecting..."。
+    - 卸载或重新挂载时：打印 "Disconnecting..."。
+
+2. 清理定时器
+
+    ```tsx
+    // components/Timer.tsx
+    import { useEffect } from "react";
+
+    function Timer() {
+      useEffect(() => {
+        const id = setInterval(() => {
+          console.log("tick:", Date.now());
+        }, 1000);
+        return () => clearInterval(id); // 清理：停止定时器
+      }, []);
+
+      return <div>Timer is running (check console)</div>;
+    }
+
+    export default Timer;
+
+    // components/BadTimer.tsx
+    import { useEffect } from "react";
+
+    export default function BadTimer() {
+      useEffect(() => {
+        const id = setInterval(() => {
+          console.log("tick from BadTimer", Date.now());
+        }, 1000);
+        // ❌ 没有清理
+      }, []);
+
+      return <div>BadTimer mounted</div>;
+    }
+
+    // App.tsx
+    import { useState } from "react";
+    import Timer from "./components/Timer";
+
+    function App() {
+      const [show, setShow] = useState(true);
+
+      return (
+        <div>
+          <button onClick={() => setShow((s) => !s)}>
+            {show ? "Unmount Timer" : "Mount Timer"}
+          </button>
+          {show && <Timer />}
+        </div>
+      );
+    }
+
+    export default App;
+    ```
+
+    - 若不清理定时器，组件卸载后定时器还会继续运行，造成内存泄漏。
