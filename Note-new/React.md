@@ -4610,3 +4610,70 @@
 
     - 请求：`Method + URL`、Request Headers（如 `Accept`、`Authorization`）、Request Body（GET 一般无体）
     - 响应：Status（如 200）、Response Headers（如 `Content-Type`、`Cache-Control`）、Response Body（JSON/文本/二进制）
+
+## useEffect 中的错误处理
+
+> 简述：网络请求可能失败（网络中断、服务端宕机、URL 错误等）。在请求 Promise 链上使用 `.catch` 捕获错误，并结合 `useState` 保存错误信息，在界面中动态展示提示，避免空白页面。
+
+**知识树**
+
+1. 为什么要处理错误
+
+    - 请求可能失败：网络断开、接口错误等。
+    - 不处理：控制台报错，用户只看到空白或卡死。
+    - 正确做法：捕获错误 → 存入状态 → UI 反馈。
+
+2. Promise 的错误捕获
+
+    - `axios.get(...).then(...).catch(err => {...})`。
+    - `catch` 回调接收错误对象，常见属性：`message`、`code`、`response`。
+
+3. shi l 示例处理流程
+
+    - 定义一个 `error` 状态变量（初始为空字符串）。
+    - `.catch` 时调用 `setError(err.message)`。
+    - 在渲染函数中使用条件渲染：`{error && <p>...</p>}`。
+
+**代码示例**
+
+1. 错误处理与提示
+
+    ```tsx
+    // App.tsx
+	import { useEffect, useState } from "react";
+	import axios from "axios";
+	
+	interface User {
+	  id: number;
+	  name: string;
+	}
+	
+	function App() {
+	  const [users, setUsers] = useState<User[]>([]);
+	  const [error, setError] = useState("");
+	
+	  useEffect(() => {
+	    axios
+	      .get<User[]>("https://jsonplaceholder.typicode.com/usersX") // 故意写错
+	      .then((res) => setUsers(res.data))
+	      .catch((err) => setError(err.message));
+	  }, []);
+	
+	  return (
+	    <>
+	      <h1>Users</h1>
+	      {error && <p className="text-danger">{error}</p>}
+	      <ul>
+	        {users.map((user) => (
+	          <li key={user.id}>{user.name}</li>
+	        ))}
+	      </ul>
+	    </>
+	  );
+	}
+	
+	export default App;
+    ```
+
+    - 当请求失败时 → `setError` 保存错误信息 → 页面渲染红色错误提示。
+    - 当请求成功时 → 渲染用户列表。
