@@ -4582,3 +4582,31 @@
     - 页面加载时只请求一次。
     - 使用接口 `User` 约束数据结构，编辑器可提示 `.id`、`.name` 等属性。
     - 渲染列表时自动更新 UI。
+
+## 理解 Axios 的 GET 请求
+
+> 简述：`axios.get()` 会发出一次 HTTP 请求。HTTP 消息由 headers（元信息） 和 body（数据） 组成。用浏览器 DevTools 的 Network 面板可直观看到请求方法、URL、状态码、请求/响应头与响应体（Preview/Response）。
+
+**知识树**
+
+1. HTTP 是什么
+
+    - 浏览器与服务器通信的协议
+    - 访问网站/接口本质是发 HTTP 请求，收 HTTP 响应
+
+2. Axios GET 做了什么
+
+    - 生成并发送 `GET /endpoint` 请求
+    - 等待服务器返回响应（状态码、headers、body）
+
+3. 在 DevTools 里如何看
+
+    - Network → 过滤 Fetch/XHR
+    - 选中请求 → Headers（URL、Method、Status、Request/Response Headers）
+    - Preview（结构化查看体）与 Response（原始文本）
+    - React 18 开发环境启用 StrictMode 时，副作用会二次触发，可能看到重复请求（仅开发环境）
+
+4. HTTP 消息结构（最常用）
+
+    - 请求：`Method + URL`、Request Headers（如 `Accept`、`Authorization`）、Request Body（GET 一般无体）
+    - 响应：Status（如 200）、Response Headers（如 `Content-Type`、`Cache-Control`）、Response Body（JSON/文本/二进制）
