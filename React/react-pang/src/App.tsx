@@ -1,31 +1,8 @@
-import { useEffect, useState } from "react";
-import { CanceledError } from "./services/api-client";
 import userService, { User } from "./services/user-service";
-
-type Status = "idle" | "loading" | "success" | "error";
+import useUsers from "./hooks/useUsers";
 
 function App() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [status, setStatus] = useState<Status>("idle");
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    setStatus("loading");
-
-    const { request, cancel } = userService.getAll<User>();
-    request
-      .then((res) => {
-        setUsers(res.data);
-        setStatus("success");
-      })
-      .catch((err) => {
-        if (err instanceof CanceledError) return;
-        setError(err.message);
-        setStatus("error");
-      });
-
-    return cancel;
-  }, []);
+  const { users, error, status, setUsers } = useUsers();
 
   const deleteUser = (user: User) => {
     const originalUsers = [...users];
@@ -71,9 +48,12 @@ function App() {
   return (
     <>
       <h1>Users</h1>
-      <button className="btn btn-primary mb-3" onClick={addUser}>
-        Add User
-      </button>
+      <div>
+        {" "}
+        <button className="btn btn-primary mb-3" onClick={addUser}>
+          Add User
+        </button>
+      </div>
       {status === "loading" && <div className="spinner-border"></div>}
       {status === "error" && <p className="text-danger">{error}</p>}
       {status === "success" && (
