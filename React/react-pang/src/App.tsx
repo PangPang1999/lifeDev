@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
-import apiClient, { CanceledError } from "./services/api-client";
-
-interface User {
-  id: number;
-  name: string;
-}
+import { CanceledError } from "./services/api-client";
+import userService, { User } from "./services/user-service";
 
 type Status = "idle" | "loading" | "success" | "error";
 
@@ -14,13 +10,10 @@ function App() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const controller = new AbortController();
     setStatus("loading");
 
-    apiClient
-      .get<User[]>("/users", {
-        signal: controller.signal,
-      })
+    const { request, cancel } = userService.getAllUsers();
+    request
       .then((res) => {
         setUsers(res.data);
         setStatus("success");
@@ -31,7 +24,7 @@ function App() {
         setStatus("error");
       });
 
-    return () => controller.abort();
+    return cancel;
   }, []);
 
   const deleteUser = (user: User) => {
@@ -39,7 +32,7 @@ function App() {
     // 乐观更新：先更新 UI
     setUsers((prev) => prev.filter((u) => u.id !== user.id));
 
-    apiClient.delete("/users/" + user.id).catch((err) => {
+    userService.deleteUser(user.id).catch((err) => {
       alert("Delete failed. " + err.message);
       setUsers((prev) => [user, ...prev]);
     });
@@ -51,15 +44,10 @@ function App() {
     // 乐观更新：先更新 UI
     setUsers((prev) => [optimistic, ...prev]);
 
-    apiClient
-      .post<User>("/users", {
-        name: optimistic.name,
-      })
+    userService
+      .createUser(optimistic)
       .then(({ data: saved }) =>
-        // 成功：用返回数据替换掉占位项
-        {
-          setUsers((prev) => prev.map((u) => (u.id === tempId ? saved : u)));
-        }
+        setUsers((prev) => prev.map((u) => (u.id === tempId ? saved : u)))
       )
       .catch((err) => {
         alert("Add user failed. " + err.message);
@@ -74,7 +62,7 @@ function App() {
     // 乐观更新：先更新 UI
     setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
 
-    apiClient.patch("/users/" + user.id, updatedUser).catch((err) => {
+    userService.updateUser(updatedUser).catch((err) => {
       alert("Update failed. " + err.message);
       setUsers(originalUsers); // 回滚
     });

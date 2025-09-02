@@ -11,6 +11,7 @@
 2. 快速生成组件：`rafce`（配合 VS code 插件 `ES7+ React/Redux/React-Native snippets`）
 3. 浏览器查看组件信息：（配合 Chrome 插件 React Developer Tools
 4. Immer 简化更新
+5. `command + .`：快速修复
 
 ## 使用
 
@@ -5356,10 +5357,8 @@
             name: optimistic.name,
           })
           .then(({ data: saved }) =>
-            // 成功：用返回数据替换掉占位项
-            {
-              setUsers((prev) => prev.map((u) => (u.id === tempId ? saved : u)));
-            }
+            setUsers((prev) => prev.map((u) => (u.id === tempId ? saved : u)))
+          )
           )
           .catch((err) => {
             alert("Add user failed. " + err.message);
@@ -5467,142 +5466,333 @@
 
     ```tsx
     // services/api-client.ts
-	import axios, { CanceledError } from "axios";
-	
-	export default axios.create({
-	  baseURL: "https://jsonplaceholder.typicode.com",
-	});
-	
-	export { CanceledError };
+    import axios, { CanceledError } from "axios";
+
+    export default axios.create({
+      baseURL: "https://jsonplaceholder.typicode.com",
+    });
+
+    export { CanceledError };
     ```
 
 2. 在组件中使用
 
     ```tsx
     // App.tsx
-	import { useEffect, useState } from "react";
-	import apiClient, { CanceledError } from "./services/api-client";
-	
-	interface User {
-	  id: number;
-	  name: string;
-	}
-	
-	type Status = "idle" | "loading" | "success" | "error";
-	
-	function App() {
-	  const [users, setUsers] = useState<User[]>([]);
-	  const [status, setStatus] = useState<Status>("idle");
-	  const [error, setError] = useState("");
-	
-	  useEffect(() => {
-	    const controller = new AbortController();
-	    setStatus("loading");
-	
-	    apiClient
-	      .get<User[]>("/users", {
-	        signal: controller.signal,
-	      })
-	      .then((res) => {
-	        setUsers(res.data);
-	        setStatus("success");
-	      })
-	      .catch((err) => {
-	        if (err instanceof CanceledError) return;
-	        setError(err.message);
-	        setStatus("error");
-	      });
-	
-	    return () => controller.abort();
-	  }, []);
-	
-	  const deleteUser = (user: User) => {
-	    const originalUsers = [...users];
-	    // 乐观更新：先更新 UI
-	    setUsers((prev) => prev.filter((u) => u.id !== user.id));
-	
-	    apiClient.delete("/users/" + user.id).catch((err) => {
-	      alert("Delete failed. " + err.message);
-	      setUsers((prev) => [user, ...prev]);
-	    });
-	  };
-	
-	  const addUser = () => {
-	    const tempId = -Date.now(); // 负数临时 id，避免和服务端正数撞
-	    const optimistic: User = { id: tempId, name: "Mosh" };
-	    // 乐观更新：先更新 UI
-	    setUsers((prev) => [optimistic, ...prev]);
-	
-	    apiClient
-	      .post<User>("/users", {
-	        name: optimistic.name,
-	      })
-	      .then(({ data: saved }) =>
-	        // 成功：用返回数据替换掉占位项
-	        {
-	          setUsers((prev) => prev.map((u) => (u.id === tempId ? saved : u)));
-	        }
-	      )
-	      .catch((err) => {
-	        alert("Add user failed. " + err.message);
-	        // 失败：把占位项移除
-	        setUsers((prev) => prev.filter((u) => u.id !== tempId));
-	      });
-	  };
-	
-	  const updateUser = (user: User) => {
-	    const originalUsers = [...users];
-	    const updatedUser: User = { ...user, name: user.name + "!" };
-	    // 乐观更新：先更新 UI
-	    setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
-	
-	    apiClient.patch("/users/" + user.id, updatedUser).catch((err) => {
-	      alert("Update failed. " + err.message);
-	      setUsers(originalUsers); // 回滚
-	    });
-	  };
-	
-	  return (
-	    <>
-	      <h1>Users</h1>
-	      <button className="btn btn-primary mb-3" onClick={addUser}>
-	        Add User
-	      </button>
-	      {status === "loading" && <div className="spinner-border"></div>}
-	      {status === "error" && <p className="text-danger">{error}</p>}
-	      {status === "success" && (
-	        <ul className="list-group">
-	          {users.map((u) => (
-	            <li
-	              className="list-group-item d-flex justify-content-between"
-	              key={u.id}
-            >	
-	              {u.name}
-	              <div>
-	                <button
-	                  className="btn btn-outline-secondary mx-1"
-	                  onClick={() => updateUser(u)}
-                >	
-	                  Update
-	                </button>
-	                <button
-	                  className="btn btn-outline-danger"
-	                  onClick={() => deleteUser(u)}
-                >	
-	                  Delete
-	                </button>
-	              </div>
-	            </li>
-	          ))}
-	        </ul>
-	      )}
-	    </>
-	  );
-	}
-	
-	export default App;
+    import { useEffect, useState } from "react";
+    import apiClient, { CanceledError } from "./services/api-client";
+
+    interface User {
+      id: number;
+      name: string;
+    }
+
+    type Status = "idle" | "loading" | "success" | "error";
+
+    function App() {
+      const [users, setUsers] = useState<User[]>([]);
+      const [status, setStatus] = useState<Status>("idle");
+      const [error, setError] = useState("");
+
+      useEffect(() => {
+        const controller = new AbortController();
+        setStatus("loading");
+
+        apiClient
+          .get<User[]>("/users", {
+            signal: controller.signal,
+          })
+          .then((res) => {
+            setUsers(res.data);
+            setStatus("success");
+          })
+          .catch((err) => {
+            if (err instanceof CanceledError) return;
+            setError(err.message);
+            setStatus("error");
+          });
+
+        return () => controller.abort();
+      }, []);
+
+      const deleteUser = (user: User) => {
+        const originalUsers = [...users];
+        // 乐观更新：先更新 UI
+        setUsers((prev) => prev.filter((u) => u.id !== user.id));
+
+        apiClient.delete("/users/" + user.id).catch((err) => {
+          alert("Delete failed. " + err.message);
+          setUsers((prev) => [user, ...prev]);
+        });
+      };
+
+      const addUser = () => {
+        const tempId = -Date.now(); // 负数临时 id，避免和服务端正数撞
+        const optimistic: User = { id: tempId, name: "Mosh" };
+        // 乐观更新：先更新 UI
+        setUsers((prev) => [optimistic, ...prev]);
+
+        apiClient
+          .post<User>("/users", {
+            name: optimistic.name,
+          })
+          .then(({ data: saved }) =>
+            // 成功：用返回数据替换掉占位项
+            {
+              setUsers((prev) => prev.map((u) => (u.id === tempId ? saved : u)));
+            }
+          )
+          .catch((err) => {
+            alert("Add user failed. " + err.message);
+            // 失败：把占位项移除
+            setUsers((prev) => prev.filter((u) => u.id !== tempId));
+          });
+      };
+
+      const updateUser = (user: User) => {
+        const originalUsers = [...users];
+        const updatedUser: User = { ...user, name: user.name + "!" };
+        // 乐观更新：先更新 UI
+        setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
+
+        apiClient.patch("/users/" + user.id, updatedUser).catch((err) => {
+          alert("Update failed. " + err.message);
+          setUsers(originalUsers); // 回滚
+        });
+      };
+
+      return (
+        <>
+          <h1>Users</h1>
+          <button className="btn btn-primary mb-3" onClick={addUser}>
+            Add User
+          </button>
+          {status === "loading" && <div className="spinner-border"></div>}
+          {status === "error" && <p className="text-danger">{error}</p>}
+          {status === "success" && (
+            <ul className="list-group">
+              {users.map((u) => (
+                <li
+                  className="list-group-item d-flex justify-content-between"
+                  key={u.id}
+            >
+                  {u.name}
+                  <div>
+                    <button
+                      className="btn btn-outline-secondary mx-1"
+                      onClick={() => updateUser(u)}
+                >
+                      Update
+                    </button>
+                    <button
+                      className="btn btn-outline-danger"
+                      onClick={() => deleteUser(u)}
+                >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      );
+    }
+
+    export default App;
     ```
 
-	- 组件里不再关心 `baseURL`，只写资源路径 `/users`。
-	- 请求取消、错误处理逻辑仍然保留。
-	- 代码更简洁，后续维护方便。
+    - 组件里不再关心 `baseURL`，只写资源路径 `/users`。
+    - 请求取消、错误处理逻辑仍然保留。
+    - 代码更简洁，后续维护方便。
+
+## 抽离 User Service
+
+> 简述：组件只负责渲染和交互，HTTP 请求逻辑应抽离到服务层（如 `user-service.ts`）。这样能实现关注点分离，代码复用性和可维护性更高。
+
+**知识树**
+
+1. 为什么要抽离
+
+    - 组件职责：渲染 JSX + 处理用户交互。
+    - HTTP 职责：请求、取消、错误处理。
+    - 分离后：组件无需关心 `axios`、URL、`AbortController`，只调用服务方法。
+
+2. 创建 UserService
+
+    - 新建 `services/user-service.ts`。
+    - 定义接口 `User`。
+    - 用类封装：
+        - `getAllUsers()` → 获取用户列表，支持取消。
+        - `deleteUser(id)` → 删除指定用户。
+        - `createUser(user)` → 新建用户。
+        - `updateUser(user)` → 更新用户。
+    - 对外导出单例：`export default new UserService()`。
+        - 导出类实例：简单，项目中大多只需要一个服务实例。
+        - 导出类本身：需要时可 `new` 多个，适合多配置场景。
+
+3. getAllUsers 的特殊点
+
+    - 请求需要支持取消。
+    - 返回 `{ request, cancel }`：
+        - `request` → Promise，请求结果。
+        - `cancel` → 主动调用时中止请求。
+
+4. 好处
+
+    - 组件更纯粹：不再写请求细节。
+    - 服务可复用：其他组件直接调用。
+    - 更易扩展：统一加 token、错误拦截、日志等。
+
+**代码示例**
+
+1. `services/user-service.ts`
+
+    ```ts
+    // services/user-service.ts
+    import apiClient from "./api-client";
+
+    export interface User {
+      id: number;
+      name: string;
+    }
+
+    class UserService {
+      getAllUsers() {
+        const controller = new AbortController();
+        const request = apiClient.get<User[]>("/users", {
+          signal: controller.signal,
+        });
+        return { request, cancel: () => controller.abort() };
+      }
+
+      deleteUser(id: number) {
+        return apiClient.delete("/users/" + id);
+      }
+
+      createUser(user: User) {
+        return apiClient.post<User>("/users", user);
+      }
+
+      updateUser(user: User) {
+        return apiClient.patch<User>("/users/" + user.id, user);
+      }
+    }
+
+    export default new UserService();
+    ```
+
+2. `App.tsx` 使用
+
+    ```tsx
+    import { useEffect, useState } from "react";
+    import { CanceledError } from "./services/api-client";
+    import userService, { User } from "./services/user-service";
+
+    type Status = "idle" | "loading" | "success" | "error";
+
+    function App() {
+      const [users, setUsers] = useState<User[]>([]);
+      const [status, setStatus] = useState<Status>("idle");
+      const [error, setError] = useState("");
+
+      useEffect(() => {
+        setStatus("loading");
+
+        const { request, cancel } = userService.getAllUsers();
+        request
+          .then((res) => {
+            setUsers(res.data);
+            setStatus("success");
+          })
+          .catch((err) => {
+            if (err instanceof CanceledError) return;
+            setError(err.message);
+            setStatus("error");
+          });
+
+        return cancel;
+      }, []);
+
+      const deleteUser = (user: User) => {
+        const originalUsers = [...users];
+        // 乐观更新：先更新 UI
+        setUsers((prev) => prev.filter((u) => u.id !== user.id));
+
+        userService.deleteUser(user.id).catch((err) => {
+          alert("Delete failed. " + err.message);
+          setUsers((prev) => [user, ...prev]);
+        });
+      };
+
+      const addUser = () => {
+        const tempId = -Date.now(); // 负数临时 id，避免和服务端正数撞
+        const optimistic: User = { id: tempId, name: "Mosh" };
+        // 乐观更新：先更新 UI
+        setUsers((prev) => [optimistic, ...prev]);
+
+        userService
+          .createUser(optimistic)
+          .then(({ data: saved }) =>
+            setUsers((prev) => prev.map((u) => (u.id === tempId ? saved : u)))
+          )
+          .catch((err) => {
+            alert("Add user failed. " + err.message);
+            // 失败：把占位项移除
+            setUsers((prev) => prev.filter((u) => u.id !== tempId));
+          });
+      };
+
+      const updateUser = (user: User) => {
+        const originalUsers = [...users];
+        const updatedUser: User = { ...user, name: user.name + "!" };
+        // 乐观更新：先更新 UI
+        setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
+
+        userService.updateUser(updatedUser).catch((err) => {
+          alert("Update failed. " + err.message);
+          setUsers(originalUsers); // 回滚
+        });
+      };
+
+      return (
+        <>
+          <h1>Users</h1>
+          <button className="btn btn-primary mb-3" onClick={addUser}>
+            Add User
+          </button>
+          {status === "loading" && <div className="spinner-border"></div>}
+          {status === "error" && <p className="text-danger">{error}</p>}
+          {status === "success" && (
+            <ul className="list-group">
+              {users.map((u) => (
+                <li
+                  className="list-group-item d-flex justify-content-between"
+                  key={u.id}
+            >
+                  {u.name}
+                  <div>
+                    <button
+                      className="btn btn-outline-secondary mx-1"
+                      onClick={() => updateUser(u)}
+                >
+                      Update
+                    </button>
+                    <button
+                      className="btn btn-outline-danger"
+                      onClick={() => deleteUser(u)}
+                >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      );
+    }
+
+    export default App;
+
+    ```
