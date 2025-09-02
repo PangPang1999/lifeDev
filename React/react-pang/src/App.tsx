@@ -37,19 +37,45 @@ function App() {
   const deleteUser = (user: User) => {
     const originalUsers = [...users];
     // 乐观更新：先更新 UI
-    setUsers(users.filter((u) => u.id !== user.id));
+    setUsers((prev) => prev.filter((u) => u.id !== user.id));
 
     axios
-      .delete("https://jsonplaceholder.typicode.com/Xusers/" + user.id)
+      .delete("https://jsonplaceholder.typicode.com/users/" + user.id)
       .catch((err) => {
         alert("Delete failed. " + err.message);
-        setUsers(originalUsers);
+        setUsers((prev) => [user, ...prev]);
+      });
+  };
+
+  const addUser = () => {
+    const tempId = -Date.now(); // 负数临时 id，避免和服务端正数撞
+    const optimistic: User = { id: tempId, name: "Mosh" };
+    // 乐观更新：先更新 UI
+    setUsers((prev) => [optimistic, ...prev]);
+
+    axios
+      .post<User>("https://jsonplaceholder.typicode.com/users", {
+        name: optimistic.name,
+      })
+      .then(({ data: saved }) =>
+        // 成功：用返回数据替换掉占位项
+        {
+          setUsers((prev) => prev.map((u) => (u.id === tempId ? saved : u)));
+        }
+      )
+      .catch((err) => {
+        alert("Add user failed. " + err.message);
+        // 失败：把占位项移除
+        setUsers((prev) => prev.filter((u) => u.id !== tempId));
       });
   };
 
   return (
     <>
       <h1>Users</h1>
+      <button className="btn btn-primary mb-3" onClick={addUser}>
+        Add User
+      </button>
       {status === "loading" && <div className="spinner-border"></div>}
       {status === "error" && <p className="text-danger">{error}</p>}
       {status === "success" && (
