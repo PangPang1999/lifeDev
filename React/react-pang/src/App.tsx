@@ -1,16 +1,28 @@
-import { useState } from "react";
-import Timer from "./components/Timer";
-import BadTimer from "./components/BadTimer";
+import { useEffect, useState } from "react";
+import axios from "axios";
+
+interface User {
+  id: number;
+  name: string;
+}
 
 function App() {
-  const [show, setShow] = useState(true);
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    axios
+      .get<User[]>("https://jsonplaceholder.typicode.com/users")
+      .then((res) => setUsers(res.data));
+  }, []);
 
   return (
     <div>
-      <button onClick={() => setShow((s) => !s)}>
-        {show ? "Unmount Timer" : "Mount Timer"}
-      </button>
-      {show && <Timer />}
+      <h1>Users</h1>
+      <ul>
+        {users.map((user) => (
+          <li key={user.id}>{user.name}</li>
+        ))}
+      </ul>
     </div>
   );
 }

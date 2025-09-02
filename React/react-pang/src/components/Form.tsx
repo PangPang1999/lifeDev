@@ -5,9 +5,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 const schema = z.object({
   name: z.string().min(3, { message: "Name must be at least 3 characters." }),
   age: z
-    .number()
-    .refine((val) => typeof val === "number", {
-      message: "Age must be a number",
+    .number({
+      error: (issue) =>
+        issue.input === undefined ||
+        issue.input === null ||
+        Number.isNaN(issue.input)
+          ? "Age is required."
+          : "Age must be a number.",
     })
     .min(18, { message: "Age must be at least 18." }),
 });
@@ -19,7 +23,10 @@ const Form = () => {
     register,
     handleSubmit,
     formState: { errors, isValid },
-  } = useForm<FormData>({ resolver: zodResolver(schema) });
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    mode: "onChange", // 实时校验
+  });
 
   const onSubmit = (data: FieldValues) => {
     console.log(data);

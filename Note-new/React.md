@@ -3546,34 +3546,31 @@
 
 ## 禁用无效表单的提交按钮
 
-> 简述：React Hook Form 提供 `formState.isValid` 判断表单整体是否有效。可将其绑定到按钮的 `disabled` 属性，确保用户只有在表单通过所有验证时才能点击提交。
+> 简述：简述：React Hook Form 提供 `formState.isValid` 标识表单整体是否有效。可将它绑定到提交按钮的 `disabled` 属性，确保用户只能在所有字段通过验证后才能提交。
 
 **知识树**
 
 1. 表单有效性状态
 
-    - `useForm` 返回 `formState` 对象，其中包含：
-        - `errors`：字段错误信息。
-        - `isValid`：布尔值，表示当前表单是否有效。
+    - `formState.errors`：存储各字段错误。
+    - `formState.isValid`：布尔值，表示整个表单是否通过验证。
 
-2. 默认行为
+2. 验证模式（`isValid` 的值依赖于表单验证模式）
 
-    - `isValid` 的值依赖于表单验证模式。
-    - 常用配置：
-        - `mode: "onChange"` → 每次输入变化时实时更新 `isValid`。
-        - `mode: "onBlur"` → 输入失焦时更新。
-        - 默认 `mode: "onSubmit"` → 提交时才计算。
+    - `mode: "onSubmit"`（默认）：提交时才校验 → 初始按钮总是禁用。
+    - `mode: "onChange"`：输入时实时校验 → 输入合格后按钮立即启用。
+    - `mode: "onBlur"`：失去焦点时校验。
 
-3. 按钮禁用逻辑
+3. 按钮控制逻辑
 
-    - 在 `<button>` 上写 `disabled={!isValid}`。
-    - 表单未通过验证 → 按钮禁用。
-    - 通过验证 → 按钮启用。
+    - `<button disabled={!isValid}>`
+    - 表单未通过验证 → 禁用按钮。
+    - 全部验证通过 → 按钮启用。
 
 4. 使用场景
 
-    - 注册/登录表单：确保必填字段合格才允许提交。
-    - 避免无效数据请求，提高用户体验。
+    - 登录 / 注册 / 支付等关键表单，避免用户提交无效数据。
+    - 提升用户体验，减少后端无效请求。
 
 **代码示例**
 
@@ -3588,9 +3585,13 @@
     const schema = z.object({
       name: z.string().min(3, { message: "Name must be at least 3 characters." }),
       age: z
-        .number()
-        .refine((val) => typeof val === "number", {
-          message: "Age must be a number",
+    	.number({
+          error: (issue) =>
+            issue.input === undefined ||
+            issue.input === null ||
+            Number.isNaN(issue.input)
+              ? "Age is required."
+              : "Age must be a number.",
         })
         .min(18, { message: "Age must be at least 18." }),
     });
@@ -3602,7 +3603,10 @@
         register,
         handleSubmit,
         formState: { errors, isValid },
-      } = useForm<FormData>({ resolver: zodResolver(schema) });
+      } = useForm<FormData>({
+        resolver: zodResolver(schema),
+        mode: "onChange", // 实时校验
+      });
 
       const onSubmit = (data: FieldValues) => {
         console.log(data);
@@ -3644,7 +3648,7 @@
     export default Form;
     ```
 
-- 初始状态下按钮禁用，只有当 `name` 和 `age` 都满足规则后才启用。
+    - 初始状态下按钮禁用，只有当 `name` 和 `age` 都满足规则后才启用。
 
 ## Project 费用追踪器
 
@@ -4251,27 +4255,32 @@
 
 **知识树**
 
-1. 为什么需要 useEffect
+1. 为什么需要 `useEffect`
 
-    - 组件渲染必须纯粹：同样输入 → 同样 JSX。
-    - 副作用（DOM 操作、网络请求、存储操作）会改变外部世界，不应放在渲染函数里。
-    - `useEffect` 让副作用在渲染后执行，保持组件纯净。
+    - 组件渲染：同样输入 → 必须产出同样 JSX。
+    - 副作用：修改 DOM、发请求、存储数据 → 会改变外部世界，不应放在渲染函数中。
+    - `useEffect`：让副作用在渲染后执行，保持渲染阶段纯净。
 
 2. 基本用法
 
-    - 语法：`useEffect(() => { 副作用代码 })`。
-    - 默认：在每次渲染后执行。
-    - 示例：设置焦点、修改页面标题、调用 API。
+    - 语法：`useEffect(() => { /* 副作用代码 */ });`
+    - 默认：每次渲染后都会执行。
+    - 常见场景：设置焦点、修改标题、请求数据、操作缓存。
 
-3. 规则
+3. 使用规则
 
-    - 只能在组件顶层调用，不能放在 if/for 里。
-    - 可以在同一组件中多次使用，按顺序依次执行。
-    - 每个 `useEffect` 负责一类逻辑，职责分清。
+    - 只能在组件顶层调用，不能放在 if/for/函数里。
+    - 可以在同一组件里多次使用，React 会按顺序依次执行。
+    - 每个 effect 只做一类事情，职责清晰。
+
+4. 特点
+
+    - 与 `useState`、`useRef` 一样，是 Hook → 调用顺序必须固定。
+    - 执行时机：组件渲染后 → DOM 已完成更新，适合写外部操作。
 
 **代码示例**
 
-1. 输入框自动聚焦/修改页面标题
+1. 输入框自动聚焦 + 修改页面标题
 
     ```tsx
     import { useEffect, useRef } from "react";
@@ -4279,10 +4288,12 @@
     function App() {
       const ref = useRef<HTMLInputElement>(null);
 
+      // 聚焦输入框
       useEffect(() => {
         if (ref.current) ref.current.focus();
       });
 
+      // 修改页面标题
       useEffect(() => {
         document.title = "My App";
       });
@@ -4298,40 +4309,37 @@
     }
     ```
 
-    - 两个 `useEffect` 各管一件事：一个聚焦输入框，一个改标题，互不干扰。
-    - 每次渲染完成后 React 会顺序执行这些副作用。
+    - 第一个 `useEffect` 让输入框自动获取焦点。第二个 `useEffect`设置页面标题。
+    - React 会在渲染完成后依次执行这两个副作用。
 
 ## useEffect 的依赖数组
 
-> 简述：`useEffect` 默认在每次渲染后运行。通过传入第二个参数——依赖数组，可以精确控制副作用的执行时机：只在特定值变化时才运行，避免无限循环或无效请求。
+> 简述：`useEffect` 默认在每次渲染后执行。通过第二个参数——依赖数组，可以控制副作用运行的时机，避免无限循环或无效请求。
 
 **知识树**
 
 1. 默认行为
 
-    - `useEffect(fn)` → 每次渲染后都会执行 `fn`。
-    - 若 `fn` 内部更新了 state，就会触发再次渲染，从而可能导致**无限循环**。
+    - `useEffect(fn)`：每次渲染后都会执行 `fn`。
+    - 若 `fn` 内部更新 state → 触发重新渲染 → 再次执行 effect → 可能陷入无限循环。
 
-2. 依赖数组的三种情况
+2. 依赖数组的三种用法
 
-    - 无依赖（省略第二参）：每次渲染都执行。
-    - 空数组 `[]`：只在组件首次渲染后执行一次。
-    - 有依赖 `[a, b]`：仅当依赖的 state/props 变化时执行。
+    - 省略依赖：`useEffect(fn)` → 每次渲染后运行。
+    - 空数组 `[]`：只在组件挂载时运行一次（常用于初始化请求）。
+    - 指定依赖 `[a, b]`：仅当 `a` 或 `b` 的值变化时重新运行。
 
-3. 实际应用场景
+3. 应用场景
 
-    - 空数组 `[]` → 初次加载时执行一次副作用（如初始数据请求）。
-    - 有依赖 `[category]` → 当分类、搜索词等变化时重新请求。
-    - 避免错误：如果写成 `[]`，依赖值变化不会触发更新；如果省略数组，则可能过度执行。
+    - `[]`：页面加载时请求一次数据。
+    - `[category]`：当分类、搜索词等参数改变时重新加载数据。
+    - 无依赖：调试时打印日志、或需要在每次渲染后运行的代码。
 
-4. TypeScript 与 Props 简化
+4. 注意事项
 
-    - Props 简单时，可以直接在函数参数里写内联类型，而不必单独声明接口。
-    - 例如：
-
-        ```tsx
-        function ProductList({ category }: { category: string }) { ... }
-        ```
+    - 写成 `[]` → 依赖更新不会触发 effect。
+    - 忘写依赖 → effect 每次都跑，容易过度执行。
+    - 在 Strict Mode（开发环境） 下，effect 会运行两次，用于测试副作用是否安全，生产环境只会运行一次。
 
 5. Strict Mode
 
@@ -4339,7 +4347,7 @@
 
 **代码示例**
 
-1. 根据依赖变化重新运行
+1. 根据依赖（分类）变化重新运行
 
     ```tsx
     // components/ProductList.tsx
@@ -4384,9 +4392,9 @@
     export default App;
     ```
 
-    - 初次加载 → 不选分类 → 打印 “Fetching products in”。
-    - 选择 "Clothing" → 再次执行 effect → 打印 “Fetching products in Clothing”。
-    - 改成 "Household" → 打印 “Fetching products in Household”。
+    - 初始：不选分类 → 打印 `Fetching products in`。
+    - 选择 Clothing → 打印 `Fetching products in clothing`。
+    - 切换 Household → 打印 `Fetching products in household`。
 
 ## useEffect 的清理函数
 
@@ -4394,27 +4402,21 @@
 
 **知识树**
 
-1. 为什么需要清理
+1. 为什么要清理
 
-    - 有些副作用是“持续性的”，比如订阅、连接、定时器。
-    - 如果不清理，会导致资源浪费或逻辑错误（如重复连接、多次订阅）。
+    - 副作用常是“持续性的”，例如 WebSocket、事件监听、定时器。
+    - 不清理 → 重复连接、多次订阅、内存泄漏。
+    - 清理的目标：撤销或还原副作用带来的改变。
 
 2. 用法
 
     - `useEffect(() => { 执行副作用; return () => { 清理副作用 }; }, [依赖]);`
-    - 副作用函数可选择返回清理函数；如果没必要，可不返回。
+    - 副作用函数可以选择返回清理函数；若无持续性副作用可省略。
 
 3. 触发时机
 
-    - 组件卸载：React 会自动调用清理函数。
-    - 依赖更新：在 effect 重新执行前，会先调用上一次的清理函数。
-
-4. 常见场景
-
-    - 连接/订阅类：WebSocket、聊天、事件监听。
-    - 定时器：`setInterval`、`setTimeout`，需要在卸载时清除。
-    - UI 资源：关闭弹窗、移除监听。
-    - 数据请求：中止未完成的 fetch。
+    - 组件卸载时：React 会调用清理函数。
+    - 依赖更新时：在运行新 effect 前，先执行旧的清理函数。
 
 **代码示例**
 
@@ -4496,3 +4498,87 @@
     ```
 
     - 若不清理定时器，组件卸载后定时器还会继续运行，造成内存泄漏。
+
+## useEffect 获取远程数据
+
+> 简述：组件加载时常需从服务端获取数据。应在 `useEffect` 中发起请求，避免渲染时产生副作用。推荐用 axios 发请求，并配合 TypeScript 接口定义数据类型，获得智能提示和类型安全。
+
+**知识树**
+
+0. 本节数据来源
+
+    - https://jsonplaceholder.typicode.com/
+    - 提供用户、帖子、评论、相册等测试数据。
+
+1. 数据获取的基本流程
+
+    - 定义状态：用 `useState` 创建用于存储数据的状态变量
+    - 副作用触发：在 `useEffect` 中发起网络请求
+    - 响应处理：通过 `setState` 更新 UI
+    - 渲染：使用 `.map()` 遍历数据，动态生成组件元素
+
+2. 异步通信：`axios` 与 `fetch` 的选择
+
+    - `fetch` 是浏览器内置的原生 API，语法较原始
+    - `axios` 是第三方库，优势包括：
+        - 默认自动解析 JSON
+        - 更好的错误处理与请求拦截
+        - 支持请求取消、超时设置等扩展功能
+
+3. 使用 axios 请求数据
+
+    - 安装：`npm i axios`
+    - 导入：`import axios from "axios";`
+    - 基本调用：`axios.get(url).then(res => { ... })`
+    - `axios.get<T>()`：可传入泛型 `T` 指定返回数据类型。
+
+4. TypeScript 类型支持
+
+    - 通过定义接口，将其传入泛型，能避免访问不存在，或者没必要访问的属性，并提供智能提示
+
+5. 避免无限循环
+
+    - 在 `useEffect` 的依赖数组里写 `[]`，确保只执行一次。
+    - 若缺少 `[]`，`setState` 会触发重新渲染 → effect 又执行 → 无限请求。
+
+**代码示例**
+
+1. 获取用户列表并渲染
+
+    ```tsx
+    // App.tsx
+    import { useEffect, useState } from "react";
+    import axios from "axios";
+
+    interface User {
+      id: number;
+      name: string;
+    }
+
+    function App() {
+      const [users, setUsers] = useState<User[]>([]);
+
+      useEffect(() => {
+        axios
+          .get<User[]>("https://jsonplaceholder.typicode.com/users")
+          .then((res) => setUsers(res.data));
+      }, []);
+
+      return (
+        <div>
+          <h1>Users</h1>
+          <ul>
+            {users.map((user) => (
+              <li key={user.id}>{user.name}</li>
+            ))}
+          </ul>
+        </div>
+      );
+    }
+
+    export default App;
+    ```
+
+    - 页面加载时只请求一次。
+    - 使用接口 `User` 约束数据结构，编辑器可提示 `.id`、`.name` 等属性。
+    - 渲染列表时自动更新 UI。
