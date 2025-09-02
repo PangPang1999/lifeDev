@@ -5380,7 +5380,7 @@
             updatedUser
           )
           .catch((err) => {
-	        alert("Update failed. " + err.message);
+            alert("Update failed. " + err.message);
             setUsers(originalUsers); // 回滚
           });
       };
@@ -5429,3 +5429,180 @@
     - 点击 Update → UI 立即更新用户名。
     - 请求成功 → 与服务端保持一致。
     - 请求失败 → 提示错误并回滚列表。
+
+## 抽离 API Client
+
+> 简述：当代码里多处调用后端接口时，若每次都手写完整 URL，会导致重复和难以维护。解决办法是封装一个 API Client 模块，集中配置基础 URL、公共参数和错误类型，其他地方只需直接调用即可。
+
+**知识树**
+
+1. 为什么要抽离
+
+    - 避免重复：同一个后端地址在多个文件写多次，改动时容易漏改。
+    - 统一管理：配置（`baseURL`、headers、token）集中在一个地方。
+    - 可复用：不同组件需要访问不同资源时，只改路径即可。
+
+2. 创建 API Client
+
+    - 新建 `services/api-client.ts`。
+    - 用 `axios.create()` 创建实例，配置 `baseURL`。
+    - 导出：
+        - 默认导出 API Client 实例。
+        - 命名导出 `CanceledError`（用于请求取消时的错误判断）。
+
+3. 在组件中使用
+
+    - 替换所有 `axios` 调用 → `apiClient.get/post/delete/patch`。
+    - 取消请求时，使用 `CanceledError` 判断是否为用户主动取消。
+
+4. 扩展能力
+
+    - 可统一加请求头（如 Authorization、API Key）。
+    - 可挂拦截器：对请求/响应做预处理。
+    - 未来需要改 baseURL 或加 token，只需改一处即可。
+
+**代码示例**
+
+1. `services/api-client.ts`
+
+    ```tsx
+    // services/api-client.ts
+	import axios, { CanceledError } from "axios";
+	
+	export default axios.create({
+	  baseURL: "https://jsonplaceholder.typicode.com",
+	});
+	
+	export { CanceledError };
+    ```
+
+2. 在组件中使用
+
+    ```tsx
+    // App.tsx
+	import { useEffect, useState } from "react";
+	import apiClient, { CanceledError } from "./services/api-client";
+	
+	interface User {
+	  id: number;
+	  name: string;
+	}
+	
+	type Status = "idle" | "loading" | "success" | "error";
+	
+	function App() {
+	  const [users, setUsers] = useState<User[]>([]);
+	  const [status, setStatus] = useState<Status>("idle");
+	  const [error, setError] = useState("");
+	
+	  useEffect(() => {
+	    const controller = new AbortController();
+	    setStatus("loading");
+	
+	    apiClient
+	      .get<User[]>("/users", {
+	        signal: controller.signal,
+	      })
+	      .then((res) => {
+	        setUsers(res.data);
+	        setStatus("success");
+	      })
+	      .catch((err) => {
+	        if (err instanceof CanceledError) return;
+	        setError(err.message);
+	        setStatus("error");
+	      });
+	
+	    return () => controller.abort();
+	  }, []);
+	
+	  const deleteUser = (user: User) => {
+	    const originalUsers = [...users];
+	    // 乐观更新：先更新 UI
+	    setUsers((prev) => prev.filter((u) => u.id !== user.id));
+	
+	    apiClient.delete("/users/" + user.id).catch((err) => {
+	      alert("Delete failed. " + err.message);
+	      setUsers((prev) => [user, ...prev]);
+	    });
+	  };
+	
+	  const addUser = () => {
+	    const tempId = -Date.now(); // 负数临时 id，避免和服务端正数撞
+	    const optimistic: User = { id: tempId, name: "Mosh" };
+	    // 乐观更新：先更新 UI
+	    setUsers((prev) => [optimistic, ...prev]);
+	
+	    apiClient
+	      .post<User>("/users", {
+	        name: optimistic.name,
+	      })
+	      .then(({ data: saved }) =>
+	        // 成功：用返回数据替换掉占位项
+	        {
+	          setUsers((prev) => prev.map((u) => (u.id === tempId ? saved : u)));
+	        }
+	      )
+	      .catch((err) => {
+	        alert("Add user failed. " + err.message);
+	        // 失败：把占位项移除
+	        setUsers((prev) => prev.filter((u) => u.id !== tempId));
+	      });
+	  };
+	
+	  const updateUser = (user: User) => {
+	    const originalUsers = [...users];
+	    const updatedUser: User = { ...user, name: user.name + "!" };
+	    // 乐观更新：先更新 UI
+	    setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
+	
+	    apiClient.patch("/users/" + user.id, updatedUser).catch((err) => {
+	      alert("Update failed. " + err.message);
+	      setUsers(originalUsers); // 回滚
+	    });
+	  };
+	
+	  return (
+	    <>
+	      <h1>Users</h1>
+	      <button className="btn btn-primary mb-3" onClick={addUser}>
+	        Add User
+	      </button>
+	      {status === "loading" && <div className="spinner-border"></div>}
+	      {status === "error" && <p className="text-danger">{error}</p>}
+	      {status === "success" && (
+	        <ul className="list-group">
+	          {users.map((u) => (
+	            <li
+	              className="list-group-item d-flex justify-content-between"
+	              key={u.id}
+            >	
+	              {u.name}
+	              <div>
+	                <button
+	                  className="btn btn-outline-secondary mx-1"
+	                  onClick={() => updateUser(u)}
+                >	
+	                  Update
+	                </button>
+	                <button
+	                  className="btn btn-outline-danger"
+	                  onClick={() => deleteUser(u)}
+                >	
+	                  Delete
+	                </button>
+	              </div>
+	            </li>
+	          ))}
+	        </ul>
+	      )}
+	    </>
+	  );
+	}
+	
+	export default App;
+    ```
+
+	- 组件里不再关心 `baseURL`，只写资源路径 `/users`。
+	- 请求取消、错误处理逻辑仍然保留。
+	- 代码更简洁，后续维护方便。

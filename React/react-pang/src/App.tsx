@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios, { CanceledError } from "axios";
+import apiClient, { CanceledError } from "./services/api-client";
 
 interface User {
   id: number;
@@ -17,8 +17,8 @@ function App() {
     const controller = new AbortController();
     setStatus("loading");
 
-    axios
-      .get<User[]>("https://jsonplaceholder.typicode.com/users", {
+    apiClient
+      .get<User[]>("/users", {
         signal: controller.signal,
       })
       .then((res) => {
@@ -39,12 +39,10 @@ function App() {
     // 乐观更新：先更新 UI
     setUsers((prev) => prev.filter((u) => u.id !== user.id));
 
-    axios
-      .delete("https://jsonplaceholder.typicode.com/users/" + user.id)
-      .catch((err) => {
-        alert("Delete failed. " + err.message);
-        setUsers((prev) => [user, ...prev]);
-      });
+    apiClient.delete("/users/" + user.id).catch((err) => {
+      alert("Delete failed. " + err.message);
+      setUsers((prev) => [user, ...prev]);
+    });
   };
 
   const addUser = () => {
@@ -53,8 +51,8 @@ function App() {
     // 乐观更新：先更新 UI
     setUsers((prev) => [optimistic, ...prev]);
 
-    axios
-      .post<User>("https://jsonplaceholder.typicode.com/users", {
+    apiClient
+      .post<User>("/users", {
         name: optimistic.name,
       })
       .then(({ data: saved }) =>
@@ -76,15 +74,10 @@ function App() {
     // 乐观更新：先更新 UI
     setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
 
-    axios
-      .patch(
-        "https://jsonplaceholder.typicode.com/users/" + user.id,
-        updatedUser
-      )
-      .catch((err) => {
-        alert("Update failed. " + err.message);
-        setUsers(originalUsers); // 回滚
-      });
+    apiClient.patch("/users/" + user.id, updatedUser).catch((err) => {
+      alert("Update failed. " + err.message);
+      setUsers(originalUsers); // 回滚
+    });
   };
 
   return (
