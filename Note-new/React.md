@@ -5138,7 +5138,7 @@
 
     - JSONPlaceholder 是 假后端，会重复生成相同的 ID → 产生 “key 重复” 警告。
     - 真实项目中后端会返回唯一 ID，不会有这个问题。
-    - 添加新用户在可以手动调整在列表最上方或者最下面，通过调整展开表达式内的顺序实现
+    - 新用户插入位置可自定义：放列表顶部 `[newUser, ...users]` 或底部 `[...users, newUser]`。
 
 **代码示例**
 
@@ -5146,111 +5146,286 @@
 
     ```tsx
     // App.tsx
-	import { useEffect, useState } from "react";
-	import axios, { CanceledError } from "axios";
-	
-	interface User {
-	  id: number;
-	  name: string;
-	}
-	
-	type Status = "idle" | "loading" | "success" | "error";
-	
-	function App() {
-	  const [users, setUsers] = useState<User[]>([]);
-	  const [status, setStatus] = useState<Status>("idle");
-	  const [error, setError] = useState("");
-	
-	  useEffect(() => {
-	    const controller = new AbortController();
-	    setStatus("loading");
-	
-	    axios
-	      .get<User[]>("https://jsonplaceholder.typicode.com/users", {
-	        signal: controller.signal,
-	      })
-	      .then((res) => {
-	        setUsers(res.data);
-	        setStatus("success");
-	      })
-	      .catch((err) => {
-	        if (err instanceof CanceledError) return;
-	        setError(err.message);
-	        setStatus("error");
-	      });
-	
-	    return () => controller.abort();
-	  }, []);
-	
-	  const deleteUser = (user: User) => {
-	    const originalUsers = [...users];
-	    // 乐观更新：先更新 UI
-	    setUsers((prev) => prev.filter((u) => u.id !== user.id));
-	
-	    axios
-	      .delete("https://jsonplaceholder.typicode.com/users/" + user.id)
-	      .catch((err) => {
-	        alert("Delete failed. " + err.message);
-	        setUsers((prev) => [user, ...prev]);
-	      });
-	  };
-	
-	  const addUser = () => {
-	    const tempId = -Date.now(); // 负数临时 id，避免和服务端正数撞
-	    const optimistic: User = { id: tempId, name: "Mosh" };
-	    // 乐观更新：先更新 UI
-	    setUsers((prev) => [optimistic, ...prev]);
-	
-	    axios
-	      .post<User>("https://jsonplaceholder.typicode.com/users", {
-	        name: optimistic.name,
-	      })
-	      .then(({ data: saved }) =>
-	        // 成功：用返回数据替换掉占位项
-	        {
-	          setUsers((prev) => prev.map((u) => (u.id === tempId ? saved : u)));
-	        }
-	      )
-	      .catch((err) => {
-	        alert("Add user failed. " + err.message);
-	        // 失败：把占位项移除
-	        setUsers((prev) => prev.filter((u) => u.id !== tempId));
-	      });
-	  };
-	
-	  return (
-	    <>
-	      <h1>Users</h1>
-	      <button className="btn btn-primary mb-3" onClick={addUser}>
-	        Add User
-	      </button>
-	      {status === "loading" && <div className="spinner-border"></div>}
-	      {status === "error" && <p className="text-danger">{error}</p>}
-	      {status === "success" && (
-	        <ul className="list-group">
-	          {users.map((u) => (
-	            <li
-	              className="list-group-item d-flex justify-content-between"
-	              key={u.id}
-            >	
-	              {u.name}
-	              <button
-	                className="btn btn-outline-danger"
-	                onClick={() => deleteUser(u)}
-              >	
-	                Delete
-	              </button>
-	            </li>
-	          ))}
-	        </ul>
-	      )}
-	    </>
-	  );
-	}
-	
-	export default App;
+    import { useEffect, useState } from "react";
+    import axios, { CanceledError } from "axios";
+
+    interface User {
+      id: number;
+      name: string;
+    }
+
+    type Status = "idle" | "loading" | "success" | "error";
+
+    function App() {
+      const [users, setUsers] = useState<User[]>([]);
+      const [status, setStatus] = useState<Status>("idle");
+      const [error, setError] = useState("");
+
+      useEffect(() => {
+        const controller = new AbortController();
+        setStatus("loading");
+
+        axios
+          .get<User[]>("https://jsonplaceholder.typicode.com/users", {
+            signal: controller.signal,
+          })
+          .then((res) => {
+            setUsers(res.data);
+            setStatus("success");
+          })
+          .catch((err) => {
+            if (err instanceof CanceledError) return;
+            setError(err.message);
+            setStatus("error");
+          });
+
+        return () => controller.abort();
+      }, []);
+
+      const deleteUser = (user: User) => {
+        const originalUsers = [...users];
+        // 乐观更新：先更新 UI
+        setUsers((prev) => prev.filter((u) => u.id !== user.id));
+
+        axios
+          .delete("https://jsonplaceholder.typicode.com/users/" + user.id)
+          .catch((err) => {
+            alert("Delete failed. " + err.message);
+            setUsers((prev) => [user, ...prev]);
+          });
+      };
+
+      const addUser = () => {
+        const tempId = -Date.now(); // 负数临时 id，避免和服务端正数撞
+        const optimistic: User = { id: tempId, name: "Mosh" };
+        // 乐观更新：先更新 UI
+        setUsers((prev) => [optimistic, ...prev]);
+
+        axios
+          .post<User>("https://jsonplaceholder.typicode.com/users", {
+            name: optimistic.name,
+          })
+          .then(({ data: saved }) =>
+            // 成功：用返回数据替换掉占位项
+            {
+              setUsers((prev) => prev.map((u) => (u.id === tempId ? saved : u)));
+            }
+          )
+          .catch((err) => {
+            alert("Add user failed. " + err.message);
+            // 失败：把占位项移除
+            setUsers((prev) => prev.filter((u) => u.id !== tempId));
+          });
+      };
+
+      return (
+        <>
+          <h1>Users</h1>
+          <button className="btn btn-primary mb-3" onClick={addUser}>
+            Add User
+          </button>
+          {status === "loading" && <div className="spinner-border"></div>}
+          {status === "error" && <p className="text-danger">{error}</p>}
+          {status === "success" && (
+            <ul className="list-group">
+              {users.map((u) => (
+                <li
+                  className="list-group-item d-flex justify-content-between"
+                  key={u.id}
+            >
+                  {u.name}
+                  <button
+                    className="btn btn-outline-danger"
+                    onClick={() => deleteUser(u)}
+              >
+                    Delete
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      );
+    }
+
+    export default App;
     ```
 
     - 点击按钮 → 用户立即出现在列表。
     - 请求成功 → 以服务端返回的用户替换临时数据。
     - 请求失败 → 列表回滚 + 错误提示。
+
+## 更新数据与乐观更新
+
+> 简述：更新数据时也可用 **乐观更新**：先在 UI 中立即修改显示，再向服务器发请求保存。若失败，则回滚到原始状态。更新请求一般使用 **PATCH**（只改部分字段）或 **PUT**（整体替换），具体取决于后端实现。
+
+**知识树**
+
+1. 布局与按钮优化
+
+    - 在用户列表项右侧添加 **Update** 按钮，样式 `btn btn-outline-secondary`。
+    - 与 Delete 按钮放在同一个容器中 → 保持左右对齐。
+    - 使用 `me-2` 添加水平间距，避免按钮贴得太近。
+
+2. 更新逻辑（乐观更新）
+
+    - 点击 Update → 创建一个 `updatedUser` 对象：
+
+        - 基于原用户对象展开。
+        - 修改属性（如 `name + "!"`）。
+
+    - 使用 `map()` 替换指定用户，UI 立即变化。
+
+3. 与服务端同步
+
+    - 发送请求：`axios.patch(url, updatedUser)`。
+    - PATCH → 修改部分属性。PUT → 整体替换。
+    - 根据后端规范选择方法。
+
+4. 错误回滚机制
+
+    - 更新前保存原始数据：`const originalUsers = [...users]`。
+    - 请求失败时：
+
+        - 显示错误信息 `setError(err.message)`。
+        - 回滚：`setUsers(originalUsers)`。
+
+**代码示例**
+
+1. 更新用户并支持错误回滚
+
+    ```tsx
+    // App.tsx
+    import { useEffect, useState } from "react";
+    import axios, { CanceledError } from "axios";
+
+    interface User {
+      id: number;
+      name: string;
+    }
+
+    type Status = "idle" | "loading" | "success" | "error";
+
+    function App() {
+      const [users, setUsers] = useState<User[]>([]);
+      const [status, setStatus] = useState<Status>("idle");
+      const [error, setError] = useState("");
+
+      useEffect(() => {
+        const controller = new AbortController();
+        setStatus("loading");
+
+        axios
+          .get<User[]>("https://jsonplaceholder.typicode.com/users", {
+            signal: controller.signal,
+          })
+          .then((res) => {
+            setUsers(res.data);
+            setStatus("success");
+          })
+          .catch((err) => {
+            if (err instanceof CanceledError) return;
+            setError(err.message);
+            setStatus("error");
+          });
+
+        return () => controller.abort();
+      }, []);
+
+      const deleteUser = (user: User) => {
+        const originalUsers = [...users];
+        // 乐观更新：先更新 UI
+        setUsers((prev) => prev.filter((u) => u.id !== user.id));
+
+        axios
+          .delete("https://jsonplaceholder.typicode.com/users/" + user.id)
+          .catch((err) => {
+            alert("Delete failed. " + err.message);
+            setUsers((prev) => [user, ...prev]);
+          });
+      };
+
+      const addUser = () => {
+        const tempId = -Date.now(); // 负数临时 id，避免和服务端正数撞
+        const optimistic: User = { id: tempId, name: "Mosh" };
+        // 乐观更新：先更新 UI
+        setUsers((prev) => [optimistic, ...prev]);
+
+        axios
+          .post<User>("https://jsonplaceholder.typicode.com/users", {
+            name: optimistic.name,
+          })
+          .then(({ data: saved }) =>
+            // 成功：用返回数据替换掉占位项
+            {
+              setUsers((prev) => prev.map((u) => (u.id === tempId ? saved : u)));
+            }
+          )
+          .catch((err) => {
+            alert("Add user failed. " + err.message);
+            // 失败：把占位项移除
+            setUsers((prev) => prev.filter((u) => u.id !== tempId));
+          });
+      };
+
+      const updateUser = (user: User) => {
+        const originalUsers = [...users];
+        const updatedUser: User = { ...user, name: user.name + "!" };
+        // 乐观更新：先更新 UI
+        setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
+
+        axios
+          .patch(
+            "https://jsonplaceholder.typicode.com/users/" + user.id,
+            updatedUser
+          )
+          .catch((err) => {
+	        alert("Update failed. " + err.message);
+            setUsers(originalUsers); // 回滚
+          });
+      };
+
+      return (
+        <>
+          <h1>Users</h1>
+          <button className="btn btn-primary mb-3" onClick={addUser}>
+            Add User
+          </button>
+          {status === "loading" && <div className="spinner-border"></div>}
+          {status === "error" && <p className="text-danger">{error}</p>}
+          {status === "success" && (
+            <ul className="list-group">
+              {users.map((u) => (
+                <li
+                  className="list-group-item d-flex justify-content-between"
+                  key={u.id}
+            >
+                  {u.name}
+                  <div>
+                    <button
+                      className="btn btn-outline-secondary mx-1"
+                      onClick={() => updateUser(u)}
+                >
+                      Update
+                    </button>
+                    <button
+                      className="btn btn-outline-danger"
+                      onClick={() => deleteUser(u)}
+                >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      );
+    }
+
+    export default App;
+    ```
+
+    - 点击 Update → UI 立即更新用户名。
+    - 请求成功 → 与服务端保持一致。
+    - 请求失败 → 提示错误并回滚列表。

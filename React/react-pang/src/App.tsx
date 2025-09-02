@@ -70,6 +70,23 @@ function App() {
       });
   };
 
+  const updateUser = (user: User) => {
+    const originalUsers = [...users];
+    const updatedUser: User = { ...user, name: user.name + "!" };
+    // 乐观更新：先更新 UI
+    setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
+
+    axios
+      .patch(
+        "https://jsonplaceholder.typicode.com/users/" + user.id,
+        updatedUser
+      )
+      .catch((err) => {
+        alert("Update failed. " + err.message);
+        setUsers(originalUsers); // 回滚
+      });
+  };
+
   return (
     <>
       <h1>Users</h1>
@@ -86,12 +103,20 @@ function App() {
               key={u.id}
             >
               {u.name}
-              <button
-                className="btn btn-outline-danger"
-                onClick={() => deleteUser(u)}
-              >
-                Delete
-              </button>
+              <div>
+                <button
+                  className="btn btn-outline-secondary mx-1"
+                  onClick={() => updateUser(u)}
+                >
+                  Update
+                </button>
+                <button
+                  className="btn btn-outline-danger"
+                  onClick={() => deleteUser(u)}
+                >
+                  Delete
+                </button>
+              </div>
             </li>
           ))}
         </ul>
