@@ -12,7 +12,7 @@ function App() {
   useEffect(() => {
     setStatus("loading");
 
-    const { request, cancel } = userService.getAllUsers();
+    const { request, cancel } = userService.getAll<User>();
     request
       .then((res) => {
         setUsers(res.data);
@@ -32,7 +32,7 @@ function App() {
     // 乐观更新：先更新 UI
     setUsers((prev) => prev.filter((u) => u.id !== user.id));
 
-    userService.deleteUser(user.id).catch((err) => {
+    userService.delete(user.id).catch((err) => {
       alert("Delete failed. " + err.message);
       setUsers((prev) => [user, ...prev]);
     });
@@ -45,7 +45,7 @@ function App() {
     setUsers((prev) => [optimistic, ...prev]);
 
     userService
-      .createUser(optimistic)
+      .create(optimistic)
       .then(({ data: saved }) =>
         setUsers((prev) => prev.map((u) => (u.id === tempId ? saved : u)))
       )
@@ -62,7 +62,7 @@ function App() {
     // 乐观更新：先更新 UI
     setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
 
-    userService.updateUser(updatedUser).catch((err) => {
+    userService.update(updatedUser).catch((err) => {
       alert("Update failed. " + err.message);
       setUsers(originalUsers); // 回滚
     });

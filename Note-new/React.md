@@ -5671,11 +5671,11 @@
       }
 
       createUser(user: User) {
-        return apiClient.post<User>("/users", user);
+        return apiClient.post("/users", user);
       }
 
       updateUser(user: User) {
-        return apiClient.patch<User>("/users/" + user.id, user);
+        return apiClient.patch("/users/" + user.id, user);
       }
     }
 
@@ -5685,6 +5685,7 @@
 2. `App.tsx` 使用
 
     ```tsx
+    // App.tsx
     import { useEffect, useState } from "react";
     import { CanceledError } from "./services/api-client";
     import userService, { User } from "./services/user-service";
@@ -5750,6 +5751,211 @@
         setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
 
         userService.updateUser(updatedUser).catch((err) => {
+          alert("Update failed. " + err.message);
+          setUsers(originalUsers); // 回滚
+        });
+      };
+
+      return (
+        <>
+          <h1>Users</h1>
+          <button className="btn btn-primary mb-3" onClick={addUser}>
+            Add User
+          </button>
+          {status === "loading" && <div className="spinner-border"></div>}
+          {status === "error" && <p className="text-danger">{error}</p>}
+          {status === "success" && (
+            <ul className="list-group">
+              {users.map((u) => (
+                <li
+                  className="list-group-item d-flex justify-content-between"
+                  key={u.id}
+            >
+                  {u.name}
+                  <div>
+                    <button
+                      className="btn btn-outline-secondary mx-1"
+                      onClick={() => updateUser(u)}
+                >
+                      Update
+                    </button>
+                    <button
+                      className="btn btn-outline-danger"
+                      onClick={() => deleteUser(u)}
+                >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      );
+    }
+
+    export default App;
+
+    ```
+
+## 抽离通用 HTTP Service
+
+> 简述：不同实体（用户、帖子…）的增删改查逻辑高度相似，仅 URL 和数据结构不同。与其为每个资源单独写 Service，不如抽象成一个泛型 **HTTP Service**，通过传入 endpoint 与泛型类型，实现代码复用。
+
+**知识树**
+
+1. 为什么要抽象
+
+    - UserService、PostService 逻辑几乎重复：`getAll`、`create`、`update`、`delete`。
+    - 唯一差别：接口路径（endpoint）和对象结构。
+    - 解决方案：用 TypeScript 泛型 + 类 → 写一个通用 HTTP Service。
+
+2. 泛型设计
+
+    - 泛型参数 `<T>` 表示实体类型（如 `User`、`Post`）。
+    - 在方法中使用 `<T>` 替代具体类型。
+    - `update` 方法需要依赖 `id` 字段 → 用约束：`T extends Entity`，其中 `Entity` 接口规定 `id: number`。
+
+3. endpoint 传递
+
+    - 不在方法里传 endpoint，而在构造函数里设置。
+    - 每个资源的 Service 由工厂函数 `create(endpoint)` 生成。
+    - 组件层只写一次 `/users` 或 `/posts`，其余逻辑复用。
+
+4. 方法定义
+
+    - `getAll<T>()` → 获取列表，支持取消请求（返回 `{ request, cancel }`）。
+    - `create<T>(entity: T)` → 新建数据。
+    - `update<T>(entity: T)` → 修改数据（PATCH）。
+    - `delete(id: number)` → 删除数据。
+
+**代码示例**
+
+1. 通用 HTTP Service
+
+    ```ts
+    // services/http-service.ts
+    import apiClient from "./api-client";
+
+    interface Entity {
+      id: number;
+    }
+
+    class HttpService {
+      endpoint: string;
+      constructor(endpoint: string) {
+        this.endpoint = endpoint;
+      }
+
+      getAll<T>() {
+        const controller = new AbortController();
+        const request = apiClient.get<T[]>(this.endpoint, {
+          signal: controller.signal,
+        });
+        return { request, cancel: () => controller.abort() };
+      }
+
+      delete(id: number) {
+        return apiClient.delete(this.endpoint + "/" + id);
+      }
+
+      create<T>(entity: T) {
+        return apiClient.post(this.endpoint, entity);
+      }
+
+      update<T extends Entity>(entity: T) {
+        return apiClient.patch(this.endpoint + "/" + entity.id, entity);
+      }
+    }
+
+    const create = (endpoint: string) => new HttpService(endpoint);
+
+    export default create;
+    ```
+
+2. User Service 基于泛型生成
+
+    ```ts
+    // services/user-service.ts
+    import create from "./http-service";
+
+    export interface User {
+      id: number;
+      name: string;
+    }
+
+    export default create("/users");
+    ```
+
+3. 在组件中使用
+
+    ```tsx
+    // App.tsx
+    import { useEffect, useState } from "react";
+    import { CanceledError } from "./services/api-client";
+    import userService, { User } from "./services/user-service";
+
+    type Status = "idle" | "loading" | "success" | "error";
+
+    function App() {
+      const [users, setUsers] = useState<User[]>([]);
+      const [status, setStatus] = useState<Status>("idle");
+      const [error, setError] = useState("");
+
+      useEffect(() => {
+        setStatus("loading");
+
+        const { request, cancel } = userService.getAll<User>();
+        request
+          .then((res) => {
+            setUsers(res.data);
+            setStatus("success");
+          })
+          .catch((err) => {
+            if (err instanceof CanceledError) return;
+            setError(err.message);
+            setStatus("error");
+          });
+
+        return cancel;
+      }, []);
+
+      const deleteUser = (user: User) => {
+        const originalUsers = [...users];
+        // 乐观更新：先更新 UI
+        setUsers((prev) => prev.filter((u) => u.id !== user.id));
+
+        userService.delete(user.id).catch((err) => {
+          alert("Delete failed. " + err.message);
+          setUsers((prev) => [user, ...prev]);
+        });
+      };
+
+      const addUser = () => {
+        const tempId = -Date.now(); // 负数临时 id，避免和服务端正数撞
+        const optimistic: User = { id: tempId, name: "Mosh" };
+        // 乐观更新：先更新 UI
+        setUsers((prev) => [optimistic, ...prev]);
+
+        userService
+          .create(optimistic)
+          .then(({ data: saved }) =>
+            setUsers((prev) => prev.map((u) => (u.id === tempId ? saved : u)))
+          )
+          .catch((err) => {
+            alert("Add user failed. " + err.message);
+            // 失败：把占位项移除
+            setUsers((prev) => prev.filter((u) => u.id !== tempId));
+          });
+      };
+
+      const updateUser = (user: User) => {
+        const originalUsers = [...users];
+        const updatedUser: User = { ...user, name: user.name + "!" };
+        // 乐观更新：先更新 UI
+        setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
+
+        userService.update(updatedUser).catch((err) => {
           alert("Update failed. " + err.message);
           setUsers(originalUsers); // 回滚
         });
