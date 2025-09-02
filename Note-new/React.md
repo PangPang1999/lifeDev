@@ -4628,7 +4628,7 @@
     - `axios.get(...).then(...).catch(err => {...})`。
     - `catch` 回调接收错误对象，常见属性：`message`、`code`、`response`。
 
-3. shi l 示例处理流程
+3. 示例处理流程
 
     - 定义一个 `error` 状态变量（初始为空字符串）。
     - `.catch` 时调用 `setError(err.message)`。
@@ -4640,40 +4640,134 @@
 
     ```tsx
     // App.tsx
-	import { useEffect, useState } from "react";
-	import axios from "axios";
-	
-	interface User {
-	  id: number;
-	  name: string;
-	}
-	
-	function App() {
-	  const [users, setUsers] = useState<User[]>([]);
-	  const [error, setError] = useState("");
-	
-	  useEffect(() => {
-	    axios
-	      .get<User[]>("https://jsonplaceholder.typicode.com/usersX") // 故意写错
-	      .then((res) => setUsers(res.data))
-	      .catch((err) => setError(err.message));
-	  }, []);
-	
-	  return (
-	    <>
-	      <h1>Users</h1>
-	      {error && <p className="text-danger">{error}</p>}
-	      <ul>
-	        {users.map((user) => (
-	          <li key={user.id}>{user.name}</li>
-	        ))}
-	      </ul>
-	    </>
-	  );
-	}
-	
-	export default App;
+    import { useEffect, useState } from "react";
+    import axios from "axios";
+
+    interface User {
+      id: number;
+      name: string;
+    }
+
+    type Status = "idle" | "loading" | "success" | "error";
+
+    function App() {
+      const [status, setStatus] = useState<Status>("idle");
+      const [users, setUsers] = useState<User[]>([]);
+      const [error, setError] = useState("");
+
+      useEffect(() => {
+        axios
+          .get<User[]>("https://jsonplaceholder.typicode.com/Xusers") // 故意写错
+          .then((res) => {
+            setUsers(res.data);
+            setStatus("success");
+          })
+          .catch((err) => {
+            setError(err.message);
+            setStatus("error");
+          });
+      }, []);
+
+      return (
+        <>
+          <h1>Users</h1>
+          {status === "error" && <p className="text-danger">{error}</p>}
+          {status === "success" && (
+            <ul>
+              {users.map((u) => (
+                <li key={u.id}>{u.name}</li>
+              ))}
+            </ul>
+          )}
+        </>
+      );
+    }
+
+    export default App;
     ```
 
     - 当请求失败时 → `setError` 保存错误信息 → 页面渲染红色错误提示。
     - 当请求成功时 → 渲染用户列表。
+
+## useEffect 中使用 async/await
+
+> 简述：请求返回的是 Promise，可以用 `async/await` 代替 `then/catch`。在 `useEffect` 中不能直接写 `async`，必须在内部定义一个异步函数并调用，再配合 `try/catch` 处理错误。
+
+**知识树**
+
+4. 对比与取舍
+
+    - `then/catch` 写法更简洁。
+    - `async/await` 可读性好，但需要额外函数、`try/catch`、类型断言。
+    - 两种写法都正确，按团队习惯选择。
+
+5. useEffect 的限制
+
+    - React 不允许直接传 `async` 函数给 `useEffect`。
+    - 解决办法：在 `useEffect` 内部定义一个异步函数并调用。
+
+6. 错误处理
+
+    - 异步代码需配合 `try/catch` 捕获错误。
+    - TypeScript 中 `catch` 的 `error` 默认是 `unknown`。
+    - 需要用 `error as AxiosError` 显式断言类型。
+
+**代码示例**
+
+1. async/await 写法
+
+    ```tsx
+    // App.tsx
+    import { useEffect, useState } from "react";
+    import axios, { AxiosError } from "axios";
+
+    interface User {
+      id: number;
+      name: string;
+    }
+
+    type Status = "idle" | "loading" | "success" | "error";
+
+    function App() {
+      const [status, setStatus] = useState<Status>("idle");
+      const [users, setUsers] = useState<User[]>([]);
+      const [error, setError] = useState("");
+
+      useEffect(() => {
+        const fetchUsers = async () => {
+          try {
+            const res = await axios.get<User[]>(
+              "https://jsonplaceholder.typicode.com/users"
+            );
+            setUsers(res.data);
+            setStatus("success");
+          } catch (err) {
+            setError((err as AxiosError).message);
+            setStatus("error");
+          }
+        };
+
+        fetchUsers();
+      }, []);
+
+      return (
+        <>
+          <h1>Users</h1>
+          {status === "error" && <p className="text-danger">{error}</p>}
+          {status === "success" && (
+            <ul>
+              {users.map((u) => (
+                <li key={u.id}>{u.name}</li>
+              ))}
+            </ul>
+          )}
+        </>
+      );
+    }
+
+    export default App;
+    ```
+
+    - `useEffect` 内部定义 `fetchUsers` 异步函数并调用。
+    - `try/catch` 捕获请求失败，错误信息显示在界面上。
+    - 相比 `then/catch`，代码更线性，但更啰嗦。

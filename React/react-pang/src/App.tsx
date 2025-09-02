@@ -1,31 +1,46 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 interface User {
   id: number;
   name: string;
 }
 
+type Status = "idle" | "loading" | "success" | "error";
+
 function App() {
+  const [status, setStatus] = useState<Status>("idle");
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    axios
-      .get<User[]>("https://jsonplaceholder.typicode.com/usersX") // 故意写错
-      .then((res) => setUsers(res.data))
-      .catch((err) => setError(err.message));
+    const fetchUsers = async () => {
+      try {
+        const res = await axios.get<User[]>(
+          "https://jsonplaceholder.typicode.com/users"
+        );
+        setUsers(res.data);
+        setStatus("success");
+      } catch (err) {
+        setError((err as AxiosError).message);
+        setStatus("error");
+      }
+    };
+
+    fetchUsers();
   }, []);
 
   return (
     <>
       <h1>Users</h1>
-      {error && <p className="text-danger">{error}</p>}
-      <ul>
-        {users.map((user) => (
-          <li key={user.id}>{user.name}</li>
-        ))}
-      </ul>
+      {status === "error" && <p className="text-danger">{error}</p>}
+      {status === "success" && (
+        <ul>
+          {users.map((u) => (
+            <li key={u.id}>{u.name}</li>
+          ))}
+        </ul>
+      )}
     </>
   );
 }
