@@ -4771,3 +4771,92 @@
     - `useEffect` 内部定义 `fetchUsers` 异步函数并调用。
     - `try/catch` 捕获请求失败，错误信息显示在界面上。
     - 相比 `then/catch`，代码更线性，但更啰嗦。
+
+## 在 useEffect 中取消请求
+
+> 简述：组件卸载或依赖更新时，正在进行的网络请求可能已无意义。如果不取消，既浪费资源，也可能导致报错。通过 AbortController 配合 `axios` 的 `signal` 参数，可以在清理函数中中止请求，避免无效更新。
+
+**知识树**
+
+1. 为什么要取消请求
+
+    - 用户离开页面 / 组件卸载 → 请求结果不再需要。
+    - 若不取消：请求仍然完成 → 可能触发多余的 `setState`，造成报错或内存泄漏。
+
+2. AbortController
+
+    - 浏览器内置类，用于 主动中止异步操作（如 `fetch`、`axios`）。
+    - 核心属性与方法：
+        - `signal`：一个标识对象，用来通知请求“是否已被取消”。
+        - `abort()`：调用后会触发 `signal` 的中止状态，让关联请求立即失败。
+
+3. 在 useEffect 中结合 axios
+
+    - 发请求时传 `signal`：`axios.get(url, { signal: controller.signal })`。
+    - 在清理函数中调用 `controller.abort()`，确保组件卸载时请求终止。
+
+4. 错误处理
+
+    - axios 提供 `CanceledError` 类型。
+    - 在 `catch` 中判断：
+        - 如果是 `CanceledError` → 忽略（说明是主动取消）。
+        - 其他错误 → 正常处理。
+
+**代码示例**
+
+1. 在 useEffect 中取消未完成请求
+
+    ```tsx
+    // App.tsx
+	import { useEffect, useState } from "react";
+	import axios, { CanceledError } from "axios";
+	
+	interface User {
+	  id: number;
+	  name: string;
+	}
+	
+	type Status = "idle" | "loading" | "success" | "error";
+	
+	function App() {
+	  const [status, setStatus] = useState<Status>("idle");
+	  const [users, setUsers] = useState<User[]>([]);
+	  const [error, setError] = useState("");
+	
+	  useEffect(() => {
+	    const controller = new AbortController();
+	
+	    axios
+	      .get<User[]>("https://jsonplaceholder.typicode.com/users", {
+	        signal: controller.signal,
+	      })
+	      .then((res) => {
+	        setUsers(res.data);
+	        setStatus("success");
+	      })
+	      .catch((err) => {
+	        if (err instanceof CanceledError) return;
+	        setError(err.message);
+	        setStatus("error");
+	      });
+	
+	    return () => controller.abort();
+	  }, []);
+	
+	  return (
+	    <>
+	      <h1>Users</h1>
+	      {status === "error" && <p className="text-danger">{error}</p>}
+	      {status === "success" && (
+	        <ul>
+	          {users.map((u) => (
+	            <li key={u.id}>{u.name}</li>
+	          ))}
+	        </ul>
+	      )}
+	    </>
+	  );
+	}
+	
+	export default App;
+    ```
