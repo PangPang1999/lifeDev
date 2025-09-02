@@ -9,12 +9,13 @@ interface User {
 type Status = "idle" | "loading" | "success" | "error";
 
 function App() {
-  const [status, setStatus] = useState<Status>("idle");
   const [users, setUsers] = useState<User[]>([]);
+  const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
+    setStatus("loading");
 
     axios
       .get<User[]>("https://jsonplaceholder.typicode.com/users", {
@@ -36,6 +37,7 @@ function App() {
   return (
     <>
       <h1>Users</h1>
+      {status === "loading" && <div className="spinner-border"></div>}
       {status === "error" && <p className="text-danger">{error}</p>}
       {status === "success" && (
         <ul>

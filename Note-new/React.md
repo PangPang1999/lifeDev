@@ -4634,6 +4634,10 @@
     - `.catch` 时调用 `setError(err.message)`。
     - 在渲染函数中使用条件渲染：`{error && <p>...</p>}`。
 
+4. 补充`finally`
+
+    - 在`catch`后还可以加上`finally`块，但在严格模型下将失效
+
 **代码示例**
 
 1. 错误处理与提示
@@ -4772,7 +4776,7 @@
     - `try/catch` 捕获请求失败，错误信息显示在界面上。
     - 相比 `then/catch`，代码更线性，但更啰嗦。
 
-## 在 useEffect 中取消请求
+## useEffect 中取消请求
 
 > 简述：组件卸载或依赖更新时，正在进行的网络请求可能已无意义。如果不取消，既浪费资源，也可能导致报错。通过 AbortController 配合 `axios` 的 `signal` 参数，可以在清理函数中中止请求，避免无效更新。
 
@@ -4808,55 +4812,151 @@
 
     ```tsx
     // App.tsx
-	import { useEffect, useState } from "react";
-	import axios, { CanceledError } from "axios";
-	
-	interface User {
-	  id: number;
-	  name: string;
-	}
-	
-	type Status = "idle" | "loading" | "success" | "error";
-	
-	function App() {
-	  const [status, setStatus] = useState<Status>("idle");
-	  const [users, setUsers] = useState<User[]>([]);
-	  const [error, setError] = useState("");
-	
-	  useEffect(() => {
-	    const controller = new AbortController();
-	
-	    axios
-	      .get<User[]>("https://jsonplaceholder.typicode.com/users", {
-	        signal: controller.signal,
-	      })
-	      .then((res) => {
-	        setUsers(res.data);
-	        setStatus("success");
-	      })
-	      .catch((err) => {
-	        if (err instanceof CanceledError) return;
-	        setError(err.message);
-	        setStatus("error");
-	      });
-	
-	    return () => controller.abort();
-	  }, []);
-	
-	  return (
-	    <>
-	      <h1>Users</h1>
-	      {status === "error" && <p className="text-danger">{error}</p>}
-	      {status === "success" && (
-	        <ul>
-	          {users.map((u) => (
-	            <li key={u.id}>{u.name}</li>
-	          ))}
-	        </ul>
-	      )}
-	    </>
-	  );
-	}
-	
-	export default App;
+    import { useEffect, useState } from "react";
+    import axios, { CanceledError } from "axios";
+
+    interface User {
+      id: number;
+      name: string;
+    }
+
+    type Status = "idle" | "loading" | "success" | "error";
+
+    function App() {
+      const [status, setStatus] = useState<Status>("idle");
+      const [users, setUsers] = useState<User[]>([]);
+      const [error, setError] = useState("");
+
+      useEffect(() => {
+        const controller = new AbortController();
+
+        axios
+          .get<User[]>("https://jsonplaceholder.typicode.com/users", {
+            signal: controller.signal,
+          })
+          .then((res) => {
+            setUsers(res.data);
+            setStatus("success");
+          })
+          .catch((err) => {
+            if (err instanceof CanceledError) return;
+            setError(err.message);
+            setStatus("error");
+          });
+
+        return () => controller.abort();
+      }, []);
+
+      return (
+        <>
+          <h1>Users</h1>
+          {status === "error" && <p className="text-danger">{error}</p>}
+          {status === "success" && (
+            <ul>
+              {users.map((u) => (
+                <li key={u.id}>{u.name}</li>
+              ))}
+            </ul>
+          )}
+        </>
+      );
+    }
+
+    export default App;
     ```
+
+## useEffect 显示加载状态
+
+> 简述：请求数据时应给用户反馈。通过在状态中增加 `"loading"` / `"success"` / `"error"` 等枚举值，可以在不同阶段展示 加载中提示、数据内容 或 错误信息。
+
+**知识树**
+
+1. 为什么要有加载状态
+
+    - 异步请求耗时，用户需感知“正在加载”。
+    - 没有提示 → 页面空白，用户以为程序卡死。
+
+2. 状态管理方式
+
+    - 使用 `type Status = "idle" | "loading" | "success" | "error"`。
+    - 用 `useState<Status>("idle")` 声明状态。
+    - 发请求前 → `setStatus("loading")`。
+    - 成功返回 → `setStatus("success")`。
+    - 出错 → `setStatus("error")`。
+
+3. UI 展示逻辑
+
+    - 当 `status === "loading"` → 显示 spinner 或占位符。
+    - 当 `status === "success"` → 显示数据列表。
+    - 当 `status === "error"` → 显示错误提示。
+
+4. 技术细节
+
+    - 不使用独立布尔变量 `isLoading`，而是用联合类型管理状态，避免多变量不一致。
+    - 这样可保证状态只有一个来源，逻辑更清晰。
+
+**代码示例**
+
+1. 基于状态枚举的加载指示
+
+    ```tsx
+    // App.tsx
+    import { useEffect, useState } from "react";
+    import axios, { CanceledError } from "axios";
+
+    interface User {
+      id: number;
+      name: string;
+    }
+
+    type Status = "idle" | "loading" | "success" | "error";
+
+    function App() {
+      const [users, setUsers] = useState<User[]>([]);
+      const [status, setStatus] = useState<Status>("idle");
+      const [error, setError] = useState("");
+
+      useEffect(() => {
+        const controller = new AbortController();
+        setStatus("loading");
+
+        axios
+          .get<User[]>("https://jsonplaceholder.typicode.com/users", {
+            signal: controller.signal,
+          })
+          .then((res) => {
+            setUsers(res.data);
+            setStatus("success");
+          })
+          .catch((err) => {
+            if (err instanceof CanceledError) return;
+            setError(err.message);
+            setStatus("error");
+          });
+
+        return () => controller.abort();
+      }, []);
+
+      return (
+        <>
+          <h1>Users</h1>
+          {status === "loading" && <div className="spinner-border"></div>}
+          {status === "error" && <p className="text-danger">{error}</p>}
+          {status === "success" && (
+            <ul>
+              {users.map((u) => (
+                <li key={u.id}>{u.name}</li>
+              ))}
+            </ul>
+          )}
+        </>
+      );
+    }
+
+    export default App;
+    ```
+
+    - 初始 → `idle`，什么都不显示。
+    - 请求中 → `loading` → 页面展示 Bootstrap spinner。
+    - 请求成功 → `success` → 渲染用户列表。
+    - 请求失败 → `error` → 渲染红色错误提示。
