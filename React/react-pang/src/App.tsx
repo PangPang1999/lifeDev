@@ -34,15 +34,39 @@ function App() {
     return () => controller.abort();
   }, []);
 
+  const deleteUser = (user: User) => {
+    const originalUsers = [...users];
+    // 乐观更新：先更新 UI
+    setUsers(users.filter((u) => u.id !== user.id));
+
+    axios
+      .delete("https://jsonplaceholder.typicode.com/Xusers/" + user.id)
+      .catch((err) => {
+        alert("Delete failed. " + err.message);
+        setUsers(originalUsers);
+      });
+  };
+
   return (
     <>
       <h1>Users</h1>
       {status === "loading" && <div className="spinner-border"></div>}
       {status === "error" && <p className="text-danger">{error}</p>}
       {status === "success" && (
-        <ul>
+        <ul className="list-group">
           {users.map((u) => (
-            <li key={u.id}>{u.name}</li>
+            <li
+              className="list-group-item d-flex justify-content-between"
+              key={u.id}
+            >
+              {u.name}
+              <button
+                className="btn btn-outline-danger"
+                onClick={() => deleteUser(u)}
+              >
+                Delete
+              </button>
+            </li>
           ))}
         </ul>
       )}

@@ -4960,3 +4960,138 @@
     - 请求中 → `loading` → 页面展示 Bootstrap spinner。
     - 请求成功 → `success` → 渲染用户列表。
     - 请求失败 → `error` → 渲染红色错误提示。
+
+## 删除数据与乐观更新
+
+> 简述：在列表中删除数据时，可以先立即更新 UI，再向服务器发送删除请求。这种方式叫 乐观更新，用户能立刻看到结果；若请求失败，再回滚到原始状态。
+
+**知识树**
+
+1.  删除按钮与布局
+
+    - 在用户列表每项后加 `Delete` 按钮。
+    - 使用 Bootstrap：
+        - `list-group`、`list-group-item` → 美化列表。
+        - `d-flex justify-content-between` → 用户名左对齐，按钮右对齐。
+
+2.  删除逻辑设计
+
+    - 乐观更新：
+        - 先更新 UI（从 state 中移除用户）。
+        - 再发请求删除服务端数据。
+        - 如果失败 → 回滚 UI。
+    - 悲观更新：
+
+        - 先发请求，等结果成功再更新 UI。
+        - 缺点：反馈延迟，用户体验差。
+
+    - 实际开发中，多数场景使用乐观更新。
+
+3.  错误回滚机制
+
+    - 删除前先保存一份原始数据：`const originalUsers = [...users]`。
+    - 若请求失败：
+        - 还原 `setUsers(originalUsers)`。
+        - 显示错误提示。
+
+4.  axios 删除请求
+
+        - `axios.delete(url)` 发送请求。
+        - URL 拼接用户 ID：`/users/${user.id}`。
+        - 只需 `.catch` 捕获错误 → 不需 `.then`，因为 UI 已提前更新。
+
+5.  为什么不在 useEffect 里写删除逻辑
+
+    - `useEffect` 用于：
+        - 挂载时执行一次副作用（如初始请求）。
+        - 依赖变化时重新执行逻辑。
+    - 删除用户
+        - 属于用户点击行为，应直接写在事件回调中，而不是依赖驱动的 effect。
+
+**代码示例**
+
+1.  删除用户并回滚错误处理
+
+    ```tsx
+    // App.tsx
+    import { useEffect, useState } from "react";
+    import axios, { CanceledError } from "axios";
+
+    interface User {
+      id: number;
+      name: string;
+    }
+
+    type Status = "idle" | "loading" | "success" | "error";
+
+    function App() {
+      const [users, setUsers] = useState<User[]>([]);
+      const [status, setStatus] = useState<Status>("idle");
+      const [error, setError] = useState("");
+
+      useEffect(() => {
+        const controller = new AbortController();
+        setStatus("loading");
+
+        axios
+          .get<User[]>("https://jsonplaceholder.typicode.com/users", {
+            signal: controller.signal,
+          })
+          .then((res) => {
+            setUsers(res.data);
+            setStatus("success");
+          })
+          .catch((err) => {
+            if (err instanceof CanceledError) return;
+            setError(err.message);
+            setStatus("error");
+          });
+
+        return () => controller.abort();
+      }, []);
+
+      const deleteUser = (user: User) => {
+        const originalUsers = [...users];
+        // 乐观更新：先更新 UI
+        setUsers(users.filter((u) => u.id !== user.id));
+
+        axios
+          .delete("https://jsonplaceholder.typicode.com/Xusers/" + user.id)
+          .catch((err) => {
+            alert("Delete failed. " + err.message);
+            setUsers(originalUsers);
+          });
+      };
+
+      return (
+        <>
+          <h1>Users</h1>
+          {status === "loading" && <div className="spinner-border"></div>}
+          {status === "error" && <p className="text-danger">{error}</p>}
+          {status === "success" && (
+            <ul className="list-group">
+              {users.map((u) => (
+                <li
+                  className="list-group-item d-flex justify-content-between"
+                  key={u.id}
+            >
+                  {u.name}
+                  <button
+                    className="btn btn-outline-danger"
+                    onClick={() => deleteUser(u)}
+              >
+                    Delete
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      );
+    }
+
+    export default App;
+    ```
+
+    - 删除成功：UI 即时更新，体验流畅。
+    - 删除失败：错误提示 + 回滚数据，确保一致性。
