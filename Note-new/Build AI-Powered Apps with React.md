@@ -249,3 +249,83 @@
 
     - 下节课将介绍如何编程计数 tokens，以便估算成本并确保请求在上下文窗口限制内。
 
+## 计算 Tokens 的方法
+
+> 简述：通过编程计算 tokens，可以估算与管理模型的使用成本，确保请求不会超出限制。使用 Tiktoken 库，可以轻松计算输入文本的 token 数量。本节介绍一个简单的计算 token 工具 tiktoken
+
+**知识树**
+
+1. 初始化项目与安装依赖
+
+    - 创建一个项目目录并初始化 `package.json` 文件。
+    - 安装 `tiktoken` 库：用于分解文本为 tokens。
+        ```sh
+        mkdir playground # 创建项目目录
+        cd playground
+        npm init --y # 初始化项目，创建 `package.json` 文件。
+        npm i tiktoken # 安装 `tiktoken` 库：用于分解文本为 tokens。
+        ```
+
+2. Tiktoken 使用
+
+    - 在 VS Code 中创建 `index.js` 文件
+    - 导入并使用 `getEncoding` 函数获取编码器。
+    - 编码器将文本转换为 tokens。
+    - 使用 `node index.js` 运行代码
+
+3. 处理语法
+
+    - 该初始化方式创建项目后，默认为 CommonJS 模块格式，建议调整为 module 模式，确保代码按预期运行。
+
+**代码示例**
+
+1. 创建 `index.js` 文件并导入 `tiktoken`
+
+    ```javascript
+    // index.js
+    import { getEncoding } from "tiktoken";
+
+    const encoding = getEncoding("cl100k_base"); // 使用默认编码
+    const tokens = encoding.encode(
+    	"hello world this is the first test of tiktoken library"
+    );
+    console.log(tokens);
+
+    // 输出示例
+    ╰─ node index.js
+    Uint32Array(11) [
+      15339, 1917,   420,
+        374,  279,  1176,
+       1296,  315, 87272,
+       5963, 6875
+    ]
+    ```
+
+    - 通过 `getEncoding` 获取编码器，将输入文本分解为多个 tokens，并输出。
+
+2. 处理模块语法错误：
+
+    如果使用 ES 模块导入时遇到错误，可以调整 `package.json` 配置：
+
+    ```json
+    // package.json
+    {
+    	"name": "playground",
+    	"version": "1.0.0",
+    	"description": "",
+    	"type": "module", // 新增（修改后删除注释）
+    	"main": "index.js",
+    	"scripts": {
+    		"test": "echo \"Error: no test specified\" && exit 1"
+    	},
+    	"keywords": [],
+    	"author": "",
+    	"license": "ISC",
+    	"dependencies": {
+    		"tiktoken": "^1.0.22"
+    	}
+    }
+    ```
+
+    - 设置 `type` 为 `module`，以便使用 ES 模块语法。
+
