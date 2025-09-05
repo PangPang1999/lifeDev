@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "openai": "^5.19.1",
     "tiktoken": "^1.0.22"
   }
 }

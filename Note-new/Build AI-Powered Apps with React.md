@@ -425,3 +425,149 @@
     - 速度：更强模型常更慢；实时体验（自动补全、短答）优先选快模型并控制输出长度。
     - 模态：有的仅文本输出；有的支持图像输入；需要“生成图像”需选专门图像模型。选型以“需求 → 能力 → 成本/延迟”倒推，而非盲目追新。
 
+## 调用模型（openai）
+
+> 简述：用 OpenAI JS SDK 调用模型，安全保存密钥，设置参数，读取普通响应与流式响应，必要时产出 JSON/JSON Schema，拿到用量与响应 ID 做观测。
+
+**知识树**
+
+1. 基础步骤
+
+    1. 准备 API Key
+        - 在控制台创建 API Key，并分配到项目。
+        - 一般情况下密钥放环境变量，不写进源码。
+    2. 安装 openai 依赖
+        - `npm i openai`
+
+2. 基本调用（同步拿整块结果）
+
+    ```js
+    import OpenAI from "openai";
+
+    const OPENAI_API_KEY = "";
+
+    // 创建 OpenAI 客户端
+    const client = new OpenAI({
+    	apiKey: OPENAI_API_KEY,
+    });
+
+    const responses = await client.responses.create({
+    	model: "gpt-4.1",
+    	input: "Write a story about a robot",
+    	temperature: 0.7,
+    	max_output_tokens: 50,
+    });
+
+    console.log(responses);
+    ```
+
+3. 基本输出内容
+
+    ```json
+    {
+    	"id": "resp_68b99853289481908beaa09f6c0e48a40cf02427dc5db744", // 当前响应的唯一 ID
+    	"object": "response", // 对象类型，这里是 response（表示一次生成响应）
+    	"created_at": 1756993619, // 响应生成的时间戳（Unix 时间）
+    	"status": "incomplete", // 响应状态，这里是未完成（因被截断或其他原因）
+    	"background": false, // 是否在后台运行
+    	"error": null, // 错误信息（如果有错误会在这里体现）
+    	"incomplete_details": { "reason": "max_output_tokens" }, // 未完成的原因，这里是达到最大输出 token 限制
+    	"instructions": null, // 额外的指令信息（如果有会出现在这里）
+    	"max_output_tokens": 50, // 本次生成允许的最大输出 token 数
+    	"max_tool_calls": null, // 限制的最大工具调用次数（为 null 表示无限制或未指定）
+    	"model": "gpt-4.1-2025-04-14", // 使用的模型名称和版本
+    	"output": [
+    		// 模型的输出结果（数组形式，因为可能有多个输出单元）
+    		{
+    			"id": "msg_68b99854caec81909c1784fad33720f60cf02427dc5db744", // 输出消息的唯一 ID
+    			"type": "message", // 输出的类型，这里是 message（文本消息）
+    			"status": "incomplete", // 该消息的状态，这里是未完成
+    			"content": [Array], // 消息的实际内容（这里被省略为 [Array]）
+    			"role": "assistant" // 角色，表示这是助手（AI）生成的
+    		}
+    	],
+    	"parallel_tool_calls": true, // 是否支持并行调用工具
+    	"previous_response_id": null, // 上一个响应的 ID（用于链式对话时）
+    	"prompt_cache_key": null, // 提示词缓存键（若启用缓存可复用）
+    	"reasoning": { "effort": null, "summary": null }, // 模型的推理相关信息（如摘要、推理强度）
+    	"safety_identifier": null, // 安全过滤相关的标识（如有风险会有值）
+    	"service_tier": "default", // 服务等级（可能有 default、premium 等）
+    	"store": true, // 是否存储此次响应
+    	"temperature": 0.7, // 生成随机性参数，数值越高输出越多样化
+    	"text": { "format": { "type": "text" }, "verbosity": "medium" }, // 文本输出的格式和详细程度
+    	"tool_choice": "auto", // 工具调用策略（auto 表示自动选择）
+    	"tools": [], // 可用的工具列表（为空表示未使用工具）
+    	"top_logprobs": 0, // 是否返回 token 的概率分布（0 表示不返回）
+    	"top_p": 1, // nucleus sampling 参数，控制采样多样性
+    	"truncation": "disabled", // 是否启用截断，这里是禁用
+    	"usage": {
+    		// token 使用情况
+    		"input_tokens": 13, // 输入 token 数量
+    		"input_tokens_details": { "cached_tokens": 0 }, // 输入 token 细节（缓存命中数）
+    		"output_tokens": 50, // 输出 token 数量
+    		"output_tokens_details": { "reasoning_tokens": 0 }, // 输出 token 细节（推理 token 数）
+    		"total_tokens": 63 // 总 token 数（输入+输出）
+    	},
+    	"user": null, // 用户 ID（如果有会出现在这里）
+    	"metadata": {}, // 元数据（通常是开发者自定义）
+    	"output_text": "Once upon a time, ... Pixel" // 拼接后的完整输出文本
+    }
+    ```
+
+4. 流式输出（边生成边显示）
+
+    ```js
+    import OpenAI from "openai";
+
+    const OPENAI_API_KEY = "";
+
+    const client = new OpenAI({
+    	apiKey: OPENAI_API_KEY,
+    });
+
+    const stream = await client.responses.create({
+    	model: "gpt-4.1",
+    	input: "Write a story about a robot",
+    	temperature: 0.7,
+    	max_output_tokens: 50,
+    	stream: true, // 传 `stream: true` 获得异步可迭代对象。
+    });
+
+    // Async iterable stream
+    for await (const event of stream) {
+    	// console.log(event);
+    	// 执行后，会发现，需要的内容为每个event的delta属性
+    	// 并非每一个event都有delta属性，需要进行判空
+    	// 此外为避免按单词输出，需要使用process.stdout.write
+
+    	// 该输出方式接近平时使用的GPT的回复方式，即“边出边看”
+    	if (event.delta) process.stdout.write(event.delta);
+    }
+    ```
+
+5. 两个常见坑与对策
+
+    - 输出被截断：增大 `max_output_tokens`，并在提示里加“请输出完整答案，不要中途截断”。
+    - 终端打印出现 `undefined`：只在 `event.delta` 存在时写出，不要对所有事件输出
+
+6. DeepSeek 补充（同样是安装 openai 依赖）
+
+    ```js
+    const client = new OpenAI({
+    	baseURL: "https://api.deepseek.com/v1",
+    	apiKey: DeepSeek_API_Key,
+    });
+
+    const stream = await client.chat.completions.create({
+    	model: "deepseek-chat",
+    	messages: [{ role: "user", content: "写一个关于机器人的故事" }],
+    	temperature: 0.7,
+    	max_tokens: 250,
+    	stream: true, // 开启流式
+    });
+
+    // 遍历流式响应
+    for await (const chunk of stream) {
+    	process.stdout.write(chunk.choices[0]?.delta?.content || "");
+    }
+    ```
