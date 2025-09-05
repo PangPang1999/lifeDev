@@ -380,3 +380,48 @@
     - 通过对比不同模型的能力、成本和特点，选择最适合的模型。
     - 可在平台提供的模型比较工具中查看具体模型的上下文窗口、输出 token 数量限制及价格等关键参数。
 
+## 模型设置与输出控制
+
+> 简述：用少量开关，决定模型“产什么”“多随机”“多长”“怎么追踪”。学会这些设置，输出才可解析、可控、可复现。
+
+**知识树**
+
+0. openai 调试说明
+
+    - 地址：https://platform.openai.com/chat/edit?models=gpt-4.1
+    - 缺点：付费麻烦，国内充值 openai 存在巨大阻力
+    - 优点：相较于 deepseek，openai 更方便在线调试参数进行测试，本节基于 openai 进行调试
+
+1. 输出格式（text / JSON object / JSON schema）
+
+    - text：直接自然语言，读起来顺滑，但不便机器处理。
+    - JSON object：要求“结构化回复”，后端易解析。示例提示：`请以JSON返回：{ "benefits": string[] }`。
+        - 如：`give me 3 benefit of exercising as a json object`
+    - JSON schema：先定义字段与类型（如 exercise.benefits 为 string\[]、required 等），再让模型按此生成，更稳更可控。适合“必须合规”的接口回复。
+        - 如：点击 Generate，配合`{"exercise":{"benifits":[]}`，可快速生成标准的格式
+
+2. 随机性与风格（temperature 与 top_p）
+
+    - temperature：数值越高越发散，越低越确定。
+        - 总结/事实问答用低值（≈0.2–0.4）
+        - 脑暴/文案用高值（≈0.7–1.0）
+        - 极端值易胡言乱语，避免接近 0 或 2
+    - top_p：按“累积概率”裁剪可选词。低 top_p 只取最可能的词，更保守
+    - 通常只调一个旋钮（temperature 或 top_p），不同时大改；拿不准就只调 temperature。
+
+3. 长度与上下文（max output tokens 与 context window）
+
+    - max output tokens：限制“单次回复的最大长度”。值太小会中途截断。
+        - 两种缓解：
+            - 提高上限；
+            - 在提示中明确要求“写完整答案，不要中途截断”。
+                - 如：`write a story about a robot in 50 tokens or less. write a complete answer without cutting off mind-sentence`
+    - context window：一次请求能承载的总 token 上限＝输入 + 输出 +（对话历史）。做长文档总结/长会话，需选更大的窗口。注意：大窗口 ≠ 无限输出，仍受 max output tokens 约束。
+
+4. 可观测性与成本（日志、价格、速度、模态）
+
+    - 日志（store logs）：默认开启。Dashboard→Logs 可看每次请求的输入/输出、模型、时间、token 用量、温度、响应 ID 等；响应 ID 可用于会话追踪与调试。处理敏感数据时，评估是否需要关闭或做脱敏。
+    - 价格：输入与输出分开计费；长文档或长回复成本增长快。先估 token，再定格式与上限。
+    - 速度：更强模型常更慢；实时体验（自动补全、短答）优先选快模型并控制输出长度。
+    - 模态：有的仅文本输出；有的支持图像输入；需要“生成图像”需选专门图像模型。选型以“需求 → 能力 → 成本/延迟”倒推，而非盲目追新。
+
