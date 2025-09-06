@@ -571,3 +571,16 @@
     	process.stdout.write(chunk.choices[0]?.delta?.content || "");
     }
     ```
+
+# Setting Up a Modern Full-Stack Project
+
+## Tech Intro
+
+1. 将要使用的技术
+    - Bun：类似 Node.js
+    - Vite：前端构建工具
+    - Express：轻量级 Web 框架
+    - Tailwind：一个原子化的 CSS 框架
+    - shadcn/ui：一个基于 Radix UI + Tailwind 的组件库
+    - Prettier：代码格式化工具
+    - Husky：Git hooks 工具，在 Git 提交或推送时自动执行脚本，常见于提交前运行 Prettier / ESLint / 测试。
