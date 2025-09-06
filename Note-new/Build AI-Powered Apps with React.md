@@ -584,3 +584,25 @@
     - shadcn/ui：一个基于 Radix UI + Tailwind 的组件库
     - Prettier：代码格式化工具
     - Husky：Git hooks 工具，在 Git 提交或推送时自动执行脚本，常见于提交前运行 Prettier / ESLint / 测试。
+
+## Bun 介绍
+
+> 简述：Bun 是一体化的 JavaScript/TypeScript 运行时与工具链（运行时 + 包管理器 + 任务运行器 + TS 转译）。相比 Node 需要多件工具配合，Bun 开箱即用、更顺手；若偏好 Node，也能完成同样工作。
+
+**知识树**
+
+1. Bun 是什么
+
+    - 现代 JavaScript/TypeScript 运行时工具，兼具集成包管理与构建功能。
+
+2. 对比 Node
+
+    - Node.js：是一个让 JavaScript 能在服务器上跑的环境，它用 V8 引擎，并提供文件、网络等接口。
+    - Bun：也是让 JavaScript/TypeScript 能在服务器上跑的环境，但内置了包管理、打包、测试等功能，目标是更快更全。
+
+3. 安装与校验
+
+    - 官网：https://bun.sh/
+    - 安装命令（mac）：`curl -fsSL https://bun.sh/install | bash`
+        - 安装后根据提示，执行`exec /bin/zsh `
+    - 校验：`bun --version`，看到版本号即安装成功。
