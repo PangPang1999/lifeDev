@@ -745,14 +745,117 @@
 
 **知识树**
 
-0. Vite
+1. Vite
 
     - 官网：https://vite.dev/
     - 对应 bun 的初始化命令是`bun create vite`，在当前目录中初始化，命令为`bun create vite .`
 
-1. 初始化
+2. 初始化
 
     - 进入`packages/client`
     - 使用 vite 初始化`bbun create vite .`，在选项中 选择 `React`，之后选择 `TypeScript`
     - 使用`bun install`或者`bun i`初始化项目
     - 启动命令`bun run dev`
+
+## 前后端连接
+
+> 简述：前端要访问后端接口，需要在服务端定义 API，再在客户端调用。由于前端和后端运行在不同端口，需要配置代理，把以 `/api` 开头的请求转发到后端。
+
+**知识树**
+
+1. 服务端定义接口
+
+    - 在 `server/index.ts` 添加新路由，方便前端获取结构化数据。
+        - 路径：`/api/hello`
+        - 返回 JSON：`{ message: "hello world" }`
+
+2. 客户端调用接口
+
+    - 在 `App.tsx` 中：
+        - 用 `useState` 保存响应数据。
+        - 用 `useEffect` 在组件挂载时调用 `fetch("/api/hello")`。
+        - 把返回的 `data.message` 设置到 state，并渲染到页面
+
+3. 代理配置
+
+    - 因为 Vite 前端项目与后端端口不同，直接请求 `/api/hello` 会失败。
+    - 在 `vite.config.ts` 里配置
+        ```ts
+        server: {
+          proxy: {
+            "/api": "http://localhost:3000" // 后端地址
+          }
+        }
+        ```
+    - 这样前端请求 `/api/...` 会被自动转发到后端。
+
+4. 整体流程
+
+    - 浏览器请求 `/api/hello` → Vite 代理 → 后端返回 JSON → React 组件接收并展示。
+
+**代码示例**
+
+1. 服务端接口
+
+    ```js
+    // package/server/index.js
+    import express from "express";
+    import type { Request, Response } from "express";
+    import dotenv from "dotenv";
+
+    dotenv.config();
+
+    const app = express();
+    const port = process.env.PORT || 3000;
+
+    app.get("/api/hello", (req: Request, res: Response) => {
+    	res.json({ message: "Hello, World!" }); // 返回json
+    });
+
+    app.listen(port, () => {
+    	console.log(`Server is running at http://localhost:${port}`);
+    });
+    ```
+
+2. 客户端调用
+
+    ```tsx
+    // package/client/src/App.tsx
+    import { useEffect, useState } from "react";
+
+    function App() {
+      const [message, setMessage] = useState("");
+
+      useEffect(() => {
+        fetch("/api/hello")
+          .then((response) => response.json())
+          .then((data) => setMessage(data.message));
+      }, []);
+
+      return (
+        <>
+          <p>{message}</p>
+        </>
+      );
+    }
+
+    export default App;
+    ```
+
+3. Vite 代理配置
+
+    ```ts
+    // package/client/vite.config.ts
+    import { defineConfig } from "vite";
+    import react from "@vitejs/plugin-react";
+
+    // https://vite.dev/config/
+    export default defineConfig({
+      plugins: [react()],
+      server: {
+        proxy: {
+          "/api": "http://localhost:3000",
+        },
+      },
+    });
+    ```
