@@ -583,7 +583,7 @@
     - Tailwind：一个原子化的 CSS 框架
     - shadcn/ui：一个基于 Radix UI + Tailwind 的组件库
     - Prettier：代码格式化工具
-    - Husky：Git hooks 工具，在 Git 提交或推送时自动执行脚本，常见于提交前运行 Prettier / ESLint / 测试。
+    - Husky：Git ho2oks 工具，在 Git 提交或推送时自动执行脚本，常见于提交前运行 Prettier / ESLint / 测试。
 
 ## Bun 介绍
 
@@ -606,3 +606,42 @@
     - 安装命令（mac）：`curl -fsSL https://bun.sh/install | bash`
         - 安装后根据提示，执行`exec /bin/zsh `
     - 校验：`bun --version`，看到版本号即安装成功。
+
+## 项目结构
+
+> 简述：本节演示一个基础的全栈项目（前端+后端），本节搭建一个基本结构
+
+**知识树**
+
+1. 初始化
+
+    - 创建根目录`my-app`
+    - 使用 bun 初始化`bun init`，在选项中 选择 `Blank`
+    - 删除`.cursor`目录（由于该项目不用 cursor）
+
+2. 创建工作目录
+
+    - 创建 packages，其内创建`client`、`server`文件夹，分别作为前端和后端的根目录
+
+3. 设置工作目录
+
+    - 在`package.json`中设置工作目录，增加 workspaces 属性，如
+        ```json
+          "workspaces": [
+            "packages/*"
+          ]
+        ```
+    - 作用
+        1. 组织多个子项目（包）：
+            - 这样 packages/ 下的每个文件夹（如 packages/api、packages/ui）都会被当作一个独立 npm 包。
+        2. 依赖统一管理
+            - 所有子项目的依赖会被提升（hoist）到根目录的 `node_modules`，避免重复安装。
+            - 根目录 `package.json` 可以放公共依赖。
+        3. 子项目之间的本地联动
+            - 如果 `packages/api` 依赖 `packages/ui`，不用先发布到 npm，workspace 会自动把它们链接在一起。
+            - 就像使用本地包，但管理方式和 npm 发布的一样。
+        4. 工具支持
+            - bun、yarn、pnpm、npm（7+）都支持 `workspaces`。
+            - 常见命令如 `yarn install` 会一次性安装整个 Monorepo 的依赖。
+
+
