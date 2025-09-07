@@ -738,3 +738,21 @@
     	console.log(`Server is running at http://localhost:${port}`);
     });
     ```
+
+## Vite 构建 React 前端
+
+> 简述： 使用 Vite 搭建简单的 React 前端
+
+**知识树**
+
+0. Vite
+
+    - 官网：https://vite.dev/
+    - 对应 bun 的初始化命令是`bun create vite`，在当前目录中初始化，命令为`bun create vite .`
+
+1. 初始化
+
+    - 进入`packages/client`
+    - 使用 vite 初始化`bbun create vite .`，在选项中 选择 `React`，之后选择 `TypeScript`
+    - 使用`bun install`或者`bun i`初始化项目
+    - 启动命令`bun run dev`
