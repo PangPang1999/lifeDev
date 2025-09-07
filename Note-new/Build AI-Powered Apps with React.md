@@ -859,3 +859,76 @@
       },
     });
     ```
+
+## 一条命令同时启动前后端
+
+> 简述：用 `concurrently` 在项目根目录并行启动 server 和 client，用一个终端完成开发启动，并用前缀颜色区分日志。
+
+**知识树**
+
+1. 安装与位置
+
+    - 在项目根安装开发依赖 concurrently，命令`bun add -d concurrently`
+    - 需在根目录执行启动命令，避免开两个终端。
+
+2. 根脚本组织并行任务
+
+    - 在根目录的 `index.ts` 引入 concurrently 并调用。
+    - 传入命令数组，每个命令描述一个应用：
+    - 细分
+        - `name`：任务名（如 `server`、`client`），用于日志前缀。
+        - `command`：启动指令（如 `bun run dev`）。
+        - `cwd`：工作目录（如 `packages/server`、`packages/client`）。
+        - `prefixColor`：前缀颜色（如 `cyan`、`green`）用于区分输出。
+
+3. 封装根级启动脚本
+
+    - 在根 `package.json` 增加脚本：`"dev": "bun run index.ts"`。
+    - 后续只需在根目录执行：`bun run dev`，即可同时拉起前后端。
+
+**代码示例**
+
+1. 根目录下`index.ts`
+
+    ```ts
+    // index.ts
+    import concurrently from "concurrently";
+
+    concurrently([
+      {
+        name: "server",
+        command: "bun run dev",
+        cwd: "packages/server",
+        prefixColor: "cyan",
+      },
+      {
+        name: "client",
+        command: "bun run dev",
+        cwd: "packages/client",
+        prefixColor: "green",
+      },
+    ]);
+    ```
+
+2. 根目录下`package.json`
+
+    ```json
+    // package.json
+    {
+    	"name": "my-app",
+    	"module": "index.ts",
+    	"type": "module",
+    	"private": true,
+    	"scripts": {
+    		"dev": "bun run index.ts"
+    	},
+    	"devDependencies": {
+    		"@types/bun": "latest",
+    		"concurrently": "^9.2.1"
+    	},
+    	"peerDependencies": {
+    		"typescript": "^5"
+    	},
+    	"workspaces": ["packages/*"]
+    }
+    ```
