@@ -644,4 +644,38 @@
             - bun、yarn、pnpm、npm（7+）都支持 `workspaces`。
             - 常见命令如 `yarn install` 会一次性安装整个 Monorepo 的依赖。
 
+## 构建 express 后端
 
+> 简述： 使用 express 搭建简单的后端
+
+**知识树**
+
+1. 初始化
+
+    - 进入`packages/server`
+    - 使用 bun 初始化`bun init`，在选项中 选择 `Blank`
+    - 删除`.cursor`目录（由于该项目不用 cursor）
+
+2. 安装 `express`
+
+    - `bun add express`
+
+3. 安装 `@types/express`
+
+    - `bun add -d @types/express`
+    - `-d` 即 `--dev`，表示安装到 开发依赖（devDependencies），而不是 dependencies。
+    - 这是 Express 的 TypeScript 类型定义包。
+    - 因为 Express 本身是用 JavaScript 写的，不带 TypeScript 类型。
+    - 装上 `@types/express` 后，编辑器和编译器就能识别 Express 的 API，提供 类型检查 和 自动补全。
+
+4. 代码
+
+    - 通过`app.get`定义一个 GET 接口
+    - 通过`app.listen`定义监听端口
+    - 通过`bun run index.ts`命令启动后端
+
+5. 定义启动命令
+
+    - 在`client`中的`package.json`中，定义`scripts`
+    - 设置`start: bun run index.ts`，将启动命令简化为`bun start`，或者`bun run start`
+    - 设置`dev: "bun --watch run index.ts"`，设置热部署命令为`bun dev`，或者`bun run dev`
