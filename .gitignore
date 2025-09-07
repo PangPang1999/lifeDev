@@ -1,12 +1,8 @@
-.DS_Store
+# Personal ignores
 
-node_modules/
-dist/
-.cache/
-.parcel-cache
-package-lock.json
+open-webui.md
+SpringCloud.md
 
-.history
 txt字幕/
 JavaScript学习视频/
 字幕管理/
@@ -18,6 +14,19 @@ thret.md
 未命名1.md
 未命名2.md
 learn.md
+
+
+# Default ignores
+.DS_Store
+
+node_modules/
+dist/
+.cache/
+.parcel-cache
+package-lock.json
+
+.history
+
 # .obsidian/
 
 out/
