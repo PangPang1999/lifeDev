@@ -679,3 +679,62 @@
     - 在`client`中的`package.json`中，定义`scripts`
     - 设置`start: bun run index.ts`，将启动命令简化为`bun start`，或者`bun run start`
     - 设置`dev: "bun --watch run index.ts"`，设置热部署命令为`bun dev`，或者`bun run dev`
+
+## 用环境变量安全管理 API Key
+
+> 简述：API Key 是敏感信息，不能写进源码。正确做法是交给操作系统的环境变量去保存，在本地开发时用 `dotenv` 或其他工具自动加载，并通过 `.env.example` 告诉团队需要哪些变量。每次修改后都要重启应用，新的值才会生效。
+
+**知识树**
+
+1. 为什么不能写进源码
+
+    - 一旦把 Key 写在代码里，只要代码被共享或上传，任何人都能用这个 Key 调接口，费用算在你头上。
+    - 安全起见，Key 应该始终隔离在源码之外。
+
+2. 如何在系统里存 Key
+
+    - Mac/Linux 用 `export`，Windows 用 `set` 或 `$env:`，把 Key 写入环境变量。
+    - 例如：`export OPENAI_API_KEY=1234`，在代码里通过 `process.env.OPENAI_API_KEY` 读取即可。
+
+3. 本地开发的简化方案：dotenv
+
+    - 手动每次 export 太麻烦，可以安装 `dotenv` 库，命令`bun add dotenv`
+    - 在项目根目录放一个 `.env` 文件，把 Key 写进去，`=`前后不留空格，不使用`""`
+        ```
+        OPENAI_API_KEY=sk-xxxx
+        ```
+    - 在入口文件第一行加 `import 'dotenv/config'`，运行时会自动加载变量。
+    - `.env` 默认被 gitignore 忽略，不会上传到代码仓库。
+
+4. 最佳实践
+
+    - 用 `.env.example` 列出需要的变量名，不写值。
+    - 团队成员复制为 `.env` 并填入各自的 Key。
+
+5. 常见问题
+
+    - 如果之前在终端设置过同名变量，会覆盖 `.env` 的值，需要清掉再运行。
+    - 修改 `.env` 后必须重启应用才能生效。
+
+**代码示例**
+
+1. 引入 `dotenv`
+
+    ```js
+    import express from "express";
+    import type { Request, Response } from "express";
+    import dotenv from "dotenv";
+
+    dotenv.config(); // 写在最前面
+
+    const app = express();
+    const port = process.env.PORT || 3000;
+
+    app.get("/", (req: Request, res: Response) => {
+    	res.send(process.env.OPENAI_API_KEY);
+    });
+
+    app.listen(port, () => {
+    	console.log(`Server is running at http://localhost:${port}`);
+    });
+    ```
