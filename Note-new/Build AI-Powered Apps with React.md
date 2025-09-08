@@ -932,3 +932,92 @@
     	"workspaces": ["packages/*"]
     }
     ```
+
+## 集成 Tailwind CSS
+
+> 简述：使用 Tailwind CSS 提供的原子化类名，直接在组件中完成样式定义，避免频繁切换 CSS 文件与 JSX。安装与配置完成后，可以快速应用字体、颜色、间距等常用样式。
+
+**知识树**
+
+0. 删除 `index.css` 中样式
+
+1. 什么是 Tailwind
+
+    - Utility-first 的 CSS 框架，提供大量原子类，通过类名直接组合出所需样式，减少手写 CSS。
+    - 官网：https://tailwindcss.com/
+    - 安装：https://tailwindcss.com/docs/installation/using-vite
+    - 官网是安装指南使用的是 npm，这一节使用 bun 来进行安装，如下
+
+2. 安装依赖
+
+    - 终端进入客户端目录：`cd packages/client`
+    - 安装 Tailwind 与相关插件：`bun add tailwindcss @tailwindcss/vite`
+
+3. 配置 Vite
+
+    - 在 `vite.config.ts` 中引入并启用 Tailwind 插件（官网教程）
+        - `import tailwindcss from "@tailwindcss/vite";`
+        - 在`plugins`数组中增加`tailwindcss()`
+    - 在 `index.css` 中导入 Tailwind
+        - `@import "tailwindcss";`
+    - 在 VSCODE 中安装插件 `Tailwind CSS IntelliSense` 获得自动补全
+
+4. 在组件中使用
+
+    - JSX 元素上添加类名完成样式控制，如
+        - `font-bold`：加粗字体。
+        - `p-4`：设置 内边距（padding）为 1rem（16px），四个方向都生效。
+        - `tsxt-3xl`：设置 字体大小为 1.875rem（30px），行高为 2.25rem（36px）。
+
+**代码示例**
+
+1. Vite 配置
+
+    ```ts
+    // package/client/vite.config.ts
+    import { defineConfig } from "vite";
+    import react from "@vitejs/plugin-react";
+    import tailwindcss from "@tailwindcss/vite";
+
+    // https://vite.dev/config/
+    export default defineConfig({
+      plugins: [react(), tailwindcss()],
+      server: {
+        proxy: {
+          "/api": "http://localhost:3000",
+        },
+      },
+    });
+    ```
+
+2. 客户端调用
+
+    ```tsx
+    // package/client/src/index.css
+    @import "tailwindcss";
+    ```
+
+3. 客户端调用
+
+    ```tsx
+    // package/client/src/App.tsx
+    import { useEffect, useState } from "react";
+
+    function App() {
+      const [message, setMessage] = useState("");
+
+      useEffect(() => {
+        fetch("/api/hello")
+          .then((response) => response.json())
+          .then((data) => setMessage(data.message));
+      }, []);
+
+      return (
+        <>
+          <p className="font-bold p-4 text-3xl">{message}</p>
+        </>
+      );
+    }
+
+    export default App;
+    ```
