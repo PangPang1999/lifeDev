@@ -1,3 +1,5 @@
+项目链接：https://github.com/PangPang1999/my-app
+
 # Start
 
 ## 笔记概述
@@ -698,8 +700,8 @@
 
 3. 本地开发的简化方案：dotenv
 
-    - 手动每次 export 太麻烦，可以安装 `dotenv` 库，命令`bun add dotenv`
-    - 在项目根目录放一个 `.env` 文件，把 Key 写进去，`=`前后不留空格，不使用`""`
+    - 手动每次 export 太麻烦，可以安装 `dotenv` 库，在 server 目录命令`bun add dotenv`
+    - 在 server 目录放一个 `.env` 文件，把 Key 写进去，`=`前后不留空格，不使用`""`
         ```
         OPENAI_API_KEY=sk-xxxx
         ```
@@ -721,6 +723,7 @@
 1. 引入 `dotenv`
 
     ```js
+    // packages/server/index.ts
     import express from "express";
     import type { Request, Response } from "express";
     import dotenv from "dotenv";
@@ -753,9 +756,19 @@
 2. 初始化
 
     - 进入`packages/client`
-    - 使用 vite 初始化`bbun create vite .`，在选项中 选择 `React`，之后选择 `TypeScript`
+    - 使用 vite 初始化`bun create vite .`，在选项中 选择 `React`，之后选择 `TypeScript`
     - 使用`bun install`或者`bun i`初始化项目
     - 启动命令`bun run dev`
+
+3. **坑与解决**
+
+    - 坑
+        - 在`packages/client`直接执行`bun install`，仍然会在`client`目录下生成`node_modules`文件夹
+    - 解决方式 1（粗暴）
+        - 先删除根目录的`bun.lock`（以及`client`目录下生成`node_modules`），之后在`packages/client`直接执行`bun install`，这种方式会在根目录下生成新的`bun.lock`
+    - 解决方式 2
+        - 理解：使用 vite 初始化后，client 下的 package.json 文件中声明了一些依赖，如果声明的依赖版本，与根目录中 package.json 文件中声明的依赖版本不一致，那么会在`client`目录下生成`node_modules`文件夹
+        - 方式：检查`client`目录下生成`node_modules`文件夹中的依赖如 typescript，对比其在 client 下的 package.json 文件声明的版本，和根目录中 package.json 文件中声明的版本，使版本一致，即可避免该问题
 
 ## 前后端连接
 
@@ -793,12 +806,16 @@
 
     - 浏览器请求 `/api/hello` → Vite 代理 → 后端返回 JSON → React 组件接收并展示。
 
+5. 其他
+
+    - 删除 `index.css` 中的样式
+
 **代码示例**
 
 1. 服务端接口
 
     ```js
-    // package/server/index.js
+    // packages/server/index.js
     import express from "express";
     import type { Request, Response } from "express";
     import dotenv from "dotenv";
@@ -820,7 +837,7 @@
 2. 客户端调用
 
     ```tsx
-    // package/client/src/App.tsx
+    // packages/client/src/App.tsx
     import { useEffect, useState } from "react";
 
     function App() {
@@ -974,7 +991,7 @@
 1. Vite 配置
 
     ```ts
-    // package/client/vite.config.ts
+    // packages/client/vite.config.ts
     import { defineConfig } from "vite";
     import react from "@vitejs/plugin-react";
     import tailwindcss from "@tailwindcss/vite";
@@ -993,14 +1010,14 @@
 2. 客户端调用
 
     ```tsx
-    // package/client/src/index.css
+    // packages/client/src/index.css
     @import "tailwindcss";
     ```
 
 3. 客户端调用
 
     ```tsx
-    // package/client/src/App.tsx
+    // packages/client/src/App.tsx
     import { useEffect, useState } from "react";
 
     function App() {
@@ -1052,7 +1069,7 @@
         - 引入 `path`。
         - 在 `resolve` 属性中配置路径别名。
     - 使用 ShadCN CLI 初始化：
-        - 运行：`bunx shadcn-ui init`
+        - 运行：`bunx --bun shadcn@latest init`
         - 选择基础色（如 neutral、zinc、stone 等）。
         - CLI 会生成 `components.json` 并更新 `index.css`（主题变量等）。
 
@@ -1061,7 +1078,7 @@
     - 在官网组件页选择需要的组件。
     - 例如安装按钮：
         ```bash
-        bunx shadcn-ui add button
+        bunx --bun shadcn@latest add button
         ```
     - CLI 会在 `components/ui/` 目录生成源码，包含 Tailwind 类，可直接修改。
     - 之后 React 组件中引入并使用：
@@ -1071,7 +1088,7 @@
 1. `App.tsx`
 
     ```tsx
-    // package/client/src/App.tsx
+    // packages/client/src/App.tsx
     import { useEffect, useState } from "react";
     import { Button } from "./components/ui/button";
 
@@ -1123,13 +1140,48 @@
         ```bash
         bun add -d prettier
         ```
-    - 在根目录的 `package.json` 中添加脚本：
+    - 在根目录的 `package.json` 中添加脚本
         ```json
         "scripts": {
           "format": "prettier --write ."
         }
         ```
-    - 在根目录添加 `.prettierignore`，避免格式化无关文件：
+    - **在根目录添加 `.prettierignore`，避免格式化无关文件**
         - `node_modules`
         - `bun.lock`
     - 运行 `bun run format` 一次性格式化整个项目。
+
+## Husky + lint-staged 格式化
+
+> 简述：用 Git 钩子可以在提交前自动运行任务，设置格式化所有文件耗时久，应只格式化暂存区文件，避免忘记执行与无关改动进入提交。
+
+**知识树**
+
+1. 目标与动机
+
+    - 问题：手动运行格式化易遗忘；全量格式化慢且污染提交历史。
+    - 方案：Git pre-commit 钩子 + 仅处理 staged 文件。
+    - Husky 官网：https://typicode.github.io/husky/
+
+2. 安装与初始化 `Husky`
+
+    - 在项目根安装开发依赖 husky 并进行初始化
+        - 执行`bun add --dev husky`安装依赖 husky
+        - 执行`bunx husky init`， 初始化 Husky，生成 `.husky/pre-commit`。，在文件中定义执行前自动执行的命令，如`bun run format`（此前自定义）
+    - **注意**：需要在根目录安装，并且根目录需要有 git 文件
+
+3. `lint-staged`
+
+    - 官网：https://www.npmjs.com/package/lint-staged/v/12.3.2
+    - 在项目根安装开发依赖 `lint-staged` 并进行配置
+        - 执行`bun add -d lint-staged`安装依赖 `lint-staged`
+        - 在 `.husky/pre-commit` 设置命令 `bunx lint-staged`（存在问题，非人为，系版本问题）
+            - 建议使用命令`npx lint-staged`进行替代
+        - 配置 `.lintstagedrc` 设置匹配的格式化文件
+            - 如：`{"*.{js,jsx,ts,tsx,css}":"prettier --write"}`
+    - **注意在根目录添加 `.prettierignore`，避免格式化无关文件**
+
+4. 常见问题与处理
+
+    - 若使用命令 `bunx lint-staged`，VS Code 提交报 “bunx: command not found”
+    - 需要改用终端提交，或在钩子中用 `npx`（建议）。

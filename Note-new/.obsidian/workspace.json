@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "SpringCloud.md",
+                "file": "Build AI-Powered Apps with React.md",
                 "mode": "source",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "SpringCloud"
+              "title": "Build AI-Powered Apps with React"
             }
           }
         ]
@@ -142,13 +142,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "SpringCloud.md",
+                "file": "Build AI-Powered Apps with React.md",
                 "followCursor": true,
                 "showSearch": true,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of SpringCloud"
+              "title": "Outline of Build AI-Powered Apps with React"
             }
           }
         ],
@@ -170,13 +170,13 @@
   },
   "active": "fde1bd93fc13109b",
   "lastOpenFiles": [
+    "React.md",
+    "SpringCloud.md",
     "open-webui.md",
     "Build AI-Powered Apps with React.md",
-    "SpringCloud.md",
     "未命名.md",
     "未命名1.md",
     "TypeScript.md",
-    "React.md",
     "未命名 3.md",
     "未命名 2.md",
     "JavaScript.md",
