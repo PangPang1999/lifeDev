@@ -1021,3 +1021,74 @@
 
     export default App;
     ```
+
+## 集成 ShadCN UI
+
+> 简述：ShadCN 是基于 Tailwind 的现代组件库，提供可访问、可定制的 UI 组件。通过 CLI 工具可以快速安装并加入项目，组件源码完全开放，可自由修改和个性化。
+
+**知识树**
+
+1. ShadCN 简介
+
+    - UI 组件库，基于 Tailwind 构建。
+    - 特点：现代设计、可访问性、源码开放，可根据项目风格自由定制。
+    - 官网：[https://ui.shadcn.com/](https://ui.shadcn.com/)
+
+2. 前置条件
+
+    - 已在项目中集成 Tailwind CSS。
+    - 确认 `index.css` 已导入 Tailwind。
+
+3. 配置步骤（根据官网步骤进行安装）
+
+    - 上一节完成了 ShadCN 配置中几步
+    - 在 client 中，修改 TypeScript 配置：
+        - 在 `tsconfig.json` 添加 `compilerOptions`。
+        - 在 `tsconfig.app.json` 增加 `paths` 配置。
+    - 安装 Node 类型：`bun add -D @types/node`。
+    - 更新 Vite 配置：
+        - 引入 `path`。
+        - 在 `resolve` 属性中配置路径别名。
+    - 使用 ShadCN CLI 初始化：
+        - 运行：`bunx shadcn-ui init`
+        - 选择基础色（如 neutral、zinc、stone 等）。
+        - CLI 会生成 `components.json` 并更新 `index.css`（主题变量等）。
+
+4. 安装与使用组件
+
+    - 在官网组件页选择需要的组件。
+    - 例如安装按钮：
+        ```bash
+        bunx shadcn-ui add button
+        ```
+    - CLI 会在 `components/ui/` 目录生成源码，包含 Tailwind 类，可直接修改。
+    - 之后 React 组件中引入并使用：
+
+**代码示例**
+
+1. `App.tsx`
+
+    ```tsx
+    // package/client/src/App.tsx
+    import { useEffect, useState } from "react";
+    import { Button } from "./components/ui/button";
+
+    function App() {
+      const [message, setMessage] = useState("");
+
+      useEffect(() => {
+        fetch("/api/hello")
+          .then((response) => response.json())
+          .then((data) => setMessage(data.message));
+      }, []);
+
+      return (
+        <div className="p-4">
+          <p className="font-bold text-3xl">{message}</p>
+          <Button>Click me</Button>
+        </div>
+      );
+    }
+
+    export default App;
+    ```
