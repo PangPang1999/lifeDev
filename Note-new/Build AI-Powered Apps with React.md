@@ -1028,6 +1028,8 @@
 
 **知识树**
 
+0. 注意本节安装指令在 client 中执行
+
 1. ShadCN 简介
 
     - UI 组件库，基于 Tailwind 构建。
@@ -1092,3 +1094,42 @@
 
     export default App;
     ```
+
+## 配置 Prettier
+
+> 简述：Prettier 是自动化代码格式化工具，可以统一缩进、分号、引号等规则，减少团队对代码风格的争论，让代码更整洁、一致。
+
+**知识树**
+
+0. 注意本节安装指令在 根目录 中执行
+
+1. 安装与扩展
+
+    - 在 VS Code 安装 Prettier 插件。
+    - 设为默认格式化工具，并开启“保存时自动格式化”。
+
+2. 配置规则
+
+    - 在项目根目录新建 `.prettierrc` 文件，定义格式化规则：
+        - `singleQuote: true` 使用单引号（JS 代码）。
+        - `semi: true` 每行末尾加分号。
+        - `trailingComma: "es5"` 表示只在对象和数组等 ES5 合法位置加尾随逗号，不给函数参数加。
+        - `printWidth: 80` 每行最大宽度。
+        - `tabWidth: 2` 每个缩进 2 空格。
+
+3. 命令行集成
+
+    - 安装 Prettier 作为开发依赖：`bun add -d prettier`
+        ```bash
+        bun add -d prettier
+        ```
+    - 在根目录的 `package.json` 中添加脚本：
+        ```json
+        "scripts": {
+          "format": "prettier --write ."
+        }
+        ```
+    - 在根目录添加 `.prettierignore`，避免格式化无关文件：
+        - `node_modules`
+        - `bun.lock`
+    - 运行 `bun run format` 一次性格式化整个项目。
