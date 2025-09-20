@@ -162,3 +162,56 @@
             print("Eligible")
         ```
 
+## 循环与迭代
+
+1. for 循环
+
+    - 用于遍历可迭代对象（range、字符串、列表）。
+        ```python
+        for x in range(3):
+            print("Attempt", x + 1)
+        ```
+    - `range(start, stop, step)` 返回可迭代对象，常与循环结合。
+    - 其他可迭代对象如`[1, 2, 3, 4]`
+
+2. 嵌套循环
+
+    - 内层循环在外层每次迭代中都会完整执行。
+        ```python
+        for x in range(2):
+            for y in range(3):
+                print(f"({x},{y})")
+        ```
+
+3. while 循环
+
+    - 根据条件重复执行。
+        ```python
+        command = ""
+        while command.lower() != "exit":
+          command = input("Enter a command (type 'exit' to quit): ")
+          if command.lower() != "exit":
+              print(f"You entered: {command}")
+        ```
+
+4. break 与 else
+
+    - `break`：提前结束循环。
+    - `for...else`：当循环未被 `break` 打断时执行 else。
+        ```python
+        successful = False
+        for i in range(3):
+            print("Attempt", i + 1)
+            if successful:
+                print("Success")
+                break
+        else:
+            print("Failed after 3 attempts")
+        ```
+
+5. 无限循环
+
+    ```python
+    while True:
+        print("Hello, World!")
+    ```
