@@ -94,3 +94,71 @@
         - `str()`：转为字符串。
     - 特殊情况：布尔转换时，空字符串 `""`、数字 `0`、`None` 等会被视为 False。
 
+## 比较与逻辑
+
+1. 比较运算符
+
+    - 表达式结果为布尔值（True/False）。
+    - 常用运算符：
+        - `==` 等于
+        - `!=` 不等于
+        - `>`、`<`、`>=`、`<=`
+    - 注意：不同类型比较结果为 False。
+
+2. 字符串比较
+
+    - 字符串按字典序比较。
+        ```python
+        print("bag" > "apple")   # True
+        print("bag" == "Bag")    # False
+        ```
+    - 每个字符都有对应的 Unicode 数值，可用 `ord()` 查看。
+
+3. 条件语句
+
+    - 使用 `if`、`elif`、`else`。缩进决定代码块归属。`elif`指`else if`
+        ```python
+        temperature = 30
+        if temperature > 30:
+          print("It's warm")
+          print("Drink water")
+        elif temperature > 20:
+          print("It's nice")
+        else:
+          print("It's cold")
+        print("Done")
+        ```
+
+4. 三元写法
+
+    ```python
+    age = 12
+    message = "Eligible" if age >= 18 else "Not Eligible"
+    print(message)
+    ```
+
+5. 逻辑运算符
+
+    - `and`：两个条件都为真才成立。
+    - `or`：只要一个条件为真即可。
+    - `not`：布尔值取反。
+    - 表达式具备短路特性，遇到结果已确定时不再继续计算。
+        ```python
+        high_income = False
+        good_credit = True
+        student = False
+        if (high_income or good_credit) and not student:
+            print("Eligible for loan")
+        else:
+            print("Not eligible for loan")
+        ```
+
+6. 比较运算符链式写法
+
+    - 可直接书写数学式风格：
+        ```python
+        age = 22
+        if 18 <= age < 65:
+            print("Eligible")
+        ```
+
