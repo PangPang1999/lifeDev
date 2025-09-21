@@ -215,3 +215,97 @@
     while True:
         print("Hello, World!")
     ```
+
+## 函数
+
+1. 函数
+
+    - 将大程序拆分为小而清晰、可维护、可复用的代码块。
+    - 降低复杂度，便于测试与调试。
+
+2. 定义与调用
+
+    - 使用 `def` 定义；函数体由缩进确定。
+        ```python
+        def greet():
+            print("Hi there")
+            print("Welcome aboard")
+        greet()  # 调用
+        ```
+
+3. 参数与实参
+
+    - 参数（parameter）：定义函数时列出的输入名。
+    - 实参（argument）：调用函数时传入的具体值。
+    - 定义参数但未提供实参时会报错
+        ```python
+        def greet(first_name, last_name):
+            print(f"Hi {first_name} {last_name}")
+        greet("Mosh", "Hammadani")
+        greet("John", "Smith")
+        ```
+
+4. 函数类型
+
+    - 执行任务：只产生副作用（如打印），默认若未显式 `return`，函数默认返回 `None`。
+    - 计算并返回：使用 `return` 返回值，更通用。
+
+5. 关键字实参与可读性
+
+    - 当位置实参含义不直观时，用关键字实参提升可读性。
+        ```python
+        def increment(number, by):
+            return number + by
+        print(increment(2, by=1))  # 可读性更好
+        ```
+
+6. 可选参数（默认值）
+
+    - 为参数设置默认值，使其成为可选项；可选参数必须位于必选参数之后。
+        ```python
+        def increment(number, by=1):
+            return number + by
+        print(increment(2))      # 3
+        print(increment(2, 5))   # 7
+        ```
+
+7. 可变数量位置参数：`*args`
+
+    - 聚合为元组，可迭代计算。
+        ```python
+        def multiply(*numbers):
+            total = 1
+            for number in numbers:
+                total *= number
+            return total
+        print(multiply(2, 3, 4))  # 24
+        ```
+
+8. 可变数量关键字参数：`**kwargs`
+
+    - 聚合为字典，适合接收任意键值信息。
+
+        ```python
+        def save_user(**user):
+            print(user)            # {'id': 1, 'name': 'John'}
+            print(user["id"])      # 1
+            print(user["name"])    # John
+        save_user(id=1, name="John")
+        ```
+
+9. 作用域（scope）
+
+    - 局部变量：只在函数内部可见，生命周期随调用结束而结束。
+    - 全局变量：在文件内任意位置可见；应尽量少用，避免在函数中修改全局状态。
+        ```python
+        message = "a"  # 全局
+        def greet():
+            message = "b"  # 局部，遮蔽全局
+            print(message) # b
+        greet()
+        print(message)     # a
+        # 不推荐的做法（可能产生副作用）：
+        # def greet():
+        #     global message
+        #     message = "b"
+        ```
