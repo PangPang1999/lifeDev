@@ -611,3 +611,168 @@
     pprint(items, width=60)
     print(most_char, most_count)
     ```
+
+## 错误与异常
+
+2. 概念与常见来源
+
+    - 程序运行中出现的不正常情况称为异常（exception），未处理的异常会中止程序。
+    - 基本目标：不让程序“崩溃退出”，而是给出清晰、友好的错误信息，并尽可能恢复或安全退出。
+    - 举例
+
+        ```python
+        numbers = [1, 2]
+        print(numbers[2])
+        # This will raise an IndexError because there is no index 2 in the list
+
+        age = int(input("Enter your age: "))
+        # If the user inputs a non-integer value, this will raise a ValueError
+        ```
+
+3. 常见内建异常
+
+    - `IndexError`：下标越界。
+    - `ValueError`：值的格式不正确（如把 `"a"` 转为 `int`）。
+    - `ZeroDivisionError`：除数为零。
+    - `FileNotFoundError`：文件不存在。
+    - `TypeError`：类型不匹配。
+    - `KeyError`：字典键不存在。
+    - 了解这些异常类型，有助于“精准捕获、各个击破”。
+
+4. 处理异常的基本结构：try / except / else / finally
+
+    - `try` 中放可能出错的语句；若抛出异常，转入匹配的 `except` 分支；无异常则执行 `else`；`finally` 总会执行（释放资源的理想位置）。
+
+        ```python
+        # 1. 基本捕获
+        try:
+            numbers = [10, 20]
+            print(numbers[2])  # 触发 IndexError
+        except IndexError:
+            print("访问的列表索引不存在")
+
+        # 2. 处理用户输入
+        try:
+            age = int(input("Age: "))
+        except ValueError as err:                 # 捕获对象以便记录/诊断
+            print("请输入合法的数字年龄")
+            # print(err)  # 开发阶段可打印或日志记录详细错误
+        else:
+            print("没有异常，正常继续")
+        finally:
+            print("无论是否异常，这里都会执行（如关闭资源）")
+        ```
+
+5. 多异常与合并捕获
+
+    - 多个 `except` 分支按顺序匹配；也可合并到同一分支，减少重复处理逻辑。
+
+        ```python
+        # 单独分支
+        try:
+            x = int(input("X: "))
+            y = int(input("Y: "))
+            print(x / y)
+        except ValueError:
+            print("输入必须为整数")
+        except ZeroDivisionError:
+            print("除数不能为 0")
+
+        # 合并分支（同样的处理逻辑）
+        try:
+            x = int(input("X: "))
+            y = int(input("Y: "))
+            print(x / y)
+        except (ValueError, ZeroDivisionError) as e:
+            print("输入不合法或除数为 0")
+        ```
+
+6. 资源释放：finally 与 with
+
+    - 外部资源（文件、网络、数据库）需要“用后即还”；`finally` 能保证执行清理；`with` 能自动管理资源，语义更简洁。
+
+        ```python
+        # 使用 finally 关闭文件
+        f = None
+        try:
+            f = open("data.txt", "r", encoding="utf-8")
+            content = f.read()
+            print(content)
+        except FileNotFoundError:
+            print("文件不存在")
+        finally:
+            if f:
+                f.close()
+
+        # 使用 with 自动关闭（推荐）
+        try:
+            with open("data.txt", "r", encoding="utf-8") as f:
+                print(f.read())
+        except FileNotFoundError:
+            print("文件不存在")
+
+        # with 同时管理多个资源
+        # with open("a.txt") as src, open("b.txt", "w") as dst:
+        #     dst.write(src.read())
+        ```
+
+    - 支持 `with` 的对象实现了上下文管理协议（拥有 `__enter__`/`__exit__` 方法）。`with` 退出时会自动调用 `__exit__` 完成清理。
+
+7. 抛出异常：raise 的用途与规范
+
+    - 当参数/状态不符合函数的前置条件时，使用 `raise` 明确报告错误；选择最贴切的异常类型，附上清晰信息。相较于捕获，raise 消耗较大
+
+        ```python
+        def safe_xfactor_raise(age: int):
+          if age <= 0:
+              raise ValueError("age 必须为正数")
+          return 10 / age
+
+        def call_with_raise():
+          try:
+              x = safe_xfactor_raise(0)
+          except ValueError as error:
+              print(error)
+        ```
+
+    - 何时使用 `raise`：前置条件校验、不可恢复的逻辑错误、调用者必须得知并处理的异常情形。
+
+8. 性能与风格：EAFP 与 LBYL，异常的代价
+
+    - Python 社区常用 EAFP 风格（“宁可道歉，不要许可”）：先尝试做事，出错再捕获；与 LBYL（“先看一看再做”）相比，代码更直接。
+    - 但频繁抛出异常在热点路径上可能带来开销。若异常是“常态”而非“例外”，考虑用条件分支替代。
+
+        ```python
+        from timeit import timeit
+
+        # 方案 A：以异常为流程
+        code1 = """
+        def calculate_xfactor(age):
+          if age <= 0:
+              raise ValueError("Age cannot be negative.")
+          return 10 / age
+
+        try:
+          calculate_xfactor(-5)
+        except ValueError as e:
+          print(e)
+        """
+
+        # 方案 B：以返回值/None 表示非法
+        code2 = """
+        def calculate_xfactor(age):
+          if age <= 0:
+              return None
+          return 10 / age
+
+
+        xfactor = calculate_xfactor(-5)
+        if xfactor is None:
+          pass
+        """
+
+        print("First", timeit(code1, number=100000))  # 0.245735458
+        print("Second", timeit(code2, number=100000))  # 0.007577166999999996
+        ```
+
+    - 原则：异常用于“异常路径”；常规控制流优先使用条件判断与返回值。
