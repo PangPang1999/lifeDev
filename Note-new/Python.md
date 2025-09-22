@@ -309,3 +309,305 @@
         #     global message
         #     message = "b"
         ```
+
+## 数据结构
+
+1. 列表（list）
+
+    - 可变序列，元素类型可混合，支持嵌套（二维列表/矩阵）。
+        ```python
+        letters = ["a", "b", "c"]
+        matrix = [[1, 2], [3, 4]]
+        zeros = [0] * 5                 # 重复列表元素
+        combined = [0]*5 + letters      # 拼接列表
+        numbers = list(range(10))       # 由可迭代对象创建列表
+        chars = list(" hello")           # 字符串转列表
+        len(chars)                      # 长度
+        ```
+    - 索引与切片（不改变原列表，返回新 list）：
+        ```python
+        a = ["a", "b", "c", "d"]
+        a[0], a[-1]  # 首尾
+        a[0:3], a[:3]  # 切片
+        a[::2]  # 步长
+        a[::-1]  # 反转
+        ```
+    - 解构语法
+        ```python
+        numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        first, second, *other, last = numbers
+        print(first) // 1
+        print(second) // 2
+        print(other) // [3, 4, 5, 6, 7, 8, 9]
+        print(last) // 10
+        ```
+    - 遍历与下标：
+        ```python
+        letters = ["a", "b", "c", "d"]
+        for ch in letters:
+          print(ch)  # prints each letter
+        for i, ch in enumerate(letters): # unpacking
+          print(i, ch)  # prints index and letter
+        ```
+    - 新增/删除：
+        ```python
+        letters = ["a", "b", "c"]
+        letters.append("d")  # 末尾添加
+        letters.insert(1, "-")  # 指定下标添加
+        letters.pop()  # 删除末尾元素
+        letters.pop(1)  # 删除指定下标元素
+        letters.remove("b")  # 删除首个匹配
+        del letters[0:2]  # 删除区间
+        letters.clear()  # 清空列表
+        ```
+    - 查找（`index()`方法若未找到会报错，需要提前预防）：
+        ```python
+        if "a" in letters: print(letters.index("a"))
+        letters.count("a")
+        ```
+    - 排序：
+
+        ```python
+        nums = [3, 1, 4, 2]
+        # sort modifies the original list
+        nums.sort()  # Sort in default (ascending) order
+        nums.sort(reverse=True)  # Sort in descending order
+
+        # sorted returns a new sorted list
+        sorted_nums = sorted(nums)
+        sorted_nums = sorted(nums, reverse=True)
+
+        # Custom sorting with a key function
+        items = [("prod1", 10), ("prod2", 5), ("prod3", 7)]
+
+
+        def sort_items(items):
+          return items[1]  # return a value used for sorting
+
+
+        items.sort(key=sort_items)  # Sort by second element of tuple
+        ```
+
+    - lamda
+
+        - `obj.list(key=lamda parameters:expression)`
+            - `key`：
+                - 是函数的一个关键字参数名。在 sorted() 里，key 要传一个函数，这个函数定义了“排序依据”。
+            - `lambda parameters: expression`：
+                - 定义了一个匿名函数（lambda 表达式）。
+                - `parameters` 是输入参数（可以有一个或多个）。
+                - `expression` 是返回值（只能是一个表达式，而不是多行语句）。
+            ```python
+            # Lambda function for sorting
+            items = [("prod1", 10), ("prod2", 5), ("prod3", 7)]
+            items.sort(key=lambda item: item[1])  # Sort by second element of tuple
+            ```
+
+    - map with lamda
+
+        - `map(key=lamda parameters:expression, obj)`
+            - `lambda parameters: expression`
+                - 定义了一个匿名函数，用于对 obj 中的每个元素进行处理。
+                - `parameters` 是传入的单个元素（或解构的多个元素）。
+                - `expression` 是返回的变换结果。
+                - `obj`是一个可迭代对象（如列表、元组、集合等）。`map()` 会对 obj 中的每个元素应用 lambda 函数，并返回一个迭代器。
+            ```python
+            items = [("prod1", 10), ("prod2", 5), ("prod3", 7)]
+            prices = list(map(lambda item: item[1], items))
+            print(prices)
+            ```
+
+    - filter
+
+        - `filter(key=lamda parameters:expression, obj)`
+            ```python
+            items = [("prod1", 10), ("prod2", 5), ("prod3", 7)]
+            filtered = list(filter(lambda item: item[1] > 5, items))
+            print(filtered)
+            ```
+
+    - 列表推导式（优先于 map/filter）：
+
+        ```python
+        items = [("prod1", 10), ("prod2", 5), ("prod3", 7)]
+        prices = list(map(lambda item: item[1], items))
+        prices = [item[1] for item in items]  # 映射
+        print(prices)  # 输出: [10, 5, 7]
+
+        filtered = list(filter(lambda item: item[1] > 5, items))
+        filtered = [item for item in items if item[1] > 5]  # 过滤
+        print(filtered)  # 输出: [('prod1', 10), ('prod3', 7)]
+        ```
+
+    - Zip 方法
+
+        ```python
+        list1 = [1, 2, 3]
+        list2 = [10, 20, 30]
+        print(list(zip("abc", list1, list2)))
+        # 输出: [('a', 1, 10), ('b', 2, 20), ('c', 3, 30)]
+        ```
+
+2. 栈与队列
+
+    - 栈（后进先出 LIFO）：列表模拟。
+
+        ```python
+        stack = []
+        stack.append("site1")
+        stack.append("site2")
+        top = stack.pop()
+        if not stack: pass  # 空栈
+        ```
+
+    - 队列（先进先出 FIFO）：用 `collections.deque` 高效头部出队。
+
+        ```python
+
+        ```
+
+3. 元组（tuple）
+
+    - 不可变序列；用圆括号或省略括号创建，单元素需尾随逗号。
+
+        ```python
+        point = ()
+        point2 = (1,)
+        point3 = (1, 2, 3)
+        point4 = (1, 2) * 3
+        print(point4)
+        x, y, z = point3  # unpacking
+        print(x, y, z)
+        # pint3[0] = 10  # This will raise an error because tuples are immutable
+        ```
+
+    - 适用场景：需要只读、避免意外修改的序列。
+
+4. 交换元素
+
+    ```python
+    x = 10
+    y = 11
+    # 原始方式交换
+    z = x
+    x = y
+    y = z
+    print("x", x, "y", y)
+    # pythonic 方式交换
+    x, y = y, x
+    print("x", x, "y", y)
+    ```
+
+5. 数组（array）
+
+    - 大量同类型数值时更省内存、稍快；否则默认用列表/元组。
+    - https://docs.python.org/3/library/array.html
+        ```python
+        from array import array
+        nums = array("i", [1,2,3])  # "i" 表示有符号整型
+        nums.append(4)
+        # nums.append(1.5) -> TypeError（类型受限）
+        ```
+
+6. 集合（set）
+
+    - 无序、元素唯一；支持集合运算。
+
+        ```python
+        numbers = [1, 1, 2, 3, 4]
+        first = set(numbers)  # {1, 2, 3, 4}
+        print("first: ", first)
+        second = {1, 5}
+
+        print("并集", first | second)  # 并集
+        print("交集", first & second)  # 交集
+        print("差集", first - second)  # 差集
+        print("对称差集", first ^ second)  # 对称差集
+        ```
+
+    - 无索引访问；需索引时使用列表。
+
+7. 字典（dict）
+
+    - 键值对映射；键需不可变类型（常用 str、数值）。
+        ```python
+        point = {"x": 1, "y": 2}
+        point = dict(x=1, y=2)  # 转换为字典
+        point["z"] = 3  # 新增键值对
+        point["x"] = 10  # 修改键值对
+        x = point["x"]  # 通过键获取值
+        v = point.get("a", 0)  # 可设置不存在返回默认
+        del point["x"]  # 删除键值对
+        # 遍历字典
+        for k in point:
+          print(k, point[k])
+        for k, v in point.items():
+          print(k, v)
+        ```
+    - 典型应用：计数、索引、配置等。
+
+8. 列表推导式(comprehension)
+
+    ```python
+    value = []
+    for x in range(5):
+        value.append(x**2)
+    print("原始方式：", value)
+
+    value = [x**2 for x in range(5)]
+    print("comprehension方式生成 list ", value)
+
+    # 生成字典
+    value = {x: x**2 for x in range(5)}
+    print("comprehension方式生成字典: ", value)
+
+    # 生成tuple
+    value = tuple(x**2 for x in range(5))
+    print("comprehension方式生成 tuple: ", value)
+    ```
+
+9. Generate 类型
+
+    - 生成器在创建时只占用少量内存，而将其转换为列表后会占用更多内存，因为列表需要存储所有生成的值。与之而来的是，该类型没有长度
+        ```python
+        from sys import getsizeof
+        value = (x**2 for x in range(100000))  # 此时value类型为生成器
+        print("generator:", getsizeof(value))  # 输出生成器对象的内存大小
+        print("list:", getsizeof(list(value)))  # 将生成器转换为列表后输出其内存大小
+        # print(len(value))  # 生成器没有长度，调用len()会报错
+        ```
+
+10. Unpacking（解包运算符）：
+
+    ```python
+    values = list(range(10))
+    values = [*range(10)]
+    print("values", values)
+
+    first = [1, 2]
+    second = [3]
+    combined1 = [*first, "a", *second, *"Hello"]
+    print("combined1", combined1)
+
+    dict1 = {"a": 1}
+    dict2 = {"a": 10, "b": 2}
+    combined2 = {**dict1, **dict2, "c": 3}  # 解构dict需要两个星号
+    print("combined2", combined2)
+    ```
+
+11. 练习示例：求文本中出现次数最多的字符（计数与排序）
+
+    ```python
+    from pprint import pprint
+
+    text = "This is a test sentence."
+    freq = {}
+    for ch in text:
+        freq[ch] = freq.get(ch, 0) + 1
+
+    # 按出现次数降序排序（列表中是 (字符, 次数) 的元组）
+    items = sorted(freq.items(), key=lambda kv: kv[1], reverse=True)
+    most_char, most_count = items[0]
+    pprint(items, width=60)
+    print(most_char, most_count)
+    ```
