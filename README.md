@@ -1,13 +1,15 @@
 ## Documentation Navigation · 导航
 
-- [HTML/CSS 笔记 | HTML/CSS Notes](./Html&CSS/HTML&CSS学习.md)
-- [JavaScript 笔记 | JavaScript Notes](./Note-new/JavaScript.md)
-- [Java 笔记 | Java Notes](./Note-new/Java.md)
+- [HTML/CSS](./Html&CSS/HTML&CSS学习.md)
+- [JavaScript](./Note-new/JavaScript.md)
+- [Java](./Note-new/Java.md)
 - [Spring Boot 笔记 | Spring Boot Notes]：[Part1](./Note-new/SpringBoot.md)、[Part2](./Note-new/SpringBoot2.md)
 - [MySQL 指南](./Note-new/MySQL.md) _to be refactored for better readability_
 - [慢 SQL & 索引 & MySQL 服务器异常](./Note-new/MySQL慢查询优化&索引失效&服务器过载.md)
 - [Docker](./Note-new/Docker.md)
 - [TypeScript](./Note-new/TypeScript.md)
+- [React](./Note-new/React.md)
+- [提示词工程](./AI/PromptEngineering.md)
 
 # lifeDev · 技术学习成长项目
 
