@@ -43,6 +43,14 @@
         - IronPython：运行在 .NET 平台上。
         - PyPy：高性能实现，内置 JIT 编译器。
 
+7. 语法检查（严格模式）
+
+    - 在 settings.json 文件中最后添加下面代码后，将开启严格模式，演示时暂不开启
+        ```json
+        "python.languageServer": "Pylance",
+        "python.analysis.typeCheckingMode": "strict"
+        ```
+
 ## 原始类型
 
 1. 基本类型
@@ -614,7 +622,7 @@
 
 ## 错误与异常
 
-2. 概念与常见来源
+1. 概念与常见来源
 
     - 程序运行中出现的不正常情况称为异常（exception），未处理的异常会中止程序。
     - 基本目标：不让程序“崩溃退出”，而是给出清晰、友好的错误信息，并尽可能恢复或安全退出。
@@ -629,7 +637,7 @@
         # If the user inputs a non-integer value, this will raise a ValueError
         ```
 
-3. 常见内建异常
+2. 常见内建异常
 
     - `IndexError`：下标越界。
     - `ValueError`：值的格式不正确（如把 `"a"` 转为 `int`）。
@@ -639,7 +647,7 @@
     - `KeyError`：字典键不存在。
     - 了解这些异常类型，有助于“精准捕获、各个击破”。
 
-4. 处理异常的基本结构：try / except / else / finally
+3. 处理异常的基本结构：try / except / else / finally
 
     - `try` 中放可能出错的语句；若抛出异常，转入匹配的 `except` 分支；无异常则执行 `else`；`finally` 总会执行（释放资源的理想位置）。
 
@@ -663,7 +671,7 @@
             print("无论是否异常，这里都会执行（如关闭资源）")
         ```
 
-5. 多异常与合并捕获
+4. 多异常与合并捕获
 
     - 多个 `except` 分支按顺序匹配；也可合并到同一分支，减少重复处理逻辑。
 
@@ -687,7 +695,7 @@
             print("输入不合法或除数为 0")
         ```
 
-6. 资源释放：finally 与 with
+5. 资源释放：finally 与 with
 
     - 外部资源（文件、网络、数据库）需要“用后即还”；`finally` 能保证执行清理；`with` 能自动管理资源，语义更简洁。
 
@@ -718,7 +726,7 @@
 
     - 支持 `with` 的对象实现了上下文管理协议（拥有 `__enter__`/`__exit__` 方法）。`with` 退出时会自动调用 `__exit__` 完成清理。
 
-7. 抛出异常：raise 的用途与规范
+6. 抛出异常：raise 的用途与规范
 
     - 当参数/状态不符合函数的前置条件时，使用 `raise` 明确报告错误；选择最贴切的异常类型，附上清晰信息。相较于捕获，raise 消耗较大
 
@@ -737,7 +745,7 @@
 
     - 何时使用 `raise`：前置条件校验、不可恢复的逻辑错误、调用者必须得知并处理的异常情形。
 
-8. 性能与风格：EAFP 与 LBYL，异常的代价
+7. 性能与风格：EAFP 与 LBYL，异常的代价
 
     - Python 社区常用 EAFP 风格（“宁可道歉，不要许可”）：先尝试做事，出错再捕获；与 LBYL（“先看一看再做”）相比，代码更直接。
     - 但频繁抛出异常在热点路径上可能带来开销。若异常是“常态”而非“例外”，考虑用条件分支替代。
@@ -776,3 +784,487 @@
         ```
 
     - 原则：异常用于“异常路径”；常规控制流优先使用条件判断与返回值。
+
+## 类与面向对象
+
+1. 核心概念
+
+    - 类（class）：创建对象的蓝图（如 `int`、`list`、`dict` 都是内建类）。
+    - 对象/实例（object/instance）：类的具体“产物”。
+    - 方法（method）：定义在类中的函数，作用于对象自身数据。
+    - 直觉类比：`Human` 是类；`John`、`Mary` 是对象。类描述“共性”，对象承载“个性”。
+
+2. 定义类与实例化、`self`、类型判断
+
+    - 类中的方法都有至少一个参数
+    - `__main__`是 Module，下一节介绍
+
+        ```python
+        class Point:
+            def draw(self):          # 实例方法的第一个参数惯例命名为 self
+                print("draw")
+
+        p = Point()                  # 实例化
+        p.draw()
+
+        print(type(p))               # <class '__main__.Point'>
+        print(isinstance(p, Point))  # True
+        print(isinstance(p, int))    # False
+        ```
+
+3. 构造函数与实例/类属性
+
+    - 构造函数：`__init__`，在实例创建时执行，常用来初始化属性。
+    - 实例属性：属于每个对象（彼此独立）。
+    - 类属性：属于类本身（所有对象共享）。
+
+    ```python
+    class Point:
+        default_color = "red"     # 类属性（共享）
+        def __init__(self, x, y): # 构造函数
+            self.x = x            # 实例属性
+            self.y = y
+        def draw(self):
+            print(f"Point({self.x}, {self.y})")
+
+    p1 = Point(1, 2)
+    p2 = Point(3, 4)
+    print(Point.default_color, p1.default_color)  # red red
+
+    Point.default_color = "yellow"
+    print(p1.default_color, p2.default_color)     # yellow yellow
+    ```
+
+4. 类方法与工厂方法（`@classmethod`）
+
+    - 当无需现有对象即可完成的逻辑（如标准化地创建对象）可用类方法。
+    - `cls`是`class`的简写
+
+    ```python
+    class Point:
+        def __init__(self, x, y):
+            self.x, self.y = x, y
+
+        @classmethod
+        def zero(cls):          # 工厂方法，返回“原点”
+            return cls(0, 0)
+
+    p0 = Point.zero()
+    ```
+
+5. Magic 方法
+
+    - https://rszalski.github.io/magicmethods/
+    - 对象创建后，具备很多继承而来的方法（Magic 方法），如`__str__`，这些方法可以按需取进行重写
+    - 对象打印
+        ```python
+        class Point:
+            def __init__(self, x, y):
+                self.x = x
+                self.y = y
+            # 重写 __str__ 方法，定义打印对象时的字符串表示
+            def __str__(self):
+                return f"({self.x}, {self.y})"
+        point = Point(1, 2)
+        print(point)  # (1, 2)
+        ```
+    - 对象比较
+        - 不同的对象源自不同的引用，默认情况下，即便两个对象属性和值相同，这两个对象也不想等
+        - 可以通过自定义方法来判断两个对象的大小，如（Magic 方法）有`__eq__`和`__gt__`
+            ```python
+            class Point:
+                def __init__(self, x, y):
+                    self.x = x
+                    self.y = y
+                def __eq__(self, other):
+                    if isinstance(other, Point):
+                        return self.x == other.x and self.y == other.y
+                    return False
+                def __gt__(self, other):
+                    if isinstance(other, Point):
+                        return self.x > other.x and self.y > other.y
+                    return NotImplemented
+            p1 = Point(1, 2)
+            p2 = Point(1, 2)
+            p3 = Point(2, 3)
+            print(p1 == p2)  # True
+            print(p3 > p1)  # True
+            ```
+    - 对象相加
+        ```python
+        class Point:
+            def __init__(self, x, y):
+                self.x = x
+                self.y = y
+            def __add__(self, other):
+                return Point(self.x + other.x, self.y + other.y)
+        p1 = Point(1, 2)
+        p2 = Point(3, 4)
+        p3 = p1 + p2
+        print(p3.x, p3.y)  # Output: 4 6
+        ```
+
+6. 自定义容器（示例）
+
+    ```python
+    class TagCloud:
+        def __init__(self):
+            self.tags = {}  # “私有”字段（会重写为 _TagCloud__tags）
+        # 定义添加标签的方法
+        def add(self, tag):
+            tag = tag.lower()
+            self.tags[tag] = self.tags.get(tag, 0) + 1
+        # 重写magic方法，实现索引访问
+        def __getitem__(self, tag):
+            return self.tags.get(tag.lower(), 0)
+        # 重写magic方法，实现索引赋值
+        def __setitem__(self, tag, count):
+            self.tags[tag.lower()] = count
+        # 重写magic方法，实现len()函数
+        def __len__(self):
+            return len(self.tags)
+        # 重写magic方法，实现迭代
+        def __iter__(self):
+            return iter(self.tags)
+
+    c = TagCloud()
+    c.add("Python")
+    c.add("PYTHON")
+    print(c.tags)  # {'python': 2}
+    print(c["python"])  # 2
+    c["python"] = 10
+    print(c["python"])  # 10
+    print(len(c))  # 1
+    ```
+
+7. 封装与“私有”成员（名称改写）
+
+    - 以 `__name` 前缀可触发名称改写（name mangling），用于避免外部/子类误触：
+    - 注意这不是“安全机制”，而是约定与防误用；仍可经 `_ClassName__attr` 访问。
+
+    ```python
+    class TagCloud:
+        def __init__(self):
+            self.__tags = {}            # “私有”字段（会重写为 _TagCloud__tags）
+        def add(self, tag):
+            tag = tag.lower()
+            self.__tags[tag] = self.__tags.get(tag, 0) + 1
+    c = TagCloud()
+    c.add("Python"); c.add("PYTHON")
+    # print(c.__tags)         # AttributeError
+    print(c.__dict__)         # {'_TagCloud__tags': {'python': 2}}
+    ```
+
+8. 属性管理：`@property`（优雅的 getter/setter 与校验）
+
+    - 原始方式（仍可访问`get_price`方法和`set_price`）
+    - property 的作用是把 price 变成一个“受管属性”（property/描述符）。外部用 `p.price` 访问时，实际上会调用 `get_price()`；用 `p.price = x` 赋值时，实际上会调用 `set_price(x)`，从而触发你在 `setter` 里写的校验逻辑（禁止负数）。
+
+        ```python
+        class Product:
+          def __init__(self, price):
+              self.__price = price
+
+          def get_price(self):
+              return self.__price
+
+          def set_price(self, price):
+              if price < 0:
+                  raise ValueError("Price cannot be negative")
+              self.__price = price
+
+          price = property(get_price, set_price)
+
+        product = Product(100)
+        print(product.price)  # Output: 100
+        product.price = 150
+        print(product.price)  # Output: 150
+        ```
+
+    - 用属性包装字段，实现读写拦截与校验，外部用法依旧像访问字段，并隐藏具体方法
+
+        ```python
+        class Product:
+        	def __init__(self, price):
+        		self.price = price  # 走 property 的 setter
+
+        	@property
+        	def price(self):
+        		return self.__price
+
+        	@price.setter
+        	def price(self, value):
+        		if value < 0:
+        			raise ValueError("price 不能为负数")
+        		self.__price = value
+
+
+        product = Product(100)
+        print(product.price)  # Output: 100
+        product.price = 150
+        print(product.price)  # Output: 150
+        ```
+
+9. 继承、方法重写与 `super()`
+
+    - 继承：子类复用父类的属性/方法；必要时重写（override）。
+    - 用 `super().__init__()`（或 `super().method()`）调用父类实现。
+    - 子类生成的实例，使用`isinstance`方法判断，既是子类，也是父类，并且属于 object 类，这和其他语言相似，创建子类实例时，会依此调用父子的构造方法
+
+        ```python
+        class Animal:
+          def __init__(self):
+              self.age = 1
+
+          def eat(self):
+              print("Eat")
+
+        class Mammal(Animal):
+          def walk(self):
+              print("Walk")
+
+        class Fish(Animal):
+          def __init__(self):
+              super().__init__()
+              self.age = 2  # 重写 age 属性
+
+          def eat(self):
+              print("Fish Eat")  # 重写 eat 方法
+
+          def swim(self):
+              print("Swim")
+
+        m = Mammal()
+        m.eat()  # 从父类继承 eat
+        print(m.age)  # 从父类继承 age 属性
+        f = Fish()
+        f.eat()  # 调用重写的 eat 方法
+        print(f.age)  # 访问重写的 age 属性
+        ```
+
+10. 多级继承
+
+    - Python 支持多重继承，但如有相同方法，按顺序取第一个实现
+    - 合理用法：将共享且小而抽象的能力拆为 Mixin（如 `Flyer`、`Swimmer`），组合到具体类上。
+
+11. 抽象基类（ABC）：强制接口、禁止直接实例化
+
+    - 用 `abc.ABC` 与 `@abstractmethod` 定义**抽象类**与**强制实现的方法**。
+    - 典型示例：统一“流”的接口（文件/网络/内存）。
+
+    ```python
+    from abc import ABC, abstractmethod
+
+
+    class InvalidOperationError(Exception):
+        pass
+
+
+    class Stream(ABC):
+        def __init__(self):
+            self.opened = False
+
+        def open(self):
+            if self.opened:
+                raise InvalidOperationError("stream 已打开")
+            self.opened = True
+
+        def close(self):
+            if not self.opened:
+                raise InvalidOperationError("stream 已关闭")
+            self.opened = False
+
+        @abstractmethod
+        def read(self): ...  # 强制子类实现
+
+
+    class FileStream(Stream):
+        def read(self):
+            print("read from file")
+
+
+    class NetworkStream(Stream):
+        def read(self):
+            print("read from network")
+
+
+    # Stream()          # TypeError：抽象类不可实例化，严格模式编译时提示
+    FileStream().read()
+    ```
+
+12. 多态与鸭子类型（Duck Typing）
+
+    - 多态：同一操作作用于不同对象，呈现不同效果。
+    - 在 Python 中，即使没有继承关系，只要对象实现了所需方法，也可被接收：
+
+    ```python
+    class TextBox:     def draw(self): print("TextBox")
+    class DropDown:    def draw(self): print("DropDown")
+
+    def draw_all(controls):      # 只假设每个元素都可 .draw()
+        for c in controls:
+            c.draw()
+
+    draw_all([TextBox(), DropDown()])
+    ```
+
+    - 使用 **ABC 做接口约束** 能在团队/大型项目中**统一约定**与**提前报错**；纯鸭子类型更灵活。
+
+13. 扩展内建类型（继承内建类）
+
+    ```python
+    class Text(str):
+        def duplicate(self):     # 在字符串上扩展新能力
+            return self + self
+
+    class TrackableList(list):
+        def append(self, obj):   # 扩展而非替换父类行为
+            print("append called")
+            super().append(obj)
+
+    print(Text("Python").duplicate())  # PythonPython
+    tl = TrackableList([1, 2]); tl.append(3)
+    ```
+
+14. 仅含数据的类：`namedtuple`（轻量数据结构）
+
+    - 如果“类只有数据、无行为”，可用 `collections.namedtuple`：自动生成等值比较等能力，且不可变。
+
+    ```python
+    from collections import namedtuple
+    Point = namedtuple("Point", ["x", "y"])
+
+    a = Point(x=1, y=2); b = Point(1, 2)
+    print(a == b)      # True（值相等）
+    # a.x = 3          # AttributeError：不可变
+    ```
+
+15. 继承 vs 组合（Composition）
+
+    - **DRY（不要重复自己）**：复用共享逻辑可选“继承或组合”。
+    - 一般建议：**优先组合**（把可复用能力封装进独立对象并注入），**继承层级 ≤ 2**，避免脆弱的深层结构。
+
+# Module
+
+1.  模块（module）
+
+    - 定义：任意一个以 `.py` 结尾的文件就是一个模块，内部可以放函数、类、变量以及可执行语句。
+    - 命名约定：与变量/函数一致，小写+下划线（如 `sales.py`、`calculate_tax`）。
+    - 拆分准则：同一模块中只放强相关的对象（函数/类/常量等），避免“大杂烩”。
+
+        ```python
+        # sales.py
+        def calculate_tax():
+          pass
+
+
+        def calculate_shipping():
+          pass
+        ```
+
+2.  两种导入方式与各自用法
+
+    - 选择性导入对象
+        ```python
+        from sales import calculate_tax, calculate_shipping
+        calculate_tax()
+        calculate_shipping()
+        ```
+    - 导入整个模块
+        ```python
+        import sales
+        sales.calculate_shipping()
+        ```
+    - 不要使用 `from sales import *`，会把模块内所有名称无选择地注入当前命名空间，极易产生命名覆盖与维护问题。
+    - 性能说明：不管导入一个对象还是整个模块，模块都会完整加载一次；差别只在当前命名空间可见的名字多少。
+
+3.  模块的加载与缓存（`__pycache__`）
+
+    - 第一次导入模块时，Python 会编译为字节码并缓存到 `__pycache__/module.cpython-XY.pyc`，用于下次更快加载。
+        - Mac 可能存放在系统目录下，使用命令`~/Library/Caches/com.apple.python/文件路径`可查找到
+    - 若源文件更新（修改时间更晚），Python 会自动重新编译。
+    - 注意：这只是加速加载，不影响程序运行时性能。
+
+4.  模块搜索路径：`sys.path`
+
+    - 导入时的查找顺序：当前目录 → 标准库目录 → site-packages（第三方库安装位置）等。
+
+    ```python
+    import sys
+    print(sys.path)  # 打印所有搜索目录
+    ```
+
+    - 一般不建议在代码中随意修改 `sys.path`；需要跨包导入请使用规范的包结构与绝对/相对导入。
+
+5.  包（package）与子包（sub-package）
+
+    - 包：包含 `__init__.py` 的目录（Python 3.3+ 中即使没有也可被视为“命名空间包”，但显式文件更清晰）。
+    - 作用：把多个相关模块按目录组织起来。
+    - 命名：同模块规则（小写+下划线）。
+    - 示例结构
+
+        ```
+        ecommerce/                    # 顶层包
+            __init__.py               # 包初始化代码（可为空）
+            shopping/                 # 子包
+                __init__.py
+                sales.py
+            customer/                 # 子包
+                __init__.py
+                contact.py
+        app.py                        # 程序入口
+        ```
+
+    - 导入示例
+
+        ```python
+        # 方式一：绝对导入
+        from ecommerce.shopping import sales
+        sales.calculate_tax()
+
+        # 方式二：从模块中选择性导入对象
+        from ecommerce.shopping.sales import calculate_shipping
+        calculate_shipping()
+        ```
+
+    - 需要内部引用时（如 sales 引用 contact），使用相对导入，可减少超长模块路径。
+
+        ```python
+        # 在 ecommerce/shopping/sales.py 中，导入兄弟包 ecommerce/customer/contact
+        from ..customer import contact   # .. 表示上一级包 ecommerce
+        ```
+
+    - 原则：能用绝对导入就用绝对导入；只有在路径过长或包重组频繁时，谨慎使用相对导入简化。
+
+6.  包的初始化与选择性暴露
+
+    - `__init__.py` 会在包首次导入时执行。可放：
+        - 轻量初始化逻辑（避免沉重副作用），使用 `print` 进行测试
+        - 包级常量、版本号
+    - 模块顶层的语句在首次导入时执行一次（之后从缓存读，不再重复执行）。
+    - 补充（谨慎使用）
+        - `__init__.py`可以辅助显式导出清单 `__all__`（控制 `from package import *` 时暴露的名称）
+            ```python
+            # ecommerce/__init__.py
+            __all__ = ["shopping", "customer"]  # * 导入时只暴露这两个子包
+            print("ecommerce initialized")      # 首次导入时输出一次
+            ```
+
+7.  模块内置属性与 `dir()`
+    - 使用 `dir()`能查看导入 Module 的属性
+    ```python
+    from ecommerce.shopping import sales
+    print(dir(sales))
+    # ['__builtins__', '__cached__', '__doc__', '__file__', '__loader__', '__name__', '__package__', '__spec__', 'calculate_shipping', 'calculate_tax']
+    ```
+    - 常见魔术属性：
+        - `__name__`：模块名（被当作脚本直接执行时为 `"__main__"`）
+        - `__package__`：所属包名
+        - `__file__`：模块文件路径
+    - 自检与调试：
+    ```python
+    from ecommerce.shopping import sales
+    print(sales.__name__)  # ecommerce.shopping.sales
+    print(sales.__package__)  # ecommerce.shopping
+    print(sales.__file__)  # /path/to/ecommerce/shopping/sales.py
+    ```
