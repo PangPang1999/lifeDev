@@ -1212,7 +1212,7 @@
             customer/                 # 子包
                 __init__.py
                 contact.py
-        app.py                        # 程序入口
+        index.py                        # 程序入口
         ```
 
     - 导入示例
@@ -1268,3 +1268,500 @@
     print(sales.__package__)  # ecommerce.shopping
     print(sales.__file__)  # /path/to/ecommerce/shopping/sales.py
     ```
+
+# Python 标准库
+
+1. 路径与 `pathlib.Path`
+
+    - 统一的面向对象路径操作，跨平台（POSIX/Windows）。
+
+        ```python
+        from pathlib import Path
+
+        Path("c:\\Program Files\\Microsoft")  # Windows路径
+        Path(r"c:\Program Files\Microsoft")  # Windows路径，使用原始字符串
+        p1 = Path("/usr/local/bin")  # 绝对路径
+        p2 = Path("ecommerce/__init__.py")  # 相对路径
+        p3 = Path.home() / "projects"  # 组合
+        ```
+
+    - 常用成员：
+
+        ```python
+        p3.is_file()  # 是否文件
+        p3.exists()  # 是否存在
+        p3.is_dir()  # 是否目录
+        p3.name  # 文件名  "__init__.py"
+        p3.stem  # 主名    "__init__"
+        p3.suffix  # 扩展名  ".py"
+        p3.parent  # 父目录  "ecommerce"
+        p3.with_name("file.txt")  # 同目录改名
+        p3.with_suffix(".txt")  # 改扩展名
+        p3.resolve()  # 绝对路径
+        ```
+
+2. 目录操作
+
+    - 创建 / 删除 / 重命名：`mkdir()`、`rmdir()`、`rename()`。
+    - 列举内容：
+
+        - `path.iterdir()`：生成器对象，得到所有文件夹和目录，缺点是无法按格式搜索，并且不连续
+        - `path.glob("*.py")`：可按特点格式拿到文件
+        - `path.rglob("*.py")`：递归拿到所有
+
+        ```python
+        from pathlib import Path
+
+        p1 = Path("ecommerce")
+
+        # p1.exists() # 确定路径是否存在
+        # p1.mkdir() # 创建目录
+        # p1.rmdir() # 删除目录
+        # p1.rename("ecommerce2") # 重命名目录
+
+        print(p1.iterdir())  # 得到一个生成器，包含目录中的所有文件和文件夹
+        paths = [p for p in p1.iterdir() if p.is_dir()]  # 只获取目录(忽略了文件)
+        print(paths)  # 一系列PosixPath对象（Mac），Windows为WindowsPath对象
+
+        p1.glob("*")  # 获取所有文件和文件夹
+        p1.glob("*.py")  # 获取所有.py文件
+        p1.glob("/**/*.py")  # 获取所有子目录下的.py
+        p1.rglob("*.py")  # 获取所有子目录下的.py
+        print(list(p1.rglob("*.py")))  # 输出
+        ```
+
+3. 文件操作
+
+    - 相较于 open 方法，读取操作更适合使用`Path("data.txt").read_text()`
+    - 相较于 Path，复制更适合使用 shutil
+    - 基本信息与读写：
+
+        ```python
+        from pathlib import Path
+
+        f1 = Path("ecommerce/__init__.py")
+
+        # f1.exists()  # 判断文件是否存在
+        # f1.rename("init.txt")  # 重命名文件
+        # f1.unlink()  # 删除文件
+
+        print(f1.stat())  # 获取文件信息
+        print(f1.stat().st_ctime)  # 获取文件创建时间
+
+        print(f1.read_bytes)  # 读取二进制文件内容
+        print(f1.read_text())  # 读取文本文件内容
+        ```
+
+    - 复制/移动：优先用 `shutil`：
+
+        ```python
+        from pathlib import Path
+        import shutil
+        from shutil import copyfile
+
+        # Path方式复制文件
+        source = Path("ecommerce/__init__.py")
+        target = Path() / "__init__.py"
+        target.write_text(source.read_text())
+
+        # shutil方式复制文件，复制文件内容，同时也会复制文件的权限位（mode bits）。
+        shutil.copy("ecommerce/__init__.py", "__init__.py")
+        # 或者，只复制文件内容，不会复制权限、时间戳等元数据。
+        copyfile("ecommerce/__init__.py", "__init__.py")
+        ```
+
+4. ZIP 文件
+
+    - 压缩与解压：
+
+        ```python
+        from pathlib import Path
+        from zipfile import ZipFile
+
+        # with ZipFile("files.zip", "w") as zip:
+        #     # 将ecommerce目录下的所有文件添加到zip文件中
+        #     for file in Path("ecommerce").rglob("*.*"):
+        #         zip.write(file)
+
+        with ZipFile("files.zip") as zip:
+          print(zip.namelist())  # 将zip文件中的所有文件路径列出来
+          info = zip.getinfo("ecommerce/__init__.py")  # 获取某个文件的信息（根据上一条信息）
+          print(info.file_size)  # 文件大小
+          print(info.compress_size)  # 压缩后的文件大小
+          zip.extractall("extract")  # 解压所有文件到指定目录
+        ```
+
+5. CSV 文件
+
+    - 写入与读取：
+
+        ```python
+        import csv
+
+        # 写入CSV文件
+        # with open("data.csv", "w") as file:
+        #     writer = csv.writer(file)
+        #     writer.writerow(["transaction_id", "product_id", "quantity", "price"])
+        #     writer.writerow([1, 101, 2, 19.99])
+        #     writer.writerow([2, 102, 1, 9.99])
+        #     writer.writerow([3, 103, 5, 4.99])
+
+        # 读取CSV文件
+        with open("data.csv", "r") as file:
+          reader = csv.reader(file)
+          # print(list(reader))  # 读取所有行并打印
+          # 逐行读取并打印
+          for row in reader:
+              print(row)
+        ```
+
+6. JSON 文件
+
+    - 序列化：
+
+        ```python
+        import json
+        from pathlib import Path
+
+        movies = [
+          {"id": 1, "title": "Terminator", "year": 1989},
+          {"id": 2, "title": "Kingdergarten Cop", "year": 1993},
+        ]
+
+        # 将 Python 对象转换为 JSON 字符串
+        data = json.dumps(movies)
+        print(data)
+        # 将 JSON 字符串写入文件
+        Path(
+          "movies.json",
+        ).write_text(data)
+        ```
+
+    - 反序列化
+
+        ```python
+        import json
+        from pathlib import Path
+
+        # 从文件中读取 JSON 字符串
+        data = Path("movies.json").read_text()
+        # 将 JSON 字符串转换回 Python 对象
+        movies = json.loads(data)
+        # 打印第一个电影的标题
+        print(movies[0]["title"])
+        ```
+
+7. SQLite 数据库
+
+    - 类型：轻量级、嵌入式关系型数据库。
+    - 特点：
+
+        - 文件型：整个数据库就是一个单独的文件（.db 或 .sqlite3）。
+        - 零配置：不需要安装独立的数据库服务端（不像 MySQL / PostgreSQL 要启动服务）。
+        - 跨平台：支持 Windows、macOS、Linux，甚至手机、浏览器、IoT 设备。
+        - 体积小：核心库只有几百 KB，常用于移动端和小型应用。
+
+    - 写入操作
+
+        ````python
+        import sqlite3
+        import json
+        from pathlib import Path
+
+        movies = json.loads(Path("movies.json").read_text())
+        # "db.sqlite" 是要打开的 SQLite 数据库文件名。因为是相对路径，它指向与当前脚本（或工作目录）同一位置下的名为 db.sqlite 的文件；如果文件不存在，sqlite3 会在那个路径上创建一个新的数据库文件。
+        with sqlite3.connect("db.sqlite") as conn:
+            # 创建命令，也可在可视化工具中创建
+            command = """
+            CREATE TABLE IF NOT EXISTS movies (
+                id INTEGER,
+                title TEXT NOT NULL,
+                year INTEGER NOT NULL,
+                PRIMARY KEY(id)
+            );
+            """
+            # 执行命令
+            conn.execute(command)
+
+            # 插入数据
+            command2 = "INSERT INTO movies (id, title, year) VALUES (?, ?, ?);"
+            for movie in movies:
+                conn.execute(command2, (movie["id"], movie["title"], movie["year"]))
+            # 提交，如果不提交，数据不会保存
+            conn.commit()
+        	```
+        ````
+
+    - 读取操作
+
+        ```python
+        import sqlite3
+        import json
+        from pathlib import Path
+
+        movies = json.loads(Path("movies.json").read_text())
+        with sqlite3.connect("db.sqlite") as conn:
+            command = "SELECT * FROM movies"
+            # cursor是一个迭代器
+            cursor = conn.execute(command)
+            # 该操作会使用迭代器的方式逐行获取数据
+            # for row in cursor:
+            #     print(row)
+            movies = cursor.fetchall()
+            print(movies)
+        ```
+
+8. 时间戳：`time`
+
+    - 性能计时与耗时统计，此外还可以使用`timeit`
+
+        ```python
+        import time
+
+
+        def send_email():
+          for i in range(1000000):
+              pass  # Simulate sending an email
+
+
+        start = time.time()
+        send_email()
+        end = time.time()
+        print(f"Time taken to send emails: {end - start} seconds")
+        ```
+
+9. 日期时间：`datetime`
+
+    - 创建、解析、格式化与比较：
+
+        ```python
+        from datetime import datetime
+        import time
+
+        dt = datetime(1999, 9, 2)
+        print(dt)  # 1999-09-02 00:00:00
+
+        dt2 = datetime.now()
+        print(dt2)  # 当前时间 2025-09-26 15:13:37.224757
+        # 按原样的格式解析字符串
+        dt3 = datetime.strptime("2000-01-01", "%Y-%m-%d")
+        dt3 = datetime.strptime("2000/01/01", "%Y/%m/%d")
+        # 解析时间戳
+        dt4 = datetime.fromtimestamp(time.time())
+        print(f"{dt4.year}/{dt4.month}")  # 2025/9
+        # 格式化时间
+        print(dt4.strftime("%Y/%m"))  # 2025/09
+
+        # 比较时间
+        print(dt2 > dt)  # True
+        ```
+
+10. 时间间隔：`timedelta`
+
+    - 表示“持续时间”，支持加减运算：
+
+        ```python
+        from datetime import datetime, timedelta
+
+        dt1 = datetime(1999, 9, 2)
+        d2 = datetime.now()
+
+        duration = d2 - dt1
+        print("duration:", duration)
+        print("days:", duration.days)
+        print("seconds:", duration.seconds)  # 只包含这段时间里“当天的剩余秒数”
+        print(duration.total_seconds())  # 从做差那个时间点到现在的总秒数
+
+        dt3 = datetime(1999, 9, 2)
+        print("dt3:", dt3)
+        dt4 = dt3 + timedelta(days=2, hours=12)
+        print("dt4:", dt4)
+        ```
+
+11. 随机数：`random` 与 `string`
+
+    - 取样、密码生成、洗牌：
+
+        ```python
+        import random, string
+
+        print(string.ascii_letters)  # 所有字母
+        print(string.ascii_lowercase)  # 小写字母
+        print(string.ascii_uppercase)  # 大写字母
+        print(string.digits)  # 数字
+
+        print(random.random())  # 0.0 ~ 1.0之间的随机小数
+        print(random.randint(1, 6))  # 1 ~ 6之间的随机整数
+        print(random.choice([1, 2, 3]))  # 从序列中随机选取一个元素
+        print(random.choices([1, 2, 3, 4], k=2))  # 从序列中随机选取k个元素，允许重复
+        print(random.sample([1, 2, 3, 4], k=2))  # 从序列中随机选取k个元素，不允许重复
+
+        # 生成6位随机验证码，""为连接符
+        print("".join(random.choices(string.ascii_letters + string.digits, k=6)))
+
+        numbers = [1, 2, 3, 4, 5]
+        random.shuffle(numbers)  # 打乱列表顺序
+        print(numbers)
+        ```
+
+12. 打开浏览器：`webbrowser`
+
+    - 简单自动化场景（如部署完成后打开站点）：
+
+        ```python
+        import webbrowser
+        webbrowser.open("https://www.google.com")
+        ```
+
+13. 发送邮件：`email` + `smtplib`
+
+    - 组装 MIME 消息并通过 SMTP 发送（示例为明文；真实环境应使用安全凭据与应用专用密码）。
+
+        ```python
+        import smtplib
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.text import MIMEText
+        from email.mime.image import MIMEImage
+        from pathlib import Path
+
+        msg = MIMEMultipart()
+        msg["From"] = "sender@example.com"
+        msg["To"] = "ppp_melody@163.com"
+        msg["Subject"] = "This is a test email"
+
+        msg.attach(MIMEText("Body"))
+        msg.attach(MIMEImage(Path("test.png").read_bytes()))
+
+
+        with smtplib.SMTP(host="smtp.gmail.com", port=587) as smtp:
+          smtp.ehlo()
+          smtp.starttls()
+          smtp.login("user@gmail.com", "app_password")
+          smtp.send_message(msg)
+          print("Email sent successfully")
+        ```
+
+14. 模板：`string.Template`
+
+    - 示例模版
+
+        ```html
+        <!DOCTYPE html>
+        <html lang="en">
+        	<head> </head>
+        	<body>
+        		Hi $name, this is our test email
+        	</body>
+        </html>
+        ```
+
+    - 将邮件/文本从代码中解耦，支持占位符替换：
+
+        ```python
+        import smtplib
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.text import MIMEText
+        from email.mime.image import MIMEImage
+        from pathlib import Path
+
+        from string import Template
+
+        # 读取模版
+        template = Template(Path("template.html").read_text())
+
+        msg = MIMEMultipart()
+        msg["From"] = "sender@example.com"
+        msg["To"] = "ppp_melody@163.com"
+        msg["Subject"] = "This is a test email"
+
+        # 两种方式替换值
+        # body = template.substitute({"name": "John"})
+        body = template.substitute(name="John")
+        # 使用模版替换
+        msg.attach(MIMEText(body, "html"))
+        msg.attach(MIMEImage(Path("test.png").read_bytes()))
+
+
+        with smtplib.SMTP(host="smtp.gmail.com", port=587) as smtp:
+          smtp.ehlo()
+          smtp.starttls()
+          smtp.login("user@gmail.com", "app_password")
+          smtp.send_message(msg)
+          print("Email sent successfully")
+        ```
+
+15. 命令行参数：`sys.argv`
+
+    - 基本参数解析（实际项目建议用 `argparse`）：
+
+        ```python
+        import sys
+
+        # 命令行执行 python3 index.py 1234
+        # 输出 ['index.py', '1234']
+        print(sys.argv)
+        ```
+
+    - 使用示例
+
+        ```python
+        import sys
+
+        if len(sys.argv) == 1:
+          print("Usage: python app.py <password>")
+        else:
+          password = sys.argv[1]
+          print("password:", password)
+        ```
+
+16. 运行外部程序：`subprocess.run`
+
+    - 调用系统命令，捕获输出与错误
+
+        ```python
+        import subprocess
+
+        # 运行命令，并返回一个CompletedProcess实例，`ls -l`内容在控制台输出
+        completed = subprocess.run(["ls", "-l"])
+
+        # 返回命令行参数的列表形式
+        print("args", completed.args)  # args ['ls', '-l']
+        # 默认返回码为0（成功），其他返回码表示错误
+        print("returncode", completed.returncode)  # returncode 0
+        # 返回错误信息
+        print("stderr", completed.stderr)  # stderr None
+
+        # 返回标准输出信息，设置capture_output=True时可用，会将输出在控制台的信息保存到stdout中
+        print("stdout", completed.stdout)  # stdout None
+        ```
+
+    - 调用系统命令，并捕获输出
+
+        ```python
+        import subprocess
+
+        # `ls -l`命令的输出被捕获到stdout中
+        # 设置text=True，使输出以字符串形式返回，而不是字节
+        completed = subprocess.run(["ls", "-l"], capture_output=True, text=True)
+
+        print("args", completed.args)  # args ['ls', '-l']
+        print("returncode", completed.returncode)  # returncode 0
+        # 不加 text=True 时，subprocess.run 默认把 stdout/stderr 当作字节串返回，所以你看到的是 b''——一个空的 bytes 对象，表示命令没有产生任何标准错误输出
+        # 如果加了 text=True(或 universal_newlines=True)，返回值就会被解码成普通字符串，内容仍然是空字符串 ''。
+        print("stderr", completed.stderr)
+        print("stdout", completed.stdout)
+        ```
+
+    - 运行其他脚本
+
+        ```python
+        import subprocess
+
+        # 运行其他脚本 other.py（同级目录下）
+        completed = subprocess.run(["python3", "other.py"], capture_output=True, text=True)
+
+        print("args", completed.args)  # args ['ls', '-l']
+        print("returncode", completed.returncode)  # returncode 0
+        print("stderr", completed.stderr)
+        print("stdout", completed.stdout)
+        ```
