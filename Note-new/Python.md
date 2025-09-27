@@ -1765,3 +1765,218 @@
         print("stderr", completed.stderr)
         print("stdout", completed.stdout)
         ```
+
+    - 异常捕获
+
+        ```python
+        import subprocess
+
+        # false 为 macos 自带的命令，stderr 为标准错误输出
+        # check=True 表示如果命令执行失败，则抛出异常，异常为 subprocess.CalledProcessError
+        try:
+            completed = subprocess.run(["false"], capture_output=True, text=True, check=True)
+
+            print("args", completed.args)  # args ['ls', '-l']
+            print("returncode", completed.returncode)  # returncode 0
+            print("stderr", completed.stderr)
+            print("stdout", completed.stdout)
+        except subprocess.CalledProcessError as e:
+            print("命令执行失败", e)
+        ```
+
+# 包管理与发布
+
+1. 虚拟环境（venv）
+
+    1. 说明
+        - 新版 Python 建议不同的项目使用不同的虚拟环境，避免依赖冲突。使用`venv`模块创建虚拟环境。
+    2. 创建虚拟环境
+        - `python3 -m venv .venv`
+            - `-m`: 让 Python 运行一个 模块（module），而不是运行一个脚本。
+            - `venv`: Python 自带的虚拟环境模块。它的作用就是创建一个隔离的 Python 环境，里面有独立的 python 和 pip，不会污染系统环境。
+            - `.venv`: 虚拟环境文件夹名称，可以自定义。
+    3. 环境位置
+        - 一般存放在项目根目录下，与项目文件同级。并使用`gitignore`忽略。
+    4. 激活虚拟环境
+        - Linux/Mac: `source .venv/bin/activate`
+    5. 退出虚拟环境
+        - `deactivate`
+    6. 补充
+        - Mac 建议使用 brew 安装新版 python，使用`brew install python`。
+        - 通过在系统文件中添加`export PATH="/opt/homebrew/bin:$PATH"`，取保使用 brew 安装的 python。
+
+2. PyPI
+
+    - Python Package Index（pypi.org）：社区维护的第三方包仓库，类似 JavaScript 生态的 npm。
+    - 使用方式：按需检索关键字（如 pdf），优先选择维护活跃、文档完善、版本健康的包。
+    - https://pypi.org/
+
+3. pip
+
+    - Python 2 vs Python 3
+
+        - 早些年，很多系统同时预装了 Python 2 和 Python 3。
+        - pip → 默认绑定 Python 2 的 pip
+        - pip3 → 专门绑定 Python 3 的 pip
+        - 所以在 Ubuntu、macOS 等系统里，为了避免混淆，才有 pip3 这个命令。
+        - Python 2 已经在 2020 年停止维护，现在绝大多数环境只用 Python 3。
+
+    - 安装/卸载/升级/查看版本与依赖。
+        - 语义化版本：主版本.次版本.补丁。
+        - 版本约束常用符号：`==` 精确版本，`~=x.y` 兼容小版本，`>=`、`<=` 上下限。
+    - 操作示例
+
+        ```bash
+        pip3 install requests # 安装request
+        pip3 uninstall requests # 卸载request，需要手动确认
+        pip3 uninstall requests -y # 自动确认卸载
+        pip3 list # 查看已安装包
+        pip3 install requests==2.28.0 # 安装指定版本
+        pip3 install requests==2.28.\* # 安装指定版本的最新补丁，\为通配符兼容新版zsh
+        pip3 install requests~=2.28.0   # 安装指定版本的最新补丁，与上例等价
+        pip3 install requests==2.\* # 安装指定大版本的最新次版本
+        ```
+
+    - 使用安装的 requests
+
+    ```python
+    import requests
+
+    response = requests.get("https://www.google.com")
+    print(response)
+    ```
+
+4. Pipenv
+
+    - 统一管理虚拟环境与依赖，自动生成 `Pipfile` 与 `Pipfile.lock`。
+    - 使用 Pipenv 便不再需要使用`.venv`文件夹，删除
+    - 操作指南
+
+        ```bash
+        brew install pipenv # 使用 brew 安装（Mac）
+        pipenv install requests # 使用 pipenv 安装 requests，会自动生成Pipfile和Pipfile.lock
+        pipenv shell          # 进入虚拟环境
+        python3 index.py     # 在虚拟环境中运行 index.py
+        pipenv --venv               # 查看虚拟环境路径
+        exit                        # 退出虚拟环境
+        pipenv uninstall requests # 卸载 requests，会自动更新 Pipfile 和 Pipfile.lock
+        ```
+
+    - 配置 VS Code 与 Code Runner
+
+        1. 最下方选择 python 解释器，选择虚拟环境中的 python 解释器。
+        2. VS Code 中打开 配置文件，进入 settings.json
+        3. 在 settings.json 里加一条配置：`"code-runner.executorMap": {"python": "pipenv run python"}`
+
+    - Pipfile 与 Pipfile.lock
+
+        - Pipfile：声明依赖与 Python 版本（含 `packages`、`dev-packages`）。
+        - Pipfile.lock：记录依赖的“精确版本树”，用于可重复安装。
+        - 迁移到新机器的流程：拷贝源码与这两个文件 → `pipenv install --ignore-pipfile`。
+
+    - 复现环境，注意，不需要进去虚拟环境再装依赖
+
+        ```bash
+        pipenv --venv # 查看虚拟环境路径，/Users/quartz/.local/share/virtualenvs/hello-l9Pu8RxL
+        rm -rf /Users/quartz/.local/share/virtualenvs/hello-l9Pu8RxL # 删除虚拟环境
+        pipenv --venv # No virtualenv has been created for this project/Users/quartz/Desktop/hello yet!Aborted!
+        pipenv install # 重新安装虚拟环境中的依赖
+        pipenv --venv # /Users/quartz/.local/share/virtualenvs/hello-l9Pu8RxL
+        pipenv install --ignore-pipfile # 使用 Pipfile.lock 中的依赖安装，不使用 Pipfile 中的依赖
+        ```
+
+    - 要用这些依赖时，可以：
+        1. 进入虚拟环境：`pipenv shell
+        2. 不进入也能跑（用 pipenv 包装）：`pipenv run python index.py`
+
+5. 依赖管理常用命令
+
+    - 1. shell
+
+        ```bash
+        pipenv graph                 # 依赖树
+        pipenv install requests==2.28  # 临时安装过时依赖
+        pipenv update --outdated     # 查看过时依赖
+        pipenv update                # 全量升级（需要修改 Pipfile）
+        pipenv update requests       # 单包升级
+        ```
+
+6. 发布自己的包到 PyPI（示例）
+
+    - 首先创建账号：https://pypi.org/
+    - 安装依赖：`pip3 install setuptools wheel twine`
+    - 下载 LICENSE：https://choosealicense.com/
+
+    - 目录结构（最小必要项）：
+        ```
+        yourpkg/
+          yoursubpkg/                  # 顶层包目录（含 __init__.py）
+            __init__.py
+            module_a.py
+          README.md
+          LICENSE
+          setup.py
+        ```
+    - `yourpkg/setup.py`
+
+        ```python
+         import setuptools
+         from pathlib import Path
+
+         setuptools.setup(
+             name="pangpdf",
+             version="0.1.0",
+             long_description=Path("README.md").read_text(encoding="utf-8"),
+             long_description_content_type="text/markdown",
+             packages=setuptools.find_packages(exclude=["tests", "data"]),
+         )
+        ```
+
+    - 生成包并发布到 PyPI
+
+        ```bash
+        python3 setup.py sdist bdist_wheel
+        twine upload dist/*           # 需要已注册的 PyPI 账户
+        ```
+
+    - 发布后即可 `pip install yourpkg`。
+
+7. 文档字符串（Docstrings）
+
+    - 用于向 IDE/工具暴露 API 用法说明；写在模块、类、函数定义之后的三引号字符串。
+    - 约定：第一行简述；空行；补充说明；参数与返回值说明。
+    - 1. yourpkg/module_a.py
+
+        ```python
+        """文本处理工具。"""
+
+        def convert(path: str) -> str:
+            """
+            将给定 PDF 文件转换为文本。
+
+            参数:
+                path (str): PDF 文件路径。
+
+            返回:
+                str: 提取出的纯文本内容。
+            """
+            ...
+        ```
+
+8. pydoc
+
+    - 查看标准库或自定义模块文档的工具；支持生成 HTML/本地文档服务。
+    - 1. shell
+
+        ```bash
+        # 终端查看
+        pydoc math
+        pydoc yourpkg.module_a
+
+        # 生成 HTML
+        pydoc -w yourpkg.module_a     # 生成 yourpkg.module_a.html
+
+        # 启动本地文档服务（默认 7464 端口）
+        pydoc -p 7464
+        # 浏览器访问 http://localhost:7464
+        ```
